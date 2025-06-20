@@ -54,8 +54,9 @@ export const editarDatos = async (req, res) => {
 };
 
 export const eliminarDatos = async (req, res) => {
+  const { id } = req.params;
+  
   try {
-    const { id } = req.params;
     const pool = await getConnection();
     await pool
       .request()

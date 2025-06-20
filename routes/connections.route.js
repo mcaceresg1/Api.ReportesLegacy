@@ -8,6 +8,7 @@ import {
 import { verificarToken } from "../middleware/verificarToken.js";
 import { verificarRol } from "../middleware/verificarRol.js";
 import {
+  eliminarUsuarios,
   loginUsuario,
   obtenerUsuarios,
   registrarUsuario,
@@ -30,5 +31,7 @@ router.post(
 );
 router.post("/login", loginUsuario);
 router.get("/usuarios", obtenerUsuarios);
+router.delete("/usuarios/:id", eliminarUsuarios);
+// router.put("/usuarios", editarUsuarios);
 
 export default router;

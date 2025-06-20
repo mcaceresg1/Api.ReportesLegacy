@@ -21,8 +21,8 @@ export const registrarUsuario = async (req, res) => {
       );
 
     res.json({ message: "Usuario registrado exitosamente" });
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error(error);
   }
 };
 
@@ -71,5 +71,45 @@ export const obtenerUsuarios = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error al obtener los usuarios" });
+  }
+};
+
+/*export const editarUsuarios = async (req, res) => {
+  const { username, password, email } = req.body;
+
+  try {
+    const pool = await getConnection();
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    await pool
+      .request()
+      .input("username", username)
+      .input("password", password)
+      .input("email", email)
+      .query(
+        "UPDATE Usuarios SET username = @username, password = @password, email = @email"
+      );
+
+    res.json({ message: "Usuario actualizado exitosamente" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Hubo un error al actualizar el usuario" });
+  }
+};*/
+
+export const eliminarUsuarios = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const pool = await getConnection();
+    await pool
+      .request()
+      .input("id", id)
+      .query("DELETE FROM Usuarios WHERE id = @id");
+    res.json({ message: "Usuario eliminado exitosamente" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Hubo un error al eliminar el usuario" });
   }
 };
