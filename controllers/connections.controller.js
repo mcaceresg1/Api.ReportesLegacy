@@ -1,5 +1,3 @@
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import { getConnection } from "../config/db.js";
 
 export const obtenerDatos = async (req, res) => {
@@ -7,77 +5,64 @@ export const obtenerDatos = async (req, res) => {
     const pool = await getConnection();
     const result = await pool.request().query("SELECT * FROM ConexionSQL");
 
-    result.recordset.forEach(
-      ({ usernameDB, passwordDB, nameDB, nameServer }) => {
-        console.log(
-          `Server=${nameServer};Database=${nameDB};User Id=${usernameDB};Password=${passwordDB};`
-        );
-      }
-    );
-
     res.json({
       data: result.recordset,
     });
   } catch (error) {
-    console.error(err);
+    console.error(error);
   }
 };
 
-export const registrarUsuario = async (req, res) => {
-  const { username, password, email } = req.body;
-
+export const agregarDatos = async (req, res) => {
   try {
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
+    const { usernameDB, passwordDB, nameDB, nameServer, nameTable } = req.body;
     const pool = await getConnection();
     await pool
       .request()
-      .input("username", username)
-      .input("password", hashedPassword)
-      .input("email", email)
+      .input("usernameDB", usernameDB)
+      .input("passwordDB", passwordDB)
+      .input("nameDB", nameDB)
+      .input("nameServer", nameServer)
+      .input("nameTable", nameTable)
       .query(
-        "INSERT INTO Usuarios (username, password, email) VALUES (@username, @password, @email)"
+        "INSERT INTO ConexionSQL (usernameDB, passwordDB, nameDB, nameServer, nameTable) VALUES (@usernameDB, @passwordDB, @nameDB, @nameServer, @nameTable)"
       );
-
-    res.json({ message: "Usuario registrado exitosamente" });
-  } catch (err) {
-    console.error(err);
+    res.json({ message: "Datos guardados exitosamente" });
+  } catch (error) {
+    console.error(error);
   }
 };
 
-export const loginUsuario = async (req, res) => {
-  const { username, password } = req.body;
-
+export const editarDatos = async (req, res) => {
   try {
+    const { usernameDB, passwordDB, nameDB, nameServer, nameTable } = req.body;
     const pool = await getConnection();
-    const result = await pool
+    await pool
       .request()
-      .input("username", username)
-      .query("SELECT * FROM Usuarios WHERE username = @username");
-
-    if (result.recordset.length === 0) {
-      return res.status(400).json({ error: "Usuario no encontrado" });
-    }
-
-    const user = result.recordset[0];
-
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return res.status(400).json({ error: "Contraseña incorrecta" });
-    }
-
-    const token = jwt.sign({ userId: user.id }, "secretKey", {
-      expiresIn: "1h",
-    });
-
-    res.json({
-      message: "Login exitoso",
-      token: token,
-    });
+      .input("usernameDB", usernameDB)
+      .input("passwordDB", passwordDB)
+      .input("nameDB", nameDB)
+      .input("nameServer", nameServer)
+      .input("nameTable", nameTable)
+      .query(
+        "UPDATE ConexionSQL SET usernameDB = @usernameDB, passwordDB = @passwordDB, nameDB = @nameDB, nameServer = @nameServer, nameTable = @nameTable"
+      );
+    res.json({ message: "Datos actualizados exitosamente" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error al iniciar sesión" });
+  }
+};
+
+export const eliminarDatos = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const pool = await getConnection();
+    await pool
+      .request()
+      .input("id", id)
+      .query("DELETE FROM ConexionSQL WHERE id = @id");
+    res.json({ message: "Datos eliminados exitosamente" });
+  } catch (error) {
+    console.error(error);
   }
 };
