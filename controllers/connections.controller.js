@@ -5,9 +5,7 @@ export const obtenerDatos = async (req, res) => {
     const pool = await getConnection();
     const result = await pool.request().query("SELECT * FROM ConexionSQL");
 
-    res.json({
-      data: result.recordset,
-    });
+    res.json(result.recordset);
   } catch (error) {
     console.error(error);
   }
@@ -55,7 +53,7 @@ export const editarDatos = async (req, res) => {
 
 export const eliminarDatos = async (req, res) => {
   const { id } = req.params;
-  
+
   try {
     const pool = await getConnection();
     await pool
