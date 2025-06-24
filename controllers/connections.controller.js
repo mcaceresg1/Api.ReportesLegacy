@@ -13,7 +13,16 @@ export const obtenerDatos = async (req, res) => {
 
 export const agregarDatos = async (req, res) => {
   try {
-    const { usernameDB, passwordDB, nameDB, nameServer, nameTable } = req.body;
+    const {
+      usernameDB,
+      passwordDB,
+      nameDB,
+      nameServer,
+      nameTable,
+      codEmpresa,
+      desEmpresa,
+      sistema,
+    } = req.body;
     const pool = await getConnection();
     await pool
       .request()
@@ -22,8 +31,11 @@ export const agregarDatos = async (req, res) => {
       .input("nameDB", nameDB)
       .input("nameServer", nameServer)
       .input("nameTable", nameTable)
+      .input("codEmpresa", codEmpresa)
+      .input("desEmpresa", desEmpresa)
+      .input("sistema", sistema)
       .query(
-        "INSERT INTO ConexionSQL (usernameDB, passwordDB, nameDB, nameServer, nameTable) VALUES (@usernameDB, @passwordDB, @nameDB, @nameServer, @nameTable)"
+        "INSERT INTO ConexionSQL (usernameDB, passwordDB, nameDB, nameServer, nameTable, codEmpresa, desEmpresa, sistema) VALUES (@usernameDB, @passwordDB, @nameDB, @nameServer, @nameTable, @codEmpresa, @desEmpresa, @sistema)"
       );
     res.json({ message: "Datos guardados exitosamente" });
   } catch (error) {
@@ -33,7 +45,16 @@ export const agregarDatos = async (req, res) => {
 
 export const editarDatos = async (req, res) => {
   try {
-    const { usernameDB, passwordDB, nameDB, nameServer, nameTable } = req.body;
+    const {
+      usernameDB,
+      passwordDB,
+      nameDB,
+      nameServer,
+      nameTable,
+      codEmpresa,
+      desEmpresa,
+      sistema,
+    } = req.body;
     const pool = await getConnection();
     await pool
       .request()
@@ -42,8 +63,11 @@ export const editarDatos = async (req, res) => {
       .input("nameDB", nameDB)
       .input("nameServer", nameServer)
       .input("nameTable", nameTable)
+      .input("codEmpresa", codEmpresa)
+      .input("desEmpresa", desEmpresa)
+      .input("sistema", sistema)
       .query(
-        "UPDATE ConexionSQL SET usernameDB = @usernameDB, passwordDB = @passwordDB, nameDB = @nameDB, nameServer = @nameServer, nameTable = @nameTable"
+        "UPDATE ConexionSQL SET usernameDB = @usernameDB, passwordDB = @passwordDB, nameDB = @nameDB, nameServer = @nameServer, nameTable = @nameTable, codEmpresa = @codEmpresa, desEmpresa = @desEmpresa, sistema = @sistema"
       );
     res.json({ message: "Datos actualizados exitosamente" });
   } catch (error) {
