@@ -6,8 +6,10 @@ const dbSettings = {
   server: "localhost",
   database: "ConfiguracionesConexionDB",
   options: {
+    encrypt: true,
     trustServerCertificate: true,
   },
+  connectionTimeout: 30000,
 };
 
 export async function getConnection() {

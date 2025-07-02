@@ -11,6 +11,21 @@ export const obtenerDatos = async (req, res) => {
   }
 };
 
+export const obtenerDatosPorId = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("id", id)
+      .query("SELECT * FROM ConexionSQL WHERE id = @id");
+    res.json(result.recordset);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 export const agregarDatos = async (req, res) => {
   try {
     const {
@@ -54,8 +69,15 @@ export const editarDatos = async (req, res) => {
       codEmpresa,
       desEmpresa,
       sistema,
+      id,
     } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ message: "El campo 'id' es obligatorio." });
+    }
+
     const pool = await getConnection();
+
     await pool
       .request()
       .input("usernameDB", usernameDB)
@@ -66,9 +88,11 @@ export const editarDatos = async (req, res) => {
       .input("codEmpresa", codEmpresa)
       .input("desEmpresa", desEmpresa)
       .input("sistema", sistema)
+      .input("id", id)
       .query(
-        "UPDATE ConexionSQL SET usernameDB = @usernameDB, passwordDB = @passwordDB, nameDB = @nameDB, nameServer = @nameServer, nameTable = @nameTable, codEmpresa = @codEmpresa, desEmpresa = @desEmpresa, sistema = @sistema"
+        "UPDATE ConexionSQL SET usernameDB = @usernameDB, passwordDB = @passwordDB, nameDB = @nameDB, nameServer = @nameServer, nameTable = @nameTable, codEmpresa = @codEmpresa, desEmpresa = @desEmpresa, sistema = @sistema WHERE id = @id"
       );
+
     res.json({ message: "Datos actualizados exitosamente" });
   } catch (error) {
     console.error(error);
