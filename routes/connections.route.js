@@ -14,6 +14,13 @@ import {
   registrarUsuario,
 } from "../controllers/users.controller.js";
 
+import {
+  obtenerRoles,
+  registrarRol,
+  editarRol,
+  eliminarRol,
+} from "../controllers/roles.controller.js";
+
 const router = express.Router();
 
 //!Conexiones
@@ -33,5 +40,17 @@ router.post("/login", loginUsuario);
 router.get("/usuarios", obtenerUsuarios);
 router.delete("/usuarios/:id", eliminarUsuarios);
 // router.put("/usuarios", editarUsuarios);
+
+
+//!Roles
+router.post(
+  "/roles",
+  registrarRol
+);
+ router.get("/roles", obtenerRoles);
+ router.put("/roles", editarRol);
+ router.delete("/roles/:id", cambiarEstadoRol);
+
+
 
 export default router;
