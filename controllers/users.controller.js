@@ -26,40 +26,82 @@ export const registrarUsuario = async (req, res) => {
   }
 };
 
+// export const loginUsuario = async (req, res) => {
+//   const { username, password } = req.body;
+
+//   try {
+//     const pool = await getConnection();
+//     const result = await pool
+//       .request()
+//       .input("username", username)
+//       .query("SELECT * FROM Usuarios WHERE username = @username");
+
+//     if (result.recordset.length === 0) {
+//       return res.status(400).json({ error: "Usuario no encontrado" });
+//     }
+
+//     const user = result.recordset[0];
+
+//     const isMatch = await bcrypt.compare(password, user.password);
+
+//     if (!isMatch) {
+//       return res.status(400).json({ error: "Contraseña incorrecta" });
+//     }
+
+//     const token = jwt.sign({ userId: user.id, role: user.role }, "secretKey", {
+//       expiresIn: "1h",
+//     });
+
+//     res.json({
+//       message: "Login exitoso",
+//       token: token,
+//       role: user.role,
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: "Error al iniciar sesión" });
+//   }
+// };
+
+
 export const loginUsuario = async (req, res) => {
   const { username, password } = req.body;
 
   try {
+    // Ejecutamos el stored procedure y recogemos todos los menús del usuario
     const pool = await getConnection();
     const result = await pool
       .request()
-      .input("username", username)
-      .query("SELECT * FROM Usuarios WHERE username = @username");
+      .input('username', username)
+      .execute('sp_get_menu_x_usuario_logueado');
 
-    if (result.recordset.length === 0) {
-      return res.status(400).json({ error: "Usuario no encontrado" });
+    const data = result.recordset;
+    if (data.length === 0) {
+      return res.status(400).json({ error: 'Usuario no encontrado o sin acceso' });
     }
 
-    const user = result.recordset[0];
+    // Extraemos usuario_id y rol_id del primer menú (todos comparten esos valores)
+    const { usuario_id, rol_id } = data[0];
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    // Generamos el JWT (usa siempre una variable de entorno para la secret)
+    const token = jwt.sign(
+      { userId: usuario_id, roleId: rol_id },
+      process.env.JWT_SECRET || 'secretKey',
+      { expiresIn: '1h' }
+    );
 
-    if (!isMatch) {
-      return res.status(400).json({ error: "Contraseña incorrecta" });
-    }
-
-    const token = jwt.sign({ userId: user.id, role: user.role }, "secretKey", {
-      expiresIn: "1h",
+    // Enviamos toda la info necesaria al frontend
+    res.status(200).json({
+      message: 'Login exitoso',
+      token,
+      // usuario_id,
+      // rol_id,
+      data, // aquí el array completo con menu_id y menu
     });
 
-    res.json({
-      message: "Login exitoso",
-      token: token,
-      role: user.role,
-    });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error al iniciar sesión" });
+    res.status(500).json({ error: 'Error al iniciar sesión' });
   }
 };
 
