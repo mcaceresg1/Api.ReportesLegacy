@@ -8,8 +8,16 @@ import {
 } from "../controllers/connections.controller.js";
 import {
   agregarUsuario,
+  editarUsuario,
+  eliminarUsuario,
+  obtenerUsuarioPorId,
   obtenerUsuarios,
 } from "../controllers/users.controller.js";
+import {
+  agregarRol,
+  editarRol,
+  obtenerRoles,
+} from "../controllers/roles.controller.js";
 
 const router = express.Router();
 
@@ -29,14 +37,15 @@ router.get("/conexiones/:id", obtenerConexionPorId);
 // );
 // router.post("/login", loginUsuario);
 router.get("/usuarios", obtenerUsuarios);
+router.get("/usuarios/:id", obtenerUsuarioPorId);
 router.post("/usuarios/register", agregarUsuario);
-// router.delete("/usuarios/:id", eliminarUsuarios);
-// // router.put("/usuarios", editarUsuarios);
+router.put("/usuarios", editarUsuario);
+router.delete("/usuarios/:id", eliminarUsuario);
 
 // //!Roles
-// router.post("/roles", registrarRol);
-// router.get("/roles", obtenerRoles);
-// router.put("/roles", editarRol);
+router.post("/roles", agregarRol);
+router.get("/roles", obtenerRoles);
+router.put("/roles", editarRol);
 // router.delete("/roles/:id", cambiarEstadoRol);
 
 export default router;

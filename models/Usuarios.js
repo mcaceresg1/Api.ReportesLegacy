@@ -1,4 +1,4 @@
-import { DataTypes, Sequelize } from "sequelize";
+import { DataTypes } from "sequelize";
 import sequelize from "../config/db.js";
 
 const Usuarios = sequelize.define(
@@ -9,10 +9,12 @@ const Usuarios = sequelize.define(
       autoIncrement: true,
       primaryKey: true,
     },
+
     username: {
       type: DataTypes.STRING,
       allowNull: false,
     },
+
     password: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -26,6 +28,15 @@ const Usuarios = sequelize.define(
     estado: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
+    },
+
+    roleId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: "Roles",
+        key: "id",
+      },
     },
   },
   {
