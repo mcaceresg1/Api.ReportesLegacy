@@ -1,115 +1,69 @@
-import { getConnection } from "../config/db.js";
+import Conexiones from "../models/Conexiones.js";
 
-export const obtenerDatos = async (req, res) => {
+export const obtenerConexiones = async (req, res) => {
   try {
-    const pool = await getConnection();
-    const result = await pool.request().query("SELECT * FROM ConexionSQL");
-
-    res.json(result.recordset);
+    const datos = await Conexiones.findAll();
+    res.json(datos);
   } catch (error) {
     console.error(error);
+    res.status(500).json({ message: "Error al obtener las conexiones" });
   }
 };
 
-export const obtenerDatosPorId = async (req, res) => {
-  const { id } = req.params;
-
+export const obtenerConexionPorId = async (req, res) => {
   try {
-    const pool = await getConnection();
-    const result = await pool
-      .request()
-      .input("id", id)
-      .query("SELECT * FROM ConexionSQL WHERE id = @id");
-    res.json(result.recordset);
+    const { id } = req.params;
+    const dato = await Conexiones.findByPk(id);
+
+    if (!dato) return res.status(404).json({ message: "No encontrado" });
+
+    res.json(dato);
   } catch (error) {
     console.error(error);
+    res.status(500).json({ message: "Error al buscar la conexión" });
   }
 };
 
-export const agregarDatos = async (req, res) => {
+export const agregarConexion = async (req, res) => {
   try {
-    const {
-      usernameDB,
-      passwordDB,
-      nameDB,
-      nameServer,
-      nameTable,
-      codEmpresa,
-      desEmpresa,
-      sistema,
-    } = req.body;
-    const pool = await getConnection();
-    await pool
-      .request()
-      .input("usernameDB", usernameDB)
-      .input("passwordDB", passwordDB)
-      .input("nameDB", nameDB)
-      .input("nameServer", nameServer)
-      .input("nameTable", nameTable)
-      .input("codEmpresa", codEmpresa)
-      .input("desEmpresa", desEmpresa)
-      .input("sistema", sistema)
-      .query(
-        "INSERT INTO ConexionSQL (usernameDB, passwordDB, nameDB, nameServer, nameTable, codEmpresa, desEmpresa, sistema) VALUES (@usernameDB, @passwordDB, @nameDB, @nameServer, @nameTable, @codEmpresa, @desEmpresa, @sistema)"
-      );
-    res.json({ message: "Datos guardados exitosamente" });
+    await Conexiones.create(req.body);
+    res.status(201).json({ message: "Conexión agregada exitosamente" });
   } catch (error) {
     console.error(error);
+    res.status(500).json({ message: "Error al guardar la conexión" });
   }
 };
 
-export const editarDatos = async (req, res) => {
+export const editarConexion = async (req, res) => {
   try {
-    const {
-      usernameDB,
-      passwordDB,
-      nameDB,
-      nameServer,
-      nameTable,
-      codEmpresa,
-      desEmpresa,
-      sistema,
-      id,
-    } = req.body;
+    const { id } = req.body;
 
     if (!id) {
       return res.status(400).json({ message: "El campo 'id' es obligatorio." });
     }
 
-    const pool = await getConnection();
+    const dato = await Conexiones.findByPk(id);
+    if (!dato)
+      return res.status(404).json({ message: "Conexión no encontrada" });
 
-    await pool
-      .request()
-      .input("usernameDB", usernameDB)
-      .input("passwordDB", passwordDB)
-      .input("nameDB", nameDB)
-      .input("nameServer", nameServer)
-      .input("nameTable", nameTable)
-      .input("codEmpresa", codEmpresa)
-      .input("desEmpresa", desEmpresa)
-      .input("sistema", sistema)
-      .input("id", id)
-      .query(
-        "UPDATE ConexionSQL SET usernameDB = @usernameDB, passwordDB = @passwordDB, nameDB = @nameDB, nameServer = @nameServer, nameTable = @nameTable, codEmpresa = @codEmpresa, desEmpresa = @desEmpresa, sistema = @sistema WHERE id = @id"
-      );
-
-    res.json({ message: "Datos actualizados exitosamente" });
+    await dato.update(req.body);
+    res.json({ message: "Conexión actualizada correctamente", dato });
   } catch (error) {
     console.error(error);
+    res.status(500).json({ message: "Error al actualizar la conexión" });
   }
 };
 
-export const eliminarDatos = async (req, res) => {
-  const { id } = req.params;
-
+export const eliminarConexion = async (req, res) => {
   try {
-    const pool = await getConnection();
-    await pool
-      .request()
-      .input("id", id)
-      .query("DELETE FROM ConexionSQL WHERE id = @id");
-    res.json({ message: "Datos eliminados exitosamente" });
+    const { id } = req.params;
+    const eliminado = await Conexiones.destroy({ where: { id } });
+
+    if (!eliminado) return res.status(404).json({ message: "No encontrado" });
+
+    res.json({ message: "Conexión eliminada correctamente" });
   } catch (error) {
     console.error(error);
+    res.status(500).json({ message: "Error al eliminar la conexion" });
   }
 };

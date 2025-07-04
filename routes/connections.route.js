@@ -1,56 +1,42 @@
 import express from "express";
 import {
-  agregarDatos,
-  editarDatos,
-  eliminarDatos,
-  obtenerDatos,
+  editarConexion,
+  agregarConexion,
+  eliminarConexion,
+  obtenerConexiones,
+  obtenerConexionPorId,
 } from "../controllers/connections.controller.js";
-import { verificarToken } from "../middleware/verificarToken.js";
-import { verificarRol } from "../middleware/verificarRol.js";
 import {
-  eliminarUsuarios,
-  loginUsuario,
+  agregarUsuario,
   obtenerUsuarios,
-  registrarUsuario,
 } from "../controllers/users.controller.js";
-
-import {
-  obtenerRoles,
-  registrarRol,
-  editarRol,
-  eliminarRol,
-} from "../controllers/roles.controller.js";
 
 const router = express.Router();
 
-//!Conexiones
-router.post("/conexiones", agregarDatos);
-router.get("/conexiones", obtenerDatos);
-router.put("/conexiones", editarDatos);
-router.delete("/conexiones/:id", eliminarDatos);
+// //!Conexiones
+router.get("/conexiones", obtenerConexiones);
+router.post("/conexiones", agregarConexion);
+router.put("/conexiones", editarConexion);
+router.delete("/conexiones/:id", eliminarConexion);
+router.get("/conexiones/:id", obtenerConexionPorId);
 
-//!Usuarios
-router.post(
-  "/usuarios/register",
-  verificarToken,
-  verificarRol(["Admin"]),
-  registrarUsuario
-);
-router.post("/login", loginUsuario);
+// //!Usuarios
+// router.post(
+//   "/usuarios/register",
+//   verificarToken,
+//   verificarRol(["Admin"]),
+//   registrarUsuario
+// );
+// router.post("/login", loginUsuario);
 router.get("/usuarios", obtenerUsuarios);
-router.delete("/usuarios/:id", eliminarUsuarios);
-// router.put("/usuarios", editarUsuarios);
+router.post("/usuarios/register", agregarUsuario);
+// router.delete("/usuarios/:id", eliminarUsuarios);
+// // router.put("/usuarios", editarUsuarios);
 
-
-//!Roles
-router.post(
-  "/roles",
-  registrarRol
-);
- router.get("/roles", obtenerRoles);
- router.put("/roles", editarRol);
- router.delete("/roles/:id", cambiarEstadoRol);
-
-
+// //!Roles
+// router.post("/roles", registrarRol);
+// router.get("/roles", obtenerRoles);
+// router.put("/roles", editarRol);
+// router.delete("/roles/:id", cambiarEstadoRol);
 
 export default router;
