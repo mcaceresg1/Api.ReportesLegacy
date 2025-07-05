@@ -15,6 +15,7 @@ import {
 } from "../controllers/users.controller.js";
 import {
   agregarRol,
+  cambiarEstadoRol,
   editarRol,
   obtenerRoles,
 } from "../controllers/roles.controller.js";
@@ -46,6 +47,6 @@ router.delete("/usuarios/:id", eliminarUsuario);
 router.post("/roles", agregarRol);
 router.get("/roles", obtenerRoles);
 router.put("/roles", editarRol);
-// router.delete("/roles/:id", cambiarEstadoRol);
+router.patch("/roles", cambiarEstadoRol);
 
 export default router;

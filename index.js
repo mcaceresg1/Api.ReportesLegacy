@@ -1,8 +1,8 @@
 import express from "express";
 import cors from "cors";
-import router from "./routes/connections.route.js";
-import sequelize from "./config/db.js";
-import "./models/associations.js";
+import router from "./src/routes/connections.route.js";
+import sequelize from "./src/config/db.js";
+import "./src/models/associations.js";
 
 const app = express();
 const port = 3000;
