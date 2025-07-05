@@ -10,6 +10,7 @@ import {
   agregarUsuario,
   editarUsuario,
   eliminarUsuario,
+  loginUsuario,
   obtenerUsuarioPorId,
   obtenerUsuarios,
 } from "../controllers/users.controller.js";
@@ -19,6 +20,7 @@ import {
   editarRol,
   obtenerRoles,
 } from "../controllers/roles.controller.js";
+import { verificarToken } from "../middleware/verificarToken.js";
 
 const router = express.Router();
 
@@ -30,14 +32,9 @@ router.delete("/conexiones/:id", eliminarConexion);
 router.get("/conexiones/:id", obtenerConexionPorId);
 
 // //!Usuarios
-// router.post(
-//   "/usuarios/register",
-//   verificarToken,
-//   verificarRol(["Admin"]),
-//   registrarUsuario
-// );
-// router.post("/login", loginUsuario);
-router.get("/usuarios", obtenerUsuarios);
+//? Agregar si es admin verificarRol(["Admin"]),
+router.post("/login", loginUsuario);
+router.get("/usuarios", verificarToken, obtenerUsuarios);
 router.get("/usuarios/:id", obtenerUsuarioPorId);
 router.post("/usuarios/register", agregarUsuario);
 router.put("/usuarios", editarUsuario);

@@ -1,45 +1,45 @@
-// import bcrypt from "bcryptjs";
-// import jwt from "jsonwebtoken";
-
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import Usuarios from "../models/Usuarios.js";
+import Roles from "../models/Roles.js";
 
-// // export const loginUsuario = async (req, res) => {
-// //   const { username, password } = req.body;
+export const loginUsuario = async (req, res) => {
+  const { username, password } = req.body;
 
-// //   try {
-// //     const pool = await getConnection();
-// //     const result = await pool
-// //       .request()
-// //       .input("username", username)
-// //       .query("SELECT * FROM Usuarios WHERE username = @username");
+  try {
+    const usuario = await Usuarios.findOne({
+      where: { username },
+      include: [{ model: Roles, attributes: ["descripcion"] }],
+    });
 
-// //     if (result.recordset.length === 0) {
-// //       return res.status(400).json({ error: "Usuario no encontrado" });
-// //     }
+    if (!usuario) {
+      return res.status(400).json({ error: "Usuario no encontrado" });
+    }
 
-// //     const user = result.recordset[0];
+    const isMatch = await bcrypt.compare(password, usuario.password);
 
-// //     const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: "Contraseña incorrecta" });
+    }
 
-// //     if (!isMatch) {
-// //       return res.status(400).json({ error: "Contraseña incorrecta" });
-// //     }
+    const token = jwt.sign(
+      { userId: usuario.id, role: usuario.Role.descripcion },
+      "secretKey",
+      {
+        expiresIn: "1h",
+      }
+    );
 
-// //     const token = jwt.sign({ userId: user.id, role: user.role }, "secretKey", {
-// //       expiresIn: "1h",
-// //     });
-
-// //     res.json({
-// //       message: "Login exitoso",
-// //       token: token,
-// //       role: user.role,
-// //     });
-// //   } catch (error) {
-// //     console.error(error);
-// //     res.status(500).json({ error: "Error al iniciar sesión" });
-// //   }
-// // };
-
+    res.json({
+      message: "Login exitoso",
+      token,
+      role: usuario.Role.descripcion,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Error al iniciar sesión" });
+  }
+};
 
 export const obtenerUsuarios = async (req, res) => {
   try {
@@ -67,7 +67,17 @@ export const obtenerUsuarioPorId = async (req, res) => {
 
 export const agregarUsuario = async (req, res) => {
   try {
-    await Usuarios.create(req.body);
+    const { username, password, email, estado, roleId } = req.body;
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await Usuarios.create({
+      username,
+      password: hashedPassword,
+      email,
+      estado,
+      roleId,
+    });
+
     res.status(201).json({ message: "Usuario agregado exitosamente" });
   } catch (error) {
     console.error(error);
