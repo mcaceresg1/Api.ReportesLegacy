@@ -57,3 +57,6 @@ const Usuarios = sequelize.define(
 );
 
 export default Usuarios;
+
+
+

@@ -1,26 +1,25 @@
-import express from "express";
-import cors from "cors";
-import router from "./src/routes/connections.route.js";
-import sequelize from "./src/config/db.js";
-import "./src/models/associations.js";
+import dotenv from "dotenv";
+dotenv.config();
 
-const app = express();
-const port = 3000;
+import app from "./src/app.js";
+import sequelize from "./src/config/db.js"; // conexión a la base de datos
+import "./src/models/associations.js"; // relaciones entre modelos
 
-app.use(express.json());
+const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+async function startServer() {
+  try {
+    await sequelize.authenticate();
+    console.log("✅ Conexión a SQL Server establecida correctamente");
 
-app.use("/api", router);
+    await sequelize.sync({ alter: true }); // Sincroniza modelos con la DB
 
-try {
-  await sequelize.authenticate();
-  console.log("✅ Conexión a SQL Server establecida correctamente");
-  await sequelize.sync({ alter: true });
-
-  app.listen(port, () => {
-    console.log(`Servidor escuchando en http://localhost:${port}`);
-  });
-} catch (error) {
-  console.error("❌ No se pudo conectar a SQL Server:", error.message);
+    app.listen(PORT, () => {
+      console.log(`🚀 Servidor escuchando en http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error("❌ No se pudo conectar a SQL Server:", error.message);
+  }
 }
+
+startServer();

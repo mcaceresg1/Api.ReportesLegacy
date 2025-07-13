@@ -1,3 +1,47 @@
+// import bcrypt from "bcryptjs";
+// import jwt from "jsonwebtoken";
+// import Usuarios from "../models/Usuarios.js";
+// import Roles from "../models/Roles.js";
+
+// export const loginUsuario = async (req, res) => {
+//   const { username, password } = req.body;
+
+//   try {
+//     const usuario = await Usuarios.findOne({
+//       where: { username },
+//       include: [{ model: Roles, attributes: ["descripcion"] }],
+//     });
+
+//     if (!usuario) {
+//       return res.status(400).json({ error: "Usuario no encontrado" });
+//     }
+
+//     const isMatch = await bcrypt.compare(password, usuario.password);
+
+//     if (!isMatch) {
+//       return res.status(400).json({ error: "Contraseña incorrecta" });
+//     }
+
+//     const token = jwt.sign(
+//       { userId: usuario.id, role: usuario.Role.descripcion },
+//       "secretKey",
+//       {
+//         expiresIn: "1h",
+//       }
+//     );
+
+//     res.json({
+//       message: "Login exitoso",
+//       token,
+//       role: usuario.Role.descripcion,
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({ error: "Error al iniciar sesión" });
+//   }
+// };
+// src/controllers/auth.controller.js
+
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import Usuarios from "../models/Usuarios.js";
@@ -9,35 +53,41 @@ export const loginUsuario = async (req, res) => {
   try {
     const usuario = await Usuarios.findOne({
       where: { username },
-      include: [{ model: Roles, attributes: ["descripcion"] }],
+      include: {
+        model: Roles,
+        as: "rol", // Asegúrate de que este alias coincida con el de belongsTo
+        attributes: ["descripcion"],
+      },
     });
 
+
     if (!usuario) {
-      return res.status(400).json({ error: "Usuario no encontrado" });
+      return res.status(404).json({ error: "Usuario no encontrado" });
     }
 
     const isMatch = await bcrypt.compare(password, usuario.password);
-
     if (!isMatch) {
-      return res.status(400).json({ error: "Contraseña incorrecta" });
+      return res.status(401).json({ error: "Contraseña incorrecta" });
     }
 
     const token = jwt.sign(
-      { userId: usuario.id, role: usuario.Role.descripcion },
-      "secretKey",
       {
-        expiresIn: "1h",
-      }
+        userId: usuario.id,
+        username: usuario.username,
+        role: usuario.rol.descripcion, // Usa alias definido
+      },
+      process.env.JWT_SECRET || "defaultSecret", // 🔐 Usa variable de entorno
+      { expiresIn: "1h" }
     );
 
-    res.json({
+    return res.status(200).json({
       message: "Login exitoso",
       token,
-      role: usuario.Role.descripcion,
+      // role: usuario.rol.descripcion,
     });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Error al iniciar sesión" });
+    console.error("Error en login:", error);
+    return res.status(500).json({ error: "Error interno del servidor" });
   }
 };
 

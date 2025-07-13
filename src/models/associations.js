@@ -7,5 +7,6 @@ Roles.hasMany(Usuarios, {
 });
 Usuarios.belongsTo(Roles, {
   foreignKey: "roleId",
+  as: "rol",
   targetKey: "id",
 });
