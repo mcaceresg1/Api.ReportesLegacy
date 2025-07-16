@@ -1,9 +1,9 @@
-// src/models/Roles.js
+// src/models/Sistemas.js
 import { DataTypes } from "sequelize";
 import sequelize from "../config/db.js";
 
-const Roles = sequelize.define(
-  "Roles",
+const Sistemas = sequelize.define(
+  "Sistemas",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -14,20 +14,16 @@ const Roles = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    descripcion_completa: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
     estado: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
     },
   },
   {
-    tableName: "Roles",
+    tableName: "Sistemas",
     schema: "dbo",
     timestamps: true,
   }
 );
 
-export default Roles;
+export default Sistemas;

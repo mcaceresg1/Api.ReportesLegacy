@@ -1,22 +1,29 @@
-// src/models/Roles.js
 import { DataTypes } from "sequelize";
 import sequelize from "../config/db.js";
 
-const Roles = sequelize.define(
-  "Roles",
+const Menus = sequelize.define(
+  "Menus",
   {
     id: {
       type: DataTypes.INTEGER,
-      primaryKey: true,
       autoIncrement: true,
+      primaryKey: true,
     },
     descripcion: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    descripcion_completa: {
+    padreId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: "Menus", // self-reference
+        key: "id",
+      },
+    },
+    icon: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     estado: {
       type: DataTypes.BOOLEAN,
@@ -24,10 +31,11 @@ const Roles = sequelize.define(
     },
   },
   {
-    tableName: "Roles",
+    tableName: "Menus",
     schema: "dbo",
-    timestamps: true,
+    timestamps: false,
   }
 );
 
-export default Roles;
+
+export default Menus;

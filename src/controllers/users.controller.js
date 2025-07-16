@@ -60,7 +60,6 @@ export const loginUsuario = async (req, res) => {
       },
     });
 
-
     if (!usuario) {
       return res.status(404).json({ error: "Usuario no encontrado" });
     }
@@ -74,7 +73,7 @@ export const loginUsuario = async (req, res) => {
       {
         userId: usuario.id,
         username: usuario.username,
-        role: usuario.rol.descripcion, // Usa alias definido
+        rolId: usuario.rolId, // Usa alias definido
       },
       process.env.JWT_SECRET || "defaultSecret", // 🔐 Usa variable de entorno
       { expiresIn: "1h" }
@@ -117,7 +116,7 @@ export const obtenerUsuarioPorId = async (req, res) => {
 
 export const agregarUsuario = async (req, res) => {
   try {
-    const { username, password, email, estado, roleId } = req.body;
+    const { username, password, email, estado, rolId } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, 10);
     await Usuarios.create({
@@ -125,7 +124,7 @@ export const agregarUsuario = async (req, res) => {
       password: hashedPassword,
       email,
       estado,
-      roleId,
+      rolId,
     });
 
     res.status(201).json({ message: "Usuario agregado exitosamente" });
@@ -135,20 +134,31 @@ export const agregarUsuario = async (req, res) => {
   }
 };
 
+
 export const editarUsuario = async (req, res) => {
   try {
-    const { id } = req.body;
+    const { id, rolId } = req.body;
 
     if (!id) {
       return res.status(400).json({ message: "El campo 'id' es obligatorio." });
     }
 
-    const dato = await Usuarios.findByPk(id);
-    if (!dato)
-      return res.status(404).json({ message: "Usuario no encontrada" });
+    const usuario = await Usuarios.findByPk(id);
+    if (!usuario) {
+      return res.status(404).json({ message: "Usuario no encontrado." });
+    }
 
-    await dato.update(req.body);
-    res.json({ message: "Usuario actualizado correctamente", dato });
+    // ✅ Validar que el rol exista
+    if (rolId) {
+      const existeRol = await Roles.findByPk(rolId);
+      if (!existeRol) {
+        return res.status(400).json({ message: `El rol con id ${rolId} no existe.` });
+      }
+    }
+
+    await usuario.update(req.body);
+    res.json({ message: "Usuario actualizado correctamente", usuario });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error al actualizar al usuario" });

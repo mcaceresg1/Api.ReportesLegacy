@@ -19,6 +19,7 @@ async function startServer() {
     });
   } catch (error) {
     console.error("❌ No se pudo conectar a SQL Server:", error.message);
+    console.log(error);
   }
 }
 

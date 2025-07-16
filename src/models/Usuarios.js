@@ -30,7 +30,7 @@ const Usuarios = sequelize.define(
       allowNull: false,
     },
 
-    roleId: {
+    rolId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
@@ -57,6 +57,3 @@ const Usuarios = sequelize.define(
 );
 
 export default Usuarios;
-
-
-
