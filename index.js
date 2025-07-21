@@ -16,6 +16,7 @@ async function startServer() {
 
     app.listen(PORT, () => {
       console.log(`🚀 Servidor escuchando en http://localhost:${PORT}`);
+      console.log(`🔗 Swagger en http://localhost:${PORT}/api-docs`);
     });
   } catch (error) {
     console.error("❌ No se pudo conectar a SQL Server:", error.message);
