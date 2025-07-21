@@ -40,7 +40,7 @@
 //     return res.status(500).json({ error: "Error al iniciar sesión" });
 //   }
 // };
-// src/controllers/auth.controller.js
+
 
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -50,12 +50,17 @@ import Roles from "../models/Roles.js";
 export const loginUsuario = async (req, res) => {
   const { username, password } = req.body;
 
+  // Validación básica del body (buena práctica)
+  if (!username || !password) {
+    return res.status(400).json({ error: "Faltan campos requeridos" });
+  }
+
   try {
     const usuario = await Usuarios.findOne({
       where: { username },
       include: {
         model: Roles,
-        as: "rol", // Asegúrate de que este alias coincida con el de belongsTo
+        as: "rol", // Este alias debe coincidir con el definido en la relación
         attributes: ["descripcion"],
       },
     });
@@ -73,22 +78,23 @@ export const loginUsuario = async (req, res) => {
       {
         userId: usuario.id,
         username: usuario.username,
-        rolId: usuario.rolId, // Usa alias definido
+        rol: usuario.rolId, // Puedes incluir el rol directamente si lo necesitas
       },
-      process.env.JWT_SECRET || "defaultSecret", // 🔐 Usa variable de entorno
+      process.env.JWT_SECRET || "defaultSecret",
       { expiresIn: "1h" }
     );
 
     return res.status(200).json({
       message: "Login exitoso",
       token,
-      // role: usuario.rol.descripcion,
+      role: usuario.rol?.descripcion,
     });
   } catch (error) {
     console.error("Error en login:", error);
     return res.status(500).json({ error: "Error interno del servidor" });
   }
 };
+
 
 export const obtenerUsuarios = async (req, res) => {
   try {
