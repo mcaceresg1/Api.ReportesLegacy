@@ -25,6 +25,22 @@ const Menus = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    ruta: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    areaUsuaria: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    sistemaCode: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    routePath: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     estado: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
@@ -36,6 +52,5 @@ const Menus = sequelize.define(
     timestamps: false,
   }
 );
-
 
 export default Menus;

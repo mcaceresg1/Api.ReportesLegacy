@@ -3,6 +3,7 @@
 import express from "express";
 import cors from "cors";
 import router from "./routes/connections.route.js";
+import menuRoutes from "./routes/menus.route.js";
 import { swaggerUi, specs } from "./config/swagger.js";
 
 const app = express();
@@ -17,14 +18,19 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
 }));
 
 // Rutas
-app.use("/api", router); // Todas las rutas bajo /api/
+app.use("/api", router); // Rutas generales bajo /api/
+app.use("/api/menus", menuRoutes); // Rutas de menús bajo /api/menus/
 
 // Ruta de bienvenida
 app.get('/', (req, res) => {
   res.json({
     message: 'API Reportes Legacy',
     version: '1.0.0',
-    docs: '/api-docs'
+    docs: '/api-docs',
+    endpoints: {
+      menus: '/api/menus',
+      general: '/api'
+    }
   });
 });
 

@@ -1,5 +1,6 @@
 import RolSistemaMenu from "../models/RolSistemaMenu.js";
 import Menus from "../models/Menus.js";
+import Sistemas from "../models/Sistemas.js";
 
 // export const obtenerMenusPorRolYSistema = async (req, res) => {
 //   const { rolId, sistemaId } = req.params;
@@ -41,7 +42,15 @@ export const obtenerMenusPorRolYSistema = async (req, res) => {
       return res.status(400).json({ message: "Faltan parámetros." });
     }
 
-    // 1. Obtener los IDs de los menús asignados al rol y sistema
+    console.log(`🔍 Buscando menús para rolId: ${rolId}, sistemaId: ${sistemaId}`);
+
+    // 1. Obtener información del sistema
+    const sistema = await Sistemas.findByPk(sistemaId);
+    if (!sistema) {
+      return res.status(404).json({ message: "Sistema no encontrado." });
+    }
+
+    // 2. Obtener los IDs de los menús asignados al rol y sistema
     const rolSistemaMenus = await RolSistemaMenu.findAll({
       where: {
         rolId,
@@ -53,11 +62,13 @@ export const obtenerMenusPorRolYSistema = async (req, res) => {
 
     const menuIds = rolSistemaMenus.map((item) => item.menuId);
 
+    console.log(`📋 Menús asignados (IDs): ${menuIds.join(', ')}`);
+
     if (!menuIds.length) {
       return res.status(404).json({ message: "No hay menús asignados a este rol y sistema." });
     }
 
-    // 2. Obtener todos los menús asignados y sus hijos
+    // 3. Obtener todos los menús asignados y sus hijos con información completa
     const menus = await Menus.findAll({
       where: {
         [Op.or]: [
@@ -66,18 +77,36 @@ export const obtenerMenusPorRolYSistema = async (req, res) => {
         ],
         estado: true
       },
-      attributes: ['id', 'descripcion', 'padreId', 'icon', 'estado'],
+      attributes: [
+        'id', 
+        'descripcion', 
+        'padreId', 
+        'icon', 
+        'ruta', 
+        'routePath',
+        'areaUsuaria',
+        'sistemaCode',
+        'estado'
+      ],
       order: [['padreId', 'ASC'], ['id', 'ASC']]
     });
 
-    // 3. Convertir lista plana en jerarquía
+    console.log(`📋 Total menús obtenidos: ${menus.length}`);
+
+    // 4. Convertir lista plana en jerarquía
     const menuMap = new Map();
     const rootMenus = [];
 
     menus.forEach(menu => {
-      menu = menu.toJSON();
-      menu.hijos = [];
-      menuMap.set(menu.id, menu);
+      const menuData = menu.toJSON();
+      menuData.hijos = [];
+      // Agregar información del sistema
+      menuData.sistema = {
+        id: sistema.id,
+        descripcion: sistema.descripcion,
+        codigo: sistema.descripcion // Usar descripción como código si no existe código específico
+      };
+      menuMap.set(menuData.id, menuData);
     });
 
     for (const menu of menuMap.values()) {
@@ -87,6 +116,14 @@ export const obtenerMenusPorRolYSistema = async (req, res) => {
         rootMenus.push(menu);
       }
     }
+
+    console.log(`📋 Menús raíz estructurados: ${rootMenus.length}`);
+    console.log('🔍 Menús por área usuaria:', 
+      rootMenus.reduce((acc, menu) => {
+        acc[menu.areaUsuaria || 'Sin área'] = (acc[menu.areaUsuaria || 'Sin área'] || 0) + 1;
+        return acc;
+      }, {})
+    );
 
     res.json(rootMenus);
   } catch (error) {

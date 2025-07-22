@@ -78,7 +78,8 @@ export const loginUsuario = async (req, res) => {
       {
         userId: usuario.id,
         username: usuario.username,
-        rol: usuario.rolId, // Puedes incluir el rol directamente si lo necesitas
+        email: usuario.email,
+        rolId: usuario.rolId, // Cambiar 'rol' por 'rolId' para que coincida con el frontend
       },
       process.env.JWT_SECRET || "defaultSecret",
       { expiresIn: "1h" }
