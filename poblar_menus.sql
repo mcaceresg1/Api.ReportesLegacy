@@ -8,6 +8,34 @@ DELETE FROM dbo.RolSistemaMenu;
 DELETE FROM dbo.Menus;
 
 -- =====================================================
+-- 0. MODIFICAR TABLA MENUS PARA ESTRUCTURA JERÁRQUICA
+-- =====================================================
+ALTER TABLE dbo.Menus
+ADD menuPrincipal NVARCHAR(255) NULL,
+    submenu1 NVARCHAR(255) NULL,
+    submenu2 NVARCHAR(255) NULL,
+    submenu3 NVARCHAR(255) NULL,
+    submenu4 NVARCHAR(255) NULL,
+    submenu5 NVARCHAR(255) NULL;
+
+-- =====================================================
+-- 1. EJEMPLO DE INSERCIÓN DE MENÚ CON ESTRUCTURA JERÁRQUICA
+-- =====================================================
+INSERT INTO dbo.Menus (menuPrincipal, submenu1, submenu2, submenu3, submenu4, submenu5, descripcion, padreId, icon, ruta, areaUsuaria, sistemaCode, routePath, estado)
+VALUES
+('CONTABILIDAD GENERAL', 'LIBROS OFICIALES', 'LIBRO MAYOR', 'ASIENTOS', NULL, NULL, 'Libro Mayor / Asientos', NULL, 'Book', 'CG / CO / Del Mayor / Asientos', '4.- Contabilidad', 'EXACTUS', '/home/libro-mayor/asientos', 1),
+('CONTABILIDAD GENERAL', 'LIBROS OFICIALES', 'LIBRO DIARIO', 'ASIENTOS', NULL, NULL, 'Libro Diario / Asientos', NULL, 'Book', 'CG / CO / Del Diario / Asientos', '4.- Contabilidad', 'EXACTUS', '/home/libro-diario/asientos', 1);
+
+-- =====================================================
+-- 2. EJEMPLO DE INSERCIÓN EN ROLSISTEMAMENU CON NUEVA ESTRUCTURA
+-- =====================================================
+-- Asignar menú a rol 2 (Contabilidad) y sistema EXACTUS
+INSERT INTO dbo.RolSistemaMenu (rolId, sistemaId, menuId, estado, createdAt, updatedAt)
+SELECT 2, 1, m.id, 1, GETDATE(), GETDATE()
+FROM dbo.Menus m
+WHERE m.menuPrincipal = 'CONTABILIDAD GENERAL' AND m.sistemaCode = 'EXACTUS';
+
+-- =====================================================
 -- 1. VERIFICAR ROLES EXISTENTES Y CREAR FALTANTES
 -- =====================================================
 PRINT 'Verificando roles existentes...'

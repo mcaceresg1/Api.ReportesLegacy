@@ -120,3 +120,43 @@ export const obtenerMenuPorIdRol = async (req, res) => {
   }
 };
 
+// Eliminar todos los permisos de un rol
+export const eliminarPermisosRol = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ message: "El ID del rol es obligatorio." });
+    }
+
+    // Eliminar todos los permisos del rol
+    await RolMenu.destroy({
+      where: { rolId: id }
+    });
+
+    res.json({ message: "Permisos eliminados correctamente" });
+  } catch (error) {
+    console.error("Error al eliminar permisos del rol:", error);
+    res.status(500).json({ message: "Error al eliminar los permisos" });
+  }
+};
+
+// Agregar múltiples permisos a un rol
+export const agregarPermisosRol = async (req, res) => {
+  try {
+    const permisos = req.body;
+
+    if (!Array.isArray(permisos)) {
+      return res.status(400).json({ message: "Se requiere un array de permisos." });
+    }
+
+    // Crear todos los permisos
+    await RolMenu.bulkCreate(permisos);
+
+    res.status(201).json({ message: "Permisos agregados correctamente" });
+  } catch (error) {
+    console.error("Error al agregar permisos:", error);
+    res.status(500).json({ message: "Error al agregar los permisos" });
+  }
+};
+
