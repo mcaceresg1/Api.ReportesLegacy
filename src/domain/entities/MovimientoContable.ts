@@ -47,4 +47,6 @@ export interface MovimientoContableFilter {
   centro_costo_id?: number;
   centro_costo_codigo?: string;
   centro_costo_descripcion?: string;
+  periodoDesde?: string;
+  periodoHasta?: string;
 } 

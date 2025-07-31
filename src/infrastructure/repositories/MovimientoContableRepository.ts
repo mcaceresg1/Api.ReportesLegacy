@@ -55,6 +55,22 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
       whereClause.centro_costo_id = filter.centro_costo_id;
     }
 
+    // Filtros por período
+    if (filter.periodoDesde || filter.periodoHasta) {
+      whereClause.createdAt = {};
+      
+      if (filter.periodoDesde) {
+        whereClause.createdAt[Op.gte] = new Date(filter.periodoDesde);
+      }
+      
+      if (filter.periodoHasta) {
+        // Añadir un día para incluir la fecha de fin
+        const fechaHasta = new Date(filter.periodoHasta);
+        fechaHasta.setDate(fechaHasta.getDate() + 1);
+        whereClause.createdAt[Op.lt] = fechaHasta;
+      }
+    }
+
     // Filtros por centro de costo
     if (filter.centro_costo_codigo || filter.centro_costo_descripcion) {
       const centroCostoWhere: any = {};

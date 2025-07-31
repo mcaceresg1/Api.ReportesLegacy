@@ -87,6 +87,14 @@ import { MovimientoContableCreate, MovimientoContableUpdate, MovimientoContableF
  *           type: string
  *         centro_costo_descripcion:
  *           type: string
+ *         periodoDesde:
+ *           type: string
+ *           format: date
+ *           description: Fecha de inicio del período (YYYY-MM-DD)
+ *         periodoHasta:
+ *           type: string
+ *           format: date
+ *           description: Fecha de fin del período (YYYY-MM-DD)
  */
 
 @injectable()
@@ -146,9 +154,18 @@ export class MovimientoContableController {
    */
   async getAllMovimientosContables(req: Request, res: Response): Promise<void> {
     try {
-      const { tipo, cuenta, descripcion, centro_costo_id, centro_costo_codigo, centro_costo_descripcion } = req.query;
+      const { 
+        tipo, 
+        cuenta, 
+        descripcion, 
+        centro_costo_id, 
+        centro_costo_codigo, 
+        centro_costo_descripcion,
+        periodoDesde,
+        periodoHasta
+      } = req.query;
       
-      if (tipo || cuenta || descripcion || centro_costo_id || centro_costo_codigo || centro_costo_descripcion) {
+      if (tipo || cuenta || descripcion || centro_costo_id || centro_costo_codigo || centro_costo_descripcion || periodoDesde || periodoHasta) {
         const filter: any = {};
         
         if (tipo) filter.tipo = tipo as string;
@@ -157,6 +174,8 @@ export class MovimientoContableController {
         if (centro_costo_id) filter.centro_costo_id = parseInt(centro_costo_id as string);
         if (centro_costo_codigo) filter.centro_costo_codigo = centro_costo_codigo as string;
         if (centro_costo_descripcion) filter.centro_costo_descripcion = centro_costo_descripcion as string;
+        if (periodoDesde) filter.periodoDesde = periodoDesde as string;
+        if (periodoHasta) filter.periodoHasta = periodoHasta as string;
         
         const movimientosContables = await this.movimientoContableService.getMovimientosContablesByFilter(filter);
         res.json(movimientosContables);
