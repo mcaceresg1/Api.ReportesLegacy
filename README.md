@@ -14,6 +14,7 @@ API REST desarrollada en TypeScript con arquitectura hexagonal (Ports and Adapte
 - **Swagger**: Documentación automática de la API
 - **Docker**: Containerización
 - **SOLID Principles**: Principios de diseño aplicados
+- **Python Integration**: Integración con Python para generación de PDFs
 
 ## Estructura del Proyecto
 
@@ -62,6 +63,29 @@ docker build -t api-reportes-legacy .
 docker run -p 3000:3000 api-reportes-legacy
 ```
 
+## Generación de PDFs
+
+### Características
+- **Script Python**: Utiliza ReportLab para generar PDFs profesionales
+- **Datos dinámicos**: Los PDFs incluyen datos actuales de la base de datos
+- **Filtros aplicados**: Los filtros de la consulta se reflejan en el PDF
+- **Información de empresa**: Incluye datos configurables de la empresa
+
+### Dependencias Python
+El contenedor Docker incluye:
+- Python 3
+- ReportLab (para generación de PDFs)
+- Requests (para comunicación HTTP)
+
+### Archivos
+- `pdf-generator.py`: Script principal de generación de PDFs
+- `requirements.txt`: Dependencias de Python
+
+### Uso
+El endpoint `/api/movimientos-contables/pdf` acepta:
+- `filtros`: Objeto con filtros para los movimientos contables
+- `datosReporte`: Objeto con información del reporte (títulos, empresa, etc.)
+
 ## Endpoints Principales
 
 ### Autenticación
@@ -98,6 +122,16 @@ docker run -p 3000:3000 api-reportes-legacy
 | `GET` | `/api/menus` | Obtener todos los menús |
 | `GET` | `/api/menus-public` | Obtener menús (público) |
 | `GET` | `/api/menus/rol/:rolId/sistema/:sistemaId` | Obtener menús por rol y sistema |
+
+### Movimientos Contables
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `GET` | `/api/movimientos-contables` | Obtener movimientos contables con filtros |
+| `GET` | `/api/movimientos-contables/:id` | Obtener movimiento contable por ID |
+| `POST` | `/api/movimientos-contables` | Crear movimiento contable |
+| `PUT` | `/api/movimientos-contables/:id` | Actualizar movimiento contable |
+| `DELETE` | `/api/movimientos-contables/:id` | Eliminar movimiento contable |
+| `POST` | `/api/movimientos-contables/pdf` | Generar PDF de movimientos contables |
 
 ### Centros de Costo
 | Método | Endpoint | Descripción |

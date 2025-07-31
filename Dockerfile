@@ -19,6 +19,9 @@ RUN npm run build
 # Etapa de producción
 FROM node:18-alpine AS production
 
+# Instalar Python y pip
+RUN apk add --no-cache python3 py3-pip
+
 # Crear usuario no root
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nodejs -u 1001
@@ -40,6 +43,14 @@ COPY --from=builder /app/src/infrastructure/config ./src/infrastructure/config
 
 # Copiar archivos TypeScript necesarios para Swagger en desarrollo
 COPY --from=builder /app/src ./src
+
+# Copiar script de Python y dependencias
+COPY pdf-generator.py ./pdf-generator.py
+COPY requirements.txt ./requirements.txt
+COPY logo_script.png ./logo_script.png
+
+# Instalar dependencias de Python
+RUN pip3 install --break-system-packages -r requirements.txt
 
 # Cambiar propietario de los archivos
 RUN chown -R nodejs:nodejs /app
