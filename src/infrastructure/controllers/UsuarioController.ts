@@ -132,7 +132,11 @@ export class UsuarioController {
    */
   async getUsuarioById(req: Request, res: Response): Promise<void> {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(req.params['id'] || '');
+      if (isNaN(id)) {
+        res.status(400).json({ error: 'ID inválido' });
+        return;
+      }
       const usuario = await this.usuarioService.getUsuarioById(id);
       
       if (!usuario) {
@@ -247,7 +251,11 @@ export class UsuarioController {
    */
   async updateUsuario(req: Request, res: Response): Promise<void> {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(req.params['id'] || '');
+      if (isNaN(id)) {
+        res.status(400).json({ error: 'ID inválido' });
+        return;
+      }
       const usuarioData: UsuarioUpdate = req.body;
       const usuario = await this.usuarioService.updateUsuario(id, usuarioData);
       
@@ -306,7 +314,11 @@ export class UsuarioController {
    */
   async deleteUsuario(req: Request, res: Response): Promise<void> {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(req.params['id'] || '');
+      if (isNaN(id)) {
+        res.status(400).json({ error: 'ID inválido' });
+        return;
+      }
       const success = await this.usuarioService.deleteUsuario(id);
       
       if (!success) {
@@ -364,7 +376,11 @@ export class UsuarioController {
    */
   async activateUsuario(req: Request, res: Response): Promise<void> {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(req.params['id'] || '');
+      if (isNaN(id)) {
+        res.status(400).json({ error: 'ID inválido' });
+        return;
+      }
       const success = await this.usuarioService.activateUsuario(id);
       
       if (!success) {
@@ -422,7 +438,11 @@ export class UsuarioController {
    */
   async deactivateUsuario(req: Request, res: Response): Promise<void> {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(req.params['id'] || '');
+      if (isNaN(id)) {
+        res.status(400).json({ error: 'ID inválido' });
+        return;
+      }
       const success = await this.usuarioService.deactivateUsuario(id);
       
       if (!success) {

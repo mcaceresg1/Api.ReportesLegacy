@@ -18,7 +18,11 @@ export class RolRepository implements IRolRepository {
   }
 
   async create(rolData: RolCreate): Promise<Rol> {
-    const rol = await RolModel.create(rolData);
+    const rol = await RolModel.create({
+      descripcion: rolData.descripcion,
+      descripcion_completa: rolData.descripcion_completa || rolData.descripcion,
+      estado: rolData.estado !== undefined ? rolData.estado : true
+    });
     return rol.toJSON() as Rol;
   }
 
@@ -28,6 +32,30 @@ export class RolRepository implements IRolRepository {
 
     await rol.update(rolData);
     return rol.toJSON() as Rol;
+  }
+
+  async delete(id: number): Promise<boolean> {
+    const rol = await RolModel.findByPk(id);
+    if (!rol) return false;
+
+    await rol.update({ estado: false });
+    return true;
+  }
+
+  async activate(id: number): Promise<boolean> {
+    const rol = await RolModel.findByPk(id);
+    if (!rol) return false;
+
+    await rol.update({ estado: true });
+    return true;
+  }
+
+  async deactivate(id: number): Promise<boolean> {
+    const rol = await RolModel.findByPk(id);
+    if (!rol) return false;
+
+    await rol.update({ estado: false });
+    return true;
   }
 
   async changeEstado(id: number, estado: boolean): Promise<Rol | null> {

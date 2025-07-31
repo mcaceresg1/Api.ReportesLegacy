@@ -99,6 +99,37 @@ docker run -p 3000:3000 api-reportes-legacy
 | `GET` | `/api/menus-public` | Obtener menús (público) |
 | `GET` | `/api/menus/rol/:rolId/sistema/:sistemaId` | Obtener menús por rol y sistema |
 
+### Centros de Costo
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `GET` | `/api/centros-costos` | Obtener todos los centros de costo |
+| `GET` | `/api/centros-costos/activos` | Obtener centros de costo activos |
+| `GET` | `/api/centros-costos/:id` | Obtener centro de costo por ID |
+| `GET` | `/api/centros-costos/codigo/:codigo` | Obtener centro de costo por código |
+| `POST` | `/api/centros-costos` | Crear centro de costo |
+| `POST` | `/api/centros-costos/filter` | Filtrar centros de costo |
+| `PUT` | `/api/centros-costos/:id` | Actualizar centro de costo |
+| `DELETE` | `/api/centros-costos/:id` | Eliminar centro de costo |
+
+### Movimientos Contables
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `GET` | `/api/movimientos-contables` | Obtener todos los movimientos contables |
+| `GET` | `/api/movimientos-contables/:id` | Obtener movimiento contable por ID |
+| `POST` | `/api/movimientos-contables` | Crear movimiento contable |
+| `PUT` | `/api/movimientos-contables/:id` | Actualizar movimiento contable |
+| `DELETE` | `/api/movimientos-contables/:id` | Eliminar movimiento contable |
+| `GET` | `/api/movimientos-contables/tipo/:tipo` | Obtener movimientos contables por tipo |
+| `GET` | `/api/movimientos-contables/centro-costo/:centroCostoId` | Obtener movimientos contables por centro de costo |
+
+**Filtros disponibles para movimientos contables:**
+- `tipo`: Filtrar por tipo de movimiento
+- `cuenta`: Filtrar por número de cuenta
+- `descripcion`: Filtrar por descripción
+- `centro_costo_id`: Filtrar por ID de centro de costo
+- `centro_costo_codigo`: Filtrar por código de centro de costo
+- `centro_costo_descripcion`: Filtrar por descripción de centro de costo
+
 ### Sistemas
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
@@ -132,6 +163,41 @@ docker run -p 3000:3000 api-reportes-legacy
 La documentación interactiva está disponible en:
 - **Swagger UI**: `http://localhost:3000/api-docs`
 
+## Base de Datos
+
+### Configuración UTF-8
+La base de datos está configurada para soportar caracteres especiales y acentos. Los scripts incluyen:
+
+- Configuración de collation para UTF-8
+- Creación de tablas con soporte para caracteres especiales
+- Datos de ejemplo con acentos y caracteres especiales
+
+### Tablas Principales
+
+#### centros_costos
+- `id`: Identificador único
+- `codigo`: Código del centro de costo (único)
+- `descripcion`: Descripción del centro de costo
+- `activo`: Estado activo/inactivo
+- `createdAt`: Fecha de creación
+- `updatedAt`: Fecha de actualización
+
+#### movimientos_contables
+- `id`: Identificador único
+- `cuenta`: Número de cuenta contable
+- `descripcion`: Descripción del movimiento
+- `tipo`: Tipo de movimiento (Balance de situación, Cuenta de orden, Estado de resultados)
+- `centro_costo_id`: Referencia al centro de costo (FK)
+- `createdAt`: Fecha de creación
+- `updatedAt`: Fecha de actualización
+
+### Relaciones
+- `movimientos_contables.centro_costo_id` → `centros_costos.id`
+
+### Scripts de Base de Datos
+- `poblar_movimientos_contables.sql`: Datos de ejemplo para movimientos contables
+- `poblar_centros_costos.sql`: Datos de ejemplo para centros de costo (50+ registros)
+
 ## Paridad con Proyecto JavaScript
 
 Este proyecto TypeScript mantiene paridad completa con el proyecto JavaScript original (`Api.ReportesLegacy`), incluyendo:
@@ -148,17 +214,33 @@ Este proyecto TypeScript mantiene paridad completa con el proyecto JavaScript or
 - **Componentes Personalizados**: Reemplazados componentes PrimeNG con componentes personalizados desarrollados en `@/components`
   - **CustomTableComponent**: Tabla personalizada en modo claro para mostrar usuarios
   - **RolesTableComponent**: Componente de tarjetas para mostrar roles
+  - **CentroCostoModalComponent**: Modal para selección de centros de costo
 - **Tema Claro**: La interfaz de roles y permisos ahora se muestra en modo claro en lugar del modo oscuro
 - **Estilos Mejorados**: Colores y estilos actualizados para mejor legibilidad
 - **Badges de Estado**: Colores diferenciados para estados activo/inactivo
 - **Badges de Roles**: Colores diferenciados para diferentes tipos de roles
 - **Tabla de Usuarios**: Estilo claro con hover effects y mejor espaciado
 - **Arquitectura de Componentes**: Componentes reutilizables en `shared/components/`
+- **Modal de Centros de Costo**: 
+  - Búsqueda por código y descripción
+  - Tabla con paginación
+  - Selección con doble clic
+  - Filtros en tiempo real
+  - Integración completa con movimientos contables
 
 ### Backend (Api.ReportesLegacy.ts)
 - **Endpoint de Permisos**: Implementado `/api/roles/:id/permisos` para obtener permisos de roles
 - **Endpoints Públicos**: Agregados endpoints públicos para datos que no requieren autenticación
 - **Mejor Manejo de Errores**: Logging mejorado y mensajes de error más descriptivos
+- **Centros de Costo**: Nuevo módulo completo para gestión de centros de costo
+  - CRUD completo con validaciones
+  - Filtros por código, descripción y estado
+  - Búsqueda por código único
+  - Relación con movimientos contables
+- **Movimientos Contables Mejorados**: 
+  - Filtros por centro de costo
+  - Relaciones con centros de costo
+  - Filtros avanzados por código y descripción
 
 ## Optimizaciones de Bundle
 
@@ -166,6 +248,7 @@ Este proyecto TypeScript mantiene paridad completa con el proyecto JavaScript or
 - **Componentes Optimizados**: Reducido el tamaño de los componentes personalizados
   - **CustomTableComponent**: CSS optimizado y funcionalidad simplificada
   - **RolesTableComponent**: Estilos consolidados y reducidos
+  - **CentroCostoModalComponent**: Componente ligero con funcionalidad completa
 - **Importaciones Optimizadas**: Eliminadas importaciones innecesarias de PrimeNG
 - **CSS Optimizado**: Reducido el tamaño del CSS del sidebar de 16.66kB a ~8kB
 - **Configuración de Build**: Aumentados los límites de presupuesto de bundle
@@ -189,6 +272,13 @@ Este proyecto TypeScript mantiene paridad completa con el proyecto JavaScript or
 - **CSS Consolidado**: Estilos duplicados eliminados
 - **Responsive Optimizado**: Media queries simplificadas
 - **Animaciones Eficientes**: Transiciones optimizadas
+
+### CentroCostoModalComponent
+- **Funcionalidad Completa**: Modal para selección de centros de costo
+- **Búsqueda Avanzada**: Filtros por código y descripción en tiempo real
+- **Tabla Integrada**: Usa CustomTableComponent para mostrar datos
+- **Selección Intuitiva**: Doble clic para seleccionar
+- **Responsive**: Adaptado para móviles y tablets
 
 ### Sidebar Component
 - **CSS Reducido**: De 16.66kB a ~8kB
@@ -225,6 +315,7 @@ Este proyecto TypeScript mantiene paridad completa con el proyecto JavaScript or
 - ✅ Build exitoso sin errores de presupuesto
 - ✅ Componentes personalizados funcionando correctamente
 - ✅ Tema claro implementado sin problemas de rendimiento
+- ✅ Modal de centros de costo integrado correctamente
 
 ## Componentes Personalizados
 
@@ -247,6 +338,33 @@ Este proyecto TypeScript mantiene paridad completa con el proyecto JavaScript or
   - Acciones integradas (ver permisos, usuarios, editar, etc.)
   - Animaciones y transiciones suaves
   - Modo claro optimizado
+
+### CentroCostoModalComponent
+- **Ubicación**: `shared/components/centro-costo-modal/`
+- **Funcionalidad**: Modal para selección de centros de costo
+- **Características**:
+  - Búsqueda por código y descripción
+  - Filtros en tiempo real
+  - Tabla con paginación integrada
+  - Selección con doble clic
+  - Diseño responsivo
+  - Integración con movimientos contables
+
+### MovimientosContablesComponent
+- **Ubicación**: `pages/home/movimientos-contables/`
+- **Funcionalidad**: Gestión completa de movimientos contables
+- **Características**:
+  - CRUD completo (Crear, Leer, Actualizar, Eliminar)
+  - Filtros avanzados por tipo, cuenta y descripción
+  - Filtros por centro de costo (código y descripción)
+  - Modal de selección de centros de costo
+  - Búsqueda en tiempo real
+  - Paginación y ordenamiento
+  - Exportación a Excel y PDF (en desarrollo)
+  - Diseño responsivo con componentes personalizados
+  - Validaciones de formulario
+  - Confirmaciones de eliminación
+  - Notificaciones toast
 
 ## Tecnologías Utilizadas
 

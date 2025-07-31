@@ -24,7 +24,7 @@ export class AuthService implements IAuthService {
     const token = this.generateToken(usuario);
     return {
       usuario: {
-        id: usuario.id,
+        id: usuario.id || 0,
         username: usuario.username,
         email: usuario.email,
         rolId: usuario.rolId || 0,

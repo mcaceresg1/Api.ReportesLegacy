@@ -152,9 +152,10 @@ export class MenuController {
       const { rolId, sistemaId } = req.params;
 
       if (!rolId || !sistemaId) {
-        return res.status(400).json({ 
+        res.status(400).json({ 
           message: "rolId y sistemaId son requeridos" 
         });
+        return;
       }
 
       const menus = await this.menuService.getMenusByRolAndSistema(parseInt(rolId), parseInt(sistemaId));
@@ -197,9 +198,10 @@ export class MenuController {
       const { area } = req.params;
 
       if (!area) {
-        return res.status(400).json({ 
+        res.status(400).json({ 
           message: "El parámetro 'area' es requerido" 
         });
+        return;
       }
 
       const menus = await this.menuService.getMenusByArea(area);
@@ -242,9 +244,10 @@ export class MenuController {
       const { sistemaCode } = req.params;
 
       if (!sistemaCode) {
-        return res.status(400).json({ 
+        res.status(400).json({ 
           message: "El parámetro 'sistemaCode' es requerido" 
         });
+        return;
       }
 
       const menus = await this.menuService.getMenusBySistema(sistemaCode);
@@ -423,8 +426,12 @@ export class MenuController {
    */
   async deleteMenu(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
-      const success = await this.menuService.deleteMenu(parseInt(id));
+      const id = parseInt(req.params['id'] || '');
+      if (isNaN(id)) {
+        res.status(400).json({ error: 'ID inválido' });
+        return;
+      }
+      const success = await this.menuService.deleteMenu(id);
       
       if (!success) {
         res.status(404).json({ message: "Menú no encontrado" });

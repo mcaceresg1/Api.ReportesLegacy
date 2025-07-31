@@ -18,6 +18,15 @@ export class MenuRepository implements IMenuRepository {
     return menu ? menu.toJSON() as Menu : null;
   }
 
+  async findByRol(rolId: number): Promise<Menu[]> {
+    // TODO: Implementar join con RolSistemaMenu
+    const menus = await MenuModel.findAll({
+      where: { estado: true },
+      order: [['descripcion', 'ASC']]
+    });
+    return menus.map((menu: any) => menu.toJSON() as Menu);
+  }
+
   async findByRolAndSistema(rolId: number, sistemaId: number): Promise<Menu[]> {
     // TODO: Implementar join con RolSistemaMenu
     const menus = await MenuModel.findAll({
@@ -50,7 +59,10 @@ export class MenuRepository implements IMenuRepository {
   }
 
   async create(menuData: MenuCreate): Promise<Menu> {
-    const menu = await MenuModel.create(menuData);
+    const menu = await MenuModel.create({
+      ...menuData,
+      estado: menuData.estado !== undefined ? menuData.estado : true
+    });
     return menu.toJSON() as Menu;
   }
 
@@ -63,6 +75,22 @@ export class MenuRepository implements IMenuRepository {
   }
 
   async delete(id: number): Promise<boolean> {
+    const menu = await MenuModel.findByPk(id);
+    if (!menu) return false;
+
+    await menu.update({ estado: false });
+    return true;
+  }
+
+  async activate(id: number): Promise<boolean> {
+    const menu = await MenuModel.findByPk(id);
+    if (!menu) return false;
+
+    await menu.update({ estado: true });
+    return true;
+  }
+
+  async deactivate(id: number): Promise<boolean> {
     const menu = await MenuModel.findByPk(id);
     if (!menu) return false;
 

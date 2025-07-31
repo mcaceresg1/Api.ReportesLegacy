@@ -33,7 +33,10 @@ export class UsuarioRepository implements IUsuarioRepository {
   }
 
   async create(usuarioData: UsuarioCreate): Promise<Usuario> {
-    const usuario = await UsuarioModel.create(usuarioData);
+    const usuario = await UsuarioModel.create({
+      ...usuarioData,
+      estado: usuarioData.estado !== undefined ? usuarioData.estado : true
+    });
     return usuario.toJSON() as Usuario;
   }
 

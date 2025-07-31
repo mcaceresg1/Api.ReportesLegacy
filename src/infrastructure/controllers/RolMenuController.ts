@@ -247,8 +247,12 @@ export class RolMenuController {
    */
   async getMenusByRolId(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
-      const menus = await this.rolMenuService.getMenusByRolId(parseInt(id));
+      const id = parseInt(req.params['id'] || '');
+      if (isNaN(id)) {
+        res.status(400).json({ error: 'ID inválido' });
+        return;
+      }
+      const menus = await this.rolMenuService.getMenusByRolId(id);
       res.json(menus);
     } catch (error) {
       console.error("Error al obtener menús por rol:", error);
@@ -288,8 +292,12 @@ export class RolMenuController {
    */
   async deleteRolPermisos(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
-      await this.rolMenuService.deleteRolPermisos(parseInt(id));
+      const id = parseInt(req.params['id'] || '');
+      if (isNaN(id)) {
+        res.status(400).json({ error: 'ID inválido' });
+        return;
+      }
+      await this.rolMenuService.deleteRolPermisos(id);
       res.json({ message: "Permisos eliminados correctamente" });
     } catch (error) {
       console.error("Error al eliminar permisos del rol:", error);

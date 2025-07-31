@@ -37,4 +37,31 @@ export class ConexionRepository implements IConexionRepository {
     await conexion.destroy();
     return true;
   }
+
+  async activate(id: number): Promise<boolean> {
+    const conexion = await ConexionModel.findByPk(id);
+    if (!conexion) return false;
+
+    await conexion.update({ estado: true });
+    return true;
+  }
+
+  async deactivate(id: number): Promise<boolean> {
+    const conexion = await ConexionModel.findByPk(id);
+    if (!conexion) return false;
+
+    await conexion.update({ estado: false });
+    return true;
+  }
+
+  async testConnection(conexionData: ConexionCreate): Promise<boolean> {
+    try {
+      // TODO: Implementar lógica de prueba de conexión
+      // Por ahora retornamos true como placeholder
+      return true;
+    } catch (error) {
+      console.error('Error testing connection:', error);
+      return false;
+    }
+  }
 } 

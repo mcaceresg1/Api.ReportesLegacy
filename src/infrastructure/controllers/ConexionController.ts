@@ -134,8 +134,12 @@ export class ConexionController {
    */
   async getConexionById(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
-      const conexion = await this.conexionService.getConexionById(parseInt(id));
+      const id = parseInt(req.params['id'] || '');
+      if (isNaN(id)) {
+        res.status(400).json({ error: 'ID inválido' });
+        return;
+      }
+      const conexion = await this.conexionService.getConexionById(id);
 
       if (!conexion) {
         res.status(404).json({ message: "No encontrado" });
@@ -267,8 +271,12 @@ export class ConexionController {
    */
   async deleteConexion(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
-      const success = await this.conexionService.deleteConexion(parseInt(id));
+      const id = parseInt(req.params['id'] || '');
+      if (isNaN(id)) {
+        res.status(400).json({ error: 'ID inválido' });
+        return;
+      }
+      const success = await this.conexionService.deleteConexion(id);
 
       if (!success) {
         res.status(404).json({ message: "No encontrado" });

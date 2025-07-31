@@ -31,7 +31,10 @@ export class RolSistemaMenuRepository implements IRolSistemaMenuRepository {
   }
 
   async create(rolSistemaMenuData: RolSistemaMenuCreate): Promise<RolSistemaMenu> {
-    const rolSistemaMenu = await RolSistemaMenuModel.create(rolSistemaMenuData);
+    const rolSistemaMenu = await RolSistemaMenuModel.create({
+      ...rolSistemaMenuData,
+      estado: rolSistemaMenuData.estado !== undefined ? rolSistemaMenuData.estado : true
+    });
     return rolSistemaMenu.toJSON() as RolSistemaMenu;
   }
 

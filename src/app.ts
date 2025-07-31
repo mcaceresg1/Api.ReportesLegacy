@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import { specs } from './infrastructure/config/swagger';
+import { specs as specsDocker } from './infrastructure/config/swagger-docker';
 import { container } from './infrastructure/container/container';
 import { UsuarioRoutes } from './infrastructure/routes/UsuarioRoutes';
 import { MenuRoutes } from './infrastructure/routes/MenuRoutes';
@@ -10,6 +11,8 @@ import { SistemaRoutes } from './infrastructure/routes/SistemaRoutes';
 import { ConexionRoutes } from './infrastructure/routes/ConexionRoutes';
 import { RolMenuRoutes } from './infrastructure/routes/RolMenuRoutes';
 import { RolSistemaMenuRoutes } from './infrastructure/routes/RolSistemaMenuRoutes';
+import MovimientoContableRoutes from './infrastructure/routes/MovimientoContableRoutes';
+import CentroCostoRoutes from './infrastructure/routes/CentroCostoRoutes';
 import { AuthMiddleware } from './infrastructure/middleware/AuthMiddleware';
 import { IUsuarioService } from './domain/services/IUsuarioService';
 import { IAuthService } from './domain/services/IAuthService';
@@ -26,7 +29,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Swagger configuration
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+const swaggerSpecs = process.env['NODE_ENV'] === 'production' ? specsDocker : specs;
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
 // Obtener servicios del contenedor
 const usuarioService = container.get<IUsuarioService>('IUsuarioService');
@@ -46,14 +50,18 @@ const conexionRoutes = new ConexionRoutes();
 const rolMenuRoutes = new RolMenuRoutes();
 const rolSistemaMenuRoutes = new RolSistemaMenuRoutes();
 
+// Rutas públicas (sin autenticación)
+app.use('/api/menus', menuRoutes.getRouter()); // Algunas rutas son públicas
+
 // Aplicar middleware de autenticación a rutas protegidas
 app.use('/api/usuarios', authMiddleware.verifyToken, usuarioRoutes.getRouter());
-app.use('/api/menus', menuRoutes.getRouter()); // Algunas rutas son públicas
 app.use('/api/roles', authMiddleware.verifyToken, rolRoutes.getRouter());
 app.use('/api/sistemas', authMiddleware.verifyToken, sistemaRoutes.getRouter());
 app.use('/api/conexiones', authMiddleware.verifyToken, conexionRoutes.getRouter());
 app.use('/api/rol-menu', authMiddleware.verifyToken, rolMenuRoutes.getRouter());
 app.use('/api/rol-sistema-menu', authMiddleware.verifyToken, rolSistemaMenuRoutes.getRouter());
+app.use('/api/movimientos-contables', authMiddleware.verifyToken, MovimientoContableRoutes);
+app.use('/api/centros-costos', authMiddleware.verifyToken, CentroCostoRoutes);
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================
 
@@ -103,10 +111,11 @@ app.patch('/api/usuarios/estado', authMiddleware.verifyToken, async (req, res) =
   try {
     const { id, estado } = req.body;
     if (!id || estado === undefined) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'ID y estado son requeridos'
       });
+      return;
     }
     
     const success = estado ? 
@@ -114,10 +123,11 @@ app.patch('/api/usuarios/estado', authMiddleware.verifyToken, async (req, res) =
       await usuarioService.deactivateUsuario(id);
     
     if (!success) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         message: 'Usuario no encontrado'
       });
+      return;
     }
     
     res.json({
@@ -149,20 +159,22 @@ app.get('/api/roles/activos', async (req, res) => {
 
 app.get('/api/roles/:id/permisos', authMiddleware.verifyToken, async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.params['id'];
     if (!id) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'ID de rol requerido'
       });
+      return;
     }
     
     const rolId = parseInt(id);
     if (isNaN(rolId)) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'ID de rol inválido'
       });
+      return;
     }
 
     // Obtener todos los menús asignados al rol (sin filtrar por sistema por ahora)
@@ -195,17 +207,34 @@ app.get('/api/roles/:id/menus', authMiddleware.verifyToken, async (req, res) => 
 // Endpoints de permisos (RolSistemaMenu)
 app.get('/api/permisos/:rolId/:sistemaId', async (req, res) => {
   try {
-    const { rolId, sistemaId } = req.params;
+    const rolId = req.params['rolId'];
+    const sistemaId = req.params['sistemaId'];
+    
     if (!rolId || !sistemaId) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'rolId y sistemaId son requeridos'
       });
+      return;
     }
-    const menus = await rolSistemaMenuService.getMenusByRolAndSistema(parseInt(rolId), parseInt(sistemaId));
-    res.json(menus);
+    
+    const rolIdNum = parseInt(rolId);
+    const sistemaIdNum = parseInt(sistemaId);
+    
+    if (isNaN(rolIdNum) || isNaN(sistemaIdNum)) {
+      res.status(400).json({
+        success: false,
+        message: 'rolId y sistemaId deben ser números válidos'
+      });
+      return;
+    }
+
+    const permisos = await rolSistemaMenuService.getMenusByRolAndSistema(rolIdNum, sistemaIdNum);
+    res.json(permisos);
   } catch (error) {
+    console.error('Error al obtener permisos:', error);
     res.status(500).json({
+      success: false,
       message: 'Error al obtener permisos',
       error: error instanceof Error ? error.message : 'Error desconocido'
     });
@@ -215,18 +244,23 @@ app.get('/api/permisos/:rolId/:sistemaId', async (req, res) => {
 app.post('/api/permisos', authMiddleware.verifyToken, async (req, res) => {
   try {
     const { rolId, sistemaId, menuIds } = req.body;
-    if (!rolId || !sistemaId || !menuIds) {
-      return res.status(400).json({
+    
+    if (!rolId || !sistemaId || !Array.isArray(menuIds)) {
+      res.status(400).json({
         success: false,
-        message: 'rolId, sistemaId y menuIds son requeridos'
+        message: 'rolId, sistemaId y menuIds (array) son requeridos'
       });
+      return;
     }
-    await rolSistemaMenuService.asignarMenusByRolAndSistema(Number(rolId), Number(sistemaId), menuIds);
-    res.status(201).json({
+    
+    await rolSistemaMenuService.asignarMenusByRolAndSistema(rolId, sistemaId, menuIds);
+    
+    res.json({
       success: true,
-      message: 'Permisos asignados exitosamente'
+      message: 'Permisos asignados correctamente'
     });
   } catch (error) {
+    console.error('Error al asignar permisos:', error);
     res.status(500).json({
       success: false,
       message: 'Error al asignar permisos',
@@ -237,7 +271,15 @@ app.post('/api/permisos', authMiddleware.verifyToken, async (req, res) => {
 
 app.put('/api/permisos/:id', authMiddleware.verifyToken, async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.params['id'];
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        message: 'ID de asignación requerido'
+      });
+      return;
+    }
+    
     const asignacionData = req.body;
     const asignacion = await rolSistemaMenuService.updateAsignacionById(parseInt(id), asignacionData);
     res.json({
@@ -446,26 +488,27 @@ app.post('/api/login', async (req, res) => {
   try {
     const { username, password } = req.body;
     
-    // Validación básica del body
     if (!username || !password) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
-        message: 'Faltan campos requeridos',
-        error: 'username y password son obligatorios'
+        message: 'Username y password son requeridos'
       });
+      return;
     }
-
-    const result = await authService.login({ username, password });
     
+    const result = await authService.login({ username, password });
     res.json({
       success: true,
-      data: result
+      data: {
+        token: result.token,
+        usuario: result.usuario
+      }
     });
   } catch (error) {
+    console.error('Error en login:', error);
     res.status(401).json({
       success: false,
-      message: 'Error de autenticación',
-      error: error instanceof Error ? error.message : 'Error desconocido'
+      message: error instanceof Error ? error.message : 'Error de autenticación'
     });
   }
 });
@@ -540,10 +583,10 @@ app.post('/api/login', async (req, res) => {
  *                   format: date-time
  */
 app.get('/health', (req, res) => {
-  res.json({
-    success: true,
-    message: 'API funcionando correctamente',
-    timestamp: new Date().toISOString()
+  res.status(200).json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    service: 'Globalis API'
   });
 });
 

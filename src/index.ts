@@ -1,13 +1,11 @@
-import dotenv from 'dotenv';
 import 'reflect-metadata';
-dotenv.config();
 
 import app from './app';
 import { sequelize } from './infrastructure/database/config/database';
 import './infrastructure/database/models'; // Importar modelos para establecer asociaciones
 import './infrastructure/container/container'; // Importar contenedor para inicializar DI
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env['PORT'] || 3000;
 
 async function startServer() {
   try {

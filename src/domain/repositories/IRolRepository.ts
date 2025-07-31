@@ -8,4 +8,5 @@ export interface IRolRepository {
   delete(id: number): Promise<boolean>;
   activate(id: number): Promise<boolean>;
   deactivate(id: number): Promise<boolean>;
+  changeEstado(id: number, estado: boolean): Promise<Rol | null>;
 } 

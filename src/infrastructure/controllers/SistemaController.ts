@@ -191,8 +191,12 @@ export class SistemaController {
    */
   async deleteSistema(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
-      const success = await this.sistemaService.deleteSistema(parseInt(id));
+      const id = parseInt(req.params['id'] || '');
+      if (isNaN(id)) {
+        res.status(400).json({ error: 'ID inválido' });
+        return;
+      }
+      const success = await this.sistemaService.deleteSistema(id);
       
       if (!success) {
         res.status(404).json({ message: "Sistema no encontrado" });
@@ -244,8 +248,12 @@ export class SistemaController {
    */
   async getUsuariosPorSistema(req: Request, res: Response): Promise<void> {
     try {
-      const { sistemaId } = req.params;
-      const usuarios = await this.sistemaService.getUsuariosPorSistema(parseInt(sistemaId));
+      const sistemaId = parseInt(req.params['sistemaId'] || '');
+      if (isNaN(sistemaId)) {
+        res.status(400).json({ error: 'ID de sistema inválido' });
+        return;
+      }
+      const usuarios = await this.sistemaService.getUsuariosPorSistema(sistemaId);
       res.json(usuarios);
     } catch (error) {
       console.error("Error al obtener usuarios del sistema:", error);
@@ -296,8 +304,12 @@ export class SistemaController {
    */
   async getPermisosSistema(req: Request, res: Response): Promise<void> {
     try {
-      const { sistemaId } = req.params;
-      const permisos = await this.sistemaService.getPermisosSistema(parseInt(sistemaId));
+      const sistemaId = parseInt(req.params['sistemaId'] || '');
+      if (isNaN(sistemaId)) {
+        res.status(400).json({ error: 'ID de sistema inválido' });
+        return;
+      }
+      const permisos = await this.sistemaService.getPermisosSistema(sistemaId);
       res.json(permisos);
     } catch (error) {
       console.error("Error al obtener permisos del sistema:", error);
@@ -337,8 +349,12 @@ export class SistemaController {
    */
   async getRolesPorSistema(req: Request, res: Response): Promise<void> {
     try {
-      const { sistemaId } = req.params;
-      const roles = await this.sistemaService.getRolesPorSistema(parseInt(sistemaId));
+      const sistemaId = parseInt(req.params['sistemaId'] || '');
+      if (isNaN(sistemaId)) {
+        res.status(400).json({ error: 'ID de sistema inválido' });
+        return;
+      }
+      const roles = await this.sistemaService.getRolesPorSistema(sistemaId);
       res.json(roles);
     } catch (error) {
       console.error("Error al obtener roles del sistema:", error);
@@ -378,8 +394,12 @@ export class SistemaController {
    */
   async getMenusPorSistema(req: Request, res: Response): Promise<void> {
     try {
-      const { sistemaId } = req.params;
-      const menus = await this.sistemaService.getMenusPorSistema(parseInt(sistemaId));
+      const sistemaId = parseInt(req.params['sistemaId'] || '');
+      if (isNaN(sistemaId)) {
+        res.status(400).json({ error: 'ID de sistema inválido' });
+        return;
+      }
+      const menus = await this.sistemaService.getMenusPorSistema(sistemaId);
       res.json(menus);
     } catch (error) {
       console.error("Error al obtener menús del sistema:", error);
@@ -430,8 +450,12 @@ export class SistemaController {
    */
   async getEstadisticasSistema(req: Request, res: Response): Promise<void> {
     try {
-      const { sistemaId } = req.params;
-      const estadisticas = await this.sistemaService.getEstadisticasSistema(parseInt(sistemaId));
+      const sistemaId = parseInt(req.params['sistemaId'] || '');
+      if (isNaN(sistemaId)) {
+        res.status(400).json({ error: 'ID de sistema inválido' });
+        return;
+      }
+      const estadisticas = await this.sistemaService.getEstadisticasSistema(sistemaId);
       res.json(estadisticas);
     } catch (error) {
       console.error("Error al obtener estadísticas del sistema:", error);

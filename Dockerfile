@@ -1,15 +1,58 @@
-FROM node:18-alpine
+# Etapa de construcción
+FROM node:18-alpine AS builder
 
+# Establecer directorio de trabajo
 WORKDIR /app
 
+# Copiar archivos de dependencias
 COPY package*.json ./
 
-RUN npm install
+# Instalar todas las dependencias (incluyendo devDependencies para TypeScript)
+RUN npm ci
 
+# Copiar código fuente
 COPY . .
 
+# Compilar TypeScript
 RUN npm run build
 
+# Etapa de producción
+FROM node:18-alpine AS production
+
+# Crear usuario no root
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nodejs -u 1001
+
+# Establecer directorio de trabajo
+WORKDIR /app
+
+# Copiar archivos de dependencias
+COPY package*.json ./
+
+# Instalar solo dependencias de producción
+RUN npm ci --only=production && npm cache clean --force
+
+# Copiar archivos compilados desde la etapa de construcción
+COPY --from=builder /app/dist ./dist
+
+# Copiar archivos de configuración
+COPY --from=builder /app/src/infrastructure/config ./src/infrastructure/config
+
+# Copiar archivos TypeScript necesarios para Swagger en desarrollo
+COPY --from=builder /app/src ./src
+
+# Cambiar propietario de los archivos
+RUN chown -R nodejs:nodejs /app
+
+# Cambiar al usuario no root
+USER nodejs
+
+# Exponer puerto
 EXPOSE 3000
 
-CMD ["npm", "start"] 
+# Variables de entorno por defecto
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Comando de inicio
+CMD ["node", "dist/index.js"] 

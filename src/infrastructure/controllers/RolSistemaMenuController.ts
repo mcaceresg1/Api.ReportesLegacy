@@ -95,9 +95,10 @@ export class RolSistemaMenuController {
       const { rolId, sistemaId } = req.params;
 
       if (!rolId || !sistemaId) {
-        return res.status(400).json({ 
+        res.status(400).json({ 
           message: "rolId y sistemaId son requeridos" 
         });
+        return;
       }
 
       const menus = await this.rolSistemaMenuService.getMenusByRolAndSistema(parseInt(rolId), parseInt(sistemaId));
@@ -158,9 +159,10 @@ export class RolSistemaMenuController {
       const { rolId, sistemaId, menuIds } = req.body;
 
       if (!rolId || !sistemaId || !Array.isArray(menuIds)) {
-        return res.status(400).json({ 
+        res.status(400).json({ 
           message: 'Faltan parámetros o formato incorrecto.' 
         });
+        return;
       }
 
       await this.rolSistemaMenuService.asignarMenusByRolAndSistema(rolId, sistemaId, menuIds);
@@ -211,11 +213,15 @@ export class RolSistemaMenuController {
    */
   async updateAsignacionById(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = parseInt(req.params['id'] || '');
+      if (isNaN(id)) {
+        res.status(400).json({ error: 'ID inválido' });
+        return;
+      }
       const asignacionData = req.body;
       
       const asignacion = await this.rolSistemaMenuService.updateAsignacionById(
-        parseInt(id), 
+        id, 
         asignacionData
       );
 

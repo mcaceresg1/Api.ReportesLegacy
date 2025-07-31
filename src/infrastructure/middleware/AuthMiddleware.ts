@@ -52,7 +52,7 @@ export class AuthMiddleware {
 
   verifyRole = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const requiredRole = req.params.role || req.body.role;
+      const requiredRole = req.params['role'] || req.body.role;
       
       if (!requiredRole) {
         res.status(400).json({

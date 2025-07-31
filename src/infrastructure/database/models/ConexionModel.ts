@@ -11,6 +11,7 @@ interface ConexionAttributes {
   codEmpresa: string;
   desEmpresa: string;
   sistema: string;
+  estado?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -27,6 +28,7 @@ class ConexionModel extends Model<ConexionAttributes, ConexionCreationAttributes
   declare codEmpresa: string;
   declare desEmpresa: string;
   declare sistema: string;
+  declare estado?: boolean;
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 }
@@ -69,6 +71,11 @@ ConexionModel.init(
     sistema: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    estado: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: true,
     },
   },
   {

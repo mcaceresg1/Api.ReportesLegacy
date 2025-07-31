@@ -20,7 +20,10 @@ export class SistemaRepository implements ISistemaRepository {
   }
 
   async create(sistemaData: SistemaCreate): Promise<Sistema> {
-    const sistema = await SistemaModel.create(sistemaData);
+    const sistema = await SistemaModel.create({
+      ...sistemaData,
+      estado: sistemaData.estado !== undefined ? sistemaData.estado : true
+    });
     return sistema.toJSON() as Sistema;
   }
 
