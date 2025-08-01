@@ -13,4 +13,5 @@ export interface IUsuarioService {
   validatePassword(password: string): boolean;
   hashPassword(password: string): Promise<string>;
   comparePassword(password: string, hash: string): Promise<boolean>;
+  cambiarPassword(id: number, nuevaPassword: string): Promise<boolean>;
 } 
