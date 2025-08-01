@@ -5,4 +5,6 @@ export interface IRolSistemaMenuService {
   asignarMenusByRolAndSistema(rolId: number, sistemaId: number, menuIds: number[]): Promise<void>;
   updateAsignacionById(id: number, asignacionData: any): Promise<any>;
   getPermisosBySistema(sistemaId: number): Promise<any[]>;
+  getPermisosByRol(rolId: number): Promise<any[]>;
+  getPermisosDisponiblesConMarcado(rolId: number): Promise<any[]>;
 } 
