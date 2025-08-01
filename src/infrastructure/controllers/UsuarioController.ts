@@ -634,6 +634,17 @@ export class UsuarioController {
       });
     } catch (error) {
       console.error('❌ Error al cambiar contraseña:', error);
+      
+      // Check if it's a validation error
+      if (error instanceof Error && error.message.includes('Validación de contraseña fallida')) {
+        res.status(400).json({
+          success: false,
+          message: 'Error de validación de contraseña',
+          error: error.message
+        });
+        return;
+      }
+      
       res.status(500).json({
         success: false,
         message: 'Error al cambiar contraseña',
