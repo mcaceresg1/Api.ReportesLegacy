@@ -5,6 +5,7 @@ export interface Usuario {
   password: string;
   estado: boolean;
   rolId?: number;
+  empresa?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -15,6 +16,7 @@ export interface UsuarioCreate {
   password: string;
   estado?: boolean;
   rolId: number;
+  empresa?: string;
 }
 
 export interface UsuarioUpdate {
@@ -23,4 +25,5 @@ export interface UsuarioUpdate {
   password?: string;
   estado?: boolean;
   rolId?: number;
+  empresa?: string;
 } 

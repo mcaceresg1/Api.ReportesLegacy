@@ -37,6 +37,10 @@ export class UsuarioService implements IUsuarioService {
   }
 
   async updateUsuario(id: number, usuario: UsuarioUpdate): Promise<Usuario | null> {
+    console.log('🔧 INICIANDO updateUsuario');
+    console.log('📦 Datos recibidos:', usuario);
+    console.log('🏢 Campo empresa en servicio:', usuario.empresa);
+    
     const existingUsuario = await this.usuarioRepository.findById(id);
     if (!existingUsuario) {
       throw new Error('Usuario no encontrado');
@@ -53,7 +57,9 @@ export class UsuarioService implements IUsuarioService {
       throw new Error('La contraseña debe tener al menos 8 caracteres');
     }
 
-    return await this.usuarioRepository.update(id, usuario);
+    const result = await this.usuarioRepository.update(id, usuario);
+    console.log('✅ Usuario actualizado en servicio:', result);
+    return result;
   }
 
   async deleteUsuario(id: number): Promise<boolean> {
@@ -95,19 +101,11 @@ export class UsuarioService implements IUsuarioService {
         return [];
       }
 
-      // Mapear empresas por rol
-      const empresasPorRol: { [key: number]: string } = {
-        1: "Globalis S.A.",
-        2: "Globalis S.A.",
-        3: "Globalis S.A.",
-        4: "Globalis S.A.",
-        5: "Globalis S.A.",
-      };
-
-      // Procesar datos agregando información de empresa
+      // Procesar datos manteniendo la empresa real de la base de datos
       const usuariosConEmpresa = usuarios.map(usuario => {
         const usuarioData = usuario as any;
-        usuarioData.empresa = empresasPorRol[usuarioData.rolId] || "Sin empresa asignada";
+        // Usar la empresa real de la base de datos, no sobrescribir
+        console.log(`👤 Usuario ${usuarioData.username}: empresa = ${usuarioData.empresa}`);
         return usuarioData;
       });
 
@@ -130,5 +128,32 @@ export class UsuarioService implements IUsuarioService {
 
   async comparePassword(password: string, hash: string): Promise<boolean> {
     return await bcrypt.compare(password, hash);
+  }
+
+  async cambiarPassword(id: number, nuevaPassword: string): Promise<boolean> {
+    console.log('🔧 INICIANDO cambiarPassword');
+    console.log('🆔 ID del usuario:', id);
+    console.log('🔐 Nueva contraseña recibida');
+    
+    const existingUsuario = await this.usuarioRepository.findById(id);
+    if (!existingUsuario) {
+      console.error('❌ Usuario no encontrado con ID:', id);
+      return false;
+    }
+
+    if (!this.validatePassword(nuevaPassword)) {
+      console.error('❌ Contraseña no cumple con los requisitos mínimos');
+      throw new Error('La contraseña debe tener al menos 8 caracteres');
+    }
+
+    // Hashear la nueva contraseña
+    const hashedPassword = await this.hashPassword(nuevaPassword);
+    console.log('🔐 Contraseña hasheada correctamente');
+
+    // Actualizar solo la contraseña
+    const result = await this.usuarioRepository.updatePassword(id, hashedPassword);
+    console.log('✅ Contraseña actualizada en repositorio:', result);
+    
+    return result;
   }
 } 

@@ -8,6 +8,7 @@ interface UsuarioAttributes {
   password: string;
   estado: boolean;
   rolId: number;
+  empresa?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -21,6 +22,7 @@ class UsuarioModel extends Model<UsuarioAttributes, UsuarioCreationAttributes> i
   declare password: string;
   declare estado: boolean;
   declare rolId: number;
+  declare empresa?: string;
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 }
@@ -57,6 +59,10 @@ UsuarioModel.init(
         model: 'Roles',
         key: 'id',
       },
+    },
+    empresa: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
   },
   {

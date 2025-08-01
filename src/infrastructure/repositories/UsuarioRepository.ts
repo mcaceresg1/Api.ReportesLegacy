@@ -41,11 +41,33 @@ export class UsuarioRepository implements IUsuarioRepository {
   }
 
   async update(id: number, usuarioData: UsuarioUpdate): Promise<Usuario | null> {
+    console.log('🔧 INICIANDO update en repositorio');
+    console.log('📦 Datos a actualizar:', usuarioData);
+    console.log('🏢 Campo empresa en repositorio:', usuarioData.empresa);
+    
     const usuario = await UsuarioModel.findByPk(id);
     if (!usuario) return null;
 
     await usuario.update(usuarioData);
-    return usuario.toJSON() as Usuario;
+    const result = usuario.toJSON() as Usuario;
+    console.log('✅ Usuario actualizado en repositorio:', result);
+    return result;
+  }
+
+  async updatePassword(id: number, hashedPassword: string): Promise<boolean> {
+    console.log('🔧 INICIANDO updatePassword en repositorio');
+    console.log('🆔 ID del usuario:', id);
+    console.log('🔐 Contraseña hasheada recibida');
+    
+    const usuario = await UsuarioModel.findByPk(id);
+    if (!usuario) {
+      console.error('❌ Usuario no encontrado con ID:', id);
+      return false;
+    }
+
+    await usuario.update({ password: hashedPassword });
+    console.log('✅ Contraseña actualizada en base de datos');
+    return true;
   }
 
   async delete(id: number): Promise<boolean> {
@@ -102,15 +124,16 @@ export class UsuarioRepository implements IUsuarioRepository {
           attributes: ["id", "descripcion", "descripcion_completa", "estado"],
         },
         where: { estado: true },
-        attributes: ["id", "username", "email", "estado", "rolId"],
-        limit: 5
+        attributes: ["id", "username", "email", "estado", "rolId", "empresa"]
       });
       console.log(`✅ Consulta con include exitosa: ${datos.length} usuarios`);
 
       // Procesar datos
       console.log("🔄 Procesando datos...");
       const usuariosConRoles = datos.map((usuario: any) => {
-        return usuario.toJSON();
+        const usuarioJson = usuario.toJSON();
+        console.log(`📊 Usuario ${usuarioJson.username}: empresa = ${usuarioJson.empresa}`);
+        return usuarioJson;
       });
 
       console.log("🎉 findAllWithRoles completado exitosamente");
