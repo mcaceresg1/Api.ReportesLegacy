@@ -95,10 +95,36 @@ export class SistemaService implements ISistemaService {
     try {
       console.log(`🔍 Obteniendo menús para sistema ${sistemaId}`);
       
-      // Obtener menús del sistema
-      const menus = await this.menuService.getMenusBySistema(sistemaId.toString());
+      // Primero obtener el sistema para obtener su descripción
+      const sistema = await this.sistemaRepository.findById(sistemaId);
+      if (!sistema) {
+        console.log(`❌ Sistema con ID ${sistemaId} no encontrado`);
+        return [];
+      }
       
-      console.log(`✅ Menús obtenidos para sistema ${sistemaId}: ${menus.length}`);
+      console.log(`🔍 Sistema encontrado: ${sistema.descripcion}`);
+      
+      // Mapear la descripción del sistema a su sistemaCode
+      const sistemaCodeMapping: { [key: string]: string } = {
+        'Excel': 'EXCEL',
+        'Exactus': 'EXACTUS',
+        'Clipper': 'CLIPPER-TNEW0000',
+        'Oficon': 'OFICON',
+        'Hmis': 'HMIS'
+      };
+      
+      const sistemaCode = sistemaCodeMapping[sistema.descripcion];
+      if (!sistemaCode) {
+        console.log(`❌ No se encontró mapeo para sistema: ${sistema.descripcion}`);
+        return [];
+      }
+      
+      console.log(`🔍 Buscando menús con sistemaCode: ${sistemaCode}`);
+      
+      // Obtener menús del sistema usando el sistemaCode
+      const menus = await this.menuService.getMenusBySistema(sistemaCode);
+      
+      console.log(`✅ Menús obtenidos para sistema ${sistemaId} (${sistema.descripcion}): ${menus.length}`);
       return menus;
     } catch (error) {
       console.error(`❌ Error al obtener menús para sistema ${sistemaId}:`, error);
