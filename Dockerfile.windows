@@ -1,26 +1,74 @@
-# Windows-specific Dockerfile for API
-FROM mcr.microsoft.com/windows/servercore:ltsc2019
+# Etapa de construcción usando Windows Server Core
+FROM mcr.microsoft.com/windows/servercore:ltsc2019 AS builder
 
-# Install Node.js
+# Instalar Node.js en Windows
 RUN powershell -Command \
     Invoke-WebRequest -Uri https://nodejs.org/dist/v18.19.0/node-v18.19.0-x64.msi -OutFile node.msi ; \
     Start-Process msiexec.exe -ArgumentList '/i', 'node.msi', '/quiet', '/norestart' -NoNewWindow -Wait ; \
     Remove-Item node.msi
 
-# Set working directory
-WORKDIR /app
+# Establecer directorio de trabajo
+WORKDIR C:\app
 
-# Copy package files
+# Copiar archivos de dependencias
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Instalar todas las dependencias (incluyendo devDependencies para TypeScript)
+RUN npm ci
 
-# Copy source code
+# Copiar código fuente
 COPY . .
 
-# Expose port
+# Compilar TypeScript
+RUN npm run build
+
+# Etapa de producción
+FROM mcr.microsoft.com/windows/servercore:ltsc2019 AS production
+
+# Instalar Node.js en la etapa de producción
+RUN powershell -Command \
+    Invoke-WebRequest -Uri https://nodejs.org/dist/v18.19.0/node-v18.19.0-x64.msi -OutFile node.msi ; \
+    Start-Process msiexec.exe -ArgumentList '/i', 'node.msi', '/quiet', '/norestart' -NoNewWindow -Wait ; \
+    Remove-Item node.msi
+
+# Instalar Python para Windows
+RUN powershell -Command \
+    Invoke-WebRequest -Uri https://www.python.org/ftp/python/3.11.0/python-3.11.0-amd64.exe -OutFile python.exe ; \
+    Start-Process python.exe -ArgumentList '/quiet', 'InstallAllUsers=1', 'PrependPath=1' -NoNewWindow -Wait ; \
+    Remove-Item python.exe
+
+# Establecer directorio de trabajo
+WORKDIR C:\app
+
+# Copiar archivos de dependencias
+COPY package*.json ./
+
+# Instalar solo dependencias de producción
+RUN npm ci --only=production && npm cache clean --force
+
+# Copiar archivos compilados desde la etapa de construcción
+COPY --from=builder C:\app\dist C:\app\dist
+
+# Copiar archivos de configuración
+COPY --from=builder C:\app\src\infrastructure\config C:\app\src\infrastructure\config
+
+# Copiar archivos TypeScript necesarios para Swagger en desarrollo
+COPY --from=builder C:\app\src C:\app\src
+
+# Copiar script de Python y dependencias
+COPY pdf-generator.py C:\app\pdf-generator.py
+COPY requirements.txt C:\app\requirements.txt
+COPY logo_script.png C:\app\logo_script.png
+
+# Instalar dependencias de Python
+RUN pip install -r requirements.txt
+
+# Exponer puerto
 EXPOSE 3000
 
-# Start the application
-CMD ["npm", "start"] 
+# Variables de entorno por defecto
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Comando de inicio
+CMD ["node", "dist/index.js"] 
