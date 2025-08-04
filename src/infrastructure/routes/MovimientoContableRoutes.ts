@@ -15,5 +15,6 @@ router.put('/:id', (req, res) => movimientoContableController.updateMovimientoCo
 router.delete('/:id', (req, res) => movimientoContableController.deleteMovimientoContable(req, res));
 router.get('/tipo/:tipo', (req, res) => movimientoContableController.getMovimientosContablesByTipo(req, res));
 router.get('/centro-costo/:centroCostoId', (req, res) => movimientoContableController.getMovimientosContablesByCentroCosto(req, res));
+router.post('/pdf', (req, res) => movimientoContableController.generatePDF(req, res));
 
 export default router; 

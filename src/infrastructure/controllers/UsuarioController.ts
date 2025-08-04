@@ -20,6 +20,8 @@ import { UsuarioCreate, UsuarioUpdate } from '../../domain/entities/Usuario';
  *           type: boolean
  *         rolId:
  *           type: integer
+ *         empresa:
+ *           type: string
  *     UsuarioCreate:
  *       type: object
  *       required:
@@ -36,6 +38,8 @@ import { UsuarioCreate, UsuarioUpdate } from '../../domain/entities/Usuario';
  *           type: string
  *         rolId:
  *           type: integer
+ *         empresa:
+ *           type: string
  *     UsuarioUpdate:
  *       type: object
  *       properties:
@@ -47,6 +51,8 @@ import { UsuarioCreate, UsuarioUpdate } from '../../domain/entities/Usuario';
  *           type: string
  *         rolId:
  *           type: integer
+ *         empresa:
+ *           type: string
  */
 
 @injectable()
@@ -251,15 +257,26 @@ export class UsuarioController {
    */
   async updateUsuario(req: Request, res: Response): Promise<void> {
     try {
+      console.log('🔧 PUT /api/usuarios/:id - Iniciando actualización');
+      console.log('📋 Parámetros:', req.params);
+      console.log('📦 Body:', req.body);
+      
       const id = parseInt(req.params['id'] || '');
       if (isNaN(id)) {
+        console.error('❌ ID inválido:', req.params['id']);
         res.status(400).json({ error: 'ID inválido' });
         return;
       }
+      
+      console.log('🆔 ID del usuario a actualizar:', id);
       const usuarioData: UsuarioUpdate = req.body;
+      console.log('📝 Datos a actualizar:', usuarioData);
+      console.log('🏢 Campo empresa recibido:', usuarioData.empresa);
+      
       const usuario = await this.usuarioService.updateUsuario(id, usuarioData);
       
       if (!usuario) {
+        console.error('❌ Usuario no encontrado con ID:', id);
         res.status(404).json({
           success: false,
           message: 'Usuario no encontrado'
@@ -267,11 +284,13 @@ export class UsuarioController {
         return;
       }
 
+      console.log('✅ Usuario actualizado exitosamente:', usuario);
       res.json({
         success: true,
         data: usuario
       });
     } catch (error) {
+      console.error('❌ Error al actualizar usuario:', error);
       res.status(400).json({
         success: false,
         message: 'Error al actualizar usuario',
@@ -520,6 +539,115 @@ export class UsuarioController {
       res.status(500).json({
         success: false,
         message: 'Error al obtener usuarios con empresa',
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/usuarios/{id}/cambiar-password:
+   *   patch:
+   *     summary: Cambiar contraseña de usuario
+   *     tags: [Usuarios]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: ID del usuario
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - nuevaPassword
+   *             properties:
+   *               nuevaPassword:
+   *                 type: string
+   *                 description: Nueva contraseña del usuario
+   *     responses:
+   *       200:
+   *         description: Contraseña cambiada exitosamente
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 message:
+   *                   type: string
+   *       400:
+   *         description: Datos inválidos
+   *       404:
+   *         description: Usuario no encontrado
+   *       500:
+   *         description: Error interno del servidor
+   */
+  async cambiarPassword(req: Request, res: Response): Promise<void> {
+    try {
+      console.log('🔧 PATCH /api/usuarios/:id/cambiar-password - Iniciando cambio de contraseña');
+      console.log('📋 Parámetros:', req.params);
+      console.log('📦 Body:', req.body);
+      
+      const id = parseInt(req.params['id'] || '');
+      if (isNaN(id)) {
+        console.error('❌ ID inválido:', req.params['id']);
+        res.status(400).json({ error: 'ID inválido' });
+        return;
+      }
+      
+      const { nuevaPassword } = req.body;
+      if (!nuevaPassword) {
+        console.error('❌ Nueva contraseña no proporcionada');
+        res.status(400).json({ 
+          success: false,
+          message: 'Nueva contraseña es requerida' 
+        });
+        return;
+      }
+      
+      console.log('🆔 ID del usuario:', id);
+      console.log('🔐 Nueva contraseña recibida');
+      
+      const success = await this.usuarioService.cambiarPassword(id, nuevaPassword);
+      
+      if (!success) {
+        console.error('❌ Usuario no encontrado con ID:', id);
+        res.status(404).json({
+          success: false,
+          message: 'Usuario no encontrado'
+        });
+        return;
+      }
+
+      console.log('✅ Contraseña cambiada exitosamente para usuario ID:', id);
+      res.json({
+        success: true,
+        message: 'Contraseña cambiada exitosamente'
+      });
+    } catch (error) {
+      console.error('❌ Error al cambiar contraseña:', error);
+      
+      // Check if it's a validation error
+      if (error instanceof Error && error.message.includes('Validación de contraseña fallida')) {
+        res.status(400).json({
+          success: false,
+          message: 'Error de validación de contraseña',
+          error: error.message
+        });
+        return;
+      }
+      
+      res.status(500).json({
+        success: false,
+        message: 'Error al cambiar contraseña',
         error: error instanceof Error ? error.message : 'Error desconocido'
       });
     }

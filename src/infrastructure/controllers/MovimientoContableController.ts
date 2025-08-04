@@ -482,4 +482,110 @@ export class MovimientoContableController {
       });
     }
   }
+
+  /**
+   * @swagger
+   * /api/movimientos-contables/pdf:
+   *   post:
+   *     summary: Generar PDF de movimientos contables
+   *     tags: [Movimientos Contables]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               filtros:
+   *                 type: object
+   *                 description: Filtros para los movimientos contables
+   *               datosReporte:
+   *                 type: object
+   *                 description: Datos del reporte (títulos, información de empresa, etc.)
+   *     responses:
+   *       200:
+   *         description: PDF generado exitosamente
+   *         content:
+   *           application/pdf:
+   *             schema:
+   *               type: string
+   *               format: binary
+   *       500:
+   *         description: Error interno del servidor
+   */
+  async generatePDF(req: Request, res: Response): Promise<void> {
+    try {
+      const { filtros, datosReporte } = req.body;
+      
+      // Obtener movimientos contables con filtros
+      const movimientos = await this.movimientoContableService.getMovimientosContablesByFilter(filtros);
+      
+      // Preparar datos para el script de Python
+      const pdfData = {
+        ...datosReporte,
+        movimientos: movimientos
+      };
+      
+      // Importar módulos necesarios para ejecutar Python
+      const { spawn } = require('child_process');
+      const path = require('path');
+      
+      // Ruta al script de Python
+      const pythonScript = path.join(__dirname, '../../../pdf-generator.py');
+      
+      // Ejecutar script de Python
+      const pythonProcess = spawn('python', [
+        pythonScript,
+        JSON.stringify(pdfData),
+        'temp_movimientos_contables.pdf'
+      ]);
+      
+      let pdfBuffer = Buffer.alloc(0);
+      let errorOutput = '';
+      
+      // Capturar salida del script
+      pythonProcess.stdout.on('data', (data: Buffer) => {
+        console.log('Python output:', data.toString());
+      });
+      
+      pythonProcess.stderr.on('data', (data: Buffer) => {
+        errorOutput += data.toString();
+      });
+      
+      // Esperar a que termine el proceso
+      await new Promise<void>((resolve, reject) => {
+        pythonProcess.on('close', (code: number) => {
+          if (code === 0) {
+            // Leer el archivo PDF generado
+            const fs = require('fs');
+            const pdfPath = path.join(process.cwd(), 'temp_movimientos_contables.pdf');
+            
+            if (fs.existsSync(pdfPath)) {
+              pdfBuffer = fs.readFileSync(pdfPath);
+              // Eliminar archivo temporal
+              fs.unlinkSync(pdfPath);
+              resolve();
+            } else {
+              reject(new Error('No se pudo generar el archivo PDF'));
+            }
+          } else {
+            reject(new Error(`Error en script de Python: ${errorOutput}`));
+          }
+        });
+      });
+      
+      // Enviar PDF como respuesta
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="movimientos_contables.pdf"');
+      res.send(pdfBuffer);
+      
+    } catch (error) {
+      console.error('Error generando PDF:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Error generando PDF',
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      });
+    }
+  }
 } 

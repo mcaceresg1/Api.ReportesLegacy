@@ -10,7 +10,8 @@ export interface IUsuarioService {
   activateUsuario(id: number): Promise<boolean>;
   deactivateUsuario(id: number): Promise<boolean>;
   getUsuariosConEmpresa(): Promise<any[]>; // Nuevo método
-  validatePassword(password: string): boolean;
+  validatePassword(password: string): { isValid: boolean; errors: string[] };
   hashPassword(password: string): Promise<string>;
   comparePassword(password: string, hash: string): Promise<boolean>;
+  cambiarPassword(id: number, nuevaPassword: string): Promise<boolean>;
 } 

@@ -14,6 +14,91 @@ API REST desarrollada en TypeScript con arquitectura hexagonal (Ports and Adapte
 - **Swagger**: Documentación automática de la API
 - **Docker**: Containerización
 - **SOLID Principles**: Principios de diseño aplicados
+- **Python Integration**: Integración con Python para generación de PDFs
+
+## Cambios Recientes
+
+### v1.1.0 - Refactorización de Endpoints de Permisos
+- **Nuevo archivo de rutas**: Creado `PermisoRoutes.ts` para centralizar endpoints de permisos
+- **Documentación Swagger**: Agregada documentación completa para endpoints de permisos
+- **Mejora en organización**: Endpoints de permisos ahora siguen el patrón de arquitectura hexagonal
+- **Endpoints disponibles**:
+  - `GET /api/permisos/:rolId/:sistemaId` - Obtener permisos de un rol en un sistema
+  - `POST /api/permisos` - Asignar permisos a un rol en un sistema  
+  - `PUT /api/permisos/:id` - Actualizar un permiso específico
+
+### v1.2.0 - Mejora del Modal de Nuevo Rol
+- **Selección de permisos**: El modal de "Nuevo Rol" ahora incluye selección de permisos
+- **Interfaz con pestañas**: Implementado sistema de pestañas para separar información básica y permisos
+- **Selector de sistema**: Permite elegir el sistema para el cual se asignarán los permisos
+- **Árbol de permisos**: Visualización jerárquica de permisos disponibles con selección múltiple
+- **Resumen de permisos**: Muestra los permisos seleccionados antes de crear el rol
+- **Asignación automática**: Los permisos se asignan automáticamente al crear el rol
+- **Componentes personalizados**: Implementación de componentes propios sin dependencias externas
+
+### v1.4.0 - Corrección de Endpoint de Permisos
+- **Corrección**: Actualización del modal de nuevo rol para usar el endpoint correcto
+  - Cambio de `/api/sistemas/{sistemaId}/menus` a `/api/sistemas/{sistemaId}/permisos`
+  - Implementación de `convertPermisosToTreeNodes()` para procesar permisos
+  - Mejora en el manejo de eventos del selector de sistemas
+- **Mejora**: Logs de depuración para facilitar el troubleshooting
+- **Beneficios**: Listado correcto de permisos según el sistema seleccionado
+
+### v1.5.0 - Nuevo Endpoint de Permisos por Rol
+- **Nuevo endpoint**: `/api/rol/{rolId}/permisos` para obtener permisos específicos de un rol
+  - Implementación en backend con documentación Swagger completa
+  - Método `getPermisosByRol()` en `RolSistemaMenuService`
+  - Integración en frontend con método `obtenerPermisosRol()`
+- **Funcionalidad**: "Ver permisos" en roles y permisos ahora usa el endpoint específico
+  - Carga permisos sin filtrar por sistema
+  - Muestra todos los permisos asignados al rol
+  - Compatibilidad con la interfaz existente
+
+### v1.6.0 - Mejora del Modal de Editar Rol
+- **Funcionalidad**: Modal de editar rol ahora incluye gestión de permisos
+  - Tabs para información básica y permisos
+  - Selector de sistema con permisos pre-seleccionados
+  - Árbol de permisos con selección múltiple
+  - Vista previa del rol con información de permisos
+- **Características**:
+  - Carga automática de permisos existentes del rol
+  - Filtrado por sistema seleccionado
+  - Marcado automático de permisos ya asignados
+  - Interfaz consistente con el modal de nuevo rol
+
+### v1.7.0 - Nuevo Endpoint de Permisos Disponibles con Marcado
+- **Nuevo endpoint**: `/api/rol/{rolId}/permisos-disponibles` para obtener todos los permisos disponibles marcando los activos
+  - Implementación en backend con documentación Swagger completa
+  - Método `getPermisosDisponiblesConMarcado()` en `RolSistemaMenuService`
+  - Retorna todos los permisos con campo `activo` indicando si están asignados al rol
+  - Incluye información adicional para el frontend (`seleccionado`, `puedeSeleccionar`)
+- **Estructura de respuesta**:
+  ```json
+  [
+    {
+      "id": 1,
+      "descripcion": "Gestión de Usuarios",
+      "routePath": "/usuarios",
+      "sistemaId": 1,
+      "activo": true,
+      "seleccionado": true,
+      "puedeSeleccionar": true
+    }
+  ]
+  ```
+- **Beneficios**: 
+  - Permite mostrar todos los permisos disponibles en modal de editar
+  - Marca automáticamente los permisos que ya tiene el rol
+  - Facilita la gestión completa de permisos por rol
+  - Permite activar/desactivar permisos fácilmente
+
+### v1.3.0 - Componentes Personalizados
+- **TabViewComponent**: Componente de pestañas personalizado con diseño moderno y responsive
+- **SelectButtonComponent**: Selector de botones con soporte para selección única y múltiple
+- **TreeComponent**: Árbol jerárquico con selección múltiple y expansión/colapso
+- **TreeNodeComponent**: Nodos de árbol con checkboxes y estados visuales
+- **Diseño responsive**: Todos los componentes adaptados para dispositivos móviles
+- **Sin dependencias externas**: Eliminación completa de PrimeNG para estos componentes
 
 ## Estructura del Proyecto
 
@@ -62,6 +147,29 @@ docker build -t api-reportes-legacy .
 docker run -p 3000:3000 api-reportes-legacy
 ```
 
+## Generación de PDFs
+
+### Características
+- **Script Python**: Utiliza ReportLab para generar PDFs profesionales
+- **Datos dinámicos**: Los PDFs incluyen datos actuales de la base de datos
+- **Filtros aplicados**: Los filtros de la consulta se reflejan en el PDF
+- **Información de empresa**: Incluye datos configurables de la empresa
+
+### Dependencias Python
+El contenedor Docker incluye:
+- Python 3
+- ReportLab (para generación de PDFs)
+- Requests (para comunicación HTTP)
+
+### Archivos
+- `pdf-generator.py`: Script principal de generación de PDFs
+- `requirements.txt`: Dependencias de Python
+
+### Uso
+El endpoint `/api/movimientos-contables/pdf` acepta:
+- `filtros`: Objeto con filtros para los movimientos contables
+- `datosReporte`: Objeto con información del reporte (títulos, empresa, etc.)
+
 ## Endpoints Principales
 
 ### Autenticación
@@ -74,6 +182,13 @@ docker run -p 3000:3000 api-reportes-legacy
 |--------|----------|-------------|
 | `GET` | `/api/usuarios` | Obtener todos los usuarios |
 | `GET` | `/api/usuarios/:id` | Obtener usuario por ID |
+
+### Permisos
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `GET` | `/api/permisos/:rolId/:sistemaId` | Obtener permisos de un rol en un sistema |
+| `POST` | `/api/permisos` | Asignar permisos a un rol en un sistema |
+| `PUT` | `/api/permisos/:id` | Actualizar un permiso específico |
 | `POST` | `/api/usuarios` | Crear usuario |
 | `PUT` | `/api/usuarios` | Actualizar usuario |
 | `DELETE` | `/api/usuarios/:id` | Eliminar usuario |
@@ -98,6 +213,16 @@ docker run -p 3000:3000 api-reportes-legacy
 | `GET` | `/api/menus` | Obtener todos los menús |
 | `GET` | `/api/menus-public` | Obtener menús (público) |
 | `GET` | `/api/menus/rol/:rolId/sistema/:sistemaId` | Obtener menús por rol y sistema |
+
+### Movimientos Contables
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `GET` | `/api/movimientos-contables` | Obtener movimientos contables con filtros |
+| `GET` | `/api/movimientos-contables/:id` | Obtener movimiento contable por ID |
+| `POST` | `/api/movimientos-contables` | Crear movimiento contable |
+| `PUT` | `/api/movimientos-contables/:id` | Actualizar movimiento contable |
+| `DELETE` | `/api/movimientos-contables/:id` | Eliminar movimiento contable |
+| `POST` | `/api/movimientos-contables/pdf` | Generar PDF de movimientos contables |
 
 ### Centros de Costo
 | Método | Endpoint | Descripción |

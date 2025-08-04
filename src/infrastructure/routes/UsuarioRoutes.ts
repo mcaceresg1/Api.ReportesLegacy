@@ -58,6 +58,12 @@ export class UsuarioRoutes {
       const controller = container.get<UsuarioController>('UsuarioController');
       controller.deactivateUsuario(req, res);
     });
+
+    // Cambiar contraseña de usuario
+    this.router.patch('/:id/cambiar-password', (req, res) => {
+      const controller = container.get<UsuarioController>('UsuarioController');
+      controller.cambiarPassword(req, res);
+    });
   }
 
   public getRouter(): Router {

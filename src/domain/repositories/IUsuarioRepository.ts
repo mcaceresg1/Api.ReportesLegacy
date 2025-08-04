@@ -7,6 +7,7 @@ export interface IUsuarioRepository {
   findByUsernameWithPassword(username: string): Promise<Usuario | null>;
   create(usuario: UsuarioCreate): Promise<Usuario>;
   update(id: number, usuario: UsuarioUpdate): Promise<Usuario | null>;
+  updatePassword(id: number, hashedPassword: string): Promise<boolean>;
   delete(id: number): Promise<boolean>;
   activate(id: number): Promise<boolean>;
   deactivate(id: number): Promise<boolean>;

@@ -24,8 +24,8 @@ export class UsuarioService implements IUsuarioService {
 
   async createUsuario(usuario: UsuarioCreate): Promise<Usuario> {
     // Validaciones de negocio
-    if (!this.validatePassword(usuario.password)) {
-      throw new Error('La contraseña debe tener al menos 8 caracteres');
+    if (!this.validatePassword(usuario.password).isValid) {
+      throw new Error('La contraseña debe tener al menos 8 caracteres, incluir letras, números y no ser común');
     }
 
     const existingUsuario = await this.usuarioRepository.findByEmail(usuario.email);
@@ -37,6 +37,10 @@ export class UsuarioService implements IUsuarioService {
   }
 
   async updateUsuario(id: number, usuario: UsuarioUpdate): Promise<Usuario | null> {
+    console.log('🔧 INICIANDO updateUsuario');
+    console.log('📦 Datos recibidos:', usuario);
+    console.log('🏢 Campo empresa en servicio:', usuario.empresa);
+    
     const existingUsuario = await this.usuarioRepository.findById(id);
     if (!existingUsuario) {
       throw new Error('Usuario no encontrado');
@@ -49,11 +53,13 @@ export class UsuarioService implements IUsuarioService {
       }
     }
 
-    if (usuario.password && !this.validatePassword(usuario.password)) {
-      throw new Error('La contraseña debe tener al menos 8 caracteres');
+    if (usuario.password && !this.validatePassword(usuario.password).isValid) {
+      throw new Error('La contraseña debe tener al menos 8 caracteres, incluir letras, números y no ser común');
     }
 
-    return await this.usuarioRepository.update(id, usuario);
+    const result = await this.usuarioRepository.update(id, usuario);
+    console.log('✅ Usuario actualizado en servicio:', result);
+    return result;
   }
 
   async deleteUsuario(id: number): Promise<boolean> {
@@ -95,19 +101,11 @@ export class UsuarioService implements IUsuarioService {
         return [];
       }
 
-      // Mapear empresas por rol
-      const empresasPorRol: { [key: number]: string } = {
-        1: "Globalis S.A.",
-        2: "Globalis S.A.",
-        3: "Globalis S.A.",
-        4: "Globalis S.A.",
-        5: "Globalis S.A.",
-      };
-
-      // Procesar datos agregando información de empresa
+      // Procesar datos manteniendo la empresa real de la base de datos
       const usuariosConEmpresa = usuarios.map(usuario => {
         const usuarioData = usuario as any;
-        usuarioData.empresa = empresasPorRol[usuarioData.rolId] || "Sin empresa asignada";
+        // Usar la empresa real de la base de datos, no sobrescribir
+        console.log(`👤 Usuario ${usuarioData.username}: empresa = ${usuarioData.empresa}`);
         return usuarioData;
       });
 
@@ -120,8 +118,53 @@ export class UsuarioService implements IUsuarioService {
     }
   }
 
-  validatePassword(password: string): boolean {
-    return password.length >= 8;
+  validatePassword(password: string): { isValid: boolean; errors: string[] } {
+    const errors: string[] = [];
+    
+    // Mínimo 8 caracteres
+    if (password.length < 8) {
+      errors.push('La contraseña debe tener al menos 8 caracteres');
+    }
+    
+    // Incluir mayúsculas y minúsculas
+    if (!/[a-z]/.test(password)) {
+      errors.push('La contraseña debe incluir al menos una letra minúscula');
+    }
+    
+    if (!/[A-Z]/.test(password)) {
+      errors.push('La contraseña debe incluir al menos una letra mayúscula');
+    }
+    
+    // Incluir números
+    if (!/\d/.test(password)) {
+      errors.push('La contraseña debe incluir al menos un número');
+    }
+    
+    // No usar contraseñas comunes
+    const commonPasswords = [
+      'password', '123456', '12345678', 'qwerty', 'abc123', 'password123',
+      'admin', 'root', 'user', 'letmein', 'welcome', 'monkey', 'dragon',
+      'master', 'hello', 'freedom', 'whatever', 'qazwsx', 'trustno1',
+      'jordan', 'joshua', 'michael', 'michelle', 'charlie', 'andrew',
+      'matthew', 'jennifer', 'jessica', 'joshua', 'amanda', 'jessica',
+      'joshua', 'amanda', 'jessica', 'joshua', 'amanda', 'jessica',
+      '123456789', '1234567890', 'password1', 'password123', 'admin123',
+      'root123', 'user123', 'test123', 'demo123', 'guest123', 'temp123',
+      'changeme', 'secret', 'private', 'mypass', 'mypassword', 'letmein123',
+      'welcome123', 'monkey123', 'dragon123', 'master123', 'hello123',
+      'freedom123', 'whatever123', 'qazwsx123', 'trustno1123', 'jordan123',
+      'joshua123', 'michael123', 'michelle123', 'charlie123', 'andrew123',
+      'matthew123', 'jennifer123', 'jessica123', 'joshua123', 'amanda123'
+    ];
+    
+    if (commonPasswords.includes(password.toLowerCase())) {
+      errors.push('No se permiten contraseñas comunes');
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
   }
 
   async hashPassword(password: string): Promise<string> {
@@ -130,5 +173,33 @@ export class UsuarioService implements IUsuarioService {
 
   async comparePassword(password: string, hash: string): Promise<boolean> {
     return await bcrypt.compare(password, hash);
+  }
+
+  async cambiarPassword(id: number, nuevaPassword: string): Promise<boolean> {
+    console.log('🔧 INICIANDO cambiarPassword');
+    console.log('🆔 ID del usuario:', id);
+    console.log('🔐 Nueva contraseña recibida');
+    
+    const existingUsuario = await this.usuarioRepository.findById(id);
+    if (!existingUsuario) {
+      console.error('❌ Usuario no encontrado con ID:', id);
+      return false;
+    }
+
+    const validation = this.validatePassword(nuevaPassword);
+    if (!validation.isValid) {
+      console.error('❌ Contraseña no cumple con los requisitos:', validation.errors);
+      throw new Error(`Validación de contraseña fallida: ${validation.errors.join(', ')}`);
+    }
+
+    // Hashear la nueva contraseña
+    const hashedPassword = await this.hashPassword(nuevaPassword);
+    console.log('🔐 Contraseña hasheada correctamente');
+
+    // Actualizar solo la contraseña
+    const result = await this.usuarioRepository.updatePassword(id, hashedPassword);
+    console.log('✅ Contraseña actualizada en repositorio:', result);
+    
+    return result;
   }
 } 
