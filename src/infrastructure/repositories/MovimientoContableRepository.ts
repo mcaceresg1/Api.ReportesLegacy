@@ -48,7 +48,7 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
         attributes: ['id', 'codigo', 'nombre']
       });
     } catch (error) {
-      console.log('No se pudo incluir la relación con Compania:', error.message);
+      console.log('No se pudo incluir la relación con Compania:', error instanceof Error ? error.message : 'Error desconocido');
     }
 
     console.log('Filtro recibido en repositorio:', filter);
@@ -129,7 +129,10 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
   }
 
   async create(movimientoContable: MovimientoContableCreate): Promise<MovimientoContable> {
-    const createdMovimientoContable = await MovimientoContableModel.create(movimientoContable);
+    const createdMovimientoContable = await MovimientoContableModel.create({
+      ...movimientoContable,
+      compania_id: movimientoContable.compania_id || 1
+    });
     return this.mapToEntity(createdMovimientoContable);
   }
 
@@ -190,6 +193,7 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
       descripcion: data.descripcion,
       tipo: data.tipo,
       centro_costo_id: data.centro_costo_id,
+      compania_id: data.compania_id,
       centro_costo_codigo: data.centroCosto?.codigo,
       centro_costo_descripcion: data.centroCosto?.descripcion,
       createdAt: data.createdAt,
@@ -214,7 +218,7 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
         { compania_id: companiaId },
         { 
           where: { 
-            compania_id: null 
+            compania_id: null as any
           } 
         }
       );

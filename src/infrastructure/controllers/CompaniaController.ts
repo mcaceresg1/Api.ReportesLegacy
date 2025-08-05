@@ -29,7 +29,7 @@ export class CompaniaController {
 
   async getCompaniaById(req: Request, res: Response): Promise<void> {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(req.params['id'] || '0');
       const compania = await this.companiaService.getCompaniaById(id);
       
       if (!compania) {
@@ -57,7 +57,14 @@ export class CompaniaController {
 
   async getCompaniaByCodigo(req: Request, res: Response): Promise<void> {
     try {
-      const { codigo } = req.params;
+      const codigo = req.params['codigo'];
+      if (!codigo) {
+        res.status(400).json({
+          success: false,
+          message: 'Código de compañía es requerido'
+        });
+        return;
+      }
       const compania = await this.companiaService.getCompaniaByCodigo(codigo);
       
       if (!compania) {
@@ -125,7 +132,7 @@ export class CompaniaController {
 
   async updateCompania(req: Request, res: Response): Promise<void> {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(req.params['id'] || '0');
       const companiaData: CompaniaUpdate = { ...req.body, id };
       const compania = await this.companiaService.updateCompania(companiaData);
       
@@ -146,7 +153,7 @@ export class CompaniaController {
 
   async deleteCompania(req: Request, res: Response): Promise<void> {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(req.params['id'] || '0');
       const deleted = await this.companiaService.deleteCompania(id);
       
       if (!deleted) {

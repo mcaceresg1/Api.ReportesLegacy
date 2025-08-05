@@ -4,6 +4,7 @@ export interface MovimientoContable {
   descripcion: string;
   tipo: string;
   centro_costo_id?: number;
+  compania_id?: number;
   centroCosto?: {
     id: number;
     codigo: string;
@@ -20,6 +21,7 @@ export interface MovimientoContableCreate {
   descripcion: string;
   tipo: string;
   centro_costo_id?: number;
+  compania_id?: number;
   centroCosto?: {
     id: number;
     codigo: string;
@@ -33,6 +35,7 @@ export interface MovimientoContableUpdate {
   descripcion?: string;
   tipo?: string;
   centro_costo_id?: number;
+  compania_id?: number;
   centroCosto?: {
     id: number;
     codigo: string;

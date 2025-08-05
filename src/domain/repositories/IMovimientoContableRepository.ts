@@ -9,4 +9,5 @@ export interface IMovimientoContableRepository {
   delete(id: number): Promise<boolean>;
   getByTipo(tipo: string): Promise<MovimientoContable[]>;
   getByCentroCosto(centroCostoId: number): Promise<MovimientoContable[]>;
+  updateMovimientosWithoutCompania(companiaId: number): Promise<void>;
 } 

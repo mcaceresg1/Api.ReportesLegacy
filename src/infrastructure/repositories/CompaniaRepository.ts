@@ -69,7 +69,10 @@ export class CompaniaRepository implements ICompaniaRepository {
 
   async create(companiaData: CompaniaCreate): Promise<Compania> {
     try {
-      const compania = await CompaniaModel.create(companiaData);
+      const compania = await CompaniaModel.create({
+        ...companiaData,
+        estado: companiaData.estado ?? true
+      });
       return compania.toJSON() as Compania;
     } catch (error) {
       console.error('Error al crear compañía:', error);
