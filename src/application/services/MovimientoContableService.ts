@@ -61,4 +61,8 @@ export class MovimientoContableService implements IMovimientoContableService {
   async getMovimientosContablesByCentroCosto(centroCostoId: number): Promise<MovimientoContable[]> {
     return await this.movimientoContableRepository.getByCentroCosto(centroCostoId);
   }
+
+  async updateMovimientosCompania(companiaId: number): Promise<void> {
+    return await this.movimientoContableRepository.updateMovimientosWithoutCompania(companiaId);
+  }
 } 

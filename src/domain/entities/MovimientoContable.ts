@@ -41,6 +41,7 @@ export interface MovimientoContableUpdate {
 }
 
 export interface MovimientoContableFilter {
+  compania_id?: number;
   tipo?: string;
   cuenta?: string;
   descripcion?: string;

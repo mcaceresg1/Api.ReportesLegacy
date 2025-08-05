@@ -9,4 +9,5 @@ export interface IMovimientoContableService {
   deleteMovimientoContable(id: number): Promise<boolean>;
   getMovimientosContablesByTipo(tipo: string): Promise<MovimientoContable[]>;
   getMovimientosContablesByCentroCosto(centroCostoId: number): Promise<MovimientoContable[]>;
+  updateMovimientosCompania(companiaId: number): Promise<void>;
 } 

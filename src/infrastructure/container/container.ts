@@ -20,6 +20,8 @@ import { IMovimientoContableRepository } from '../../domain/repositories/IMovimi
 import { IMovimientoContableService } from '../../domain/services/IMovimientoContableService';
 import { ICentroCostoRepository } from '../../domain/repositories/ICentroCostoRepository';
 import { ICentroCostoService } from '../../domain/services/ICentroCostoService';
+import { ICompaniaRepository } from '../../domain/repositories/ICompaniaRepository';
+import { ICompaniaService } from '../../domain/services/ICompaniaService';
 
 // Infrastructure implementations
 import { UsuarioRepository } from '../repositories/UsuarioRepository';
@@ -40,6 +42,8 @@ import { MovimientoContableRepository } from '../repositories/MovimientoContable
 import { MovimientoContableService } from '../../application/services/MovimientoContableService';
 import { CentroCostoRepository } from '../repositories/CentroCostoRepository';
 import { CentroCostoService } from '../../application/services/CentroCostoService';
+import { CompaniaRepository } from '../repositories/CompaniaRepository';
+import { CompaniaService } from '../../application/services/CompaniaService';
 
 // Controllers
 import { UsuarioController } from '../controllers/UsuarioController';
@@ -51,6 +55,7 @@ import { RolMenuController } from '../controllers/RolMenuController';
 import { RolSistemaMenuController } from '../controllers/RolSistemaMenuController';
 import { MovimientoContableController } from '../controllers/MovimientoContableController';
 import { CentroCostoController } from '../controllers/CentroCostoController';
+import { CompaniaController } from '../controllers/CompaniaController';
 
 // Middleware
 import { AuthMiddleware } from '../middleware/AuthMiddleware';
@@ -66,6 +71,7 @@ container.bind<IConexionRepository>('IConexionRepository').to(ConexionRepository
 container.bind<IRolSistemaMenuRepository>('IRolSistemaMenuRepository').to(RolSistemaMenuRepository);
 container.bind<IMovimientoContableRepository>('IMovimientoContableRepository').to(MovimientoContableRepository);
 container.bind<ICentroCostoRepository>('ICentroCostoRepository').to(CentroCostoRepository);
+container.bind<ICompaniaRepository>('ICompaniaRepository').to(CompaniaRepository);
 
 // Services
 container.bind<IUsuarioService>('IUsuarioService').to(UsuarioService);
@@ -78,6 +84,7 @@ container.bind<IRolMenuService>('IRolMenuService').to(RolMenuService);
 container.bind<IRolSistemaMenuService>('IRolSistemaMenuService').to(RolSistemaMenuService);
 container.bind<IMovimientoContableService>('IMovimientoContableService').to(MovimientoContableService);
 container.bind<ICentroCostoService>('ICentroCostoService').to(CentroCostoService);
+container.bind<ICompaniaService>('ICompaniaService').to(CompaniaService);
 
 // Controllers
 container.bind<UsuarioController>('UsuarioController').to(UsuarioController);
@@ -89,6 +96,7 @@ container.bind<RolMenuController>('RolMenuController').to(RolMenuController);
 container.bind<RolSistemaMenuController>('RolSistemaMenuController').to(RolSistemaMenuController);
 container.bind<MovimientoContableController>('MovimientoContableController').to(MovimientoContableController);
 container.bind<CentroCostoController>('CentroCostoController').to(CentroCostoController);
+container.bind<CompaniaController>('CompaniaController').to(CompaniaController);
 
 // Middleware
 container.bind<AuthMiddleware>('AuthMiddleware').to(AuthMiddleware);

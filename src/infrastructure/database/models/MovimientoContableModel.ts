@@ -7,6 +7,7 @@ export interface MovimientoContableAttributes {
   descripcion: string;
   tipo: string;
   centro_costo_id?: number;
+  compania_id: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -19,6 +20,7 @@ export class MovimientoContableModel extends Model<MovimientoContableAttributes,
   public descripcion!: string;
   public tipo!: string;
   public centro_costo_id?: number;
+  public compania_id!: number;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -61,6 +63,14 @@ MovimientoContableModel.init(
         model: 'centros_costos',
         key: 'id'
       }
+    },
+    compania_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'companias',
+        key: 'id'
+      }
     }
   },
   {
@@ -76,6 +86,9 @@ MovimientoContableModel.init(
       },
       {
         fields: ['centro_costo_id']
+      },
+      {
+        fields: ['compania_id']
       }
     ]
   }

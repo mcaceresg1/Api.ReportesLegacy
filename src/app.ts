@@ -14,6 +14,7 @@ import { RolSistemaMenuRoutes } from './infrastructure/routes/RolSistemaMenuRout
 import { PermisoRoutes } from './infrastructure/routes/PermisoRoutes';
 import MovimientoContableRoutes from './infrastructure/routes/MovimientoContableRoutes';
 import CentroCostoRoutes from './infrastructure/routes/CentroCostoRoutes';
+import CompaniaRoutes from './infrastructure/routes/CompaniaRoutes';
 import { AuthMiddleware } from './infrastructure/middleware/AuthMiddleware';
 import { IUsuarioService } from './domain/services/IUsuarioService';
 import { IAuthService } from './domain/services/IAuthService';
@@ -65,6 +66,7 @@ app.use('/api/rol-sistema-menu', authMiddleware.verifyToken, rolSistemaMenuRoute
 app.use('/api/permisos', permisoRoutes.getRouter());
 app.use('/api/movimientos-contables', authMiddleware.verifyToken, MovimientoContableRoutes);
 app.use('/api/centros-costos', authMiddleware.verifyToken, CentroCostoRoutes);
+app.use('/api/companias', authMiddleware.verifyToken, CompaniaRoutes);
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================
 

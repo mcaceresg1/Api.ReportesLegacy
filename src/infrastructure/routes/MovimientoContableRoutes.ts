@@ -17,4 +17,7 @@ router.get('/tipo/:tipo', (req, res) => movimientoContableController.getMovimien
 router.get('/centro-costo/:centroCostoId', (req, res) => movimientoContableController.getMovimientosContablesByCentroCosto(req, res));
 router.post('/pdf', (req, res) => movimientoContableController.generatePDF(req, res));
 
+// Ruta temporal para actualizar movimientos contables con compania_id
+router.post('/update-compania', (req, res) => movimientoContableController.updateMovimientosCompania(req, res));
+
 export default router; 

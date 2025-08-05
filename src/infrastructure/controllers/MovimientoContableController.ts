@@ -162,10 +162,11 @@ export class MovimientoContableController {
         centro_costo_codigo, 
         centro_costo_descripcion,
         periodoDesde,
-        periodoHasta
+        periodoHasta,
+        compania_id
       } = req.query;
       
-      if (tipo || cuenta || descripcion || centro_costo_id || centro_costo_codigo || centro_costo_descripcion || periodoDesde || periodoHasta) {
+      if (tipo || cuenta || descripcion || centro_costo_id || centro_costo_codigo || centro_costo_descripcion || periodoDesde || periodoHasta || compania_id) {
         const filter: any = {};
         
         if (tipo) filter.tipo = tipo as string;
@@ -176,15 +177,43 @@ export class MovimientoContableController {
         if (centro_costo_descripcion) filter.centro_costo_descripcion = centro_costo_descripcion as string;
         if (periodoDesde) filter.periodoDesde = periodoDesde as string;
         if (periodoHasta) filter.periodoHasta = periodoHasta as string;
+        if (compania_id) filter.compania_id = parseInt(compania_id as string);
         
+        console.log('Filtro aplicado en controlador:', filter);
         const movimientosContables = await this.movimientoContableService.getMovimientosContablesByFilter(filter);
+        console.log('Movimientos contables encontrados:', movimientosContables.length);
+        
+        // Verificar si hay datos con compania_id
+        if (filter.compania_id) {
+          console.log(`Buscando movimientos contables para compañía ID: ${filter.compania_id}`);
+        }
+        
         res.json(movimientosContables);
       } else {
         const movimientosContables = await this.movimientoContableService.getAllMovimientosContables();
+        console.log('Total de movimientos contables sin filtro:', movimientosContables.length);
         res.json(movimientosContables);
       }
     } catch (error) {
       console.error('Error al obtener movimientos contables:', error);
+      res.status(500).json({ 
+        error: 'Error interno del servidor',
+        message: error instanceof Error ? error.message : 'Error desconocido'
+      });
+    }
+  }
+
+  // Endpoint temporal para actualizar movimientos contables sin compania_id
+  async updateMovimientosCompania(req: Request, res: Response): Promise<void> {
+    try {
+      const { companiaId = 1 } = req.body;
+      await this.movimientoContableService.updateMovimientosCompania(companiaId);
+      res.json({ 
+        success: true, 
+        message: `Movimientos contables actualizados con compania_id ${companiaId}` 
+      });
+    } catch (error) {
+      console.error('Error al actualizar movimientos contables:', error);
       res.status(500).json({ 
         error: 'Error interno del servidor',
         message: error instanceof Error ? error.message : 'Error desconocido'

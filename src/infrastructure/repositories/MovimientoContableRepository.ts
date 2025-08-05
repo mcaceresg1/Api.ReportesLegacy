@@ -39,6 +39,25 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
       attributes: ['id', 'codigo', 'descripcion']
     }];
 
+    // También incluir la relación con Compania si está disponible
+    try {
+      const { CompaniaModel } = require('../database/models/CompaniaModel');
+      includeClause.push({
+        model: CompaniaModel,
+        as: 'compania',
+        attributes: ['id', 'codigo', 'nombre']
+      });
+    } catch (error) {
+      console.log('No se pudo incluir la relación con Compania:', error.message);
+    }
+
+    console.log('Filtro recibido en repositorio:', filter);
+
+    if (filter.compania_id) {
+      whereClause.compania_id = filter.compania_id;
+      console.log('Filtro por compañía aplicado:', filter.compania_id);
+    }
+
     if (filter.tipo) {
       whereClause.tipo = { [Op.like]: `%${filter.tipo}%` };
     }
@@ -91,11 +110,20 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
       };
     }
 
+    console.log('Where clause final:', whereClause);
+    console.log('Include clause final:', includeClause);
+    
     const movimientosContables = await MovimientoContableModel.findAll({
       where: whereClause,
       include: includeClause,
       order: [['tipo', 'ASC'], ['cuenta', 'ASC']]
     });
+    
+    console.log('Movimientos contables encontrados en repositorio:', movimientosContables.length);
+    
+    // Verificar si los movimientos tienen compania_id
+    const movimientosConCompania = movimientosContables.filter(m => m.compania_id);
+    console.log('Movimientos con compania_id:', movimientosConCompania.length);
     
     return movimientosContables.map(this.mapToEntity);
   }
@@ -177,5 +205,22 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
     }
 
     return result;
+  }
+
+  // Método para actualizar movimientos contables sin compania_id
+  async updateMovimientosWithoutCompania(companiaId: number = 1): Promise<void> {
+    try {
+      const result = await MovimientoContableModel.update(
+        { compania_id: companiaId },
+        { 
+          where: { 
+            compania_id: null 
+          } 
+        }
+      );
+      console.log(`Movimientos contables actualizados con compania_id ${companiaId}:`, result[0]);
+    } catch (error) {
+      console.error('Error actualizando movimientos contables:', error);
+    }
   }
 } 
