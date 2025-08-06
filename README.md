@@ -71,26 +71,10 @@ API REST desarrollada en TypeScript con arquitectura hexagonal (Ports and Adapte
   - Implementación en backend con documentación Swagger completa
   - Método `getPermisosDisponiblesConMarcado()` en `RolSistemaMenuService`
   - Retorna todos los permisos con campo `activo` indicando si están asignados al rol
-  - Incluye información adicional para el frontend (`seleccionado`, `puedeSeleccionar`)
-- **Estructura de respuesta**:
-  ```json
-  [
-    {
-      "id": 1,
-      "descripcion": "Gestión de Usuarios",
-      "routePath": "/usuarios",
-      "sistemaId": 1,
-      "activo": true,
-      "seleccionado": true,
-      "puedeSeleccionar": true
-    }
-  ]
-  ```
 - **Beneficios**: 
   - Permite mostrar todos los permisos disponibles en modal de editar
   - Marca automáticamente los permisos que ya tiene el rol
   - Facilita la gestión completa de permisos por rol
-  - Permite activar/desactivar permisos fácilmente
 
 ### v1.3.0 - Componentes Personalizados
 - **TabViewComponent**: Componente de pestañas personalizado con diseño moderno y responsive
