@@ -74,8 +74,24 @@ export class CuentaContableModel extends Model {
 
 // Factory para crear modelos dinámicos basados en el conjunto
 export class DynamicModelFactory {
+  private static centroCuentaModelCache = new Map<string, typeof CentroCuentaModel>();
+  private static cuentaContableModelCache = new Map<string, typeof CuentaContableModel>();
+
   static createCentroCuentaModel(conjunto: string): typeof CentroCuentaModel {
-    CentroCuentaModel.init(
+    // Verificar si el modelo ya está inicializado para este conjunto
+    if (this.centroCuentaModelCache.has(conjunto)) {
+      return this.centroCuentaModelCache.get(conjunto)!;
+    }
+
+    // Crear una nueva instancia del modelo para este conjunto
+    const modelName = `CentroCuenta_${conjunto}`;
+    const CentroCuentaModelForConjunto = class extends CentroCuentaModel {
+      static override get tableName() {
+        return 'CENTRO_CUENTA';
+      }
+    };
+
+    CentroCuentaModelForConjunto.init(
       {
         CENTRO_COSTO: {
           type: DataTypes.STRING(50),
@@ -106,14 +122,30 @@ export class DynamicModelFactory {
         tableName: 'CENTRO_CUENTA',
         schema: conjunto,
         timestamps: false,
+        modelName: modelName,
       }
     );
 
-    return CentroCuentaModel;
+    // Guardar en caché
+    this.centroCuentaModelCache.set(conjunto, CentroCuentaModelForConjunto);
+    return CentroCuentaModelForConjunto;
   }
 
   static createCuentaContableModel(conjunto: string): typeof CuentaContableModel {
-    CuentaContableModel.init(
+    // Verificar si el modelo ya está inicializado para este conjunto
+    if (this.cuentaContableModelCache.has(conjunto)) {
+      return this.cuentaContableModelCache.get(conjunto)!;
+    }
+
+    // Crear una nueva instancia del modelo para este conjunto
+    const modelName = `CuentaContable_${conjunto}`;
+    const CuentaContableModelForConjunto = class extends CuentaContableModel {
+      static override get tableName() {
+        return 'CUENTA_CONTABLE';
+      }
+    };
+
+    CuentaContableModelForConjunto.init(
       {
         CUENTA_CONTABLE: {
           type: DataTypes.STRING(50),
@@ -173,9 +205,12 @@ export class DynamicModelFactory {
         tableName: 'CUENTA_CONTABLE',
         schema: conjunto,
         timestamps: false,
+        modelName: modelName,
       }
     );
 
-    return CuentaContableModel;
+    // Guardar en caché
+    this.cuentaContableModelCache.set(conjunto, CuentaContableModelForConjunto);
+    return CuentaContableModelForConjunto;
   }
 }

@@ -32,7 +32,7 @@ export class ConjuntoRepository implements IConjuntoRepository {
         where: {
           [Op.or]: [
             { ES_PRINCIPAL: true },
-            { ES_PRINCIPAL: null }
+            { ES_PRINCIPAL: { [Op.is]: undefined } }
           ]
         },
         order: [['NOMBRE', 'ASC']],
