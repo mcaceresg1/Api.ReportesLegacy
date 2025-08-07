@@ -12,6 +12,8 @@ import { ConexionRoutes } from './infrastructure/routes/ConexionRoutes';
 import { RolMenuRoutes } from './infrastructure/routes/RolMenuRoutes';
 import { RolSistemaMenuRoutes } from './infrastructure/routes/RolSistemaMenuRoutes';
 import { PermisoRoutes } from './infrastructure/routes/PermisoRoutes';
+import { createConjuntoRoutes } from './infrastructure/routes/ConjuntoRoutes';
+import { createExactusRoutes } from './infrastructure/routes/ExactusRoutes';
 
 import { AuthMiddleware } from './infrastructure/middleware/AuthMiddleware';
 import { IUsuarioService } from './domain/services/IUsuarioService';
@@ -20,6 +22,9 @@ import { IRolService } from './domain/services/IRolService';
 import { IRolSistemaMenuService } from './domain/services/IRolSistemaMenuService';
 import { ISistemaService } from './domain/services/ISistemaService';
 import { IMenuService } from './domain/services/IMenuService';
+import { IConjuntoService } from './domain/services/IConjuntoService';
+import { ICentroCuentaRepository } from './domain/repositories/ICentroCuentaRepository';
+import { ICuentaContableRepository } from './domain/repositories/ICuentaContableRepository';
 import { CqrsService } from './infrastructure/cqrs/CqrsService';
 
 const app = express();
@@ -41,6 +46,9 @@ const rolSistemaMenuService = container.get<IRolSistemaMenuService>('IRolSistema
 const authMiddleware = container.get<AuthMiddleware>('AuthMiddleware');
 const sistemaService = container.get<ISistemaService>('ISistemaService');
 const menuService = container.get<IMenuService>('IMenuService');
+const conjuntoService = container.get<IConjuntoService>('IConjuntoService');
+const centroCuentaRepository = container.get<ICentroCuentaRepository>('ICentroCuentaRepository');
+const cuentaContableRepository = container.get<ICuentaContableRepository>('ICuentaContableRepository');
 
 // Inicializar CQRS
 const cqrsService = container.get<CqrsService>('CqrsService');
@@ -55,6 +63,10 @@ const rolMenuRoutes = new RolMenuRoutes();
 const rolSistemaMenuRoutes = new RolSistemaMenuRoutes();
 const permisoRoutes = new PermisoRoutes();
 
+// Rutas de EXACTUS
+const conjuntoRoutes = createConjuntoRoutes(conjuntoService);
+const exactusRoutes = createExactusRoutes(centroCuentaRepository, cuentaContableRepository);
+
 // Rutas de menús (algunas públicas, otras protegidas)
 app.use('/api/menus', menuRoutes.getRouter());
 
@@ -66,6 +78,10 @@ app.use('/api/conexiones', authMiddleware.verifyToken, conexionRoutes.getRouter(
 app.use('/api/rol-menu', authMiddleware.verifyToken, rolMenuRoutes.getRouter());
 app.use('/api/rol-sistema-menu', authMiddleware.verifyToken, rolSistemaMenuRoutes.getRouter());
 app.use('/api/permisos', authMiddleware.verifyToken, permisoRoutes.getRouter());
+
+// Rutas de EXACTUS (solo lectura, sin autenticación)
+app.use('/api/conjuntos', conjuntoRoutes);
+app.use('/api/exactus', exactusRoutes);
 
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================

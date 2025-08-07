@@ -8,6 +8,9 @@ import { IRolRepository } from '../../domain/repositories/IRolRepository';
 import { ISistemaRepository } from '../../domain/repositories/ISistemaRepository';
 import { IConexionRepository } from '../../domain/repositories/IConexionRepository';
 import { IRolSistemaMenuRepository } from '../../domain/repositories/IRolSistemaMenuRepository';
+import { IConjuntoRepository } from '../../domain/repositories/IConjuntoRepository';
+import { ICentroCuentaRepository } from '../../domain/repositories/ICentroCuentaRepository';
+import { ICuentaContableRepository } from '../../domain/repositories/ICuentaContableRepository';
 import { IUsuarioService } from '../../domain/services/IUsuarioService';
 import { IAuthService } from '../../domain/services/IAuthService';
 import { IMenuService } from '../../domain/services/IMenuService';
@@ -16,6 +19,7 @@ import { ISistemaService } from '../../domain/services/ISistemaService';
 import { IConexionService } from '../../domain/services/IConexionService';
 import { IRolMenuService } from '../../domain/services/IRolMenuService';
 import { IRolSistemaMenuService } from '../../domain/services/IRolSistemaMenuService';
+import { IConjuntoService } from '../../domain/services/IConjuntoService';
 
 // CQRS interfaces
 import { ICommandBus } from '../../domain/cqrs/ICommandBus';
@@ -28,6 +32,9 @@ import { RolRepository } from '../repositories/RolRepository';
 import { SistemaRepository } from '../repositories/SistemaRepository';
 import { ConexionRepository } from '../repositories/ConexionRepository';
 import { RolSistemaMenuRepository } from '../repositories/RolSistemaMenuRepository';
+import { ConjuntoRepository } from '../repositories/ConjuntoRepository';
+import { CentroCuentaRepository } from '../repositories/CentroCuentaRepository';
+import { CuentaContableRepository } from '../repositories/CuentaContableRepository';
 import { UsuarioService } from '../../application/services/UsuarioService';
 import { AuthService } from '../../application/services/AuthService';
 import { MenuService } from '../../application/services/MenuService';
@@ -36,6 +43,7 @@ import { SistemaService } from '../../application/services/SistemaService';
 import { ConexionService } from '../../application/services/ConexionService';
 import { RolMenuService } from '../../application/services/RolMenuService';
 import { RolSistemaMenuService } from '../../application/services/RolSistemaMenuService';
+import { ConjuntoService } from '../../application/services/ConjuntoService';
 
 
 // Controllers
@@ -80,6 +88,9 @@ container.bind<IRolRepository>('IRolRepository').to(RolRepository);
 container.bind<ISistemaRepository>('ISistemaRepository').to(SistemaRepository);
 container.bind<IConexionRepository>('IConexionRepository').to(ConexionRepository);
 container.bind<IRolSistemaMenuRepository>('IRolSistemaMenuRepository').to(RolSistemaMenuRepository);
+container.bind<IConjuntoRepository>('IConjuntoRepository').to(ConjuntoRepository);
+container.bind<ICentroCuentaRepository>('ICentroCuentaRepository').to(CentroCuentaRepository);
+container.bind<ICuentaContableRepository>('ICuentaContableRepository').to(CuentaContableRepository);
 
 
 // Services
@@ -91,6 +102,7 @@ container.bind<ISistemaService>('ISistemaService').to(SistemaService);
 container.bind<IConexionService>('IConexionService').to(ConexionService);
 container.bind<IRolMenuService>('IRolMenuService').to(RolMenuService);
 container.bind<IRolSistemaMenuService>('IRolSistemaMenuService').to(RolSistemaMenuService);
+container.bind<IConjuntoService>('IConjuntoService').to(ConjuntoService);
 
 
 // Controllers

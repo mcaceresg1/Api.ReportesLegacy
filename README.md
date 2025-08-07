@@ -19,6 +19,34 @@ API REST desarrollada en TypeScript con arquitectura hexagonal (Ports and Adapte
 
 ## Cambios Recientes
 
+### v1.10.0 - Integración con Base de Datos EXACTUS (Solo Lectura)
+- **Nueva conexión de solo lectura**: Integración con base de datos EXACTUS para consultas de datos contables
+- **Entidades implementadas**:
+  - **Conjunto**: Gestión de conjuntos empresariales (ERPADMIN.CONJUNTO)
+  - **CentroCuenta**: Relación entre centros de costo y cuentas contables (dinámico por conjunto)
+  - **CuentaContable**: Plan de cuentas contables (dinámico por conjunto)
+- **Modelos dinámicos**: Sistema de modelos que se adaptan al esquema del conjunto seleccionado
+- **Nuevos endpoints**:
+  - `/api/conjuntos` - Obtener todos los conjuntos disponibles
+  - `/api/conjuntos/activos` - Obtener conjuntos activos
+  - `/api/conjuntos/:codigo` - Obtener conjunto específico
+  - `/api/exactus/:conjunto/centros-cuenta` - Centros de costo por conjunto
+  - `/api/exactus/:conjunto/cuentas-contables` - Cuentas contables por conjunto
+  - `/api/exactus/:conjunto/cuentas-contables/activas` - Cuentas contables activas
+  - `/api/exactus/:conjunto/cuentas-contables/tipo/:tipo` - Cuentas por tipo
+  - `/api/exactus/:conjunto/cuentas-contables/:codigo` - Cuenta específica
+- **Arquitectura**: 
+  - Patrón Repository para acceso a datos
+  - Servicios de dominio para lógica de negocio
+  - Controladores para manejo de requests
+  - Sin autenticación (solo lectura)
+- **Configuración**: Variables de entorno para conexión EXACTUS separadas de la base principal
+- **Beneficios**:
+  - Acceso a datos contables de múltiples empresas
+  - Consultas dinámicas basadas en el conjunto seleccionado
+  - Separación clara entre datos de gestión y datos contables
+  - Escalabilidad para múltiples esquemas empresariales
+
 ### v1.9.0 - Corrección de Documentación Swagger y Autenticación
 - **Corrección de endpoints públicos**: Actualizada documentación para endpoints que no requieren autenticación
   - `/api/login` - Endpoint de autenticación (público)
@@ -141,11 +169,22 @@ npm install
 
 1. Copiar `.env.example` a `.env`
 2. Configurar variables de entorno:
+
+**Base de datos principal:**
    - `DB_HOST`: Host de la base de datos
    - `DB_PORT`: Puerto de la base de datos
    - `DB_NAME`: Nombre de la base de datos
    - `DB_USER`: Usuario de la base de datos
    - `DB_PASSWORD`: Contraseña de la base de datos
+
+**Base de datos EXACTUS (solo lectura):**
+   - `EXACTUS_DB_HOST`: Host de la base de datos EXACTUS
+   - `EXACTUS_DB_NAME`: Nombre de la base de datos EXACTUS (default: EXACTUS)
+   - `EXACTUS_DB_USER`: Usuario de la base de datos EXACTUS
+   - `EXACTUS_DB_PASSWORD`: Contraseña de la base de datos EXACTUS
+   - `EXACTUS_DB_DIALECT`: Dialecto de la base de datos (default: mssql)
+
+**Configuración general:**
    - `JWT_SECRET`: Clave secreta para JWT
    - `PORT`: Puerto del servidor (default: 3000)
 
@@ -212,6 +251,23 @@ El endpoint `/api/movimientos-contables/pdf` acepta:
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
 | `GET` | `/api/roles/activos` | Obtener roles activos |
+
+### Conjuntos EXACTUS (Públicos)
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `GET` | `/api/conjuntos` | Obtener todos los conjuntos |
+| `GET` | `/api/conjuntos/activos` | Obtener conjuntos activos |
+| `GET` | `/api/conjuntos/:codigo` | Obtener conjunto por código |
+
+### Datos EXACTUS (Públicos)
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `GET` | `/api/exactus/:conjunto/centros-cuenta` | Centros de costo por conjunto |
+| `GET` | `/api/exactus/:conjunto/centros-cuenta/cuenta/:cuentaContable` | Centros de costo por cuenta contable |
+| `GET` | `/api/exactus/:conjunto/cuentas-contables` | Cuentas contables por conjunto |
+| `GET` | `/api/exactus/:conjunto/cuentas-contables/activas` | Cuentas contables activas |
+| `GET` | `/api/exactus/:conjunto/cuentas-contables/tipo/:tipo` | Cuentas contables por tipo |
+| `GET` | `/api/exactus/:conjunto/cuentas-contables/:codigo` | Cuenta contable por código |
 
 ### Usuarios (Protegidos)
 | Método | Endpoint | Descripción |
