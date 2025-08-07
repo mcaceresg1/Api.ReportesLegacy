@@ -27,23 +27,29 @@ import { IConjuntoService } from '../../domain/services/IConjuntoService';
  *           type: string
  *           description: Logo
  *         DOBLE_MONEDA:
- *           type: boolean
- *           description: Indica si usa doble moneda
+ *           type: string
+ *           maxLength: 1
+ *           description: Doble moneda (S/N)
  *         DOBLE_CONTABILIDAD:
- *           type: boolean
- *           description: Indica si usa doble contabilidad
+ *           type: string
+ *           maxLength: 1
+ *           description: Doble contabilidad (S/N)
  *         INVENTARIO_DOLAR:
- *           type: boolean
- *           description: Indica si el inventario está en dólares
+ *           type: string
+ *           maxLength: 1
+ *           description: Inventario en dólares (S/N)
  *         USA_LOTES:
- *           type: boolean
- *           description: Indica si usa lotes
+ *           type: string
+ *           maxLength: 1
+ *           description: Usa lotes (S/N)
  *         USAR_CENTROS_COSTO:
- *           type: boolean
- *           description: Indica si usa centros de costo
+ *           type: string
+ *           maxLength: 1
+ *           description: Usar centros de costo (S/N)
  *         CONSOLIDA:
- *           type: boolean
- *           description: Indica si consolida
+ *           type: string
+ *           maxLength: 1
+ *           description: Consolida (S/N)
  *         CONSOLIDADORA:
  *           type: string
  *           description: Consolidadora
@@ -51,11 +57,12 @@ import { IConjuntoService } from '../../domain/services/IConjuntoService';
  *           type: string
  *           description: Base de datos de la compañía consolidada
  *         CONTA_A_CONSOLID:
- *           type: boolean
- *           description: Indica si la contabilidad se consolida
+ *           type: integer
+ *           description: Conta a consolidar
  *         MISMO_CUADRO_CTB:
- *           type: boolean
- *           description: Indica si usa el mismo cuadro contable
+ *           type: string
+ *           maxLength: 1
+ *           description: Mismo cuadro contable (S/N)
  *         USUARIO_ULT_MOD:
  *           type: string
  *           description: Usuario de última modificación
@@ -67,8 +74,9 @@ import { IConjuntoService } from '../../domain/services/IConjuntoService';
  *           type: string
  *           description: Notas
  *         USA_UNIDADES:
- *           type: boolean
- *           description: Indica si usa unidades
+ *           type: string
+ *           maxLength: 1
+ *           description: Usa unidades (S/N)
  *         UNIDAD_OMISION:
  *           type: string
  *           description: Unidad de omisión
@@ -104,8 +112,9 @@ import { IConjuntoService } from '../../domain/services/IConjuntoService';
  *           type: string
  *           description: Idioma
  *         USA_SUCURSAL:
- *           type: boolean
- *           description: Indica si usa sucursales
+ *           type: string
+ *           maxLength: 1
+ *           description: Usa sucursales (S/N)
  *         MASCARA_SUCURSAL:
  *           type: string
  *           description: Máscara de sucursal
@@ -148,8 +157,9 @@ import { IConjuntoService } from '../../domain/services/IConjuntoService';
  *           format: date-time
  *           description: Fecha de creación
  *         AGENTE_RETENCION:
- *           type: boolean
- *           description: Indica si es agente de retención
+ *           type: string
+ *           maxLength: 1
+ *           description: Agente retención (S/N)
  *         CODIGO_RETENCION_IGV:
  *           type: string
  *           description: Código de retención IGV
@@ -172,14 +182,17 @@ import { IConjuntoService } from '../../domain/services/IConjuntoService';
  *           type: string
  *           description: Logo de la compañía
  *         ES_PRINCIPAL:
- *           type: boolean
- *           description: Indica si es principal
+ *           type: string
+ *           maxLength: 1
+ *           description: Es principal (S/N)
  *         REPLICA:
- *           type: boolean
- *           description: Indica si es réplica
+ *           type: string
+ *           maxLength: 1
+ *           description: Réplica (S/N)
  *         ES_AGENTE_PERCEPCION:
- *           type: boolean
- *           description: Indica si es agente de percepción
+ *           type: string
+ *           maxLength: 1
+ *           description: Es agente percepción (S/N)
  *         NUMERO_REGISTRO:
  *           type: string
  *           description: Número de registro
@@ -220,20 +233,25 @@ import { IConjuntoService } from '../../domain/services/IConjuntoService';
  *           type: string
  *           description: Número de registro IVA
  *         USA_CONSORCIO:
- *           type: boolean
- *           description: Indica si usa consorcio
+ *           type: string
+ *           maxLength: 1
+ *           description: Usa consorcio (S/N)
  *         TIPO_OPERACION:
  *           type: string
+ *           maxLength: 2
  *           description: Tipo de operación
  *         AGENTE_PERCEPCION:
- *           type: boolean
- *           description: Indica si es agente de percepción
+ *           type: string
+ *           maxLength: 1
+ *           description: Agente percepción (S/N)
  *         CALC_PERCE_SOLO_VENTA:
- *           type: boolean
- *           description: Indica si calcula percepción solo en venta
+ *           type: string
+ *           maxLength: 1
+ *           description: Calcula percepción solo venta (S/N)
  *         RETENCION_CLIENTE:
- *           type: boolean
- *           description: Indica si retiene al cliente
+ *           type: string
+ *           maxLength: 1
+ *           description: Retención cliente (S/N)
  */
 
 export class ConjuntoController {

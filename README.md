@@ -167,8 +167,33 @@ npm install
 
 ## Configuración
 
-1. Copiar `.env.example` a `.env`
-2. Configurar variables de entorno:
+1. Crear archivo `.env` en la raíz del proyecto con las siguientes variables:
+
+```env
+# Configuración de la base de datos principal
+DB_HOST=localhost
+DB_PORT=1433
+DB_NAME=ReportesLegacy
+DB_USER=sa
+DB_PASSWORD=123456
+
+# Configuración de la base de datos EXACTUS (solo lectura)
+EXACTUS_DB_HOST=localhost
+EXACTUS_DB_PORT=1433
+EXACTUS_DB_NAME=EXACTUS
+EXACTUS_DB_USER=sa
+EXACTUS_DB_PASSWORD=123456
+EXACTUS_DB_DIALECT=mssql
+
+# Configuración del servidor
+PORT=3000
+NODE_ENV=development
+
+# JWT Secret
+JWT_SECRET=your-secret-key-here
+```
+
+**Variables de entorno:**
 
 **Base de datos principal:**
    - `DB_HOST`: Host de la base de datos
