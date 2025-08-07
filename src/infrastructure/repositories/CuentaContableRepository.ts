@@ -1,8 +1,10 @@
+import { injectable } from 'inversify';
 import { ICuentaContableRepository } from '../../domain/repositories/ICuentaContableRepository';
 import { CuentaContable } from '../../domain/entities/CuentaContable';
 import { DynamicModelFactory, CuentaContableModel } from '../database/models/DynamicModel';
 import { Op } from 'sequelize';
 
+@injectable()
 export class CuentaContableRepository implements ICuentaContableRepository {
   async getCuentasContablesByConjunto(conjunto: string): Promise<CuentaContable[]> {
     try {

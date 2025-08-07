@@ -1,7 +1,9 @@
+import { injectable } from 'inversify';
 import { ICentroCuentaRepository } from '../../domain/repositories/ICentroCuentaRepository';
 import { CentroCuenta } from '../../domain/entities/CentroCuenta';
 import { DynamicModelFactory, CentroCuentaModel } from '../database/models/DynamicModel';
 
+@injectable()
 export class CentroCuentaRepository implements ICentroCuentaRepository {
   async getCentrosCuentaByConjunto(conjunto: string): Promise<CentroCuenta[]> {
     try {

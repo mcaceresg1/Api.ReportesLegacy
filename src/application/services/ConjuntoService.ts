@@ -1,9 +1,13 @@
+import { injectable, inject } from 'inversify';
 import { IConjuntoService } from '../../domain/services/IConjuntoService';
 import { IConjuntoRepository } from '../../domain/repositories/IConjuntoRepository';
 import { Conjunto } from '../../domain/entities/Conjunto';
 
+@injectable()
 export class ConjuntoService implements IConjuntoService {
-  constructor(private conjuntoRepository: IConjuntoRepository) {}
+  constructor(
+    @inject('IConjuntoRepository') private conjuntoRepository: IConjuntoRepository
+  ) {}
 
   async getAllConjuntos(): Promise<Conjunto[]> {
     try {

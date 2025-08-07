@@ -1,8 +1,10 @@
+import { injectable } from 'inversify';
 import { IConjuntoRepository } from '../../domain/repositories/IConjuntoRepository';
 import { Conjunto } from '../../domain/entities/Conjunto';
 import ConjuntoModel from '../database/models/ConjuntoModel';
 import { Op } from 'sequelize';
 
+@injectable()
 export class ConjuntoRepository implements IConjuntoRepository {
   async getAllConjuntos(): Promise<Conjunto[]> {
     try {
