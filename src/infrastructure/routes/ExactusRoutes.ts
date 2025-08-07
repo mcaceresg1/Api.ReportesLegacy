@@ -1,21 +1,27 @@
 import { Router } from 'express';
 import { ExactusController } from '../controllers/ExactusController';
-import { ICentroCuentaRepository } from '../../domain/repositories/ICentroCuentaRepository';
+import { ICentroCostoRepository } from '../../domain/repositories/ICentroCostoRepository';
 import { ICuentaContableRepository } from '../../domain/repositories/ICuentaContableRepository';
 
 export function createExactusRoutes(
-  centroCuentaRepository: ICentroCuentaRepository,
+  centroCostoRepository: ICentroCostoRepository,
   cuentaContableRepository: ICuentaContableRepository
 ): Router {
   const router = Router();
-  const exactusController = new ExactusController(centroCuentaRepository, cuentaContableRepository);
+  const exactusController = new ExactusController(centroCostoRepository, cuentaContableRepository);
 
-  // Rutas para centros cuenta
-  // GET /api/exactus/:conjunto/centros-cuenta - Obtener centros cuenta por conjunto
-  router.get('/:conjunto/centros-cuenta', (req, res) => exactusController.getCentrosCuentaByConjunto(req, res));
+  // Rutas para centros costo
+  // GET /api/exactus/:conjunto/centros-costo - Obtener centros costo por conjunto
+  router.get('/:conjunto/centros-costo', (req, res) => exactusController.getCentrosCostoByConjunto(req, res));
 
-  // GET /api/exactus/:conjunto/centros-cuenta/cuenta/:cuentaContable - Obtener centros cuenta por cuenta contable
-  router.get('/:conjunto/centros-cuenta/cuenta/:cuentaContable', (req, res) => exactusController.getCentrosCuentaByCuenta(req, res));
+  // GET /api/exactus/:conjunto/centros-costo/:codigo - Obtener centro costo por código
+  router.get('/:conjunto/centros-costo/:codigo', (req, res) => exactusController.getCentroCostoByCodigo(req, res));
+
+  // GET /api/exactus/:conjunto/centros-costo/tipo/:tipo - Obtener centros costo por tipo
+  router.get('/:conjunto/centros-costo/tipo/:tipo', (req, res) => exactusController.getCentrosCostoByTipo(req, res));
+
+  // GET /api/exactus/:conjunto/centros-costo/activos - Obtener centros costo activos
+  router.get('/:conjunto/centros-costo/activos', (req, res) => exactusController.getCentrosCostoActivos(req, res));
 
   // Rutas para cuentas contables
   // GET /api/exactus/:conjunto/cuentas-contables - Obtener cuentas contables por conjunto

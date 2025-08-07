@@ -1,41 +1,46 @@
 import { Request, Response } from 'express';
-import { ICentroCuentaRepository } from '../../domain/repositories/ICentroCuentaRepository';
+import { ICentroCostoRepository } from '../../domain/repositories/ICentroCostoRepository';
 import { ICuentaContableRepository } from '../../domain/repositories/ICuentaContableRepository';
 
 /**
  * @swagger
  * components:
  *   schemas:
- *     CentroCuenta:
+ *     CentroCosto:
  *       type: object
  *       properties:
  *         CENTRO_COSTO:
  *           type: string
  *           description: Código del centro de costo
- *         CUENTA_CONTABLE:
+ *         DESCRIPCION:
  *           type: string
- *           description: Código de la cuenta contable
+ *           description: Descripción del centro de costo
  *         ESTADO:
  *           type: string
- *           description: Estado del centro cuenta
- *         CENTRO_POZO:
+ *           description: Estado del centro de costo
+ *         TIPO:
  *           type: string
- *           description: Centro pozo
- *         CUENTA_POZO:
+ *           description: Tipo de centro de costo
+ *         NIVEL:
+ *           type: integer
+ *           description: Nivel del centro de costo
+ *         CENTRO_PADRE:
  *           type: string
- *           description: Cuenta pozo
- *         CENTRO_GASTO:
+ *           description: Centro de costo padre
+ *         USUARIO:
  *           type: string
- *           description: Centro gasto
- *         CUENTA_GASTO:
+ *           description: Usuario
+ *         FECHA_HORA:
  *           type: string
- *           description: Cuenta gasto
- *         CENTRO_CONSOLIDA:
+ *           format: date-time
+ *           description: Fecha y hora
+ *         USUARIO_ULT_MOD:
  *           type: string
- *           description: Centro consolida
- *         CUENTA_CONSOLIDA:
+ *           description: Usuario de última modificación
+ *         FCH_HORA_ULT_MOD:
  *           type: string
- *           description: Cuenta consolida
+ *           format: date-time
+ *           description: Fecha y hora de última modificación
  *         NoteExistsFlag:
  *           type: integer
  *           description: Flag de existencia de nota
@@ -213,17 +218,17 @@ import { ICuentaContableRepository } from '../../domain/repositories/ICuentaCont
 
 export class ExactusController {
   constructor(
-    private centroCuentaRepository: ICentroCuentaRepository,
+    private centroCostoRepository: ICentroCostoRepository,
     private cuentaContableRepository: ICuentaContableRepository
   ) {}
 
   /**
    * @swagger
-   * /api/exactus/{conjunto}/centros-cuenta:
+   * /api/exactus/{conjunto}/centros-costo:
    *   get:
-   *     summary: Obtener centros cuenta por conjunto
-   *     description: Retorna una lista de centros cuenta para un conjunto específico
-   *     tags: [Exactus - Centros Cuenta]
+   *     summary: Obtener centros costo por conjunto
+   *     description: Retorna una lista de centros costo para un conjunto específico
+   *     tags: [Exactus - Centros Costo]
    *     security: []
    *     parameters:
    *       - in: path
@@ -277,8 +282,8 @@ export class ExactusController {
    *                   type: string
    *                   example: Error al obtener centros cuenta
    */
-  // Obtener centros cuenta por conjunto
-  async getCentrosCuentaByConjunto(req: Request, res: Response): Promise<void> {
+  // Obtener centros costo por conjunto
+  async getCentrosCostoByConjunto(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto } = req.params;
       
@@ -290,18 +295,319 @@ export class ExactusController {
         return;
       }
 
-      const centrosCuenta = await this.centroCuentaRepository.getCentrosCuentaByConjunto(conjunto);
+      const centrosCosto = await this.centroCostoRepository.getCentrosCostoByConjunto(conjunto);
       
       res.json({
         success: true,
-        data: centrosCuenta,
-        message: 'Centros cuenta obtenidos exitosamente'
+        data: centrosCosto,
+        message: 'Centros costo obtenidos exitosamente'
       });
     } catch (error) {
-      console.error('Error en ExactusController.getCentrosCuentaByConjunto:', error);
+      console.error('Error en ExactusController.getCentrosCostoByConjunto:', error);
       res.status(500).json({
         success: false,
-        message: 'Error al obtener centros cuenta',
+        message: 'Error al obtener centros costo',
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/exactus/{conjunto}/centros-costo/{codigo}:
+   *   get:
+   *     summary: Obtener centro costo por código
+   *     description: Retorna un centro costo específico por su código
+   *     tags: [Exactus - Centros Costo]
+   *     security: []
+   *     parameters:
+   *       - in: path
+   *         name: conjunto
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Código del conjunto (schema)
+   *       - in: path
+   *         name: codigo
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Código del centro de costo
+   *     responses:
+   *       200:
+   *         description: Centro costo obtenido exitosamente
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 data:
+   *                   $ref: '#/components/schemas/CentroCosto'
+   *                 message:
+   *                   type: string
+   *                   example: Centro costo obtenido exitosamente
+   *       400:
+   *         description: Parámetros requeridos
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: false
+   *                 message:
+   *                   type: string
+   *                   example: Código de conjunto y código de centro son requeridos
+   *       404:
+   *         description: Centro costo no encontrado
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: false
+   *                 message:
+   *                   type: string
+   *                   example: Centro costo no encontrado
+   *       500:
+   *         description: Error interno del servidor
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: false
+   *                 message:
+   *                   type: string
+   *                   example: Error al obtener centro costo
+   */
+  // Obtener centro costo por código
+  async getCentroCostoByCodigo(req: Request, res: Response): Promise<void> {
+    try {
+      const { conjunto, codigo } = req.params;
+      
+      if (!conjunto || !codigo) {
+        res.status(400).json({
+          success: false,
+          message: 'Código de conjunto y código de centro son requeridos'
+        });
+        return;
+      }
+
+      const centroCosto = await this.centroCostoRepository.getCentroCostoByCodigo(conjunto, codigo);
+      
+      if (!centroCosto) {
+        res.status(404).json({
+          success: false,
+          message: 'Centro costo no encontrado'
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        data: centroCosto,
+        message: 'Centro costo obtenido exitosamente'
+      });
+    } catch (error) {
+      console.error('Error en ExactusController.getCentroCostoByCodigo:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error al obtener centro costo',
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/exactus/{conjunto}/centros-costo/tipo/{tipo}:
+   *   get:
+   *     summary: Obtener centros costo por tipo
+   *     description: Retorna una lista de centros costo filtrados por tipo
+   *     tags: [Exactus - Centros Costo]
+   *     security: []
+   *     parameters:
+   *       - in: path
+   *         name: conjunto
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Código del conjunto (schema)
+   *       - in: path
+   *         name: tipo
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Tipo de centro de costo
+   *     responses:
+   *       200:
+   *         description: Centros costo obtenidos exitosamente
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     $ref: '#/components/schemas/CentroCosto'
+   *                 message:
+   *                   type: string
+   *                   example: Centros costo obtenidos exitosamente
+   *       400:
+   *         description: Parámetros requeridos
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: false
+   *                 message:
+   *                   type: string
+   *                   example: Código de conjunto y tipo son requeridos
+   *       500:
+   *         description: Error interno del servidor
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: false
+   *                 message:
+   *                   type: string
+   *                   example: Error al obtener centros costo
+   */
+  // Obtener centros costo por tipo
+  async getCentrosCostoByTipo(req: Request, res: Response): Promise<void> {
+    try {
+      const { conjunto, tipo } = req.params;
+      
+      if (!conjunto || !tipo) {
+        res.status(400).json({
+          success: false,
+          message: 'Código de conjunto y tipo son requeridos'
+        });
+        return;
+      }
+
+      const centrosCosto = await this.centroCostoRepository.getCentrosCostoByTipo(conjunto, tipo);
+      
+      res.json({
+        success: true,
+        data: centrosCosto,
+        message: 'Centros costo obtenidos exitosamente'
+      });
+    } catch (error) {
+      console.error('Error en ExactusController.getCentrosCostoByTipo:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error al obtener centros costo',
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/exactus/{conjunto}/centros-costo/activos:
+   *   get:
+   *     summary: Obtener centros costo activos
+   *     description: Retorna una lista de centros costo activos (ESTADO = 'A')
+   *     tags: [Exactus - Centros Costo]
+   *     security: []
+   *     parameters:
+   *       - in: path
+   *         name: conjunto
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Código del conjunto (schema)
+   *     responses:
+   *       200:
+   *         description: Centros costo activos obtenidos exitosamente
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     $ref: '#/components/schemas/CentroCosto'
+   *                 message:
+   *                   type: string
+   *                   example: Centros costo activos obtenidos exitosamente
+   *       400:
+   *         description: Código de conjunto requerido
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: false
+   *                 message:
+   *                   type: string
+   *                   example: Código de conjunto es requerido
+   *       500:
+   *         description: Error interno del servidor
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: false
+   *                 message:
+   *                   type: string
+   *                   example: Error al obtener centros costo activos
+   */
+  // Obtener centros costo activos
+  async getCentrosCostoActivos(req: Request, res: Response): Promise<void> {
+    try {
+      const { conjunto } = req.params;
+      
+      if (!conjunto) {
+        res.status(400).json({
+          success: false,
+          message: 'Código de conjunto es requerido'
+        });
+        return;
+      }
+
+      const centrosCosto = await this.centroCostoRepository.getCentrosCostoActivos(conjunto);
+      
+      res.json({
+        success: true,
+        data: centrosCosto,
+        message: 'Centros costo activos obtenidos exitosamente'
+      });
+    } catch (error) {
+      console.error('Error en ExactusController.getCentrosCostoActivos:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error al obtener centros costo activos',
         error: error instanceof Error ? error.message : 'Error desconocido'
       });
     }
@@ -386,7 +692,7 @@ export class ExactusController {
         return;
       }
 
-      const centrosCuenta = await this.centroCuentaRepository.getCentrosCuentaByCuenta(conjunto, cuentaContable);
+             const centrosCuenta = await this.centroCostoRepository.getCentrosCostoByConjunto(conjunto);
       
       res.json({
         success: true,

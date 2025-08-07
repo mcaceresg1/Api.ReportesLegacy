@@ -23,7 +23,7 @@ import { IRolSistemaMenuService } from './domain/services/IRolSistemaMenuService
 import { ISistemaService } from './domain/services/ISistemaService';
 import { IMenuService } from './domain/services/IMenuService';
 import { IConjuntoService } from './domain/services/IConjuntoService';
-import { ICentroCuentaRepository } from './domain/repositories/ICentroCuentaRepository';
+import { ICentroCostoRepository } from './domain/repositories/ICentroCostoRepository';
 import { ICuentaContableRepository } from './domain/repositories/ICuentaContableRepository';
 import { CqrsService } from './infrastructure/cqrs/CqrsService';
 
@@ -47,7 +47,7 @@ const authMiddleware = container.get<AuthMiddleware>('AuthMiddleware');
 const sistemaService = container.get<ISistemaService>('ISistemaService');
 const menuService = container.get<IMenuService>('IMenuService');
 const conjuntoService = container.get<IConjuntoService>('IConjuntoService');
-const centroCuentaRepository = container.get<ICentroCuentaRepository>('ICentroCuentaRepository');
+  const centroCostoRepository = container.get<ICentroCostoRepository>('ICentroCostoRepository');
 const cuentaContableRepository = container.get<ICuentaContableRepository>('ICuentaContableRepository');
 
 // Inicializar CQRS
@@ -65,7 +65,7 @@ const permisoRoutes = new PermisoRoutes();
 
 // Rutas de EXACTUS
 const conjuntoRoutes = createConjuntoRoutes(conjuntoService);
-const exactusRoutes = createExactusRoutes(centroCuentaRepository, cuentaContableRepository);
+const exactusRoutes = createExactusRoutes(centroCostoRepository, cuentaContableRepository);
 
 // Rutas de menús (algunas públicas, otras protegidas)
 app.use('/api/menus', menuRoutes.getRouter());

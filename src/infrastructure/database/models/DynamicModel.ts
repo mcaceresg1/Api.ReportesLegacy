@@ -1,17 +1,18 @@
 import { DataTypes, Model, Sequelize } from 'sequelize';
 import { exactusSequelize } from '../config/exactus-database';
 
-// Modelo dinámico para CENTRO_CUENTA
-export class CentroCuentaModel extends Model {
+// Modelo dinámico para CENTRO_COSTO
+export class CentroCostoModel extends Model {
   public CENTRO_COSTO!: string;
-  public CUENTA_CONTABLE!: string;
+  public DESCRIPCION?: string;
   public ESTADO?: string;
-  public CENTRO_POZO?: string;
-  public CUENTA_POZO?: string;
-  public CENTRO_GASTO?: string;
-  public CUENTA_GASTO?: string;
-  public CENTRO_CONSOLIDA?: string;
-  public CUENTA_CONSOLIDA?: string;
+  public TIPO?: string;
+  public NIVEL?: number;
+  public CENTRO_PADRE?: string;
+  public USUARIO?: string;
+  public FECHA_HORA?: Date;
+  public USUARIO_ULT_MOD?: string;
+  public FCH_HORA_ULT_MOD?: Date;
   public NoteExistsFlag?: number;
   public RecordDate?: Date;
   public RowPointer?: string;
@@ -74,42 +75,39 @@ export class CuentaContableModel extends Model {
 
 // Factory para crear modelos dinámicos basados en el conjunto
 export class DynamicModelFactory {
-  private static centroCuentaModelCache = new Map<string, typeof CentroCuentaModel>();
+  private static centroCostoModelCache = new Map<string, typeof CentroCostoModel>();
   private static cuentaContableModelCache = new Map<string, typeof CuentaContableModel>();
 
-  static createCentroCuentaModel(conjunto: string): typeof CentroCuentaModel {
+  static createCentroCostoModel(conjunto: string): typeof CentroCostoModel {
     // Verificar si el modelo ya está inicializado para este conjunto
-    if (this.centroCuentaModelCache.has(conjunto)) {
-      return this.centroCuentaModelCache.get(conjunto)!;
+    if (this.centroCostoModelCache.has(conjunto)) {
+      return this.centroCostoModelCache.get(conjunto)!;
     }
 
     // Crear una nueva instancia del modelo para este conjunto
-    const modelName = `CentroCuenta_${conjunto}`;
-    const CentroCuentaModelForConjunto = class extends CentroCuentaModel {
+    const modelName = `CentroCosto_${conjunto}`;
+    const CentroCostoModelForConjunto = class extends CentroCostoModel {
       static override get tableName() {
-        return 'CENTRO_CUENTA';
+        return 'CENTRO_COSTO';
       }
     };
 
-    CentroCuentaModelForConjunto.init(
+    CentroCostoModelForConjunto.init(
       {
         CENTRO_COSTO: {
           type: DataTypes.STRING(50),
           primaryKey: true,
           allowNull: false,
         },
-        CUENTA_CONTABLE: {
-          type: DataTypes.STRING(50),
-          primaryKey: true,
-          allowNull: false,
-        },
+        DESCRIPCION: DataTypes.STRING(100),
         ESTADO: DataTypes.STRING(10),
-        CENTRO_POZO: DataTypes.STRING(50),
-        CUENTA_POZO: DataTypes.STRING(50),
-        CENTRO_GASTO: DataTypes.STRING(50),
-        CUENTA_GASTO: DataTypes.STRING(50),
-        CENTRO_CONSOLIDA: DataTypes.STRING(50),
-        CUENTA_CONSOLIDA: DataTypes.STRING(50),
+        TIPO: DataTypes.STRING(20),
+        NIVEL: DataTypes.INTEGER,
+        CENTRO_PADRE: DataTypes.STRING(50),
+        USUARIO: DataTypes.STRING(50),
+        FECHA_HORA: DataTypes.DATE,
+        USUARIO_ULT_MOD: DataTypes.STRING(50),
+        FCH_HORA_ULT_MOD: DataTypes.DATE,
         NoteExistsFlag: DataTypes.INTEGER,
         RecordDate: DataTypes.DATE,
         RowPointer: DataTypes.STRING(16),
@@ -119,7 +117,7 @@ export class DynamicModelFactory {
       },
       {
         sequelize: exactusSequelize,
-        tableName: 'CENTRO_CUENTA',
+        tableName: 'CENTRO_COSTO',
         schema: conjunto,
         timestamps: false,
         modelName: modelName,
@@ -127,8 +125,8 @@ export class DynamicModelFactory {
     );
 
     // Guardar en caché
-    this.centroCuentaModelCache.set(conjunto, CentroCuentaModelForConjunto);
-    return CentroCuentaModelForConjunto;
+    this.centroCostoModelCache.set(conjunto, CentroCostoModelForConjunto);
+    return CentroCostoModelForConjunto;
   }
 
   static createCuentaContableModel(conjunto: string): typeof CuentaContableModel {
