@@ -67,15 +67,45 @@ export class CuentaContableModel extends Model {
   public DESCRIPCION_IFRS?: string;
 }
 
+// Modelo dinámico para REPCG_MOV_CUENTA
+export class MovimientoContableModel extends Model {
+  public USUARIO!: string;
+  public CUENTA_CONTABLE!: string;
+  public DESCRIPCION_CUENTA_CONTABLE?: string;
+  public ASIENTO!: string;
+  public TIPO?: string;
+  public DOCUMENTO?: string;
+  public REFERENCIA?: string;
+  public DEBITO_LOCAL?: number;
+  public DEBITO_DOLAR?: number;
+  public CREDITO_LOCAL?: number;
+  public CREDITO_DOLAR?: number;
+  public CENTRO_COSTO?: string;
+  public DESCRIPCION_CENTRO_COSTO?: string;
+  public TIPO_ASIENTO?: string;
+  public FECHA?: Date;
+  public ACEPTA_DATOS?: boolean;
+  public CONSECUTIVO?: number;
+  public NIT?: string;
+  public RAZON_SOCIAL?: string;
+  public FUENTE?: string;
+  public NOTAS?: string;
+  public U_FLUJO_EFECTIVO?: string;
+  public U_PATRIMONIO_NETO?: string;
+  public U_REP_REF?: string;
+}
+
 // Factory para crear modelos dinámicos basados en el conjunto
 export class DynamicModelFactory {
   private static centroCostoModelCache = new Map<string, typeof CentroCostoModel>();
   private static cuentaContableModelCache = new Map<string, typeof CuentaContableModel>();
+  private static movimientoContableModelCache = new Map<string, typeof MovimientoContableModel>();
 
   // Método para limpiar el caché (útil para desarrollo)
   static clearCache(): void {
     this.centroCostoModelCache.clear();
     this.cuentaContableModelCache.clear();
+    this.movimientoContableModelCache.clear();
   }
 
   static createCentroCostoModel(conjunto: string): typeof CentroCostoModel {
@@ -128,6 +158,91 @@ export class DynamicModelFactory {
     // Guardar en caché
     this.centroCostoModelCache.set(conjunto, CentroCostoModelForConjunto);
     return CentroCostoModelForConjunto;
+  }
+
+  static createMovimientoContableModel(conjunto: string): typeof MovimientoContableModel {
+    // Verificar si el modelo ya está inicializado para este conjunto
+    if (this.movimientoContableModelCache.has(conjunto)) {
+      return this.movimientoContableModelCache.get(conjunto)!;
+    }
+
+    // Crear una nueva instancia del modelo para este conjunto
+    const modelName = `MovimientoContable_${conjunto}`;
+    const MovimientoContableModelForConjunto = class extends Model {
+      public USUARIO!: string;
+      public CUENTA_CONTABLE!: string;
+      public DESCRIPCION_CUENTA_CONTABLE?: string;
+      public ASIENTO!: string;
+      public TIPO?: string;
+      public DOCUMENTO?: string;
+      public REFERENCIA?: string;
+      public DEBITO_LOCAL?: number;
+      public DEBITO_DOLAR?: number;
+      public CREDITO_LOCAL?: number;
+      public CREDITO_DOLAR?: number;
+      public CENTRO_COSTO?: string;
+      public DESCRIPCION_CENTRO_COSTO?: string;
+      public TIPO_ASIENTO?: string;
+      public FECHA?: Date;
+      public ACEPTA_DATOS?: boolean;
+      public CONSECUTIVO?: number;
+      public NIT?: string;
+      public RAZON_SOCIAL?: string;
+      public FUENTE?: string;
+      public NOTAS?: string;
+      public U_FLUJO_EFECTIVO?: string;
+      public U_PATRIMONIO_NETO?: string;
+      public U_REP_REF?: string;
+    };
+
+    MovimientoContableModelForConjunto.init(
+      {
+        USUARIO: {
+          type: DataTypes.STRING(50),
+          allowNull: false,
+        },
+        CUENTA_CONTABLE: {
+          type: DataTypes.STRING(50),
+          allowNull: false,
+        },
+        DESCRIPCION_CUENTA_CONTABLE: DataTypes.STRING(200),
+        ASIENTO: {
+          type: DataTypes.STRING(50),
+          allowNull: false,
+        },
+        TIPO: DataTypes.STRING(10),
+        DOCUMENTO: DataTypes.STRING(50),
+        REFERENCIA: DataTypes.STRING(200),
+        DEBITO_LOCAL: DataTypes.DECIMAL(18, 2),
+        DEBITO_DOLAR: DataTypes.DECIMAL(18, 2),
+        CREDITO_LOCAL: DataTypes.DECIMAL(18, 2),
+        CREDITO_DOLAR: DataTypes.DECIMAL(18, 2),
+        CENTRO_COSTO: DataTypes.STRING(50),
+        DESCRIPCION_CENTRO_COSTO: DataTypes.STRING(200),
+        TIPO_ASIENTO: DataTypes.STRING(50),
+        FECHA: DataTypes.DATE,
+        ACEPTA_DATOS: DataTypes.BOOLEAN,
+        CONSECUTIVO: DataTypes.INTEGER,
+        NIT: DataTypes.STRING(50),
+        RAZON_SOCIAL: DataTypes.STRING(200),
+        FUENTE: DataTypes.STRING(100),
+        NOTAS: DataTypes.TEXT,
+        U_FLUJO_EFECTIVO: DataTypes.STRING(50),
+        U_PATRIMONIO_NETO: DataTypes.STRING(50),
+        U_REP_REF: DataTypes.STRING(50),
+      },
+      {
+        sequelize: exactusSequelize,
+        tableName: 'REPCG_MOV_CUENTA',
+        schema: conjunto,
+        timestamps: false,
+        modelName: modelName,
+      }
+    );
+
+    // Guardar en caché
+    this.movimientoContableModelCache.set(conjunto, MovimientoContableModelForConjunto);
+    return MovimientoContableModelForConjunto;
   }
 
   static createCuentaContableModel(conjunto: string): typeof CuentaContableModel {

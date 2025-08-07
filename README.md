@@ -26,6 +26,7 @@ API REST desarrollada en TypeScript con arquitectura hexagonal (Ports and Adapte
   - **Conjunto**: Gestión de conjuntos empresariales (ERPADMIN.CONJUNTO)
   - **CentroCosto**: Gestión de centros de costo (dinámico por conjunto)
   - **CuentaContable**: Plan de cuentas contables (dinámico por conjunto)
+  - **MovimientoContable**: Reportes de movimientos contables (dinámico por conjunto)
 - **Modelos dinámicos**: Sistema de modelos que se adaptan al esquema del conjunto seleccionado
 - **Optimizaciones de rendimiento**:
   - **Paginación automática**: Límites configurables (`limit`, `offset`, `page`)
@@ -45,6 +46,10 @@ API REST desarrollada en TypeScript con arquitectura hexagonal (Ports and Adapte
   - `GET /api/exactus/:conjunto/cuentas-contables/:codigo` - Cuenta específica
   - `GET /api/exactus/:conjunto/cuentas-contables/tipo/:tipo?limit=100&offset=0` - Cuentas por tipo
   - `GET /api/exactus/:conjunto/cuentas-contables/activas?limit=100&offset=0` - Cuentas activas
+  - `POST /api/movimientos/:conjunto/generar-reporte` - Generar reporte de movimientos
+  - `GET /api/movimientos/:conjunto/por-usuario/:usuario?limit=100&offset=0` - Movimientos por usuario
+  - `GET /api/movimientos/:conjunto/por-centro-costo/:centroCosto?limit=100&offset=0` - Movimientos por centro de costo
+  - `GET /api/movimientos/:conjunto/por-cuenta-contable/:cuentaContable?limit=100&offset=0` - Movimientos por cuenta contable
 - **Arquitectura**: 
   - Patrón Repository para acceso a datos
   - Servicios de dominio para lógica de negocio

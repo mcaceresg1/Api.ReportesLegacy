@@ -14,6 +14,7 @@ import { RolSistemaMenuRoutes } from './infrastructure/routes/RolSistemaMenuRout
 import { PermisoRoutes } from './infrastructure/routes/PermisoRoutes';
 import { createConjuntoRoutes } from './infrastructure/routes/ConjuntoRoutes';
 import { createExactusRoutes } from './infrastructure/routes/ExactusRoutes';
+import { createMovimientoContableRoutes } from './infrastructure/routes/MovimientoContableRoutes';
 
 import { AuthMiddleware } from './infrastructure/middleware/AuthMiddleware';
 import { QueryOptimizationMiddleware } from './infrastructure/middleware/QueryOptimizationMiddleware';
@@ -25,6 +26,7 @@ import { ISistemaService } from './domain/services/ISistemaService';
 import { IMenuService } from './domain/services/IMenuService';
 import { IConjuntoService } from './domain/services/IConjuntoService';
 import { ICentroCostoRepository } from './domain/repositories/ICentroCostoRepository';
+import { IMovimientoContableRepository } from './domain/repositories/IMovimientoContableRepository';
 import { ICuentaContableRepository } from './domain/repositories/ICuentaContableRepository';
 import { CqrsService } from './infrastructure/cqrs/CqrsService';
 
@@ -54,6 +56,7 @@ const sistemaService = container.get<ISistemaService>('ISistemaService');
 const menuService = container.get<IMenuService>('IMenuService');
 const conjuntoService = container.get<IConjuntoService>('IConjuntoService');
 const centroCostoRepository = container.get<ICentroCostoRepository>('ICentroCostoRepository');
+const movimientoContableRepository = container.get<IMovimientoContableRepository>('IMovimientoContableRepository');
 const cuentaContableRepository = container.get<ICuentaContableRepository>('ICuentaContableRepository');
 
 // Inicializar CQRS
@@ -72,6 +75,7 @@ const permisoRoutes = new PermisoRoutes();
 // Rutas de EXACTUS
 const conjuntoRoutes = createConjuntoRoutes(conjuntoService);
 const exactusRoutes = createExactusRoutes(centroCostoRepository, cuentaContableRepository);
+const movimientoContableRoutes = createMovimientoContableRoutes(movimientoContableRepository);
 
 // Rutas de menús (algunas públicas, otras protegidas)
 app.use('/api/menus', menuRoutes.getRouter());
@@ -88,6 +92,7 @@ app.use('/api/permisos', authMiddleware.verifyToken, permisoRoutes.getRouter());
 // Rutas de EXACTUS (solo lectura, sin autenticación)
 app.use('/api/conjuntos', QueryOptimizationMiddleware.validateQueryParams, conjuntoRoutes);
 app.use('/api/exactus', QueryOptimizationMiddleware.validateQueryParams, exactusRoutes);
+app.use('/api/movimientos', QueryOptimizationMiddleware.validateQueryParams, movimientoContableRoutes);
 
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================

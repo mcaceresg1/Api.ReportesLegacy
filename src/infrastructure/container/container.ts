@@ -10,6 +10,7 @@ import { IConexionRepository } from '../../domain/repositories/IConexionReposito
 import { IRolSistemaMenuRepository } from '../../domain/repositories/IRolSistemaMenuRepository';
 import { IConjuntoRepository } from '../../domain/repositories/IConjuntoRepository';
 import { ICentroCostoRepository } from '../../domain/repositories/ICentroCostoRepository';
+import { IMovimientoContableRepository } from '../../domain/repositories/IMovimientoContableRepository';
 
 import { ICuentaContableRepository } from '../../domain/repositories/ICuentaContableRepository';
 import { IUsuarioService } from '../../domain/services/IUsuarioService';
@@ -35,6 +36,7 @@ import { ConexionRepository } from '../repositories/ConexionRepository';
 import { RolSistemaMenuRepository } from '../repositories/RolSistemaMenuRepository';
 import { ConjuntoRepository } from '../repositories/ConjuntoRepository';
 import { CentroCostoRepository } from '../repositories/CentroCostoRepository';
+import { MovimientoContableRepository } from '../repositories/MovimientoContableRepository';
 
 import { CuentaContableRepository } from '../repositories/CuentaContableRepository';
 import { UsuarioService } from '../../application/services/UsuarioService';
@@ -92,6 +94,7 @@ container.bind<IConexionRepository>('IConexionRepository').to(ConexionRepository
 container.bind<IRolSistemaMenuRepository>('IRolSistemaMenuRepository').to(RolSistemaMenuRepository);
 container.bind<IConjuntoRepository>('IConjuntoRepository').to(ConjuntoRepository);
 container.bind<ICentroCostoRepository>('ICentroCostoRepository').to(CentroCostoRepository);
+container.bind<IMovimientoContableRepository>('IMovimientoContableRepository').to(MovimientoContableRepository);
 
 container.bind<ICuentaContableRepository>('ICuentaContableRepository').to(CuentaContableRepository);
 
