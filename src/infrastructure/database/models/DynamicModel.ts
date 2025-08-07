@@ -237,8 +237,6 @@ export class DynamicModelFactory {
         schema: conjunto,
         timestamps: false,
         modelName: modelName,
-        // Deshabilitar la columna id automática
-        id: false,
         // No usar timestamps automáticos
         createdAt: false,
         updatedAt: false,
