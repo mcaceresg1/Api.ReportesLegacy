@@ -1,14 +1,13 @@
 export interface CentroCosto {
   CENTRO_COSTO: string;
-  DESCRIPCION?: string;
+  CUENTA_CONTABLE?: string;
   ESTADO?: string;
-  TIPO?: string;
-  NIVEL?: number;
-  CENTRO_PADRE?: string;
-  USUARIO?: string;
-  FECHA_HORA?: Date;
-  USUARIO_ULT_MOD?: string;
-  FCH_HORA_ULT_MOD?: Date;
+  CENTRO_POZO?: string;
+  CUENTA_POZO?: string;
+  CENTRO_GASTO?: string;
+  CUENTA_GASTO?: string;
+  CENTRO_CONSOLIDA?: string;
+  CUENTA_CONSOLIDA?: string;
   NoteExistsFlag?: number;
   RecordDate?: Date;
   RowPointer?: string;

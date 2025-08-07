@@ -4,15 +4,14 @@ import { exactusSequelize } from '../config/exactus-database';
 // Modelo dinámico para CENTRO_COSTO
 export class CentroCostoModel extends Model {
   public CENTRO_COSTO!: string;
-  public DESCRIPCION?: string;
+  public CUENTA_CONTABLE?: string;
   public ESTADO?: string;
-  public TIPO?: string;
-  public NIVEL?: number;
-  public CENTRO_PADRE?: string;
-  public USUARIO?: string;
-  public FECHA_HORA?: Date;
-  public USUARIO_ULT_MOD?: string;
-  public FCH_HORA_ULT_MOD?: Date;
+  public CENTRO_POZO?: string;
+  public CUENTA_POZO?: string;
+  public CENTRO_GASTO?: string;
+  public CUENTA_GASTO?: string;
+  public CENTRO_CONSOLIDA?: string;
+  public CUENTA_CONSOLIDA?: string;
   public NoteExistsFlag?: number;
   public RecordDate?: Date;
   public RowPointer?: string;
@@ -97,15 +96,14 @@ export class DynamicModelFactory {
           primaryKey: true,
           allowNull: false,
         },
-        DESCRIPCION: DataTypes.STRING(100),
+        CUENTA_CONTABLE: DataTypes.STRING(50),
         ESTADO: DataTypes.STRING(10),
-        TIPO: DataTypes.STRING(20),
-        NIVEL: DataTypes.INTEGER,
-        CENTRO_PADRE: DataTypes.STRING(50),
-        USUARIO: DataTypes.STRING(50),
-        FECHA_HORA: DataTypes.DATE,
-        USUARIO_ULT_MOD: DataTypes.STRING(50),
-        FCH_HORA_ULT_MOD: DataTypes.DATE,
+        CENTRO_POZO: DataTypes.STRING(50),
+        CUENTA_POZO: DataTypes.STRING(50),
+        CENTRO_GASTO: DataTypes.STRING(50),
+        CUENTA_GASTO: DataTypes.STRING(50),
+        CENTRO_CONSOLIDA: DataTypes.STRING(50),
+        CUENTA_CONSOLIDA: DataTypes.STRING(50),
         NoteExistsFlag: DataTypes.INTEGER,
         RecordDate: DataTypes.DATE,
         RowPointer: DataTypes.STRING(16),
