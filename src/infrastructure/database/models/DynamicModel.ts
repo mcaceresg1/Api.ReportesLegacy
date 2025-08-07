@@ -95,14 +95,8 @@ export class DynamicModelFactory {
     const CentroCostoModelForConjunto = class extends Model {
       public CENTRO_COSTO!: string;
       public DESCRIPCION?: string;
-      public ESTADO?: string;
+      public ACEPTA_DATOS?: boolean;
       public TIPO?: string;
-      public NIVEL?: number;
-      public CENTRO_PADRE?: string;
-      public USUARIO?: string;
-      public FECHA_HORA?: Date;
-      public USUARIO_ULT_MOD?: string;
-      public FCH_HORA_ULT_MOD?: Date;
       public NoteExistsFlag?: number;
       public RecordDate?: Date;
       public RowPointer?: string;
@@ -119,14 +113,8 @@ export class DynamicModelFactory {
           allowNull: false,
         },
         DESCRIPCION: DataTypes.STRING(100),
-        ESTADO: DataTypes.STRING(10),
+        ACEPTA_DATOS: DataTypes.BOOLEAN,
         TIPO: DataTypes.STRING(20),
-        NIVEL: DataTypes.INTEGER,
-        CENTRO_PADRE: DataTypes.STRING(50),
-        USUARIO: DataTypes.STRING(50),
-        FECHA_HORA: DataTypes.DATE,
-        USUARIO_ULT_MOD: DataTypes.STRING(50),
-        FCH_HORA_ULT_MOD: DataTypes.DATE,
         NoteExistsFlag: DataTypes.INTEGER,
         RecordDate: DataTypes.DATE,
         RowPointer: DataTypes.STRING(16),

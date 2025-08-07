@@ -7,8 +7,7 @@ import { DynamicModelFactory, CentroCostoModel } from '../database/models/Dynami
 export class CentroCostoRepository implements ICentroCostoRepository {
   // Campos principales para optimizar consultas - solo los definidos en la entidad
   private readonly camposPrincipales = [
-    'CENTRO_COSTO', 'DESCRIPCION', 'ESTADO', 'TIPO', 'NIVEL', 'CENTRO_PADRE',
-    'USUARIO', 'FECHA_HORA', 'USUARIO_ULT_MOD', 'FCH_HORA_ULT_MOD'
+    'CENTRO_COSTO', 'DESCRIPCION', 'ACEPTA_DATOS', 'TIPO'
   ];
 
   async getCentrosCostoByConjunto(conjunto: string, limit: number = 100, offset: number = 0): Promise<CentroCosto[]> {
@@ -73,7 +72,7 @@ export class CentroCostoRepository implements ICentroCostoRepository {
       const centrosCosto = await CentroCostoModel.findAll({
         attributes: this.camposPrincipales,
         where: {
-          ESTADO: 'A'
+          ACEPTA_DATOS: true
         },
         order: [['CENTRO_COSTO', 'ASC']],
         limit,
@@ -121,7 +120,7 @@ export class CentroCostoRepository implements ICentroCostoRepository {
       const CentroCostoModel = DynamicModelFactory.createCentroCostoModel(conjunto);
       return await CentroCostoModel.count({
         where: {
-          ESTADO: 'A'
+          ACEPTA_DATOS: true
         }
       });
     } catch (error) {
