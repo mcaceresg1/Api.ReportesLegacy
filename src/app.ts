@@ -20,6 +20,7 @@ import { IRolService } from './domain/services/IRolService';
 import { IRolSistemaMenuService } from './domain/services/IRolSistemaMenuService';
 import { ISistemaService } from './domain/services/ISistemaService';
 import { IMenuService } from './domain/services/IMenuService';
+import { CqrsService } from './infrastructure/cqrs/CqrsService';
 
 const app = express();
 
@@ -41,6 +42,9 @@ const authMiddleware = container.get<AuthMiddleware>('AuthMiddleware');
 const sistemaService = container.get<ISistemaService>('ISistemaService');
 const menuService = container.get<IMenuService>('IMenuService');
 
+// Inicializar CQRS
+const cqrsService = container.get<CqrsService>('CqrsService');
+
 // Rutas
 const usuarioRoutes = new UsuarioRoutes();
 const menuRoutes = new MenuRoutes();
@@ -51,8 +55,8 @@ const rolMenuRoutes = new RolMenuRoutes();
 const rolSistemaMenuRoutes = new RolSistemaMenuRoutes();
 const permisoRoutes = new PermisoRoutes();
 
-// Rutas públicas (sin autenticación)
-app.use('/api/menus', menuRoutes.getRouter()); // Algunas rutas son públicas
+// Rutas de menús (algunas públicas, otras protegidas)
+app.use('/api/menus', menuRoutes.getRouter());
 
 // Aplicar middleware de autenticación a rutas protegidas
 app.use('/api/usuarios', authMiddleware.verifyToken, usuarioRoutes.getRouter());
@@ -61,7 +65,7 @@ app.use('/api/sistemas', authMiddleware.verifyToken, sistemaRoutes.getRouter());
 app.use('/api/conexiones', authMiddleware.verifyToken, conexionRoutes.getRouter());
 app.use('/api/rol-menu', authMiddleware.verifyToken, rolMenuRoutes.getRouter());
 app.use('/api/rol-sistema-menu', authMiddleware.verifyToken, rolSistemaMenuRoutes.getRouter());
-app.use('/api/permisos', permisoRoutes.getRouter());
+app.use('/api/permisos', authMiddleware.verifyToken, permisoRoutes.getRouter());
 
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================
@@ -91,6 +95,35 @@ app.get('/api/usuarios/con-empresa', authMiddleware.verifyToken, async (req, res
   }
 });
 
+/**
+ * @swagger
+ * /api/usuarios/register:
+ *   post:
+ *     summary: Registrar nuevo usuario
+ *     tags: [Usuarios]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UsuarioCreate'
+ *     responses:
+ *       201:
+ *         description: Usuario registrado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/Usuario'
+ *       400:
+ *         description: Error en los datos de entrada
+ *       500:
+ *         description: Error interno del servidor
+ */
 app.post('/api/usuarios/register', async (req, res) => {
   try {
     const usuarioData = req.body;
@@ -144,6 +177,24 @@ app.patch('/api/usuarios/estado', authMiddleware.verifyToken, async (req, res) =
   }
 });
 
+/**
+ * @swagger
+ * /api/roles/activos:
+ *   get:
+ *     summary: Obtener roles activos
+ *     tags: [Roles]
+ *     responses:
+ *       200:
+ *         description: Lista de roles activos obtenida exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Rol'
+ *       500:
+ *         description: Error interno del servidor
+ */
 // Endpoints de roles adicionales
 app.get('/api/roles/activos', async (req, res) => {
   try {
@@ -592,21 +643,10 @@ app.post('/api/login', async (req, res) => {
  *                   type: boolean
  *                 message:
  *                   type: string
- *                 error:
- *                   type: string
  *       401:
  *         description: Credenciales inválidas
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 message:
- *                   type: string
- *                 error:
- *                   type: string
+ *       500:
+ *         description: Error interno del servidor
  */
 
 /**

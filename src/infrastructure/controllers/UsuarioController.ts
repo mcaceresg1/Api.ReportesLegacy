@@ -1,7 +1,14 @@
 import { injectable, inject } from 'inversify';
 import { Request, Response } from 'express';
 import { IUsuarioService } from '../../domain/services/IUsuarioService';
+import { ICommandBus } from '../../domain/cqrs/ICommandBus';
+import { IQueryBus } from '../../domain/cqrs/IQueryBus';
 import { UsuarioCreate, UsuarioUpdate } from '../../domain/entities/Usuario';
+import { CreateUsuarioCommand } from '../../application/commands/usuario/CreateUsuarioCommand';
+import { UpdateUsuarioCommand } from '../../application/commands/usuario/UpdateUsuarioCommand';
+import { DeleteUsuarioCommand } from '../../application/commands/usuario/DeleteUsuarioCommand';
+import { GetAllUsuariosQuery } from '../../application/queries/usuario/GetAllUsuariosQuery';
+import { GetUsuarioByIdQuery } from '../../application/queries/usuario/GetUsuarioByIdQuery';
 
 /**
  * @swagger
@@ -58,7 +65,9 @@ import { UsuarioCreate, UsuarioUpdate } from '../../domain/entities/Usuario';
 @injectable()
 export class UsuarioController {
   constructor(
-    @inject('IUsuarioService') private usuarioService: IUsuarioService
+    @inject('IUsuarioService') private usuarioService: IUsuarioService,
+    @inject('ICommandBus') private commandBus: ICommandBus,
+    @inject('IQueryBus') private queryBus: IQueryBus
   ) {}
 
   /**
@@ -90,7 +99,8 @@ export class UsuarioController {
    */
   async getAllUsuarios(req: Request, res: Response): Promise<void> {
     try {
-      const usuarios = await this.usuarioService.getAllUsuarios();
+      const query = new GetAllUsuariosQuery();
+      const usuarios = await this.queryBus.execute(query);
       res.json({
         success: true,
         data: usuarios
@@ -143,7 +153,8 @@ export class UsuarioController {
         res.status(400).json({ error: 'ID inválido' });
         return;
       }
-      const usuario = await this.usuarioService.getUsuarioById(id);
+      const query = new GetUsuarioByIdQuery(id);
+      const usuario = await this.queryBus.execute(query);
       
       if (!usuario) {
         res.status(404).json({
@@ -200,7 +211,8 @@ export class UsuarioController {
   async createUsuario(req: Request, res: Response): Promise<void> {
     try {
       const usuarioData: UsuarioCreate = req.body;
-      const usuario = await this.usuarioService.createUsuario(usuarioData);
+      const command = new CreateUsuarioCommand(usuarioData);
+      const usuario = await this.commandBus.execute(command);
       
       res.status(201).json({
         success: true,
@@ -273,9 +285,13 @@ export class UsuarioController {
       console.log('📝 Datos a actualizar:', usuarioData);
       console.log('🏢 Campo empresa recibido:', usuarioData.empresa);
       
-      const usuario = await this.usuarioService.updateUsuario(id, usuarioData);
+      const command = new UpdateUsuarioCommand(id, usuarioData);
+      await this.commandBus.execute(command);
       
-      if (!usuario) {
+      // Get the updated usuario to return in response
+      const updatedUsuario = await this.usuarioService.getUsuarioById(id);
+      
+      if (!updatedUsuario) {
         console.error('❌ Usuario no encontrado con ID:', id);
         res.status(404).json({
           success: false,
@@ -284,10 +300,10 @@ export class UsuarioController {
         return;
       }
 
-      console.log('✅ Usuario actualizado exitosamente:', usuario);
+      console.log('✅ Usuario actualizado exitosamente:', updatedUsuario);
       res.json({
         success: true,
-        data: usuario
+        data: updatedUsuario
       });
     } catch (error) {
       console.error('❌ Error al actualizar usuario:', error);
@@ -338,7 +354,9 @@ export class UsuarioController {
         res.status(400).json({ error: 'ID inválido' });
         return;
       }
-      const success = await this.usuarioService.deleteUsuario(id);
+      const command = new DeleteUsuarioCommand(id);
+      await this.commandBus.execute(command);
+      const success = true;
       
       if (!success) {
         res.status(404).json({

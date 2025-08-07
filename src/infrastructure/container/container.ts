@@ -17,6 +17,9 @@ import { IConexionService } from '../../domain/services/IConexionService';
 import { IRolMenuService } from '../../domain/services/IRolMenuService';
 import { IRolSistemaMenuService } from '../../domain/services/IRolSistemaMenuService';
 
+// CQRS interfaces
+import { ICommandBus } from '../../domain/cqrs/ICommandBus';
+import { IQueryBus } from '../../domain/cqrs/IQueryBus';
 
 // Infrastructure implementations
 import { UsuarioRepository } from '../repositories/UsuarioRepository';
@@ -44,6 +47,26 @@ import { ConexionController } from '../controllers/ConexionController';
 import { RolMenuController } from '../controllers/RolMenuController';
 import { RolSistemaMenuController } from '../controllers/RolSistemaMenuController';
 
+// CQRS implementations
+import { CommandBus } from '../cqrs/CommandBus';
+import { QueryBus } from '../cqrs/QueryBus';
+
+// Command handlers
+import { CreateUsuarioHandler } from '../../application/handlers/usuario/CreateUsuarioHandler';
+import { UpdateUsuarioHandler } from '../../application/handlers/usuario/UpdateUsuarioHandler';
+import { DeleteUsuarioHandler } from '../../application/handlers/usuario/DeleteUsuarioHandler';
+import { GetAllUsuariosHandler } from '../../application/handlers/usuario/GetAllUsuariosHandler';
+import { GetUsuarioByIdHandler } from '../../application/handlers/usuario/GetUsuarioByIdHandler';
+
+// Query handlers
+import { CreateRolHandler } from '../../application/handlers/rol/CreateRolHandler';
+import { UpdateRolHandler } from '../../application/handlers/rol/UpdateRolHandler';
+import { DeleteRolHandler } from '../../application/handlers/rol/DeleteRolHandler';
+import { GetAllRolesHandler } from '../../application/handlers/rol/GetAllRolesHandler';
+import { GetRolByIdHandler } from '../../application/handlers/rol/GetRolByIdHandler';
+
+// CQRS Service
+import { CqrsService } from '../cqrs/CqrsService';
 
 // Middleware
 import { AuthMiddleware } from '../middleware/AuthMiddleware';
@@ -79,6 +102,31 @@ container.bind<ConexionController>('ConexionController').to(ConexionController);
 container.bind<RolMenuController>('RolMenuController').to(RolMenuController);
 container.bind<RolSistemaMenuController>('RolSistemaMenuController').to(RolSistemaMenuController);
 
+
+// CQRS Buses
+container.bind<ICommandBus>('ICommandBus').to(CommandBus);
+container.bind<IQueryBus>('IQueryBus').to(QueryBus);
+
+// Command Handlers
+container.bind<CreateUsuarioHandler>('CreateUsuarioHandler').to(CreateUsuarioHandler);
+container.bind<UpdateUsuarioHandler>('UpdateUsuarioHandler').to(UpdateUsuarioHandler);
+container.bind<DeleteUsuarioHandler>('DeleteUsuarioHandler').to(DeleteUsuarioHandler);
+
+// Query Handlers
+container.bind<GetAllUsuariosHandler>('GetAllUsuariosHandler').to(GetAllUsuariosHandler);
+container.bind<GetUsuarioByIdHandler>('GetUsuarioByIdHandler').to(GetUsuarioByIdHandler);
+
+// Rol Command Handlers
+container.bind<CreateRolHandler>('CreateRolHandler').to(CreateRolHandler);
+container.bind<UpdateRolHandler>('UpdateRolHandler').to(UpdateRolHandler);
+container.bind<DeleteRolHandler>('DeleteRolHandler').to(DeleteRolHandler);
+
+// Rol Query Handlers
+container.bind<GetAllRolesHandler>('GetAllRolesHandler').to(GetAllRolesHandler);
+container.bind<GetRolByIdHandler>('GetRolByIdHandler').to(GetRolByIdHandler);
+
+// CQRS Service
+container.bind<CqrsService>('CqrsService').to(CqrsService);
 
 // Middleware
 container.bind<AuthMiddleware>('AuthMiddleware').to(AuthMiddleware);

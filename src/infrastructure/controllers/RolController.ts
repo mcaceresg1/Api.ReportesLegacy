@@ -1,7 +1,14 @@
 import { injectable, inject } from 'inversify';
 import { Request, Response } from 'express';
 import { IRolService } from '../../domain/services/IRolService';
+import { ICommandBus } from '../../domain/cqrs/ICommandBus';
+import { IQueryBus } from '../../domain/cqrs/IQueryBus';
 import { RolCreate, RolUpdate } from '../../domain/entities/Rol';
+import { CreateRolCommand } from '../../application/commands/rol/CreateRolCommand';
+import { UpdateRolCommand } from '../../application/commands/rol/UpdateRolCommand';
+import { DeleteRolCommand } from '../../application/commands/rol/DeleteRolCommand';
+import { GetAllRolesQuery } from '../../application/queries/rol/GetAllRolesQuery';
+import { GetRolByIdQuery } from '../../application/queries/rol/GetRolByIdQuery';
 
 /**
  * @swagger
@@ -45,7 +52,9 @@ import { RolCreate, RolUpdate } from '../../domain/entities/Rol';
 @injectable()
 export class RolController {
   constructor(
-    @inject('IRolService') private rolService: IRolService
+    @inject('IRolService') private rolService: IRolService,
+    @inject('ICommandBus') private commandBus: ICommandBus,
+    @inject('IQueryBus') private queryBus: IQueryBus
   ) {}
 
   /**
@@ -68,7 +77,8 @@ export class RolController {
    */
   async getAllRoles(req: Request, res: Response): Promise<void> {
     try {
-      const roles = await this.rolService.getAllRoles();
+      const query = new GetAllRolesQuery();
+      const roles = await this.queryBus.execute(query);
       res.json(roles);
     } catch (error) {
       console.error("Error al obtener roles:", error);
@@ -109,7 +119,8 @@ export class RolController {
   async createRol(req: Request, res: Response): Promise<void> {
     try {
       const rolData: RolCreate = req.body;
-      await this.rolService.createRol(rolData);
+      const command = new CreateRolCommand(rolData);
+      await this.commandBus.execute(command);
       res.status(201).json({ message: "Rol agregado exitosamente" });
     } catch (error) {
       console.error(error);
@@ -153,7 +164,8 @@ export class RolController {
   async updateRol(req: Request, res: Response): Promise<void> {
     try {
       const rolData: RolUpdate = req.body;
-      const rol = await this.rolService.updateRol(rolData);
+      const command = new UpdateRolCommand(rolData.id!, rolData);
+      const rol = await this.commandBus.execute(command);
       
       res.json({ 
         message: "Rol actualizado correctamente", 

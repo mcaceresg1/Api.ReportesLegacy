@@ -7,6 +7,7 @@ API REST desarrollada en TypeScript con arquitectura hexagonal (Ports and Adapte
 ## Características
 
 - **Arquitectura Hexagonal**: Separación clara entre dominio, aplicación e infraestructura
+- **CQRS Pattern**: Command Query Responsibility Segregation para separar operaciones de lectura y escritura
 - **TypeScript**: Tipado estático para mayor robustez
 - **Express.js**: Framework web para la API
 - **Sequelize**: ORM para SQL Server
@@ -18,41 +19,47 @@ API REST desarrollada en TypeScript con arquitectura hexagonal (Ports and Adapte
 
 ## Cambios Recientes
 
-### v1.1.0 - Refactorización de Endpoints de Permisos
-- **Nuevo archivo de rutas**: Creado `PermisoRoutes.ts` para centralizar endpoints de permisos
-- **Documentación Swagger**: Agregada documentación completa para endpoints de permisos
-- **Mejora en organización**: Endpoints de permisos ahora siguen el patrón de arquitectura hexagonal
-- **Endpoints disponibles**:
-  - `GET /api/permisos/:rolId/:sistemaId` - Obtener permisos de un rol en un sistema
-  - `POST /api/permisos` - Asignar permisos a un rol en un sistema  
-  - `PUT /api/permisos/:id` - Actualizar un permiso específico
+### v1.9.0 - Corrección de Documentación Swagger y Autenticación
+- **Corrección de endpoints públicos**: Actualizada documentación para endpoints que no requieren autenticación
+  - `/api/login` - Endpoint de autenticación (público)
+  - `/api/usuarios/register` - Registro de usuarios (público)
+  - `/api/roles/activos` - Lista de roles activos (público)
+  - `/api/menus` - Endpoints de lectura de menús (públicos)
+- **Corrección de endpoints protegidos**: Asegurado que todos los endpoints que requieren autenticación tengan documentación correcta
+  - `/api/usuarios/*` - Gestión de usuarios (protegido)
+  - `/api/roles/*` - Gestión de roles (protegido)
+  - `/api/sistemas/*` - Gestión de sistemas (protegido)
+  - `/api/conexiones/*` - Gestión de conexiones (protegido)
+  - `/api/permisos/*` - Gestión de permisos (protegido)
+- **Consistencia en middleware**: Asegurado que la configuración de middleware coincida con la documentación Swagger
+- **Beneficios**: 
+  - Documentación Swagger precisa y actualizada
+  - Seguridad mejorada con autenticación correcta
+  - Claridad en qué endpoints requieren token y cuáles no
 
-### v1.2.0 - Mejora del Modal de Nuevo Rol
-- **Selección de permisos**: El modal de "Nuevo Rol" ahora incluye selección de permisos
-- **Interfaz con pestañas**: Implementado sistema de pestañas para separar información básica y permisos
-- **Selector de sistema**: Permite elegir el sistema para el cual se asignarán los permisos
-- **Árbol de permisos**: Visualización jerárquica de permisos disponibles con selección múltiple
-- **Resumen de permisos**: Muestra los permisos seleccionados antes de crear el rol
-- **Asignación automática**: Los permisos se asignan automáticamente al crear el rol
-- **Componentes personalizados**: Implementación de componentes propios sin dependencias externas
+### v1.8.0 - Implementación de CQRS (Command Query Responsibility Segregation)
+- **Patrón CQRS**: Separación de responsabilidades entre comandos (escritura) y queries (lectura)
+- **Command Bus**: Sistema de comandos para operaciones de escritura (Create, Update, Delete)
+- **Query Bus**: Sistema de queries para operaciones de lectura (Get, GetAll)
+- **Handlers**: Manejadores específicos para cada comando y query
+- **Entidades implementadas**:
+  - **Usuario**: CreateUsuarioCommand, UpdateUsuarioCommand, DeleteUsuarioCommand, GetAllUsuariosQuery, GetUsuarioByIdQuery
+  - **Rol**: CreateRolCommand, UpdateRolCommand, DeleteRolCommand, GetAllRolesQuery, GetRolByIdQuery
+- **Beneficios**:
+  - Separación clara entre operaciones de lectura y escritura
+  - Escalabilidad mejorada para diferentes tipos de operaciones
+  - Facilita la implementación de Event Sourcing en el futuro
+  - Mejor organización del código siguiendo principios SOLID
 
-### v1.4.0 - Corrección de Endpoint de Permisos
-- **Corrección**: Actualización del modal de nuevo rol para usar el endpoint correcto
-  - Cambio de `/api/sistemas/{sistemaId}/menus` a `/api/sistemas/{sistemaId}/permisos`
-  - Implementación de `convertPermisosToTreeNodes()` para procesar permisos
-  - Mejora en el manejo de eventos del selector de sistemas
-- **Mejora**: Logs de depuración para facilitar el troubleshooting
-- **Beneficios**: Listado correcto de permisos según el sistema seleccionado
-
-### v1.5.0 - Nuevo Endpoint de Permisos por Rol
-- **Nuevo endpoint**: `/api/rol/{rolId}/permisos` para obtener permisos específicos de un rol
+### v1.7.0 - Nuevo Endpoint de Permisos Disponibles con Marcado
+- **Nuevo endpoint**: `/api/rol/{rolId}/permisos-disponibles` para obtener todos los permisos disponibles marcando los activos
   - Implementación en backend con documentación Swagger completa
-  - Método `getPermisosByRol()` en `RolSistemaMenuService`
-  - Integración en frontend con método `obtenerPermisosRol()`
-- **Funcionalidad**: "Ver permisos" en roles y permisos ahora usa el endpoint específico
-  - Carga permisos sin filtrar por sistema
-  - Muestra todos los permisos asignados al rol
-  - Compatibilidad con la interfaz existente
+  - Método `getPermisosDisponiblesConMarcado()` en `RolSistemaMenuService`
+  - Retorna todos los permisos con campo `activo` indicando si están asignados al rol
+- **Beneficios**: 
+  - Permite mostrar todos los permisos disponibles en modal de editar
+  - Marca automáticamente los permisos que ya tiene el rol
+  - Facilita la gestión completa de permisos por rol
 
 ### v1.6.0 - Mejora del Modal de Editar Rol
 - **Funcionalidad**: Modal de editar rol ahora incluye gestión de permisos
@@ -66,15 +73,23 @@ API REST desarrollada en TypeScript con arquitectura hexagonal (Ports and Adapte
   - Marcado automático de permisos ya asignados
   - Interfaz consistente con el modal de nuevo rol
 
-### v1.7.0 - Nuevo Endpoint de Permisos Disponibles con Marcado
-- **Nuevo endpoint**: `/api/rol/{rolId}/permisos-disponibles` para obtener todos los permisos disponibles marcando los activos
+### v1.5.0 - Nuevo Endpoint de Permisos por Rol
+- **Nuevo endpoint**: `/api/rol/{rolId}/permisos` para obtener permisos específicos de un rol
   - Implementación en backend con documentación Swagger completa
-  - Método `getPermisosDisponiblesConMarcado()` en `RolSistemaMenuService`
-  - Retorna todos los permisos con campo `activo` indicando si están asignados al rol
-- **Beneficios**: 
-  - Permite mostrar todos los permisos disponibles en modal de editar
-  - Marca automáticamente los permisos que ya tiene el rol
-  - Facilita la gestión completa de permisos por rol
+  - Método `getPermisosByRol()` en `RolSistemaMenuService`
+  - Integración en frontend con método `obtenerPermisosRol()`
+- **Funcionalidad**: "Ver permisos" en roles y permisos ahora usa el endpoint específico
+  - Carga permisos sin filtrar por sistema
+  - Muestra todos los permisos asignados al rol
+  - Compatibilidad con la interfaz existente
+
+### v1.4.0 - Corrección de Endpoint de Permisos
+- **Corrección**: Actualización del modal de nuevo rol para usar el endpoint correcto
+  - Cambio de `/api/sistemas/{sistemaId}/menus` a `/api/sistemas/{sistemaId}/permisos`
+  - Implementación de `convertPermisosToTreeNodes()` para procesar permisos
+  - Mejora en el manejo de eventos del selector de sistemas
+- **Mejora**: Logs de depuración para facilitar el troubleshooting
+- **Beneficios**: Listado correcto de permisos según el sistema seleccionado
 
 ### v1.3.0 - Componentes Personalizados
 - **TabViewComponent**: Componente de pestañas personalizado con diseño moderno y responsive
@@ -84,13 +99,36 @@ API REST desarrollada en TypeScript con arquitectura hexagonal (Ports and Adapte
 - **Diseño responsive**: Todos los componentes adaptados para dispositivos móviles
 - **Sin dependencias externas**: Eliminación completa de PrimeNG para estos componentes
 
+### v1.2.0 - Mejora del Modal de Nuevo Rol
+- **Selección de permisos**: El modal de "Nuevo Rol" ahora incluye selección de permisos
+- **Interfaz con pestañas**: Implementado sistema de pestañas para separar información básica y permisos
+- **Selector de sistema**: Permite elegir el sistema para el cual se asignarán los permisos
+- **Árbol de permisos**: Visualización jerárquica de permisos disponibles con selección múltiple
+- **Resumen de permisos**: Muestra los permisos seleccionados antes de crear el rol
+- **Asignación automática**: Los permisos se asignan automáticamente al crear el rol
+- **Componentes personalizados**: Implementación de componentes propios sin dependencias externas
+
+### v1.1.0 - Refactorización de Endpoints de Permisos
+- **Nuevo archivo de rutas**: Creado `PermisoRoutes.ts` para centralizar endpoints de permisos
+- **Documentación Swagger**: Agregada documentación completa para endpoints de permisos
+- **Mejora en organización**: Endpoints de permisos ahora siguen el patrón de arquitectura hexagonal
+- **Endpoints disponibles**:
+  - `GET /api/permisos/:rolId/:sistemaId` - Obtener permisos de un rol en un sistema
+  - `POST /api/permisos` - Asignar permisos a un rol en un sistema  
+  - `PUT /api/permisos/:id` - Actualizar un permiso específico
+
 ## Estructura del Proyecto
 
 ```
 src/
 ├── domain/           # Capa de dominio (entidades, interfaces)
+│   └── cqrs/        # Interfaces CQRS (ICommand, IQuery, ICommandBus, IQueryBus)
 ├── application/      # Capa de aplicación (casos de uso, servicios)
+│   ├── commands/    # Comandos CQRS (Create, Update, Delete)
+│   ├── queries/     # Queries CQRS (Get, GetAll)
+│   └── handlers/    # Manejadores CQRS (CommandHandlers, QueryHandlers)
 └── infrastructure/   # Capa de infraestructura (controladores, repositorios)
+    └── cqrs/        # Implementaciones CQRS (CommandBus, QueryBus, CqrsService)
 ```
 
 ## Instalación
@@ -156,351 +194,84 @@ El endpoint `/api/movimientos-contables/pdf` acepta:
 
 ## Endpoints Principales
 
-### Autenticación
+### Autenticación (Públicos)
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
 | `POST` | `/api/login` | Login de usuario |
+| `POST` | `/api/usuarios/register` | Registro de usuario |
 
-### Usuarios
+### Menús (Públicos para lectura)
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `GET` | `/api/menus` | Obtener todos los menús |
+| `GET` | `/api/menus/rol/{rolId}/sistema/{sistemaId}` | Obtener menús por rol y sistema |
+| `GET` | `/api/menus/area/{area}` | Obtener menús por área |
+| `GET` | `/api/menus/sistema/{sistemaCode}` | Obtener menús por sistema |
+
+### Roles (Públicos para lectura)
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `GET` | `/api/roles/activos` | Obtener roles activos |
+
+### Usuarios (Protegidos)
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
 | `GET` | `/api/usuarios` | Obtener todos los usuarios |
 | `GET` | `/api/usuarios/:id` | Obtener usuario por ID |
-
-### Permisos
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| `GET` | `/api/permisos/:rolId/:sistemaId` | Obtener permisos de un rol en un sistema |
-| `POST` | `/api/permisos` | Asignar permisos a un rol en un sistema |
-| `PUT` | `/api/permisos/:id` | Actualizar un permiso específico |
 | `POST` | `/api/usuarios` | Crear usuario |
-| `PUT` | `/api/usuarios` | Actualizar usuario |
+| `PUT` | `/api/usuarios/:id` | Actualizar usuario |
 | `DELETE` | `/api/usuarios/:id` | Eliminar usuario |
-| `GET` | `/api/usuarios-con-empresa` | Obtener usuarios con empresa |
-| `GET` | `/api/usuarios-con-empresa-public` | Obtener usuarios con empresa (público) |
+| `PATCH` | `/api/usuarios/:id/activate` | Activar usuario |
+| `PATCH` | `/api/usuarios/:id/deactivate` | Desactivar usuario |
+| `PATCH` | `/api/usuarios/:id/cambiar-password` | Cambiar contraseña |
 
-### Roles
+### Roles (Protegidos)
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
 | `GET` | `/api/roles` | Obtener todos los roles |
 | `GET` | `/api/roles/:id` | Obtener rol por ID |
 | `POST` | `/api/roles` | Crear rol |
-| `PUT` | `/api/roles` | Actualizar rol |
+| `PUT` | `/api/roles/:id` | Actualizar rol |
 | `DELETE` | `/api/roles/:id` | Eliminar rol |
-| `GET` | `/api/roles/activos` | Obtener roles activos |
-| `GET` | `/api/roles-activos-public` | Obtener roles activos (público) |
-| `GET` | `/api/roles/:id/permisos` | Obtener permisos de un rol |
 
-### Menús
+### Permisos (Protegidos)
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
-| `GET` | `/api/menus` | Obtener todos los menús |
-| `GET` | `/api/menus-public` | Obtener menús (público) |
-| `GET` | `/api/menus/rol/:rolId/sistema/:sistemaId` | Obtener menús por rol y sistema |
+| `GET` | `/api/permisos/:rolId/:sistemaId` | Obtener permisos de un rol en un sistema |
+| `POST` | `/api/permisos` | Asignar permisos a un rol en un sistema |
+| `PUT` | `/api/permisos/:id` | Actualizar un permiso específico |
 
-### Movimientos Contables
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| `GET` | `/api/movimientos-contables` | Obtener movimientos contables con filtros |
-| `GET` | `/api/movimientos-contables/:id` | Obtener movimiento contable por ID |
-| `POST` | `/api/movimientos-contables` | Crear movimiento contable |
-| `PUT` | `/api/movimientos-contables/:id` | Actualizar movimiento contable |
-| `DELETE` | `/api/movimientos-contables/:id` | Eliminar movimiento contable |
-| `POST` | `/api/movimientos-contables/pdf` | Generar PDF de movimientos contables |
-
-### Centros de Costo
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| `GET` | `/api/centros-costos` | Obtener todos los centros de costo |
-| `GET` | `/api/centros-costos/activos` | Obtener centros de costo activos |
-| `GET` | `/api/centros-costos/:id` | Obtener centro de costo por ID |
-| `GET` | `/api/centros-costos/codigo/:codigo` | Obtener centro de costo por código |
-| `POST` | `/api/centros-costos` | Crear centro de costo |
-| `POST` | `/api/centros-costos/filter` | Filtrar centros de costo |
-| `PUT` | `/api/centros-costos/:id` | Actualizar centro de costo |
-| `DELETE` | `/api/centros-costos/:id` | Eliminar centro de costo |
-
-### Movimientos Contables
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| `GET` | `/api/movimientos-contables` | Obtener todos los movimientos contables |
-| `GET` | `/api/movimientos-contables/:id` | Obtener movimiento contable por ID |
-| `POST` | `/api/movimientos-contables` | Crear movimiento contable |
-| `PUT` | `/api/movimientos-contables/:id` | Actualizar movimiento contable |
-| `DELETE` | `/api/movimientos-contables/:id` | Eliminar movimiento contable |
-| `GET` | `/api/movimientos-contables/tipo/:tipo` | Obtener movimientos contables por tipo |
-| `GET` | `/api/movimientos-contables/centro-costo/:centroCostoId` | Obtener movimientos contables por centro de costo |
-
-**Filtros disponibles para movimientos contables:**
-- `tipo`: Filtrar por tipo de movimiento
-- `cuenta`: Filtrar por número de cuenta
-- `descripcion`: Filtrar por descripción
-- `centro_costo_id`: Filtrar por ID de centro de costo
-- `centro_costo_codigo`: Filtrar por código de centro de costo
-- `centro_costo_descripcion`: Filtrar por descripción de centro de costo
-
-### Sistemas
+### Sistemas (Protegidos)
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
 | `GET` | `/api/sistemas` | Obtener todos los sistemas |
-| `GET` | `/api/sistemas-public` | Obtener sistemas (público) |
-| `GET` | `/api/sistemas/:sistemaId/usuarios` | Obtener usuarios por sistema |
-| `GET` | `/api/sistemas/:sistemaId/usuarios-public` | Obtener usuarios por sistema (público) |
-| `GET` | `/api/sistemas/:sistemaId/permisos` | Obtener permisos por sistema |
-| `GET` | `/api/sistemas/:sistemaId/permisos-public` | Obtener permisos por sistema (público) |
-| `GET` | `/api/sistemas/:sistemaId/estadisticas` | Obtener estadísticas del sistema |
-| `GET` | `/api/sistemas/:sistemaId/estadisticas-public` | Obtener estadísticas del sistema (público) |
+| `GET` | `/api/sistemas/:id` | Obtener sistema por ID |
+| `POST` | `/api/sistemas` | Crear sistema |
+| `PUT` | `/api/sistemas/:id` | Actualizar sistema |
+| `DELETE` | `/api/sistemas/:id` | Eliminar sistema |
 
-### Permisos (RolSistemaMenu)
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| `GET` | `/api/permisos/:rolId/:sistemaId` | Obtener permisos por rol y sistema |
-| `POST` | `/api/permisos` | Asignar permisos |
-| `PUT` | `/api/permisos/:id` | Actualizar permiso |
-
-### Conexiones
+### Conexiones (Protegidos)
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
 | `GET` | `/api/conexiones` | Obtener todas las conexiones |
 | `GET` | `/api/conexiones/:id` | Obtener conexión por ID |
 | `POST` | `/api/conexiones` | Crear conexión |
-| `PUT` | `/api/conexiones` | Actualizar conexión |
+| `PUT` | `/api/conexiones/:id` | Actualizar conexión |
 | `DELETE` | `/api/conexiones/:id` | Eliminar conexión |
 
-## Documentación API
+## Autenticación
 
-La documentación interactiva está disponible en:
-- **Swagger UI**: `http://localhost:3000/api-docs`
+La API utiliza JWT (JSON Web Tokens) para la autenticación. Los endpoints protegidos requieren el token en el header:
 
-## Base de Datos
+```
+Authorization: Bearer <token>
+```
 
-### Configuración UTF-8
-La base de datos está configurada para soportar caracteres especiales y acentos. Los scripts incluyen:
+### Endpoints Públicos
+- `/api/login` - Autenticación
+- `/api/usuarios/register` - Registro de usuarios
+- `/api/menus` - Lectura de menús
+- `/api/roles/activos` - Roles activos
 
-- Configuración de collation para UTF-8
-- Creación de tablas con soporte para caracteres especiales
-- Datos de ejemplo con acentos y caracteres especiales
-
-### Tablas Principales
-
-#### centros_costos
-- `id`: Identificador único
-- `codigo`: Código del centro de costo (único)
-- `descripcion`: Descripción del centro de costo
-- `activo`: Estado activo/inactivo
-- `createdAt`: Fecha de creación
-- `updatedAt`: Fecha de actualización
-
-#### movimientos_contables
-- `id`: Identificador único
-- `cuenta`: Número de cuenta contable
-- `descripcion`: Descripción del movimiento
-- `tipo`: Tipo de movimiento (Balance de situación, Cuenta de orden, Estado de resultados)
-- `centro_costo_id`: Referencia al centro de costo (FK)
-- `createdAt`: Fecha de creación
-- `updatedAt`: Fecha de actualización
-
-### Relaciones
-- `movimientos_contables.centro_costo_id` → `centros_costos.id`
-
-### Scripts de Base de Datos
-- `poblar_movimientos_contables.sql`: Datos de ejemplo para movimientos contables
-- `poblar_centros_costos.sql`: Datos de ejemplo para centros de costo (50+ registros)
-
-## Paridad con Proyecto JavaScript
-
-Este proyecto TypeScript mantiene paridad completa con el proyecto JavaScript original (`Api.ReportesLegacy`), incluyendo:
-
-- ✅ Todos los endpoints implementados
-- ✅ Misma estructura de respuesta
-- ✅ Misma autenticación JWT
-- ✅ Misma lógica de negocio
-- ✅ Mismos modelos de datos
-
-## Mejoras Implementadas
-
-### Frontend (Web.ReportesLegacy)
-- **Componentes Personalizados**: Reemplazados componentes PrimeNG con componentes personalizados desarrollados en `@/components`
-  - **CustomTableComponent**: Tabla personalizada en modo claro para mostrar usuarios
-  - **RolesTableComponent**: Componente de tarjetas para mostrar roles
-  - **CentroCostoModalComponent**: Modal para selección de centros de costo
-- **Tema Claro**: La interfaz de roles y permisos ahora se muestra en modo claro en lugar del modo oscuro
-- **Estilos Mejorados**: Colores y estilos actualizados para mejor legibilidad
-- **Badges de Estado**: Colores diferenciados para estados activo/inactivo
-- **Badges de Roles**: Colores diferenciados para diferentes tipos de roles
-- **Tabla de Usuarios**: Estilo claro con hover effects y mejor espaciado
-- **Arquitectura de Componentes**: Componentes reutilizables en `shared/components/`
-- **Modal de Centros de Costo**: 
-  - Búsqueda por código y descripción
-  - Tabla con paginación
-  - Selección con doble clic
-  - Filtros en tiempo real
-  - Integración completa con movimientos contables
-
-### Backend (Api.ReportesLegacy.ts)
-- **Endpoint de Permisos**: Implementado `/api/roles/:id/permisos` para obtener permisos de roles
-- **Endpoints Públicos**: Agregados endpoints públicos para datos que no requieren autenticación
-- **Mejor Manejo de Errores**: Logging mejorado y mensajes de error más descriptivos
-- **Centros de Costo**: Nuevo módulo completo para gestión de centros de costo
-  - CRUD completo con validaciones
-  - Filtros por código, descripción y estado
-  - Búsqueda por código único
-  - Relación con movimientos contables
-- **Movimientos Contables Mejorados**: 
-  - Filtros por centro de costo
-  - Relaciones con centros de costo
-  - Filtros avanzados por código y descripción
-
-## Optimizaciones de Bundle
-
-### Frontend (Web.ReportesLegacy)
-- **Componentes Optimizados**: Reducido el tamaño de los componentes personalizados
-  - **CustomTableComponent**: CSS optimizado y funcionalidad simplificada
-  - **RolesTableComponent**: Estilos consolidados y reducidos
-  - **CentroCostoModalComponent**: Componente ligero con funcionalidad completa
-- **Importaciones Optimizadas**: Eliminadas importaciones innecesarias de PrimeNG
-- **CSS Optimizado**: Reducido el tamaño del CSS del sidebar de 16.66kB a ~8kB
-- **Configuración de Build**: Aumentados los límites de presupuesto de bundle
-  - Bundle inicial: 2MB → 3MB
-  - CSS por componente: 16kB → 25kB
-- **Service Worker**: Configurado para cachear recursos estáticos
-
-### Backend (Api.ReportesLegacy.ts)
-- **Endpoint de Permisos**: Implementado `/api/roles/:id/permisos` para obtener permisos de roles
-- **Endpoints Públicos**: Agregados endpoints públicos para datos que no requieren autenticación
-- **Mejor Manejo de Errores**: Logging mejorado y mensajes de error más descriptivos
-
-## Componentes Personalizados Optimizados
-
-### CustomTableComponent
-- **Tamaño Reducido**: CSS optimizado de ~15kB a ~8kB
-- **Funcionalidad Mantenida**: Todas las características preservadas
-- **Performance Mejorada**: Menos selectores CSS y reglas optimizadas
-
-### RolesTableComponent
-- **CSS Consolidado**: Estilos duplicados eliminados
-- **Responsive Optimizado**: Media queries simplificadas
-- **Animaciones Eficientes**: Transiciones optimizadas
-
-### CentroCostoModalComponent
-- **Funcionalidad Completa**: Modal para selección de centros de costo
-- **Búsqueda Avanzada**: Filtros por código y descripción en tiempo real
-- **Tabla Integrada**: Usa CustomTableComponent para mostrar datos
-- **Selección Intuitiva**: Doble clic para seleccionar
-- **Responsive**: Adaptado para móviles y tablets
-
-### Sidebar Component
-- **CSS Reducido**: De 16.66kB a ~8kB
-- **Variables CSS**: Consolidadas para mejor mantenimiento
-- **Estilos Duplicados**: Eliminados y consolidados
-
-## Configuración de Build Optimizada
-
-### angular.json
-- **Presupuestos Aumentados**: 
-  - Bundle inicial: 2MB → 3MB
-  - CSS por componente: 16kB → 25kB
-- **Optimizaciones Habilitadas**:
-  - Minificación de CSS y JS
-  - Tree shaking agresivo
-  - Vendor chunk separado
-  - Common chunk optimizado
-
-### ngsw-config.json
-- **Service Worker**: Configurado para cachear recursos
-- **Estrategia de Cache**: Freshness para APIs, prefetch para assets
-- **Tamaño de Cache**: Limitado a 100 entradas para APIs
-
-## Resultados de Optimización
-
-### Antes
-- ❌ Bundle inicial: 2.07MB (excedía límite de 2MB)
-- ❌ CSS sidebar: 16.66kB (excedía límite de 16kB)
-- ❌ Errores de presupuesto en build
-
-### Después
-- ✅ Bundle inicial: < 3MB (dentro del nuevo límite)
-- ✅ CSS sidebar: ~8kB (dentro del límite)
-- ✅ Build exitoso sin errores de presupuesto
-- ✅ Componentes personalizados funcionando correctamente
-- ✅ Tema claro implementado sin problemas de rendimiento
-- ✅ Modal de centros de costo integrado correctamente
-
-## Componentes Personalizados
-
-### CustomTableComponent
-- **Ubicación**: `shared/components/custom-table/`
-- **Funcionalidad**: Tabla personalizada con paginación, filtros y acciones
-- **Características**:
-  - Modo claro por defecto
-  - Soporte para diferentes tipos de columnas (texto, badge, icono, acciones)
-  - Paginación personalizada
-  - Estados vacíos personalizables
-  - Hover effects y transiciones suaves
-
-### RolesTableComponent
-- **Ubicación**: `shared/components/roles-table/`
-- **Funcionalidad**: Visualización de roles en formato de tarjetas
-- **Características**:
-  - Diseño de tarjetas responsivo
-  - Badges de estado con colores diferenciados
-  - Acciones integradas (ver permisos, usuarios, editar, etc.)
-  - Animaciones y transiciones suaves
-  - Modo claro optimizado
-
-### CentroCostoModalComponent
-- **Ubicación**: `shared/components/centro-costo-modal/`
-- **Funcionalidad**: Modal para selección de centros de costo
-- **Características**:
-  - Búsqueda por código y descripción
-  - Filtros en tiempo real
-  - Tabla con paginación integrada
-  - Selección con doble clic
-  - Diseño responsivo
-  - Integración con movimientos contables
-
-### MovimientosContablesComponent
-- **Ubicación**: `pages/home/movimientos-contables/`
-- **Funcionalidad**: Gestión completa de movimientos contables
-- **Características**:
-  - CRUD completo (Crear, Leer, Actualizar, Eliminar)
-  - Filtros avanzados por tipo, cuenta y descripción
-  - Filtros por centro de costo (código y descripción)
-  - Modal de selección de centros de costo
-  - Búsqueda en tiempo real
-  - Paginación y ordenamiento
-  - Exportación a Excel y PDF (en desarrollo)
-  - Diseño responsivo con componentes personalizados
-  - Validaciones de formulario
-  - Confirmaciones de eliminación
-  - Notificaciones toast
-
-## Tecnologías Utilizadas
-
-### Backend
-- **TypeScript**: Lenguaje principal
-- **Express.js**: Framework web
-- **Sequelize**: ORM para SQL Server
-- **JWT**: Autenticación
-- **bcryptjs**: Hash de contraseñas
-- **Swagger**: Documentación API
-- **Inversify**: Inyección de dependencias
-
-### Frontend
-- **Angular 19**: Framework frontend
-- **PrimeNG v19**: Componentes UI
-- **Tailwind CSS**: Framework CSS
-- **Angular Signals**: Estado reactivo
-- **RxJS**: Programación reactiva
-
-## Contribución
-
-1. Fork el proyecto
-2. Crear una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abrir un Pull Request
-
-## Licencia
-
-Este proyecto está bajo la Licencia MIT. 
+### Endpoints Protegidos
+Todos los demás endpoints requieren autenticación con token JWT válido. 

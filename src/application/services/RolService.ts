@@ -13,19 +13,24 @@ export class RolService implements IRolService {
     return await this.rolRepository.findAll();
   }
 
+  async getRolById(id: number): Promise<Rol | null> {
+    return await this.rolRepository.findById(id);
+  }
+
   async createRol(rolData: RolCreate): Promise<Rol> {
     return await this.rolRepository.create(rolData);
   }
 
-  async updateRol(rolData: RolUpdate): Promise<Rol> {
-    if (!rolData.id) {
-      throw new Error('ID del rol es requerido');
-    }
-    const rol = await this.rolRepository.update(rolData.id, rolData);
+  async updateRol(id: number, rolData: RolUpdate): Promise<Rol> {
+    const rol = await this.rolRepository.update(id, rolData);
     if (!rol) {
       throw new Error('Rol no encontrado');
     }
     return rol;
+  }
+
+  async deleteRol(id: number): Promise<boolean> {
+    return await this.rolRepository.delete(id);
   }
 
   async changeRolEstado(id: number, estado: boolean): Promise<Rol> {

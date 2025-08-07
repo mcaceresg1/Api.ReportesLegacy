@@ -59,6 +59,8 @@ export class PermisoRoutes {
      *   get:
      *     summary: Obtener permisos de un rol en un sistema específico
      *     tags: [Permisos]
+     *     security:
+     *       - bearerAuth: []
      *     parameters:
      *       - in: path
      *         name: rolId
@@ -86,7 +88,7 @@ export class PermisoRoutes {
      *       500:
      *         description: Error interno del servidor
      */
-    this.router.get('/:rolId/:sistemaId', async (req, res) => {
+    this.router.get('/:rolId/:sistemaId', this.authMiddleware.verifyToken, async (req, res) => {
       try {
         const rolId = req.params['rolId'];
         const sistemaId = req.params['sistemaId'];
