@@ -5,10 +5,10 @@ import { DynamicModelFactory, CentroCostoModel } from '../database/models/Dynami
 
 @injectable()
 export class CentroCostoRepository implements ICentroCostoRepository {
-  // Campos principales para optimizar consultas
+  // Campos principales para optimizar consultas - solo los definidos en la entidad
   private readonly camposPrincipales = [
-    'CENTRO_COSTO', 'CUENTA_CONTABLE', 'ESTADO', 'CENTRO_POZO', 'CUENTA_POZO',
-    'CENTRO_GASTO', 'CUENTA_GASTO', 'CENTRO_CONSOLIDA', 'CUENTA_CONSOLIDA'
+    'CENTRO_COSTO', 'DESCRIPCION', 'ESTADO', 'TIPO', 'NIVEL', 'CENTRO_PADRE',
+    'USUARIO', 'FECHA_HORA', 'USUARIO_ULT_MOD', 'FCH_HORA_ULT_MOD'
   ];
 
   async getCentrosCostoByConjunto(conjunto: string, limit: number = 100, offset: number = 0): Promise<CentroCosto[]> {
