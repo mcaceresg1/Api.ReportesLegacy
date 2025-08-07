@@ -13,6 +13,8 @@ export class CentroCostoRepository implements ICentroCostoRepository {
 
   async getCentrosCostoByConjunto(conjunto: string, limit: number = 100, offset: number = 0): Promise<CentroCosto[]> {
     try {
+      // Limpiar caché para asegurar que se use la configuración más reciente
+      DynamicModelFactory.clearCache();
       const CentroCostoModel = DynamicModelFactory.createCentroCostoModel(conjunto);
       const centrosCosto = await CentroCostoModel.findAll({
         attributes: this.camposPrincipales,
@@ -29,6 +31,8 @@ export class CentroCostoRepository implements ICentroCostoRepository {
 
   async getCentroCostoByCodigo(conjunto: string, codigo: string): Promise<CentroCosto | null> {
     try {
+      // Limpiar caché para asegurar que se use la configuración más reciente
+      DynamicModelFactory.clearCache();
       const CentroCostoModel = DynamicModelFactory.createCentroCostoModel(conjunto);
       const centroCosto = await CentroCostoModel.findByPk(codigo, {
         attributes: this.camposPrincipales,
@@ -42,6 +46,8 @@ export class CentroCostoRepository implements ICentroCostoRepository {
 
   async getCentrosCostoByTipo(conjunto: string, tipo: string, limit: number = 100, offset: number = 0): Promise<CentroCosto[]> {
     try {
+      // Limpiar caché para asegurar que se use la configuración más reciente
+      DynamicModelFactory.clearCache();
       const CentroCostoModel = DynamicModelFactory.createCentroCostoModel(conjunto);
       const centrosCosto = await CentroCostoModel.findAll({
         attributes: this.camposPrincipales,
@@ -61,6 +67,8 @@ export class CentroCostoRepository implements ICentroCostoRepository {
 
   async getCentrosCostoActivos(conjunto: string, limit: number = 100, offset: number = 0): Promise<CentroCosto[]> {
     try {
+      // Limpiar caché para asegurar que se use la configuración más reciente
+      DynamicModelFactory.clearCache();
       const CentroCostoModel = DynamicModelFactory.createCentroCostoModel(conjunto);
       const centrosCosto = await CentroCostoModel.findAll({
         attributes: this.camposPrincipales,
@@ -80,6 +88,8 @@ export class CentroCostoRepository implements ICentroCostoRepository {
 
   async getCentrosCostoByConjuntoCount(conjunto: string): Promise<number> {
     try {
+      // Limpiar caché para asegurar que se use la configuración más reciente
+      DynamicModelFactory.clearCache();
       const CentroCostoModel = DynamicModelFactory.createCentroCostoModel(conjunto);
       return await CentroCostoModel.count();
     } catch (error) {
@@ -90,6 +100,8 @@ export class CentroCostoRepository implements ICentroCostoRepository {
 
   async getCentrosCostoByTipoCount(conjunto: string, tipo: string): Promise<number> {
     try {
+      // Limpiar caché para asegurar que se use la configuración más reciente
+      DynamicModelFactory.clearCache();
       const CentroCostoModel = DynamicModelFactory.createCentroCostoModel(conjunto);
       return await CentroCostoModel.count({
         where: {
@@ -104,6 +116,8 @@ export class CentroCostoRepository implements ICentroCostoRepository {
 
   async getCentrosCostoActivosCount(conjunto: string): Promise<number> {
     try {
+      // Limpiar caché para asegurar que se use la configuración más reciente
+      DynamicModelFactory.clearCache();
       const CentroCostoModel = DynamicModelFactory.createCentroCostoModel(conjunto);
       return await CentroCostoModel.count({
         where: {

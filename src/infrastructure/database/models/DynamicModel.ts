@@ -78,6 +78,12 @@ export class DynamicModelFactory {
   private static centroCostoModelCache = new Map<string, typeof CentroCostoModel>();
   private static cuentaContableModelCache = new Map<string, typeof CuentaContableModel>();
 
+  // Método para limpiar el caché (útil para desarrollo)
+  static clearCache(): void {
+    this.centroCostoModelCache.clear();
+    this.cuentaContableModelCache.clear();
+  }
+
   static createCentroCostoModel(conjunto: string): typeof CentroCostoModel {
     // Verificar si el modelo ya está inicializado para este conjunto
     if (this.centroCostoModelCache.has(conjunto)) {

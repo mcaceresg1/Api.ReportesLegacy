@@ -22,6 +22,8 @@ export class CuentaContableRepository implements ICuentaContableRepository {
 
   async getCuentasContablesByConjunto(conjunto: string, limit: number = 100, offset: number = 0): Promise<CuentaContable[]> {
     try {
+      // Limpiar caché para asegurar que se use la configuración más reciente
+      DynamicModelFactory.clearCache();
       const CuentaContableModel = DynamicModelFactory.createCuentaContableModel(conjunto);
       const cuentasContables = await CuentaContableModel.findAll({
         attributes: this.camposPrincipales,
