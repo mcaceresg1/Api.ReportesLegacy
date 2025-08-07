@@ -19,33 +19,51 @@ API REST desarrollada en TypeScript con arquitectura hexagonal (Ports and Adapte
 
 ## Cambios Recientes
 
-### v1.10.0 - Integración con Base de Datos EXACTUS (Solo Lectura)
+### v1.10.0 - Integración con Base de Datos EXACTUS (Solo Lectura) - Optimizada
+
 - **Nueva conexión de solo lectura**: Integración con base de datos EXACTUS para consultas de datos contables
 - **Entidades implementadas**:
   - **Conjunto**: Gestión de conjuntos empresariales (ERPADMIN.CONJUNTO)
-  - **CentroCuenta**: Relación entre centros de costo y cuentas contables (dinámico por conjunto)
+  - **CentroCosto**: Centros de costo (dinámico por conjunto)
   - **CuentaContable**: Plan de cuentas contables (dinámico por conjunto)
 - **Modelos dinámicos**: Sistema de modelos que se adaptan al esquema del conjunto seleccionado
-- **Nuevos endpoints**:
-  - `/api/conjuntos` - Obtener todos los conjuntos disponibles
-  - `/api/conjuntos/activos` - Obtener conjuntos activos
-  - `/api/conjuntos/:codigo` - Obtener conjunto específico
-  - `/api/exactus/:conjunto/centros-cuenta` - Centros de costo por conjunto
-  - `/api/exactus/:conjunto/cuentas-contables` - Cuentas contables por conjunto
-  - `/api/exactus/:conjunto/cuentas-contables/activas` - Cuentas contables activas
-  - `/api/exactus/:conjunto/cuentas-contables/tipo/:tipo` - Cuentas por tipo
-  - `/api/exactus/:conjunto/cuentas-contables/:codigo` - Cuenta específica
+- **Optimizaciones de rendimiento**:
+  - **Paginación automática**: Límites configurables (`limit`, `offset`, `page`)
+  - **Selección de campos**: Consultas optimizadas seleccionando solo campos necesarios
+  - **Pool de conexiones**: Configuración optimizada para consultas concurrentes
+  - **Middleware de optimización**: Validación, rate limiting y monitoreo de rendimiento
+  - **Caché headers**: Headers de caché para consultas GET
+- **Nuevos endpoints con paginación**:
+  - `GET /api/conjuntos?limit=100&offset=0&page=1` - Obtener todos los conjuntos
+  - `GET /api/conjuntos/activos?limit=100&offset=0&page=1` - Obtener conjuntos activos
+  - `GET /api/conjuntos/:codigo` - Obtener conjunto específico
+  - `GET /api/exactus/:conjunto/centros-costo?limit=100&offset=0` - Centros de costo por conjunto
+  - `GET /api/exactus/:conjunto/centros-costo/:codigo` - Centro de costo específico
+  - `GET /api/exactus/:conjunto/centros-costo/tipo/:tipo?limit=100&offset=0` - Centros por tipo
+  - `GET /api/exactus/:conjunto/centros-costo/activos?limit=100&offset=0` - Centros activos
+  - `GET /api/exactus/:conjunto/cuentas-contables?limit=100&offset=0` - Cuentas contables por conjunto
+  - `GET /api/exactus/:conjunto/cuentas-contables/:codigo` - Cuenta específica
+  - `GET /api/exactus/:conjunto/cuentas-contables/tipo/:tipo?limit=100&offset=0` - Cuentas por tipo
+  - `GET /api/exactus/:conjunto/cuentas-contables/activas?limit=100&offset=0` - Cuentas activas
 - **Arquitectura**: 
   - Patrón Repository para acceso a datos
   - Servicios de dominio para lógica de negocio
   - Controladores para manejo de requests
   - Sin autenticación (solo lectura)
+  - Middleware de optimización para rendimiento
 - **Configuración**: Variables de entorno para conexión EXACTUS separadas de la base principal
+- **Monitoreo de rendimiento**:
+  - Logs automáticos para consultas lentas (> 1 segundo)
+  - Alertas para consultas muy lentas (> 5 segundos)
+  - Métricas de rendimiento en tiempo real
 - **Beneficios**:
   - Acceso a datos contables de múltiples empresas
   - Consultas dinámicas basadas en el conjunto seleccionado
   - Separación clara entre datos de gestión y datos contables
   - Escalabilidad para múltiples esquemas empresariales
+  - **Rendimiento optimizado**: Consultas más rápidas y eficientes
+  - **Paginación inteligente**: Control de memoria y transferencia de datos
+  - **Monitoreo proactivo**: Detección temprana de problemas de rendimiento
 
 ### v1.9.0 - Corrección de Documentación Swagger y Autenticación
 - **Corrección de endpoints públicos**: Actualizada documentación para endpoints que no requieren autenticación

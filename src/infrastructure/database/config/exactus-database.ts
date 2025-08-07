@@ -23,14 +23,24 @@ const exactusSequelize = new Sequelize(
         encrypt: false,
         trustServerCertificate: true,
         readOnlyIntent: true, // Indicar que es solo lectura
+        // Optimizaciones para consultas de solo lectura
+        isolationLevel: 'READ_COMMITTED',
+        requestTimeout: 30000, // 30 segundos
+        cancelTimeout: 5000,   // 5 segundos
       },
     },
-    logging: false,
+    logging: false, // Desactivar logging para mejorar rendimiento
+    benchmark: false, // Desactivar benchmark para mejorar rendimiento
+    define: {
+      timestamps: false, // Desactivar timestamps automáticos
+      freezeTableName: true, // Usar nombres de tabla exactos
+    },
     pool: {
-      max: 5,
-      min: 0,
-      acquire: 30000,
-      idle: 10000
+      max: 10,        // Aumentar el pool para manejar más conexiones concurrentes
+      min: 2,         // Mantener al menos 2 conexiones activas
+      acquire: 60000, // Aumentar tiempo de adquisición
+      idle: 30000,    // Aumentar tiempo de inactividad
+      evict: 60000,   // Evict connections after 60 seconds
     }
   }
 );

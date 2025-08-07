@@ -16,6 +16,7 @@ import { createConjuntoRoutes } from './infrastructure/routes/ConjuntoRoutes';
 import { createExactusRoutes } from './infrastructure/routes/ExactusRoutes';
 
 import { AuthMiddleware } from './infrastructure/middleware/AuthMiddleware';
+import { QueryOptimizationMiddleware } from './infrastructure/middleware/QueryOptimizationMiddleware';
 import { IUsuarioService } from './domain/services/IUsuarioService';
 import { IAuthService } from './domain/services/IAuthService';
 import { IRolService } from './domain/services/IRolService';
@@ -33,6 +34,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Middleware de optimización de consultas
+app.use(QueryOptimizationMiddleware.performanceMonitor);
+app.use(QueryOptimizationMiddleware.basicRateLimit);
+app.use(QueryOptimizationMiddleware.addCacheHeaders);
 
 // Swagger configuration
 const swaggerSpecs = process.env['NODE_ENV'] === 'production' ? specsDocker : specs;
@@ -80,8 +86,8 @@ app.use('/api/rol-sistema-menu', authMiddleware.verifyToken, rolSistemaMenuRoute
 app.use('/api/permisos', authMiddleware.verifyToken, permisoRoutes.getRouter());
 
 // Rutas de EXACTUS (solo lectura, sin autenticación)
-app.use('/api/conjuntos', conjuntoRoutes);
-app.use('/api/exactus', exactusRoutes);
+app.use('/api/conjuntos', QueryOptimizationMiddleware.validateQueryParams, conjuntoRoutes);
+app.use('/api/exactus', QueryOptimizationMiddleware.validateQueryParams, exactusRoutes);
 
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================

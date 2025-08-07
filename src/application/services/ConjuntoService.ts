@@ -9,9 +9,9 @@ export class ConjuntoService implements IConjuntoService {
     @inject('IConjuntoRepository') private conjuntoRepository: IConjuntoRepository
   ) {}
 
-  async getAllConjuntos(): Promise<Conjunto[]> {
+  async getAllConjuntos(limit: number = 100, offset: number = 0): Promise<Conjunto[]> {
     try {
-      return await this.conjuntoRepository.getAllConjuntos();
+      return await this.conjuntoRepository.getAllConjuntos(limit, offset);
     } catch (error) {
       console.error('Error en ConjuntoService.getAllConjuntos:', error);
       throw new Error('Error al obtener todos los conjuntos');
@@ -27,12 +27,30 @@ export class ConjuntoService implements IConjuntoService {
     }
   }
 
-  async getConjuntosActivos(): Promise<Conjunto[]> {
+  async getConjuntosActivos(limit: number = 100, offset: number = 0): Promise<Conjunto[]> {
     try {
-      return await this.conjuntoRepository.getConjuntosActivos();
+      return await this.conjuntoRepository.getConjuntosActivos(limit, offset);
     } catch (error) {
       console.error('Error en ConjuntoService.getConjuntosActivos:', error);
       throw new Error('Error al obtener conjuntos activos');
+    }
+  }
+
+  async getConjuntosCount(): Promise<number> {
+    try {
+      return await this.conjuntoRepository.getConjuntosCount();
+    } catch (error) {
+      console.error('Error en ConjuntoService.getConjuntosCount:', error);
+      throw new Error('Error al obtener conteo de conjuntos');
+    }
+  }
+
+  async getConjuntosActivosCount(): Promise<number> {
+    try {
+      return await this.conjuntoRepository.getConjuntosActivosCount();
+    } catch (error) {
+      console.error('Error en ConjuntoService.getConjuntosActivosCount:', error);
+      throw new Error('Error al obtener conteo de conjuntos activos');
     }
   }
 }

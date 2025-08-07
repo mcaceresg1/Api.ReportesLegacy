@@ -5,11 +5,20 @@ import { DynamicModelFactory, CentroCostoModel } from '../database/models/Dynami
 
 @injectable()
 export class CentroCostoRepository implements ICentroCostoRepository {
-  async getCentrosCostoByConjunto(conjunto: string): Promise<CentroCosto[]> {
+  // Campos principales para optimizar consultas
+  private readonly camposPrincipales = [
+    'CENTRO_COSTO', 'CUENTA_CONTABLE', 'ESTADO', 'CENTRO_POZO', 'CUENTA_POZO',
+    'CENTRO_GASTO', 'CUENTA_GASTO', 'CENTRO_CONSOLIDA', 'CUENTA_CONSOLIDA'
+  ];
+
+  async getCentrosCostoByConjunto(conjunto: string, limit: number = 100, offset: number = 0): Promise<CentroCosto[]> {
     try {
       const CentroCostoModel = DynamicModelFactory.createCentroCostoModel(conjunto);
       const centrosCosto = await CentroCostoModel.findAll({
+        attributes: this.camposPrincipales,
         order: [['CENTRO_COSTO', 'ASC']],
+        limit,
+        offset,
       });
       return centrosCosto.map(centroCosto => centroCosto.toJSON() as CentroCosto);
     } catch (error) {
@@ -21,7 +30,9 @@ export class CentroCostoRepository implements ICentroCostoRepository {
   async getCentroCostoByCodigo(conjunto: string, codigo: string): Promise<CentroCosto | null> {
     try {
       const CentroCostoModel = DynamicModelFactory.createCentroCostoModel(conjunto);
-      const centroCosto = await CentroCostoModel.findByPk(codigo);
+      const centroCosto = await CentroCostoModel.findByPk(codigo, {
+        attributes: this.camposPrincipales,
+      });
       return centroCosto ? centroCosto.toJSON() as CentroCosto : null;
     } catch (error) {
       console.error('Error al obtener centro costo por código:', error);
@@ -29,14 +40,17 @@ export class CentroCostoRepository implements ICentroCostoRepository {
     }
   }
 
-  async getCentrosCostoByTipo(conjunto: string, tipo: string): Promise<CentroCosto[]> {
+  async getCentrosCostoByTipo(conjunto: string, tipo: string, limit: number = 100, offset: number = 0): Promise<CentroCosto[]> {
     try {
       const CentroCostoModel = DynamicModelFactory.createCentroCostoModel(conjunto);
       const centrosCosto = await CentroCostoModel.findAll({
+        attributes: this.camposPrincipales,
         where: {
           TIPO: tipo
         },
         order: [['CENTRO_COSTO', 'ASC']],
+        limit,
+        offset,
       });
       return centrosCosto.map(centroCosto => centroCosto.toJSON() as CentroCosto);
     } catch (error) {
@@ -45,19 +59,60 @@ export class CentroCostoRepository implements ICentroCostoRepository {
     }
   }
 
-  async getCentrosCostoActivos(conjunto: string): Promise<CentroCosto[]> {
+  async getCentrosCostoActivos(conjunto: string, limit: number = 100, offset: number = 0): Promise<CentroCosto[]> {
     try {
       const CentroCostoModel = DynamicModelFactory.createCentroCostoModel(conjunto);
       const centrosCosto = await CentroCostoModel.findAll({
+        attributes: this.camposPrincipales,
         where: {
           ESTADO: 'A'
         },
         order: [['CENTRO_COSTO', 'ASC']],
+        limit,
+        offset,
       });
       return centrosCosto.map(centroCosto => centroCosto.toJSON() as CentroCosto);
     } catch (error) {
       console.error('Error al obtener centros costo activos:', error);
       throw new Error('Error al obtener centros costo activos');
+    }
+  }
+
+  async getCentrosCostoByConjuntoCount(conjunto: string): Promise<number> {
+    try {
+      const CentroCostoModel = DynamicModelFactory.createCentroCostoModel(conjunto);
+      return await CentroCostoModel.count();
+    } catch (error) {
+      console.error('Error al obtener conteo de centros costo por conjunto:', error);
+      throw new Error('Error al obtener conteo de centros costo por conjunto');
+    }
+  }
+
+  async getCentrosCostoByTipoCount(conjunto: string, tipo: string): Promise<number> {
+    try {
+      const CentroCostoModel = DynamicModelFactory.createCentroCostoModel(conjunto);
+      return await CentroCostoModel.count({
+        where: {
+          TIPO: tipo
+        }
+      });
+    } catch (error) {
+      console.error('Error al obtener conteo de centros costo por tipo:', error);
+      throw new Error('Error al obtener conteo de centros costo por tipo');
+    }
+  }
+
+  async getCentrosCostoActivosCount(conjunto: string): Promise<number> {
+    try {
+      const CentroCostoModel = DynamicModelFactory.createCentroCostoModel(conjunto);
+      return await CentroCostoModel.count({
+        where: {
+          ESTADO: 'A'
+        }
+      });
+    } catch (error) {
+      console.error('Error al obtener conteo de centros costo activos:', error);
+      throw new Error('Error al obtener conteo de centros costo activos');
     }
   }
 }

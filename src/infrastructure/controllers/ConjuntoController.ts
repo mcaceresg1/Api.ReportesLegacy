@@ -299,10 +299,30 @@ export class ConjuntoController {
    */
   async getAllConjuntos(req: Request, res: Response): Promise<void> {
     try {
-      const conjuntos = await this.conjuntoService.getAllConjuntos();
+      const limit = parseInt(req.query["limit"] as string) || 100;
+      const offset = parseInt(req.query["offset"] as string) || 0;
+      const page = parseInt(req.query["page"] as string) || 1;
+      
+      // Validar límites para evitar consultas muy grandes
+      const maxLimit = 1000;
+      const validatedLimit = Math.min(limit, maxLimit);
+      const validatedOffset = Math.max(offset, 0);
+
+      const [conjuntos, totalCount] = await Promise.all([
+        this.conjuntoService.getAllConjuntos(validatedLimit, validatedOffset),
+        this.conjuntoService.getConjuntosCount()
+      ]);
+
       res.json({
         success: true,
         data: conjuntos,
+        pagination: {
+          page,
+          limit: validatedLimit,
+          offset: validatedOffset,
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / validatedLimit)
+        },
         message: 'Conjuntos obtenidos exitosamente'
       });
     } catch (error) {
@@ -465,10 +485,30 @@ export class ConjuntoController {
    */
   async getConjuntosActivos(req: Request, res: Response): Promise<void> {
     try {
-      const conjuntos = await this.conjuntoService.getConjuntosActivos();
+      const limit = parseInt(req.query["limit"] as string) || 100;
+      const offset = parseInt(req.query["offset"] as string) || 0;
+      const page = parseInt(req.query["page"] as string) || 1;
+      
+      // Validar límites para evitar consultas muy grandes
+      const maxLimit = 1000;
+      const validatedLimit = Math.min(limit, maxLimit);
+      const validatedOffset = Math.max(offset, 0);
+
+      const [conjuntos, totalCount] = await Promise.all([
+        this.conjuntoService.getConjuntosActivos(validatedLimit, validatedOffset),
+        this.conjuntoService.getConjuntosActivosCount()
+      ]);
+
       res.json({
         success: true,
         data: conjuntos,
+        pagination: {
+          page,
+          limit: validatedLimit,
+          offset: validatedOffset,
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / validatedLimit)
+        },
         message: 'Conjuntos activos obtenidos exitosamente'
       });
     } catch (error) {
