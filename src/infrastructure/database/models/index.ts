@@ -4,9 +4,7 @@ import MenuModel from './MenuModel';
 import ConexionModel from './ConexionModel';
 import SistemaModel from './SistemaModel';
 import RolSistemaMenuModel from './RolSistemaMenuModel';
-import { MovimientoContableModel } from './MovimientoContableModel';
-import { CentroCostoModel } from './CentroCostoModel';
-import CompaniaModel from './CompaniaModel';
+
 
 // Definir las asociaciones entre modelos
 UsuarioModel.belongsTo(RolModel, { foreignKey: 'rolId', as: 'rol' });
@@ -25,13 +23,7 @@ RolModel.hasMany(RolSistemaMenuModel, { foreignKey: 'rolId', as: 'rolSistemaMenu
 SistemaModel.hasMany(RolSistemaMenuModel, { foreignKey: 'sistemaId', as: 'rolSistemaMenus' });
 MenuModel.hasMany(RolSistemaMenuModel, { foreignKey: 'menuId', as: 'rolSistemaMenus' });
 
-// Asociaciones para MovimientoContable y CentroCosto
-MovimientoContableModel.belongsTo(CentroCostoModel, { foreignKey: 'centro_costo_id', as: 'centroCosto' });
-CentroCostoModel.hasMany(MovimientoContableModel, { foreignKey: 'centro_costo_id', as: 'movimientosContables' });
 
-// Asociaciones para MovimientoContable y Compania
-MovimientoContableModel.belongsTo(CompaniaModel, { foreignKey: 'compania_id', as: 'compania' });
-CompaniaModel.hasMany(MovimientoContableModel, { foreignKey: 'compania_id', as: 'movimientosContables' });
 
 export {
   UsuarioModel,
@@ -39,8 +31,5 @@ export {
   MenuModel,
   ConexionModel,
   SistemaModel,
-  RolSistemaMenuModel,
-  MovimientoContableModel,
-  CentroCostoModel,
-  CompaniaModel
+  RolSistemaMenuModel
 }; 

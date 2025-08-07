@@ -12,9 +12,7 @@ import { ConexionRoutes } from './infrastructure/routes/ConexionRoutes';
 import { RolMenuRoutes } from './infrastructure/routes/RolMenuRoutes';
 import { RolSistemaMenuRoutes } from './infrastructure/routes/RolSistemaMenuRoutes';
 import { PermisoRoutes } from './infrastructure/routes/PermisoRoutes';
-import MovimientoContableRoutes from './infrastructure/routes/MovimientoContableRoutes';
-import CentroCostoRoutes from './infrastructure/routes/CentroCostoRoutes';
-import CompaniaRoutes from './infrastructure/routes/CompaniaRoutes';
+
 import { AuthMiddleware } from './infrastructure/middleware/AuthMiddleware';
 import { IUsuarioService } from './domain/services/IUsuarioService';
 import { IAuthService } from './domain/services/IAuthService';
@@ -64,9 +62,7 @@ app.use('/api/conexiones', authMiddleware.verifyToken, conexionRoutes.getRouter(
 app.use('/api/rol-menu', authMiddleware.verifyToken, rolMenuRoutes.getRouter());
 app.use('/api/rol-sistema-menu', authMiddleware.verifyToken, rolSistemaMenuRoutes.getRouter());
 app.use('/api/permisos', permisoRoutes.getRouter());
-app.use('/api/movimientos-contables', authMiddleware.verifyToken, MovimientoContableRoutes);
-app.use('/api/centros-costos', authMiddleware.verifyToken, CentroCostoRoutes);
-app.use('/api/companias', authMiddleware.verifyToken, CompaniaRoutes);
+
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================
 
