@@ -13,13 +13,19 @@ export class ConjuntoRepository implements IConjuntoRepository {
 
   async getAllConjuntos(limit: number = 100, offset: number = 0): Promise<Conjunto[]> {
     try {
-      const conjuntos = await ConjuntoModel.findAll({
-        attributes: this.camposPrincipales,
-        order: [['NOMBRE', 'ASC']],
-        limit,
-        offset,
+      // Usar consulta SQL directa para seleccionar solo los campos necesarios
+      const [results] = await ConjuntoModel.sequelize!.query(`
+        SELECT CONJUNTO, NOMBRE, DIREC1, DIREC2, TELEFONO, LOGO
+        FROM ERPADMIN.CONJUNTO
+        ORDER BY NOMBRE ASC
+        OFFSET :offset ROWS
+        FETCH NEXT :limit ROWS ONLY
+      `, {
+        replacements: { limit, offset },
+        type: 'SELECT'
       });
-      return conjuntos.map(conjunto => conjunto.toJSON() as Conjunto);
+      
+      return results as Conjunto[];
     } catch (error) {
       console.error('Error al obtener conjuntos:', error);
       throw new Error('Error al obtener conjuntos');
@@ -28,10 +34,17 @@ export class ConjuntoRepository implements IConjuntoRepository {
 
   async getConjuntoByCodigo(codigo: string): Promise<Conjunto | null> {
     try {
-      const conjunto = await ConjuntoModel.findByPk(codigo, {
-        attributes: this.camposPrincipales,
+      // Usar consulta SQL directa para seleccionar solo los campos necesarios
+      const [results] = await ConjuntoModel.sequelize!.query(`
+        SELECT CONJUNTO, NOMBRE, DIREC1, DIREC2, TELEFONO, LOGO
+        FROM ERPADMIN.CONJUNTO
+        WHERE CONJUNTO = :codigo
+      `, {
+        replacements: { codigo },
+        type: 'SELECT'
       });
-      return conjunto ? conjunto.toJSON() as Conjunto : null;
+      
+      return results.length > 0 ? results[0] as Conjunto : null;
     } catch (error) {
       console.error('Error al obtener conjunto por código:', error);
       throw new Error('Error al obtener conjunto por código');
@@ -40,15 +53,19 @@ export class ConjuntoRepository implements IConjuntoRepository {
 
   async getConjuntosActivos(limit: number = 100, offset: number = 0): Promise<Conjunto[]> {
     try {
-      // Como no tenemos ES_PRINCIPAL en la entidad simplificada, 
-      // retornamos todos los conjuntos ordenados por nombre
-      const conjuntos = await ConjuntoModel.findAll({
-        attributes: this.camposPrincipales,
-        order: [['NOMBRE', 'ASC']],
-        limit,
-        offset,
+      // Usar consulta SQL directa para seleccionar solo los campos necesarios
+      const [results] = await ConjuntoModel.sequelize!.query(`
+        SELECT CONJUNTO, NOMBRE, DIREC1, DIREC2, TELEFONO, LOGO
+        FROM ERPADMIN.CONJUNTO
+        ORDER BY NOMBRE ASC
+        OFFSET :offset ROWS
+        FETCH NEXT :limit ROWS ONLY
+      `, {
+        replacements: { limit, offset },
+        type: 'SELECT'
       });
-      return conjuntos.map(conjunto => conjunto.toJSON() as Conjunto);
+      
+      return results as Conjunto[];
     } catch (error) {
       console.error('Error al obtener conjuntos activos:', error);
       throw new Error('Error al obtener conjuntos activos');

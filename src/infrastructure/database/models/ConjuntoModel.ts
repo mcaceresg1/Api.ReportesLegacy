@@ -11,27 +11,25 @@ class ConjuntoModel extends Model<Conjunto> implements Conjunto {
   public LOGO?: string;
 }
 
-// Definir solo los campos que necesitamos
-const ConjuntoModelInstance = exactusSequelize.define('Conjunto', {
-  CONJUNTO: {
-    type: DataTypes.STRING(10),
-    primaryKey: true,
-    allowNull: false,
+ConjuntoModel.init(
+  {
+    CONJUNTO: {
+      type: DataTypes.STRING(10),
+      primaryKey: true,
+      allowNull: false,
+    },
+    NOMBRE: DataTypes.STRING(150),
+    DIREC1: DataTypes.STRING(250),
+    DIREC2: DataTypes.STRING(250),
+    TELEFONO: DataTypes.STRING(30),
+    LOGO: DataTypes.STRING(100),
   },
-  NOMBRE: DataTypes.STRING(150),
-  DIREC1: DataTypes.STRING(250),
-  DIREC2: DataTypes.STRING(250),
-  TELEFONO: DataTypes.STRING(30),
-  LOGO: DataTypes.STRING(100),
-}, {
-  tableName: 'CONJUNTO',
-  schema: 'ERPADMIN',
-  timestamps: false,
-  modelName: 'ConjuntoModel'
-});
-
-// Extender la clase con el modelo definido
-Object.setPrototypeOf(ConjuntoModel, ConjuntoModelInstance.constructor);
-Object.setPrototypeOf(ConjuntoModel.prototype, ConjuntoModelInstance.prototype);
+  {
+    sequelize: exactusSequelize,
+    tableName: 'CONJUNTO',
+    schema: 'ERPADMIN',
+    timestamps: false,
+  }
+);
 
 export default ConjuntoModel;
