@@ -6,11 +6,9 @@ import { Op } from 'sequelize';
 
 @injectable()
 export class ConjuntoRepository implements IConjuntoRepository {
-  // Campos principales para optimizar consultas
+  // Campos específicos para optimizar consultas - solo los necesarios
   private readonly camposPrincipales = [
-    'CONJUNTO', 'NOMBRE', 'DIREC1', 'DIREC2', 'TELEFONO', 'LOGO',
-    'DOBLE_MONEDA', 'DOBLE_CONTABILIDAD', 'INVENTARIO_DOLAR', 'USA_LOTES',
-    'USAR_CENTROS_COSTO', 'CONSOLIDA', 'ES_PRINCIPAL', 'PAIS', 'NIT'
+    'CONJUNTO', 'NOMBRE', 'DIREC1', 'DIREC2', 'TELEFONO', 'LOGO'
   ];
 
   async getAllConjuntos(limit: number = 100, offset: number = 0): Promise<Conjunto[]> {
@@ -42,14 +40,10 @@ export class ConjuntoRepository implements IConjuntoRepository {
 
   async getConjuntosActivos(limit: number = 100, offset: number = 0): Promise<Conjunto[]> {
     try {
+      // Como no tenemos ES_PRINCIPAL en la entidad simplificada, 
+      // retornamos todos los conjuntos ordenados por nombre
       const conjuntos = await ConjuntoModel.findAll({
         attributes: this.camposPrincipales,
-        where: {
-          [Op.or]: [
-            { ES_PRINCIPAL: 'S' },
-            { ES_PRINCIPAL: { [Op.is]: undefined } }
-          ]
-        },
         order: [['NOMBRE', 'ASC']],
         limit,
         offset,
@@ -72,14 +66,9 @@ export class ConjuntoRepository implements IConjuntoRepository {
 
   async getConjuntosActivosCount(): Promise<number> {
     try {
-      return await ConjuntoModel.count({
-        where: {
-          [Op.or]: [
-            { ES_PRINCIPAL: 'S' },
-            { ES_PRINCIPAL: { [Op.is]: undefined } }
-          ]
-        }
-      });
+      // Como no tenemos ES_PRINCIPAL en la entidad simplificada,
+      // retornamos el conteo total
+      return await ConjuntoModel.count();
     } catch (error) {
       console.error('Error al obtener conteo de conjuntos activos:', error);
       throw new Error('Error al obtener conteo de conjuntos activos');

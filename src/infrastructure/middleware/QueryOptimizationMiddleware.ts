@@ -100,25 +100,25 @@ export class QueryOptimizationMiddleware {
   static basicRateLimit(req: Request, res: Response, next: NextFunction): void {
     // Implementación básica de rate limiting
     // En producción se recomienda usar Redis o similar
-    const clientIP = req.ip || req.connection.remoteAddress;
+    const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
     const currentTime = Date.now();
     
     // Limpiar registros antiguos (más de 1 minuto)
-    if (!req.app.locals.rateLimit) {
-      req.app.locals.rateLimit = {};
+    if (!req.app.locals["rateLimit"]) {
+      req.app.locals["rateLimit"] = {};
     }
     
-    if (!req.app.locals.rateLimit[clientIP]) {
-      req.app.locals.rateLimit[clientIP] = [];
+    if (!req.app.locals["rateLimit"][clientIP]) {
+      req.app.locals["rateLimit"][clientIP] = [];
     }
     
     // Filtrar registros antiguos
-    req.app.locals.rateLimit[clientIP] = req.app.locals.rateLimit[clientIP].filter(
+    req.app.locals["rateLimit"][clientIP] = req.app.locals["rateLimit"][clientIP].filter(
       (timestamp: number) => currentTime - timestamp < 60000
     );
     
     // Verificar límite (100 requests por minuto)
-    if (req.app.locals.rateLimit[clientIP].length >= 100) {
+    if (req.app.locals["rateLimit"][clientIP].length >= 100) {
       res.status(429).json({
         success: false,
         message: 'Demasiadas solicitudes. Intente nuevamente en 1 minuto.',
@@ -128,7 +128,7 @@ export class QueryOptimizationMiddleware {
     }
     
     // Agregar timestamp actual
-    req.app.locals.rateLimit[clientIP].push(currentTime);
+    req.app.locals["rateLimit"][clientIP].push(currentTime);
     
     next();
   }

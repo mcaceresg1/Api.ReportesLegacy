@@ -7,251 +7,33 @@ import { IConjuntoService } from '../../domain/services/IConjuntoService';
  *   schemas:
  *     Conjunto:
  *       type: object
+ *       required:
+ *         - CONJUNTO
  *       properties:
  *         CONJUNTO:
  *           type: string
- *           description: Código del conjunto
+ *           maxLength: 10
+ *           description: Código del conjunto (clave primaria)
  *         NOMBRE:
  *           type: string
+ *           maxLength: 150
  *           description: Nombre del conjunto
  *         DIREC1:
  *           type: string
+ *           maxLength: 250
  *           description: Dirección 1
  *         DIREC2:
  *           type: string
+ *           maxLength: 250
  *           description: Dirección 2
  *         TELEFONO:
  *           type: string
+ *           maxLength: 30
  *           description: Teléfono
  *         LOGO:
  *           type: string
+ *           maxLength: 100
  *           description: Logo
- *         DOBLE_MONEDA:
- *           type: string
- *           maxLength: 1
- *           description: Doble moneda (S/N)
- *         DOBLE_CONTABILIDAD:
- *           type: string
- *           maxLength: 1
- *           description: Doble contabilidad (S/N)
- *         INVENTARIO_DOLAR:
- *           type: string
- *           maxLength: 1
- *           description: Inventario en dólares (S/N)
- *         USA_LOTES:
- *           type: string
- *           maxLength: 1
- *           description: Usa lotes (S/N)
- *         USAR_CENTROS_COSTO:
- *           type: string
- *           maxLength: 1
- *           description: Usar centros de costo (S/N)
- *         CONSOLIDA:
- *           type: string
- *           maxLength: 1
- *           description: Consolida (S/N)
- *         CONSOLIDADORA:
- *           type: string
- *           description: Consolidadora
- *         BD_CIA_CONSOLIDAD:
- *           type: string
- *           description: Base de datos de la compañía consolidada
- *         CONTA_A_CONSOLID:
- *           type: integer
- *           description: Conta a consolidar
- *         MISMO_CUADRO_CTB:
- *           type: string
- *           maxLength: 1
- *           description: Mismo cuadro contable (S/N)
- *         USUARIO_ULT_MOD:
- *           type: string
- *           description: Usuario de última modificación
- *         FCH_HORA_ULT_MOD:
- *           type: string
- *           format: date-time
- *           description: Fecha y hora de última modificación
- *         NOTAS:
- *           type: string
- *           description: Notas
- *         USA_UNIDADES:
- *           type: string
- *           maxLength: 1
- *           description: Usa unidades (S/N)
- *         UNIDAD_OMISION:
- *           type: string
- *           description: Unidad de omisión
- *         MONEDA_CONSOLIDA:
- *           type: string
- *           description: Moneda de consolidación
- *         VERSION_BD:
- *           type: string
- *           description: Versión de la base de datos
- *         USUARIO_MODIF_BD:
- *           type: string
- *           description: Usuario que modificó la base de datos
- *         FCH_HORA_MODIF_BD:
- *           type: string
- *           format: date-time
- *           description: Fecha y hora de modificación de la base de datos
- *         VERSION_INSTALAC:
- *           type: string
- *           description: Versión de instalación
- *         NIT:
- *           type: string
- *           description: NIT
- *         PAIS:
- *           type: string
- *           description: País
- *         GLN:
- *           type: string
- *           description: GLN
- *         UBICACION:
- *           type: string
- *           description: Ubicación
- *         IDIOMA:
- *           type: string
- *           description: Idioma
- *         USA_SUCURSAL:
- *           type: string
- *           maxLength: 1
- *           description: Usa sucursales (S/N)
- *         MASCARA_SUCURSAL:
- *           type: string
- *           description: Máscara de sucursal
- *         DIRECCION_WEB1:
- *           type: string
- *           description: Dirección web 1
- *         DIRECCION_WEB2:
- *           type: string
- *           description: Dirección web 2
- *         NOMBRE_WEB1:
- *           type: string
- *           description: Nombre web 1
- *         NOMBRE_WEB2:
- *           type: string
- *           description: Nombre web 2
- *         DIRECCION_PAG_WEB:
- *           type: string
- *           description: Dirección de la página web
- *         EMAIL_DOC_ELECTRONICO:
- *           type: string
- *           description: Email para documentos electrónicos
- *         NoteExistsFlag:
- *           type: integer
- *           description: Flag de existencia de nota
- *         RecordDate:
- *           type: string
- *           format: date-time
- *           description: Fecha del registro
- *         RowPointer:
- *           type: string
- *           description: Puntero de fila
- *         CreatedBy:
- *           type: string
- *           description: Creado por
- *         UpdatedBy:
- *           type: string
- *           description: Actualizado por
- *         CreateDate:
- *           type: string
- *           format: date-time
- *           description: Fecha de creación
- *         AGENTE_RETENCION:
- *           type: string
- *           maxLength: 1
- *           description: Agente retención (S/N)
- *         CODIGO_RETENCION_IGV:
- *           type: string
- *           description: Código de retención IGV
- *         TIPO_CAMBIO_IGV:
- *           type: string
- *           description: Tipo de cambio IGV
- *         TIPO_INSTITUCION:
- *           type: string
- *           description: Tipo de institución
- *         PAIS_DIVISION:
- *           type: string
- *           description: División del país
- *         DIVISION_GEOGRAFICA1:
- *           type: string
- *           description: División geográfica 1
- *         DIVISION_GEOGRAFICA2:
- *           type: string
- *           description: División geográfica 2
- *         LOGO_CIA:
- *           type: string
- *           description: Logo de la compañía
- *         ES_PRINCIPAL:
- *           type: string
- *           maxLength: 1
- *           description: Es principal (S/N)
- *         REPLICA:
- *           type: string
- *           maxLength: 1
- *           description: Réplica (S/N)
- *         ES_AGENTE_PERCEPCION:
- *           type: string
- *           maxLength: 1
- *           description: Es agente percepción (S/N)
- *         NUMERO_REGISTRO:
- *           type: string
- *           description: Número de registro
- *         DIREC3:
- *           type: string
- *           description: Dirección 3
- *         COD_POSTAL:
- *           type: string
- *           description: Código postal
- *         UBIGEO_EMPRESA:
- *           type: string
- *           description: Ubigeo de la empresa
- *         DIRECCION_COMPLETA_EMPRESA:
- *           type: string
- *           description: Dirección completa de la empresa
- *         URBANIZACION_EMPRESA:
- *           type: string
- *           description: Urbanización de la empresa
- *         CUENTA_DETRACCION_EMPRESA:
- *           type: string
- *           description: Cuenta de detracción de la empresa
- *         DIVISION_GEOGRAFICA3:
- *           type: string
- *           description: División geográfica 3
- *         DIVISION_GEOGRAFICA4:
- *           type: string
- *           description: División geográfica 4
- *         REGIMEN_FISCAL:
- *           type: string
- *           description: Régimen fiscal
- *         COORDENADAS:
- *           type: string
- *           description: Coordenadas
- *         ACTIVIDAD_COMERCIAL:
- *           type: string
- *           description: Actividad comercial
- *         NUMERO_REGISTRO_IVA:
- *           type: string
- *           description: Número de registro IVA
- *         USA_CONSORCIO:
- *           type: string
- *           maxLength: 1
- *           description: Usa consorcio (S/N)
- *         TIPO_OPERACION:
- *           type: string
- *           maxLength: 2
- *           description: Tipo de operación
- *         AGENTE_PERCEPCION:
- *           type: string
- *           maxLength: 1
- *           description: Agente percepción (S/N)
- *         CALC_PERCE_SOLO_VENTA:
- *           type: string
- *           maxLength: 1
- *           description: Calcula percepción solo venta (S/N)
- *         RETENCION_CLIENTE:
- *           type: string
- *           maxLength: 1
- *           description: Retención cliente (S/N)
  */
 
 export class ConjuntoController {
