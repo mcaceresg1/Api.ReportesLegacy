@@ -121,6 +121,13 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
       // Ahora consultar los datos insertados
       const MovimientoContableModel = DynamicModelFactory.createMovimientoContableModel(conjunto);
       const movimientos = await MovimientoContableModel.findAll({
+        attributes: [
+          'USUARIO', 'CUENTA_CONTABLE', 'DESCRIPCION_CUENTA_CONTABLE', 'ASIENTO', 'TIPO',
+          'DOCUMENTO', 'REFERENCIA', 'DEBITO_LOCAL', 'DEBITO_DOLAR', 'CREDITO_LOCAL',
+          'CREDITO_DOLAR', 'CENTRO_COSTO', 'DESCRIPCION_CENTRO_COSTO', 'TIPO_ASIENTO',
+          'FECHA', 'ACEPTA_DATOS', 'CONSECUTIVO', 'NIT', 'RAZON_SOCIAL', 'FUENTE',
+          'NOTAS', 'U_FLUJO_EFECTIVO', 'U_PATRIMONIO_NETO', 'U_REP_REF'
+        ],
         where: {
           USUARIO: usuario
         },
@@ -145,6 +152,13 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
     try {
       const MovimientoContableModel = DynamicModelFactory.createMovimientoContableModel(conjunto);
       const movimientos = await MovimientoContableModel.findAll({
+        attributes: [
+          'USUARIO', 'CUENTA_CONTABLE', 'DESCRIPCION_CUENTA_CONTABLE', 'ASIENTO', 'TIPO',
+          'DOCUMENTO', 'REFERENCIA', 'DEBITO_LOCAL', 'DEBITO_DOLAR', 'CREDITO_LOCAL',
+          'CREDITO_DOLAR', 'CENTRO_COSTO', 'DESCRIPCION_CENTRO_COSTO', 'TIPO_ASIENTO',
+          'FECHA', 'ACEPTA_DATOS', 'CONSECUTIVO', 'NIT', 'RAZON_SOCIAL', 'FUENTE',
+          'NOTAS', 'U_FLUJO_EFECTIVO', 'U_PATRIMONIO_NETO', 'U_REP_REF'
+        ],
         where: {
           USUARIO: usuario
         },
@@ -168,6 +182,13 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
     try {
       const MovimientoContableModel = DynamicModelFactory.createMovimientoContableModel(conjunto);
       const movimientos = await MovimientoContableModel.findAll({
+        attributes: [
+          'USUARIO', 'CUENTA_CONTABLE', 'DESCRIPCION_CUENTA_CONTABLE', 'ASIENTO', 'TIPO',
+          'DOCUMENTO', 'REFERENCIA', 'DEBITO_LOCAL', 'DEBITO_DOLAR', 'CREDITO_LOCAL',
+          'CREDITO_DOLAR', 'CENTRO_COSTO', 'DESCRIPCION_CENTRO_COSTO', 'TIPO_ASIENTO',
+          'FECHA', 'ACEPTA_DATOS', 'CONSECUTIVO', 'NIT', 'RAZON_SOCIAL', 'FUENTE',
+          'NOTAS', 'U_FLUJO_EFECTIVO', 'U_PATRIMONIO_NETO', 'U_REP_REF'
+        ],
         where: {
           CENTRO_COSTO: centroCosto
         },
@@ -191,6 +212,13 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
     try {
       const MovimientoContableModel = DynamicModelFactory.createMovimientoContableModel(conjunto);
       const movimientos = await MovimientoContableModel.findAll({
+        attributes: [
+          'USUARIO', 'CUENTA_CONTABLE', 'DESCRIPCION_CUENTA_CONTABLE', 'ASIENTO', 'TIPO',
+          'DOCUMENTO', 'REFERENCIA', 'DEBITO_LOCAL', 'DEBITO_DOLAR', 'CREDITO_LOCAL',
+          'CREDITO_DOLAR', 'CENTRO_COSTO', 'DESCRIPCION_CENTRO_COSTO', 'TIPO_ASIENTO',
+          'FECHA', 'ACEPTA_DATOS', 'CONSECUTIVO', 'NIT', 'RAZON_SOCIAL', 'FUENTE',
+          'NOTAS', 'U_FLUJO_EFECTIVO', 'U_PATRIMONIO_NETO', 'U_REP_REF'
+        ],
         where: {
           CUENTA_CONTABLE: cuentaContable
         },
