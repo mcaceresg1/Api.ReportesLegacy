@@ -24,7 +24,7 @@ const exactusSequelize = new Sequelize(
         trustServerCertificate: true,
         readOnlyIntent: true, // Indicar que es solo lectura
         // Optimizaciones para consultas de solo lectura
-        isolationLevel: 'READ_COMMITTED',
+        isolationLevel: 2, // READ_COMMITTED = 2
         requestTimeout: 30000, // 30 segundos
         cancelTimeout: 5000,   // 5 segundos
       },
