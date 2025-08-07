@@ -87,9 +87,7 @@ export class DynamicModelFactory {
     // Crear una nueva instancia del modelo para este conjunto
     const modelName = `CentroCosto_${conjunto}`;
     const CentroCostoModelForConjunto = class extends CentroCostoModel {
-      static override get tableName() {
-        return 'CENTRO_COSTO';
-      }
+      // No definimos tableName aquí, lo pasamos en las opciones de init
     };
 
     CentroCostoModelForConjunto.init(
@@ -138,9 +136,7 @@ export class DynamicModelFactory {
     // Crear una nueva instancia del modelo para este conjunto
     const modelName = `CuentaContable_${conjunto}`;
     const CuentaContableModelForConjunto = class extends CuentaContableModel {
-      static override get tableName() {
-        return 'CUENTA_CONTABLE';
-      }
+      // No definimos tableName aquí, lo pasamos en las opciones de init
     };
 
     CuentaContableModelForConjunto.init(
