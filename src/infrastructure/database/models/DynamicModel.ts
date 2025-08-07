@@ -92,8 +92,23 @@ export class DynamicModelFactory {
 
     // Crear una nueva instancia del modelo para este conjunto
     const modelName = `CentroCosto_${conjunto}`;
-    const CentroCostoModelForConjunto = class extends CentroCostoModel {
-      // No definimos tableName aquí, lo pasamos en las opciones de init
+    const CentroCostoModelForConjunto = class extends Model {
+      public CENTRO_COSTO!: string;
+      public DESCRIPCION?: string;
+      public ESTADO?: string;
+      public TIPO?: string;
+      public NIVEL?: number;
+      public CENTRO_PADRE?: string;
+      public USUARIO?: string;
+      public FECHA_HORA?: Date;
+      public USUARIO_ULT_MOD?: string;
+      public FCH_HORA_ULT_MOD?: Date;
+      public NoteExistsFlag?: number;
+      public RecordDate?: Date;
+      public RowPointer?: string;
+      public CreatedBy?: string;
+      public UpdatedBy?: string;
+      public CreateDate?: Date;
     };
 
     CentroCostoModelForConjunto.init(
@@ -141,8 +156,55 @@ export class DynamicModelFactory {
 
     // Crear una nueva instancia del modelo para este conjunto
     const modelName = `CuentaContable_${conjunto}`;
-    const CuentaContableModelForConjunto = class extends CuentaContableModel {
-      // No definimos tableName aquí, lo pasamos en las opciones de init
+    const CuentaContableModelForConjunto = class extends Model {
+      public CUENTA_CONTABLE!: string;
+      public SECCION_CUENTA?: string;
+      public UNIDAD?: string;
+      public DESCRIPCION?: string;
+      public TIPO?: string;
+      public TIPO_DETALLADO?: string;
+      public TIPO_OAF?: string;
+      public SALDO_NORMAL?: string;
+      public CONVERSION?: string;
+      public TIPO_CAMBIO?: string;
+      public ACEPTA_DATOS?: boolean;
+      public CONSOLIDA?: boolean;
+      public USA_CENTRO_COSTO?: boolean;
+      public NOTAS?: string;
+      public USUARIO?: string;
+      public FECHA_HORA?: Date;
+      public USUARIO_ULT_MOD?: string;
+      public FCH_HORA_ULT_MOD?: Date;
+      public ACEPTA_UNIDADES?: boolean;
+      public USO_RESTRINGIDO?: boolean;
+      public ORIGEN_CONVERSION?: string;
+      public NoteExistsFlag?: number;
+      public RecordDate?: Date;
+      public RowPointer?: string;
+      public CreatedBy?: string;
+      public UpdatedBy?: string;
+      public CreateDate?: Date;
+      public RUBRO_FLUJO_DEBITO?: string;
+      public RUBRO_FLUJO_CREDITO?: string;
+      public INCLUIR_REP_CP?: boolean;
+      public INCLUIR_REP_CB?: boolean;
+      public ENTIDAD_FINANCIERA_CB?: string;
+      public INCLUIR_REP_CC?: boolean;
+      public VALIDA_PRESUP_CR?: boolean;
+      public CUENTA_PDT?: string;
+      public PARTE_SIGNIFICATIVA_PDT?: string;
+      public CUENTA_IFRS?: string;
+      public USA_CONTA_ELECTRO?: boolean;
+      public VERSION?: string;
+      public FECHA_INI_CE?: Date;
+      public FECHA_FIN_CE?: Date;
+      public COD_AGRUPADOR?: string;
+      public DESC_COD_AGRUP?: string;
+      public SUB_CTA_DE?: string;
+      public DESC_SUB_CTA?: string;
+      public NIVEL?: number;
+      public MANEJA_TERCERO?: boolean;
+      public DESCRIPCION_IFRS?: string;
     };
 
     CuentaContableModelForConjunto.init(
