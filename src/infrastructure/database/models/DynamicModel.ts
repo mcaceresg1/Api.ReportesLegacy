@@ -5,14 +5,8 @@ import { exactusSequelize } from '../config/exactus-database';
 export class CentroCostoModel extends Model {
   public CENTRO_COSTO!: string;
   public DESCRIPCION?: string;
-  public ESTADO?: string;
+  public ACEPTA_DATOS?: boolean;
   public TIPO?: string;
-  public NIVEL?: number;
-  public CENTRO_PADRE?: string;
-  public USUARIO?: string;
-  public FECHA_HORA?: Date;
-  public USUARIO_ULT_MOD?: string;
-  public FCH_HORA_ULT_MOD?: Date;
   public NoteExistsFlag?: number;
   public RecordDate?: Date;
   public RowPointer?: string;

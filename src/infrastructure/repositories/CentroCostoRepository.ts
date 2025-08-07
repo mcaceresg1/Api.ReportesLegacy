@@ -1,14 +1,13 @@
 import { injectable } from 'inversify';
 import { ICentroCostoRepository } from '../../domain/repositories/ICentroCostoRepository';
 import { CentroCosto } from '../../domain/entities/CentroCosto';
-import { DynamicModelFactory, CentroCostoModel } from '../database/models/DynamicModel';
+import { DynamicModelFactory } from '../database/models/DynamicModel';
 
 @injectable()
 export class CentroCostoRepository implements ICentroCostoRepository {
   // Campos principales para optimizar consultas
   private readonly camposPrincipales = [
-    'CENTRO_COSTO', 'CUENTA_CONTABLE', 'ESTADO', 'CENTRO_POZO', 'CUENTA_POZO',
-    'CENTRO_GASTO', 'CUENTA_GASTO', 'CENTRO_CONSOLIDA', 'CUENTA_CONSOLIDA'
+    'CENTRO_COSTO', 'DESCRIPCION', 'ACEPTA_DATOS', 'TIPO'
   ];
 
   async getCentrosCostoByConjunto(conjunto: string, limit: number = 100, offset: number = 0): Promise<CentroCosto[]> {
@@ -65,7 +64,7 @@ export class CentroCostoRepository implements ICentroCostoRepository {
       const centrosCosto = await CentroCostoModel.findAll({
         attributes: this.camposPrincipales,
         where: {
-          ESTADO: 'A'
+          ACEPTA_DATOS: true
         },
         order: [['CENTRO_COSTO', 'ASC']],
         limit,
@@ -107,7 +106,7 @@ export class CentroCostoRepository implements ICentroCostoRepository {
       const CentroCostoModel = DynamicModelFactory.createCentroCostoModel(conjunto);
       return await CentroCostoModel.count({
         where: {
-          ESTADO: 'A'
+          ACEPTA_DATOS: true
         }
       });
     } catch (error) {

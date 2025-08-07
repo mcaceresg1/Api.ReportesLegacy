@@ -53,7 +53,7 @@ const authMiddleware = container.get<AuthMiddleware>('AuthMiddleware');
 const sistemaService = container.get<ISistemaService>('ISistemaService');
 const menuService = container.get<IMenuService>('IMenuService');
 const conjuntoService = container.get<IConjuntoService>('IConjuntoService');
-  const centroCostoRepository = container.get<ICentroCostoRepository>('ICentroCostoRepository');
+const centroCostoRepository = container.get<ICentroCostoRepository>('ICentroCostoRepository');
 const cuentaContableRepository = container.get<ICuentaContableRepository>('ICuentaContableRepository');
 
 // Inicializar CQRS

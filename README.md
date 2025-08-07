@@ -24,7 +24,7 @@ API REST desarrollada en TypeScript con arquitectura hexagonal (Ports and Adapte
 - **Nueva conexión de solo lectura**: Integración con base de datos EXACTUS para consultas de datos contables
 - **Entidades implementadas**:
   - **Conjunto**: Gestión de conjuntos empresariales (ERPADMIN.CONJUNTO)
-  - **CentroCosto**: Centros de costo (dinámico por conjunto)
+  - **CentroCosto**: Gestión de centros de costo (dinámico por conjunto)
   - **CuentaContable**: Plan de cuentas contables (dinámico por conjunto)
 - **Modelos dinámicos**: Sistema de modelos que se adaptan al esquema del conjunto seleccionado
 - **Optimizaciones de rendimiento**:
@@ -39,8 +39,8 @@ API REST desarrollada en TypeScript con arquitectura hexagonal (Ports and Adapte
   - `GET /api/conjuntos/:codigo` - Obtener conjunto específico
   - `GET /api/exactus/:conjunto/centros-costo?limit=100&offset=0` - Centros de costo por conjunto
   - `GET /api/exactus/:conjunto/centros-costo/:codigo` - Centro de costo específico
-  - `GET /api/exactus/:conjunto/centros-costo/tipo/:tipo?limit=100&offset=0` - Centros por tipo
-  - `GET /api/exactus/:conjunto/centros-costo/activos?limit=100&offset=0` - Centros activos
+  - `GET /api/exactus/:conjunto/centros-costo/tipo/:tipo?limit=100&offset=0` - Centros de costo por tipo
+  - `GET /api/exactus/:conjunto/centros-costo/activos?limit=100&offset=0` - Centros de costo activos
   - `GET /api/exactus/:conjunto/cuentas-contables?limit=100&offset=0` - Cuentas contables por conjunto
   - `GET /api/exactus/:conjunto/cuentas-contables/:codigo` - Cuenta específica
   - `GET /api/exactus/:conjunto/cuentas-contables/tipo/:tipo?limit=100&offset=0` - Cuentas por tipo

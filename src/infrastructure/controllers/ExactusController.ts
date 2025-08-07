@@ -15,32 +15,12 @@ import { ICuentaContableRepository } from '../../domain/repositories/ICuentaCont
  *         DESCRIPCION:
  *           type: string
  *           description: Descripción del centro de costo
- *         ESTADO:
- *           type: string
- *           description: Estado del centro de costo
+ *         ACEPTA_DATOS:
+ *           type: boolean
+ *           description: Indica si acepta datos
  *         TIPO:
  *           type: string
  *           description: Tipo de centro de costo
- *         NIVEL:
- *           type: integer
- *           description: Nivel del centro de costo
- *         CENTRO_PADRE:
- *           type: string
- *           description: Centro de costo padre
- *         USUARIO:
- *           type: string
- *           description: Usuario
- *         FECHA_HORA:
- *           type: string
- *           format: date-time
- *           description: Fecha y hora
- *         USUARIO_ULT_MOD:
- *           type: string
- *           description: Usuario de última modificación
- *         FCH_HORA_ULT_MOD:
- *           type: string
- *           format: date-time
- *           description: Fecha y hora de última modificación
  *         NoteExistsFlag:
  *           type: integer
  *           description: Flag de existencia de nota
@@ -188,11 +168,11 @@ import { ICuentaContableRepository } from '../../domain/repositories/ICuentaCont
  *         FECHA_INI_CE:
  *           type: string
  *           format: date-time
- *           description: Fecha inicio CE
+ *           description: Fecha inicio contabilidad electrónica
  *         FECHA_FIN_CE:
  *           type: string
  *           format: date-time
- *           description: Fecha fin CE
+ *           description: Fecha fin contabilidad electrónica
  *         COD_AGRUPADOR:
  *           type: string
  *           description: Código agrupador
@@ -201,10 +181,10 @@ import { ICuentaContableRepository } from '../../domain/repositories/ICuentaCont
  *           description: Descripción código agrupador
  *         SUB_CTA_DE:
  *           type: string
- *           description: Sub cuenta de
+ *           description: Subcuenta de
  *         DESC_SUB_CTA:
  *           type: string
- *           description: Descripción sub cuenta
+ *           description: Descripción subcuenta
  *         NIVEL:
  *           type: integer
  *           description: Nivel
@@ -226,8 +206,8 @@ export class ExactusController {
    * @swagger
    * /api/exactus/{conjunto}/centros-costo:
    *   get:
-   *     summary: Obtener centros costo por conjunto
-   *     description: Retorna una lista de centros costo para un conjunto específico
+   *     summary: Obtener centros de costo por conjunto
+   *     description: Retorna todos los centros de costo de un conjunto específico
    *     tags: [Exactus - Centros Costo]
    *     security: []
    *     parameters:
@@ -237,9 +217,27 @@ export class ExactusController {
    *         schema:
    *           type: string
    *         description: Código del conjunto (schema)
+   *       - in: query
+   *         name: limit
+   *         schema:
+   *           type: integer
+   *           default: 100
+   *         description: Número máximo de registros a retornar
+   *       - in: query
+   *         name: offset
+   *         schema:
+   *           type: integer
+   *           default: 0
+   *         description: Número de registros a omitir
+   *       - in: query
+   *         name: page
+   *         schema:
+   *           type: integer
+   *           default: 1
+   *         description: Número de página
    *     responses:
    *       200:
-   *         description: Centros cuenta obtenidos exitosamente
+   *         description: Centros de costo obtenidos exitosamente
    *         content:
    *           application/json:
    *             schema:
@@ -251,12 +249,30 @@ export class ExactusController {
    *                 data:
    *                   type: array
    *                   items:
-   *                     $ref: '#/components/schemas/CentroCuenta'
+   *                     $ref: '#/components/schemas/CentroCosto'
+   *                 pagination:
+   *                   type: object
+   *                   properties:
+   *                     page:
+   *                       type: integer
+   *                       example: 1
+   *                     limit:
+   *                       type: integer
+   *                       example: 100
+   *                     offset:
+   *                       type: integer
+   *                       example: 0
+   *                     total:
+   *                       type: integer
+   *                       example: 150
+   *                     totalPages:
+   *                       type: integer
+   *                       example: 2
    *                 message:
    *                   type: string
-   *                   example: Centros cuenta obtenidos exitosamente
+   *                   example: Centros de costo obtenidos exitosamente
    *       400:
-   *         description: Código de conjunto requerido
+   *         description: Parámetros requeridos
    *         content:
    *           application/json:
    *             schema:
@@ -280,12 +296,14 @@ export class ExactusController {
    *                   example: false
    *                 message:
    *                   type: string
-   *                   example: Error al obtener centros cuenta
+   *                   example: Error al obtener centros de costo
    */
-  // Obtener centros costo por conjunto
   async getCentrosCostoByConjunto(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto } = req.params;
+      const limit = parseInt(req.query["limit"] as string) || 100;
+      const offset = parseInt(req.query["offset"] as string) || 0;
+      const page = parseInt(req.query["page"] as string) || 1;
       
       if (!conjunto) {
         res.status(400).json({
@@ -295,18 +313,32 @@ export class ExactusController {
         return;
       }
 
-      const centrosCosto = await this.centroCostoRepository.getCentrosCostoByConjunto(conjunto);
+      const maxLimit = 1000;
+      const validatedLimit = Math.min(limit, maxLimit);
+      const validatedOffset = Math.max(offset, 0);
+
+      const [centrosCosto, totalCount] = await Promise.all([
+        this.centroCostoRepository.getCentrosCostoByConjunto(conjunto, validatedLimit, validatedOffset),
+        this.centroCostoRepository.getCentrosCostoByConjuntoCount(conjunto)
+      ]);
       
       res.json({
         success: true,
         data: centrosCosto,
-        message: 'Centros costo obtenidos exitosamente'
+        pagination: {
+          page,
+          limit: validatedLimit,
+          offset: validatedOffset,
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / validatedLimit)
+        },
+        message: 'Centros de costo obtenidos exitosamente'
       });
     } catch (error) {
       console.error('Error en ExactusController.getCentrosCostoByConjunto:', error);
       res.status(500).json({
         success: false,
-        message: 'Error al obtener centros costo',
+        message: 'Error al obtener centros de costo',
         error: error instanceof Error ? error.message : 'Error desconocido'
       });
     }
@@ -316,8 +348,8 @@ export class ExactusController {
    * @swagger
    * /api/exactus/{conjunto}/centros-costo/{codigo}:
    *   get:
-   *     summary: Obtener centro costo por código
-   *     description: Retorna un centro costo específico por su código
+   *     summary: Obtener centro de costo por código
+   *     description: Retorna un centro de costo específico por su código
    *     tags: [Exactus - Centros Costo]
    *     security: []
    *     parameters:
@@ -335,7 +367,7 @@ export class ExactusController {
    *         description: Código del centro de costo
    *     responses:
    *       200:
-   *         description: Centro costo obtenido exitosamente
+   *         description: Centro de costo obtenido exitosamente
    *         content:
    *           application/json:
    *             schema:
@@ -348,7 +380,7 @@ export class ExactusController {
    *                   $ref: '#/components/schemas/CentroCosto'
    *                 message:
    *                   type: string
-   *                   example: Centro costo obtenido exitosamente
+   *                   example: Centro de costo obtenido exitosamente
    *       400:
    *         description: Parámetros requeridos
    *         content:
@@ -363,7 +395,7 @@ export class ExactusController {
    *                   type: string
    *                   example: Código de conjunto y código de centro son requeridos
    *       404:
-   *         description: Centro costo no encontrado
+   *         description: Centro de costo no encontrado
    *         content:
    *           application/json:
    *             schema:
@@ -374,7 +406,7 @@ export class ExactusController {
    *                   example: false
    *                 message:
    *                   type: string
-   *                   example: Centro costo no encontrado
+   *                   example: Centro de costo no encontrado
    *       500:
    *         description: Error interno del servidor
    *         content:
@@ -387,9 +419,8 @@ export class ExactusController {
    *                   example: false
    *                 message:
    *                   type: string
-   *                   example: Error al obtener centro costo
+   *                   example: Error al obtener centro de costo
    */
-  // Obtener centro costo por código
   async getCentroCostoByCodigo(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto, codigo } = req.params;
@@ -407,21 +438,21 @@ export class ExactusController {
       if (!centroCosto) {
         res.status(404).json({
           success: false,
-          message: 'Centro costo no encontrado'
+          message: 'Centro de costo no encontrado'
         });
         return;
       }
-
+      
       res.json({
         success: true,
         data: centroCosto,
-        message: 'Centro costo obtenido exitosamente'
+        message: 'Centro de costo obtenido exitosamente'
       });
     } catch (error) {
       console.error('Error en ExactusController.getCentroCostoByCodigo:', error);
       res.status(500).json({
         success: false,
-        message: 'Error al obtener centro costo',
+        message: 'Error al obtener centro de costo',
         error: error instanceof Error ? error.message : 'Error desconocido'
       });
     }
@@ -431,8 +462,8 @@ export class ExactusController {
    * @swagger
    * /api/exactus/{conjunto}/centros-costo/tipo/{tipo}:
    *   get:
-   *     summary: Obtener centros costo por tipo
-   *     description: Retorna una lista de centros costo filtrados por tipo
+   *     summary: Obtener centros de costo por tipo
+   *     description: Retorna todos los centros de costo de un tipo específico
    *     tags: [Exactus - Centros Costo]
    *     security: []
    *     parameters:
@@ -448,9 +479,27 @@ export class ExactusController {
    *         schema:
    *           type: string
    *         description: Tipo de centro de costo
+   *       - in: query
+   *         name: limit
+   *         schema:
+   *           type: integer
+   *           default: 100
+   *         description: Número máximo de registros a retornar
+   *       - in: query
+   *         name: offset
+   *         schema:
+   *           type: integer
+   *           default: 0
+   *         description: Número de registros a omitir
+   *       - in: query
+   *         name: page
+   *         schema:
+   *           type: integer
+   *           default: 1
+   *         description: Número de página
    *     responses:
    *       200:
-   *         description: Centros costo obtenidos exitosamente
+   *         description: Centros de costo obtenidos exitosamente
    *         content:
    *           application/json:
    *             schema:
@@ -463,9 +512,27 @@ export class ExactusController {
    *                   type: array
    *                   items:
    *                     $ref: '#/components/schemas/CentroCosto'
+   *                 pagination:
+   *                   type: object
+   *                   properties:
+   *                     page:
+   *                       type: integer
+   *                       example: 1
+   *                     limit:
+   *                       type: integer
+   *                       example: 100
+   *                     offset:
+   *                       type: integer
+   *                       example: 0
+   *                     total:
+   *                       type: integer
+   *                       example: 50
+   *                     totalPages:
+   *                       type: integer
+   *                       example: 1
    *                 message:
    *                   type: string
-   *                   example: Centros costo obtenidos exitosamente
+   *                   example: Centros de costo obtenidos exitosamente
    *       400:
    *         description: Parámetros requeridos
    *         content:
@@ -491,12 +558,14 @@ export class ExactusController {
    *                   example: false
    *                 message:
    *                   type: string
-   *                   example: Error al obtener centros costo
+   *                   example: Error al obtener centros de costo
    */
-  // Obtener centros costo por tipo
   async getCentrosCostoByTipo(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto, tipo } = req.params;
+      const limit = parseInt(req.query["limit"] as string) || 100;
+      const offset = parseInt(req.query["offset"] as string) || 0;
+      const page = parseInt(req.query["page"] as string) || 1;
       
       if (!conjunto || !tipo) {
         res.status(400).json({
@@ -506,18 +575,32 @@ export class ExactusController {
         return;
       }
 
-      const centrosCosto = await this.centroCostoRepository.getCentrosCostoByTipo(conjunto, tipo);
+      const maxLimit = 1000;
+      const validatedLimit = Math.min(limit, maxLimit);
+      const validatedOffset = Math.max(offset, 0);
+
+      const [centrosCosto, totalCount] = await Promise.all([
+        this.centroCostoRepository.getCentrosCostoByTipo(conjunto, tipo, validatedLimit, validatedOffset),
+        this.centroCostoRepository.getCentrosCostoByTipoCount(conjunto, tipo)
+      ]);
       
       res.json({
         success: true,
         data: centrosCosto,
-        message: 'Centros costo obtenidos exitosamente'
+        pagination: {
+          page,
+          limit: validatedLimit,
+          offset: validatedOffset,
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / validatedLimit)
+        },
+        message: 'Centros de costo obtenidos exitosamente'
       });
     } catch (error) {
       console.error('Error en ExactusController.getCentrosCostoByTipo:', error);
       res.status(500).json({
         success: false,
-        message: 'Error al obtener centros costo',
+        message: 'Error al obtener centros de costo',
         error: error instanceof Error ? error.message : 'Error desconocido'
       });
     }
@@ -527,8 +610,8 @@ export class ExactusController {
    * @swagger
    * /api/exactus/{conjunto}/centros-costo/activos:
    *   get:
-   *     summary: Obtener centros costo activos
-   *     description: Retorna una lista de centros costo activos (ESTADO = 'A')
+   *     summary: Obtener centros de costo activos
+   *     description: Retorna todos los centros de costo activos de un conjunto específico
    *     tags: [Exactus - Centros Costo]
    *     security: []
    *     parameters:
@@ -538,9 +621,27 @@ export class ExactusController {
    *         schema:
    *           type: string
    *         description: Código del conjunto (schema)
+   *       - in: query
+   *         name: limit
+   *         schema:
+   *           type: integer
+   *           default: 100
+   *         description: Número máximo de registros a retornar
+   *       - in: query
+   *         name: offset
+   *         schema:
+   *           type: integer
+   *           default: 0
+   *         description: Número de registros a omitir
+   *       - in: query
+   *         name: page
+   *         schema:
+   *           type: integer
+   *           default: 1
+   *         description: Número de página
    *     responses:
    *       200:
-   *         description: Centros costo activos obtenidos exitosamente
+   *         description: Centros de costo activos obtenidos exitosamente
    *         content:
    *           application/json:
    *             schema:
@@ -553,11 +654,29 @@ export class ExactusController {
    *                   type: array
    *                   items:
    *                     $ref: '#/components/schemas/CentroCosto'
+   *                 pagination:
+   *                   type: object
+   *                   properties:
+   *                     page:
+   *                       type: integer
+   *                       example: 1
+   *                     limit:
+   *                       type: integer
+   *                       example: 100
+   *                     offset:
+   *                       type: integer
+   *                       example: 0
+   *                     total:
+   *                       type: integer
+   *                       example: 120
+   *                     totalPages:
+   *                       type: integer
+   *                       example: 2
    *                 message:
    *                   type: string
-   *                   example: Centros costo activos obtenidos exitosamente
+   *                   example: Centros de costo activos obtenidos exitosamente
    *       400:
-   *         description: Código de conjunto requerido
+   *         description: Parámetros requeridos
    *         content:
    *           application/json:
    *             schema:
@@ -581,12 +700,14 @@ export class ExactusController {
    *                   example: false
    *                 message:
    *                   type: string
-   *                   example: Error al obtener centros costo activos
+   *                   example: Error al obtener centros de costo activos
    */
-  // Obtener centros costo activos
   async getCentrosCostoActivos(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto } = req.params;
+      const limit = parseInt(req.query["limit"] as string) || 100;
+      const offset = parseInt(req.query["offset"] as string) || 0;
+      const page = parseInt(req.query["page"] as string) || 1;
       
       if (!conjunto) {
         res.status(400).json({
@@ -596,114 +717,32 @@ export class ExactusController {
         return;
       }
 
-      const centrosCosto = await this.centroCostoRepository.getCentrosCostoActivos(conjunto);
+      const maxLimit = 1000;
+      const validatedLimit = Math.min(limit, maxLimit);
+      const validatedOffset = Math.max(offset, 0);
+
+      const [centrosCosto, totalCount] = await Promise.all([
+        this.centroCostoRepository.getCentrosCostoActivos(conjunto, validatedLimit, validatedOffset),
+        this.centroCostoRepository.getCentrosCostoActivosCount(conjunto)
+      ]);
       
       res.json({
         success: true,
         data: centrosCosto,
-        message: 'Centros costo activos obtenidos exitosamente'
+        pagination: {
+          page,
+          limit: validatedLimit,
+          offset: validatedOffset,
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / validatedLimit)
+        },
+        message: 'Centros de costo activos obtenidos exitosamente'
       });
     } catch (error) {
       console.error('Error en ExactusController.getCentrosCostoActivos:', error);
       res.status(500).json({
         success: false,
-        message: 'Error al obtener centros costo activos',
-        error: error instanceof Error ? error.message : 'Error desconocido'
-      });
-    }
-  }
-
-  /**
-   * @swagger
-   * /api/exactus/{conjunto}/centros-cuenta/cuenta/{cuentaContable}:
-   *   get:
-   *     summary: Obtener centros cuenta por cuenta contable
-   *     description: Retorna una lista de centros cuenta filtrados por cuenta contable
-   *     tags: [Exactus - Centros Cuenta]
-   *     security: []
-   *     parameters:
-   *       - in: path
-   *         name: conjunto
-   *         required: true
-   *         schema:
-   *           type: string
-   *         description: Código del conjunto (schema)
-   *       - in: path
-   *         name: cuentaContable
-   *         required: true
-   *         schema:
-   *           type: string
-   *         description: Código de la cuenta contable
-   *     responses:
-   *       200:
-   *         description: Centros cuenta obtenidos exitosamente
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 success:
-   *                   type: boolean
-   *                   example: true
-   *                 data:
-   *                   type: array
-   *                   items:
-   *                     $ref: '#/components/schemas/CentroCuenta'
-   *                 message:
-   *                   type: string
-   *                   example: Centros cuenta obtenidos exitosamente
-   *       400:
-   *         description: Parámetros requeridos
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 success:
-   *                   type: boolean
-   *                   example: false
-   *                 message:
-   *                   type: string
-   *                   example: Código de conjunto y cuenta contable son requeridos
-   *       500:
-   *         description: Error interno del servidor
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 success:
-   *                   type: boolean
-   *                   example: false
-   *                 message:
-   *                   type: string
-   *                   example: Error al obtener centros cuenta
-   */
-  // Obtener centros cuenta por cuenta contable
-  async getCentrosCuentaByCuenta(req: Request, res: Response): Promise<void> {
-    try {
-      const { conjunto, cuentaContable } = req.params;
-      
-      if (!conjunto || !cuentaContable) {
-        res.status(400).json({
-          success: false,
-          message: 'Código de conjunto y cuenta contable son requeridos'
-        });
-        return;
-      }
-
-             const centrosCuenta = await this.centroCostoRepository.getCentrosCostoByConjunto(conjunto);
-      
-      res.json({
-        success: true,
-        data: centrosCuenta,
-        message: 'Centros cuenta obtenidos exitosamente'
-      });
-    } catch (error) {
-      console.error('Error en ExactusController.getCentrosCuentaByCuenta:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error al obtener centros cuenta',
+        message: 'Error al obtener centros de costo activos',
         error: error instanceof Error ? error.message : 'Error desconocido'
       });
     }
@@ -714,7 +753,7 @@ export class ExactusController {
    * /api/exactus/{conjunto}/cuentas-contables:
    *   get:
    *     summary: Obtener cuentas contables por conjunto
-   *     description: Retorna una lista de cuentas contables para un conjunto específico
+   *     description: Retorna todas las cuentas contables de un conjunto específico
    *     tags: [Exactus - Cuentas Contables]
    *     security: []
    *     parameters:
@@ -724,6 +763,24 @@ export class ExactusController {
    *         schema:
    *           type: string
    *         description: Código del conjunto (schema)
+   *       - in: query
+   *         name: limit
+   *         schema:
+   *           type: integer
+   *           default: 100
+   *         description: Número máximo de registros a retornar
+   *       - in: query
+   *         name: offset
+   *         schema:
+   *           type: integer
+   *           default: 0
+   *         description: Número de registros a omitir
+   *       - in: query
+   *         name: page
+   *         schema:
+   *           type: integer
+   *           default: 1
+   *         description: Número de página
    *     responses:
    *       200:
    *         description: Cuentas contables obtenidas exitosamente
@@ -739,11 +796,29 @@ export class ExactusController {
    *                   type: array
    *                   items:
    *                     $ref: '#/components/schemas/CuentaContable'
+   *                 pagination:
+   *                   type: object
+   *                   properties:
+   *                     page:
+   *                       type: integer
+   *                       example: 1
+   *                     limit:
+   *                       type: integer
+   *                       example: 100
+   *                     offset:
+   *                       type: integer
+   *                       example: 0
+   *                     total:
+   *                       type: integer
+   *                       example: 150
+   *                     totalPages:
+   *                       type: integer
+   *                       example: 2
    *                 message:
    *                   type: string
    *                   example: Cuentas contables obtenidas exitosamente
    *       400:
-   *         description: Código de conjunto requerido
+   *         description: Parámetros requeridos
    *         content:
    *           application/json:
    *             schema:
@@ -769,10 +844,12 @@ export class ExactusController {
    *                   type: string
    *                   example: Error al obtener cuentas contables
    */
-  // Obtener cuentas contables por conjunto
   async getCuentasContablesByConjunto(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto } = req.params;
+      const limit = parseInt(req.query["limit"] as string) || 100;
+      const offset = parseInt(req.query["offset"] as string) || 0;
+      const page = parseInt(req.query["page"] as string) || 1;
       
       if (!conjunto) {
         res.status(400).json({
@@ -782,11 +859,25 @@ export class ExactusController {
         return;
       }
 
-      const cuentasContables = await this.cuentaContableRepository.getCuentasContablesByConjunto(conjunto);
+      const maxLimit = 1000;
+      const validatedLimit = Math.min(limit, maxLimit);
+      const validatedOffset = Math.max(offset, 0);
+
+      const [cuentasContables, totalCount] = await Promise.all([
+        this.cuentaContableRepository.getCuentasContablesByConjunto(conjunto, validatedLimit, validatedOffset),
+        this.cuentaContableRepository.getCuentasContablesByConjuntoCount(conjunto)
+      ]);
       
       res.json({
         success: true,
         data: cuentasContables,
+        pagination: {
+          page,
+          limit: validatedLimit,
+          offset: validatedOffset,
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / validatedLimit)
+        },
         message: 'Cuentas contables obtenidas exitosamente'
       });
     } catch (error) {
@@ -876,7 +967,6 @@ export class ExactusController {
    *                   type: string
    *                   example: Error al obtener cuenta contable
    */
-  // Obtener cuenta contable por código
   async getCuentaContableByCodigo(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto, codigo } = req.params;
@@ -898,7 +988,7 @@ export class ExactusController {
         });
         return;
       }
-
+      
       res.json({
         success: true,
         data: cuentaContable,
@@ -919,7 +1009,7 @@ export class ExactusController {
    * /api/exactus/{conjunto}/cuentas-contables/tipo/{tipo}:
    *   get:
    *     summary: Obtener cuentas contables por tipo
-   *     description: Retorna una lista de cuentas contables filtradas por tipo
+   *     description: Retorna todas las cuentas contables de un tipo específico
    *     tags: [Exactus - Cuentas Contables]
    *     security: []
    *     parameters:
@@ -935,6 +1025,24 @@ export class ExactusController {
    *         schema:
    *           type: string
    *         description: Tipo de cuenta contable
+   *       - in: query
+   *         name: limit
+   *         schema:
+   *           type: integer
+   *           default: 100
+   *         description: Número máximo de registros a retornar
+   *       - in: query
+   *         name: offset
+   *         schema:
+   *           type: integer
+   *           default: 0
+   *         description: Número de registros a omitir
+   *       - in: query
+   *         name: page
+   *         schema:
+   *           type: integer
+   *           default: 1
+   *         description: Número de página
    *     responses:
    *       200:
    *         description: Cuentas contables obtenidas exitosamente
@@ -950,6 +1058,24 @@ export class ExactusController {
    *                   type: array
    *                   items:
    *                     $ref: '#/components/schemas/CuentaContable'
+   *                 pagination:
+   *                   type: object
+   *                   properties:
+   *                     page:
+   *                       type: integer
+   *                       example: 1
+   *                     limit:
+   *                       type: integer
+   *                       example: 100
+   *                     offset:
+   *                       type: integer
+   *                       example: 0
+   *                     total:
+   *                       type: integer
+   *                       example: 50
+   *                     totalPages:
+   *                       type: integer
+   *                       example: 1
    *                 message:
    *                   type: string
    *                   example: Cuentas contables obtenidas exitosamente
@@ -980,10 +1106,12 @@ export class ExactusController {
    *                   type: string
    *                   example: Error al obtener cuentas contables
    */
-  // Obtener cuentas contables por tipo
   async getCuentasContablesByTipo(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto, tipo } = req.params;
+      const limit = parseInt(req.query["limit"] as string) || 100;
+      const offset = parseInt(req.query["offset"] as string) || 0;
+      const page = parseInt(req.query["page"] as string) || 1;
       
       if (!conjunto || !tipo) {
         res.status(400).json({
@@ -993,11 +1121,25 @@ export class ExactusController {
         return;
       }
 
-      const cuentasContables = await this.cuentaContableRepository.getCuentasContablesByTipo(conjunto, tipo);
+      const maxLimit = 1000;
+      const validatedLimit = Math.min(limit, maxLimit);
+      const validatedOffset = Math.max(offset, 0);
+
+      const [cuentasContables, totalCount] = await Promise.all([
+        this.cuentaContableRepository.getCuentasContablesByTipo(conjunto, tipo, validatedLimit, validatedOffset),
+        this.cuentaContableRepository.getCuentasContablesByTipoCount(conjunto, tipo)
+      ]);
       
       res.json({
         success: true,
         data: cuentasContables,
+        pagination: {
+          page,
+          limit: validatedLimit,
+          offset: validatedOffset,
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / validatedLimit)
+        },
         message: 'Cuentas contables obtenidas exitosamente'
       });
     } catch (error) {
@@ -1015,7 +1157,7 @@ export class ExactusController {
    * /api/exactus/{conjunto}/cuentas-contables/activas:
    *   get:
    *     summary: Obtener cuentas contables activas
-   *     description: Retorna una lista de cuentas contables activas (ACEPTA_DATOS = true)
+   *     description: Retorna todas las cuentas contables activas de un conjunto específico
    *     tags: [Exactus - Cuentas Contables]
    *     security: []
    *     parameters:
@@ -1025,6 +1167,24 @@ export class ExactusController {
    *         schema:
    *           type: string
    *         description: Código del conjunto (schema)
+   *       - in: query
+   *         name: limit
+   *         schema:
+   *           type: integer
+   *           default: 100
+   *         description: Número máximo de registros a retornar
+   *       - in: query
+   *         name: offset
+   *         schema:
+   *           type: integer
+   *           default: 0
+   *         description: Número de registros a omitir
+   *       - in: query
+   *         name: page
+   *         schema:
+   *           type: integer
+   *           default: 1
+   *         description: Número de página
    *     responses:
    *       200:
    *         description: Cuentas contables activas obtenidas exitosamente
@@ -1040,11 +1200,29 @@ export class ExactusController {
    *                   type: array
    *                   items:
    *                     $ref: '#/components/schemas/CuentaContable'
+   *                 pagination:
+   *                   type: object
+   *                   properties:
+   *                     page:
+   *                       type: integer
+   *                       example: 1
+   *                     limit:
+   *                       type: integer
+   *                       example: 100
+   *                     offset:
+   *                       type: integer
+   *                       example: 0
+   *                     total:
+   *                       type: integer
+   *                       example: 120
+   *                     totalPages:
+   *                       type: integer
+   *                       example: 2
    *                 message:
    *                   type: string
    *                   example: Cuentas contables activas obtenidas exitosamente
    *       400:
-   *         description: Código de conjunto requerido
+   *         description: Parámetros requeridos
    *         content:
    *           application/json:
    *             schema:
@@ -1070,10 +1248,12 @@ export class ExactusController {
    *                   type: string
    *                   example: Error al obtener cuentas contables activas
    */
-  // Obtener cuentas contables activas
   async getCuentasContablesActivas(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto } = req.params;
+      const limit = parseInt(req.query["limit"] as string) || 100;
+      const offset = parseInt(req.query["offset"] as string) || 0;
+      const page = parseInt(req.query["page"] as string) || 1;
       
       if (!conjunto) {
         res.status(400).json({
@@ -1083,11 +1263,25 @@ export class ExactusController {
         return;
       }
 
-      const cuentasContables = await this.cuentaContableRepository.getCuentasContablesActivas(conjunto);
+      const maxLimit = 1000;
+      const validatedLimit = Math.min(limit, maxLimit);
+      const validatedOffset = Math.max(offset, 0);
+
+      const [cuentasContables, totalCount] = await Promise.all([
+        this.cuentaContableRepository.getCuentasContablesActivas(conjunto, validatedLimit, validatedOffset),
+        this.cuentaContableRepository.getCuentasContablesActivasCount(conjunto)
+      ]);
       
       res.json({
         success: true,
         data: cuentasContables,
+        pagination: {
+          page,
+          limit: validatedLimit,
+          offset: validatedOffset,
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / validatedLimit)
+        },
         message: 'Cuentas contables activas obtenidas exitosamente'
       });
     } catch (error) {
