@@ -16,6 +16,7 @@ import { createConjuntoRoutes } from './infrastructure/routes/ConjuntoRoutes';
 import { createExactusRoutes } from './infrastructure/routes/ExactusRoutes';
 import { createMovimientoContableRoutes } from './infrastructure/routes/MovimientoContableRoutes';
 import { createReporteCuentaContableRoutes } from './infrastructure/routes/ReporteCuentaContableRoutes';
+import { createReporteCentroCostoRoutes } from './infrastructure/routes/ReporteCentroCostoRoutes';
 
 import { AuthMiddleware } from './infrastructure/middleware/AuthMiddleware';
 import { QueryOptimizationMiddleware } from './infrastructure/middleware/QueryOptimizationMiddleware';
@@ -29,6 +30,7 @@ import { IConjuntoService } from './domain/services/IConjuntoService';
 import { ICentroCostoRepository } from './domain/repositories/ICentroCostoRepository';
 import { IMovimientoContableRepository } from './domain/repositories/IMovimientoContableRepository';
 import { IReporteCuentaContableRepository } from './domain/repositories/IReporteCuentaContableRepository';
+import { IReporteCentroCostoRepository } from './domain/repositories/IReporteCentroCostoRepository';
 import { ICuentaContableRepository } from './domain/repositories/ICuentaContableRepository';
 import { CqrsService } from './infrastructure/cqrs/CqrsService';
 
@@ -60,6 +62,7 @@ const menuService = container.get<IMenuService>('IMenuService');
   const centroCostoRepository = container.get<ICentroCostoRepository>('ICentroCostoRepository');
   const movimientoContableRepository = container.get<IMovimientoContableRepository>('IMovimientoContableRepository');
   const reporteCuentaContableRepository = container.get<IReporteCuentaContableRepository>('IReporteCuentaContableRepository');
+  const reporteCentroCostoRepository = container.get<IReporteCentroCostoRepository>('IReporteCentroCostoRepository');
   const cuentaContableRepository = container.get<ICuentaContableRepository>('ICuentaContableRepository');
 
 // Inicializar CQRS
@@ -80,6 +83,7 @@ const permisoRoutes = new PermisoRoutes();
   const exactusRoutes = createExactusRoutes(centroCostoRepository, cuentaContableRepository);
   const movimientoContableRoutes = createMovimientoContableRoutes(movimientoContableRepository);
   const reporteCuentaContableRoutes = createReporteCuentaContableRoutes(reporteCuentaContableRepository);
+  const reporteCentroCostoRoutes = createReporteCentroCostoRoutes(reporteCentroCostoRepository);
 
 // Rutas de menús (algunas públicas, otras protegidas)
 app.use('/api/menus', menuRoutes.getRouter());
@@ -98,6 +102,7 @@ app.use('/api/permisos', authMiddleware.verifyToken, permisoRoutes.getRouter());
   app.use('/api/exactus', QueryOptimizationMiddleware.validateQueryParams, exactusRoutes);
   app.use('/api/movimientos', QueryOptimizationMiddleware.validateQueryParams, movimientoContableRoutes);
   app.use('/api/reporte-cuenta-contable', QueryOptimizationMiddleware.validateQueryParams, reporteCuentaContableRoutes);
+  app.use('/api/reporte-centro-costo', QueryOptimizationMiddleware.validateQueryParams, reporteCentroCostoRoutes);
 
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================

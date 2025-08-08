@@ -19,6 +19,26 @@ API REST desarrollada en TypeScript con arquitectura hexagonal (Ports and Adapte
 
 ## Cambios Recientes
 
+### v1.12.0 - Reporte de Centro de Costos
+
+- **Reporte de Centro de Costos**: Implementación completa del sistema de reportes de centro de costos con filtros por cuenta contable
+- **Filtros Dinámicos**: Sistema de filtros para cuentas contables que permite seleccionar centros de costo específicos
+- **Queries SQL Optimizados**: Consultas directas a la base de datos para mejor rendimiento
+- **Entidades implementadas**:
+  - **ReporteCentroCosto**: Para el manejo de reportes de centro de costos
+  - **FiltroCuentaContable**: Para el manejo de filtros de cuentas contables
+  - **DetalleCuentaContable**: Para el manejo de detalles de cuentas contables
+- **Nuevos endpoints con paginación**:
+  - `GET /api/reporte-centro-costo/{conjunto}/filtro-cuentas-contables` - Obtener filtro de cuentas contables
+  - `GET /api/reporte-centro-costo/{conjunto}/detalle-cuenta-contable/{cuentaContable}` - Obtener detalle de cuenta contable específica
+  - `GET /api/reporte-centro-costo/{conjunto}/centros-costo/{cuentaContable}?page=1&limit=10` - Obtener centros de costo por cuenta contable
+- **Beneficios**:
+  - Consultas SQL directas para mejor rendimiento
+  - Filtros dinámicos por cuenta contable
+  - Paginación automática para grandes volúmenes de datos
+  - Documentación Swagger completa
+  - Integración con el sistema de conjuntos existente
+
 ### v1.11.0 - Reporte de Cuentas Contables
 
 - **Reporte de Cuentas Contables**: Implementación completa del sistema de reportes de cuentas contables con filtros por centro de costo
