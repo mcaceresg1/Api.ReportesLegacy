@@ -46,7 +46,7 @@ export class ReporteCentroCostoRepository implements IReporteCentroCostoReposito
           uso_restringido,
           maneja_tercero
         FROM ${conjunto}.cuenta_contable (NOLOCK)
-        WHERE cuenta_contable = @cuentaContable
+        WHERE cuenta_contable = :cuentaContable
       `;
 
       const [results] = await exactusSequelize.query(query, {
@@ -78,7 +78,7 @@ export class ReporteCentroCostoRepository implements IReporteCentroCostoReposito
         SELECT COUNT(DISTINCT CC.centro_costo) as total
         FROM ${conjunto}.centro_costo CC(NOLOCK), ${conjunto}.centro_cuenta CNTCTA(NOLOCK)
         WHERE CNTCTA.centro_costo = CC.centro_costo 
-        AND CNTCTA.cuenta_contable = @cuentaContable
+        AND CNTCTA.cuenta_contable = :cuentaContable
       `;
 
       const [countResults] = await exactusSequelize.query(countQuery, {
@@ -95,17 +95,15 @@ export class ReporteCentroCostoRepository implements IReporteCentroCostoReposito
           CC.acepta_datos
         FROM ${conjunto}.centro_costo CC(NOLOCK), ${conjunto}.centro_cuenta CNTCTA(NOLOCK)
         WHERE CNTCTA.centro_costo = CC.centro_costo 
-        AND CNTCTA.cuenta_contable = @cuentaContable
+        AND CNTCTA.cuenta_contable = :cuentaContable
         ORDER BY CC.centro_costo ASC
-        OFFSET @offset ROWS
-        FETCH NEXT @limit ROWS ONLY
+        OFFSET ${offset} ROWS
+        FETCH NEXT ${limit} ROWS ONLY
       `;
 
       const [dataResults] = await exactusSequelize.query(dataQuery, {
         replacements: { 
-          cuentaContable,
-          offset,
-          limit
+          cuentaContable
         }
       });
 
@@ -137,7 +135,7 @@ export class ReporteCentroCostoRepository implements IReporteCentroCostoReposito
         SELECT COUNT(DISTINCT CC.centro_costo) as total
         FROM ${conjunto}.centro_costo CC(NOLOCK), ${conjunto}.centro_cuenta CNTCTA(NOLOCK)
         WHERE CNTCTA.centro_costo = CC.centro_costo 
-        AND CNTCTA.cuenta_contable = @cuentaContable
+        AND CNTCTA.cuenta_contable = :cuentaContable
       `;
 
       const [results] = await exactusSequelize.query(query, {
