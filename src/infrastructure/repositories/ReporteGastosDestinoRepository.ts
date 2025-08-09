@@ -8,57 +8,9 @@ import { ReporteGastosDestinoItem, ReporteGastosDestinoResult } from '../../doma
 @injectable()
 export class ReporteGastosDestinoRepository implements IReporteGastosDestinoRepository {
   async generar(conjunto: string, fechaInicio: Date, fechaFin: Date): Promise<void> {
-    const fechaIniStr = fechaInicio.toISOString().slice(0, 19).replace('T', ' ');
-    const fechaFinStr = fechaFin.toISOString().slice(0, 19).replace('T', ' ');
-
-    const insertSql = `
-      INSERT INTO ${conjunto}.R_XML_8DDC5FC376ABAD0 (
-        CUENTADESTINO, CUENTADESTINODES, CENTRODESTINO, CENTRODESTINODES, FECHA, ASIENTO,
-        CUENTAGASTO, CUENTAGASTODES, CENTROGASTO, CENTROGASTODES, TIPOASIENTO, TIPOASIENTODES,
-        FUENTE, REFERENCIA, NIT, RAZONSOCIAL, DEBITOLOCAL, CREDITOLOCAL, DEBITODOLAR, CREDITODOLAR
-      )
-      SELECT
-        SUBSTRING(CTOCTA.CUENTA_GASTO, 1, 2),
-        CTA1.DESCRIPCION,
-        CTOCTA.CENTRO_GASTO,
-        CTO1.DESCRIPCION,
-        MAY.FECHA,
-        MAY.ASIENTO,
-        SUBSTRING(MAY.CUENTA_CONTABLE, 1, 2),
-        CTA2.DESCRIPCION,
-        MAY.CENTRO_COSTO,
-        CTO2.DESCRIPCION,
-        MAY.TIPO_ASIENTO,
-        TAS.DESCRIPCION,
-        MAY.FUENTE,
-        MAY.REFERENCIA,
-        MAY.NIT,
-        N.RAZON_SOCIAL,
-        MAY.DEBITO_LOCAL,
-        MAY.CREDITO_LOCAL,
-        MAY.DEBITO_DOLAR,
-        MAY.CREDITO_DOLAR
-      FROM ${conjunto}.MAYOR MAY
-      INNER JOIN ${conjunto}.CENTRO_CUENTA CTOCTA
-        ON MAY.CUENTA_CONTABLE = CTOCTA.CUENTA_CONTABLE AND MAY.CENTRO_COSTO = CTOCTA.CENTRO_COSTO
-      INNER JOIN ${conjunto}.TIPO_ASIENTO TAS
-        ON TAS.TIPO_ASIENTO = MAY.TIPO_ASIENTO
-      INNER JOIN ${conjunto}.NIT N
-        ON MAY.NIT = N.NIT
-      INNER JOIN ${conjunto}.CUENTA_CONTABLE CTA1
-        ON CTA1.CUENTA_CONTABLE = SUBSTRING(CTOCTA.CUENTA_GASTO, 1, 2) + '.0.0.0.000'
-      INNER JOIN ${conjunto}.CENTRO_COSTO CTO1
-        ON CTOCTA.CENTRO_GASTO = CTO1.CENTRO_COSTO
-      INNER JOIN ${conjunto}.CUENTA_CONTABLE CTA2
-        ON CTA2.CUENTA_CONTABLE = SUBSTRING(MAY.CUENTA_CONTABLE, 1, 2) + '.0.0.0.000'
-      INNER JOIN ${conjunto}.CENTRO_COSTO CTO2
-        ON MAY.CENTRO_COSTO = CTO2.CENTRO_COSTO
-      WHERE MAY.FECHA >= '${fechaIniStr}'
-        AND MAY.FECHA <= '${fechaFinStr}'
-        AND MAY.CONTABILIDAD IN ('F','A')
-    `;
-
-    await exactusSequelize.query(insertSql, { type: QueryTypes.INSERT });
+    // Conexión a EXACTUS está configurada con readOnlyIntent; no realizamos INSERT.
+    // Dejamos este método como no-op para compatibilidad con el frontend.
+    return;
   }
 
   async listar(conjunto: string, limit: number = 100, offset: number = 0): Promise<ReporteGastosDestinoResult> {
@@ -91,28 +43,33 @@ export class ReporteGastosDestinoRepository implements IReporteGastosDestinoRepo
     limit: number = 5000,
     offset: number = 0
   ): Promise<any[]> {
-    const whereFecha = fechaInicio && fechaFin
-      ? `WHERE FECHA BETWEEN :fi AND :ff`
-      : '';
+    const whereFecha = fechaInicio && fechaFin ? `
+        WHERE MAY.FECHA BETWEEN :fi AND :ff
+      ` : '';
 
     const sql = `
       WITH BASE AS (
         SELECT
-          CONVERT(date, FECHA) AS FECHA,
-          CUENTAGASTO        AS CTA_CONTABLE,
-          CENTROGASTO        AS C_COSTO,
-          ASIENTO,
-          TIPOASIENTO        AS TIPO,
-          TIPOASIENTODES     AS CLASE,
-          REFERENCIA,
-          NIT,
-          RAZONSOCIAL,
-          CAST(DEBITOLOCAL  AS decimal(18,2)) AS DEBE_S,
-          CAST(CREDITOLOCAL AS decimal(18,2)) AS HABER_S,
-          CAST(DEBITODOLAR  AS decimal(18,2)) AS DEBE_US,
-          CAST(CREDITODOLAR AS decimal(18,2)) AS HABER_US
-        FROM ${conjunto}.R_XML_8DDC5FC376ABAD0 WITH (NOLOCK)
+          CONVERT(date, MAY.FECHA) AS FECHA,
+          SUBSTRING(MAY.CUENTA_CONTABLE,1,2) AS CTA_CONTABLE,
+          MAY.CENTRO_COSTO        AS C_COSTO,
+          MAY.ASIENTO,
+          MAY.TIPO_ASIENTO        AS TIPO,
+          TAS.DESCRIPCION         AS CLASE,
+          MAY.REFERENCIA,
+          MAY.NIT,
+          N.RAZON_SOCIAL          AS RAZONSOCIAL,
+          CAST(MAY.DEBITO_LOCAL  AS decimal(18,2)) AS DEBE_S,
+          CAST(MAY.CREDITO_LOCAL AS decimal(18,2)) AS HABER_S,
+          CAST(MAY.DEBITO_DOLAR  AS decimal(18,2)) AS DEBE_US,
+          CAST(MAY.CREDITO_DOLAR AS decimal(18,2)) AS HABER_US
+        FROM ${conjunto}.MAYOR MAY WITH (NOLOCK)
+        INNER JOIN ${conjunto}.CENTRO_CUENTA CTOCTA
+          ON MAY.CUENTA_CONTABLE = CTOCTA.CUENTA_CONTABLE AND MAY.CENTRO_COSTO = CTOCTA.CENTRO_COSTO
+        INNER JOIN ${conjunto}.TIPO_ASIENTO TAS ON TAS.TIPO_ASIENTO = MAY.TIPO_ASIENTO
+        INNER JOIN ${conjunto}.NIT N ON MAY.NIT = N.NIT
         ${whereFecha}
+        AND MAY.CONTABILIDAD IN ('F','A')
       )
       SELECT * FROM (
         -- Detalle
@@ -165,7 +122,7 @@ export class ReporteGastosDestinoRepository implements IReporteGastosDestinoRepo
     `;
 
     const replacements: any = { offset, limit };
-    if (whereFecha) {
+    if (fechaInicio && fechaFin) {
       replacements.fi = fechaInicio;
       replacements.ff = fechaFin;
     }
