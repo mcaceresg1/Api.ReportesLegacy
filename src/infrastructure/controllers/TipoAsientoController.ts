@@ -66,7 +66,7 @@ export class TipoAsientoController {
   async listar(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto } = req.params;
-      const limit = parseInt((req.query['limit'] as string) || '1000', 10);
+      const limit = parseInt((req.query['limit'] as string) || '100', 10);
       const offset = parseInt((req.query['offset'] as string) || '0', 10);
       if (!conjunto) {
         res.status(400).json({ success: false, message: 'conjunto requerido' });
