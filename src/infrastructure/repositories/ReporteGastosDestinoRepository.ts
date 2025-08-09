@@ -72,46 +72,48 @@ export class ReporteGastosDestinoRepository implements IReporteGastosDestinoRepo
         AND MAY.CONTABILIDAD IN ('F','A')
       )
       SELECT * FROM (
-        -- Detalle
-        SELECT 
-          0                          AS ROW_ORDER,
-          'DATA'                     AS ROW_TYPE,
-          FECHA, CTA_CONTABLE, C_COSTO, ASIENTO, TIPO, CLASE, REFERENCIA, NIT, RAZONSOCIAL,
-          DEBE_S, HABER_S, DEBE_US, HABER_US
-        FROM BASE
+        SELECT * FROM (
+          -- Detalle
+          SELECT 
+            0                          AS ROW_ORDER,
+            'DATA'                     AS ROW_TYPE,
+            FECHA, CTA_CONTABLE, C_COSTO, ASIENTO, TIPO, CLASE, REFERENCIA, NIT, RAZONSOCIAL,
+            DEBE_S, HABER_S, DEBE_US, HABER_US
+          FROM BASE
 
+          UNION ALL
+
+          -- Subtotal por asiento
+          SELECT 
+            1                          AS ROW_ORDER,
+            'SUBTOTAL'                 AS ROW_TYPE,
+            NULL as FECHA,
+            NULL as CTA_CONTABLE,
+            NULL as C_COSTO,
+            ASIENTO,
+            NULL as TIPO,
+            'SUBTOTAL ' + CAST(ASIENTO AS VARCHAR(50)) as CLASE,
+            NULL as REFERENCIA,
+            NULL as NIT,
+            NULL as RAZONSOCIAL,
+            SUM(DEBE_S)  AS DEBE_S,
+            SUM(HABER_S) AS HABER_S,
+            SUM(DEBE_US) AS DEBE_US,
+            SUM(HABER_US) AS HABER_US
+          FROM BASE
+          GROUP BY ASIENTO
+        ) X
         UNION ALL
-
-        -- Subtotal por asiento
+        -- Total general
         SELECT 
-          1                          AS ROW_ORDER,
-          'SUBTOTAL'                 AS ROW_TYPE,
-          NULL as FECHA,
-          NULL as CTA_CONTABLE,
-          NULL as C_COSTO,
-          ASIENTO,
-          NULL as TIPO,
-          'SUBTOTAL ' + CAST(ASIENTO AS VARCHAR(50)) as CLASE,
-          NULL as REFERENCIA,
-          NULL as NIT,
-          NULL as RAZONSOCIAL,
-          SUM(DEBE_S)  AS DEBE_S,
-          SUM(HABER_S) AS HABER_S,
-          SUM(DEBE_US) AS DEBE_US,
-          SUM(HABER_US) AS HABER_US
+          2            AS ROW_ORDER,
+          'TOTAL'      AS ROW_TYPE,
+          NULL, NULL, NULL,
+          NULL        AS ASIENTO,
+          NULL, 'TOTAL GENERAL', NULL, NULL, NULL,
+          SUM(DEBE_S), SUM(HABER_S), SUM(DEBE_US), SUM(HABER_US)
         FROM BASE
-        GROUP BY ASIENTO
-      ) X
-      UNION ALL
-      -- Total general
-      SELECT 
-        2            AS ROW_ORDER,
-        'TOTAL'      AS ROW_TYPE,
-        NULL, NULL, NULL,
-        NULL        AS ASIENTO,
-        NULL, 'TOTAL GENERAL', NULL, NULL, NULL,
-        SUM(DEBE_S), SUM(HABER_S), SUM(DEBE_US), SUM(HABER_US)
-      FROM BASE
+      ) U
 
       ORDER BY 
         ISNULL(ASIENTO, 'ZZZZZ'),
