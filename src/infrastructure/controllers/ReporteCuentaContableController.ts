@@ -236,8 +236,9 @@ export class ReporteCuentaContableController {
     try {
       const { conjunto, centroCosto } = req.params;
       const limit = parseInt(req.query["limit"] as string) || 100;
-      const offset = parseInt(req.query["offset"] as string) || 0;
+      const rawOffset = req.query["offset"] as string | undefined;
       const page = parseInt(req.query["page"] as string) || 1;
+      const offset = rawOffset !== undefined ? (parseInt(rawOffset) || 0) : (page - 1) * limit;
       
       // Validar parámetros de ruta
       if (!conjunto || !centroCosto) {
