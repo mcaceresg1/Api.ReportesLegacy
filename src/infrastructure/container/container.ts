@@ -13,6 +13,7 @@ import { ICentroCostoRepository } from '../../domain/repositories/ICentroCostoRe
 import { IMovimientoContableRepository } from '../../domain/repositories/IMovimientoContableRepository';
 import { IReporteCuentaContableRepository } from '../../domain/repositories/IReporteCuentaContableRepository';
 import { IReporteCentroCostoRepository } from '../../domain/repositories/IReporteCentroCostoRepository';
+import { IReporteGastosDestinoRepository } from '../../domain/repositories/IReporteGastosDestinoRepository';
 
 import { ICuentaContableRepository } from '../../domain/repositories/ICuentaContableRepository';
 import { IUsuarioService } from '../../domain/services/IUsuarioService';
@@ -41,6 +42,7 @@ import { CentroCostoRepository } from '../repositories/CentroCostoRepository';
 import { MovimientoContableRepository } from '../repositories/MovimientoContableRepository';
 import { ReporteCuentaContableRepository } from '../repositories/ReporteCuentaContableRepository';
 import { ReporteCentroCostoRepository } from '../repositories/ReporteCentroCostoRepository';
+import { ReporteGastosDestinoRepository } from '../repositories/ReporteGastosDestinoRepository';
 
 import { CuentaContableRepository } from '../repositories/CuentaContableRepository';
 import { UsuarioService } from '../../application/services/UsuarioService';
@@ -63,6 +65,7 @@ import { ConexionController } from '../controllers/ConexionController';
 import { RolMenuController } from '../controllers/RolMenuController';
 import { RolSistemaMenuController } from '../controllers/RolSistemaMenuController';
 import { ReporteCentroCostoController } from '../controllers/ReporteCentroCostoController';
+import { ReporteGastosDestinoController } from '../controllers/ReporteGastosDestinoController';
 
 // CQRS implementations
 import { CommandBus } from '../cqrs/CommandBus';
@@ -102,6 +105,7 @@ container.bind<ICentroCostoRepository>('ICentroCostoRepository').to(CentroCostoR
 container.bind<IMovimientoContableRepository>('IMovimientoContableRepository').to(MovimientoContableRepository);
 container.bind<IReporteCuentaContableRepository>('IReporteCuentaContableRepository').to(ReporteCuentaContableRepository);
 container.bind<IReporteCentroCostoRepository>('IReporteCentroCostoRepository').to(ReporteCentroCostoRepository);
+container.bind<IReporteGastosDestinoRepository>('IReporteGastosDestinoRepository').to(ReporteGastosDestinoRepository);
 
 container.bind<ICuentaContableRepository>('ICuentaContableRepository').to(CuentaContableRepository);
 
@@ -127,6 +131,7 @@ container.bind<ConexionController>('ConexionController').to(ConexionController);
 container.bind<RolMenuController>('RolMenuController').to(RolMenuController);
 container.bind<RolSistemaMenuController>('RolSistemaMenuController').to(RolSistemaMenuController);
 container.bind<ReporteCentroCostoController>('ReporteCentroCostoController').to(ReporteCentroCostoController);
+container.bind<ReporteGastosDestinoController>('ReporteGastosDestinoController').to(ReporteGastosDestinoController);
 
 
 // CQRS Buses
