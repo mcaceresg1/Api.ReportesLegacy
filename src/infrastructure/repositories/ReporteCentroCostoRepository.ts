@@ -93,17 +93,19 @@ export class ReporteCentroCostoRepository implements IReporteCentroCostoReposito
           CC.centro_costo,
           CC.descripcion,
           CC.acepta_datos
-        FROM ${conjunto}.centro_costo CC(NOLOCK), ${conjunto}.centro_cuenta CNTCTA(NOLOCK)
-        WHERE CNTCTA.centro_costo = CC.centro_costo 
-        AND CNTCTA.cuenta_contable = :cuentaContable
+        FROM ${conjunto}.centro_costo AS CC WITH (NOLOCK)
+        INNER JOIN ${conjunto}.centro_cuenta AS CNTCTA WITH (NOLOCK)
+          ON CNTCTA.centro_costo = CC.centro_costo
+        WHERE CNTCTA.cuenta_contable = :cuentaContable
         ORDER BY CC.centro_costo ASC
-        OFFSET ${offset} ROWS
-        FETCH NEXT ${limit} ROWS ONLY
+        OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
       `;
 
       const [dataResults] = await exactusSequelize.query(dataQuery, {
         replacements: { 
-          cuentaContable
+          cuentaContable,
+          offset,
+          limit
         }
       });
 
