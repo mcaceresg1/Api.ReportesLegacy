@@ -39,8 +39,9 @@ export class TipoAsientoController {
         return;
       }
       const data = await this.repo.listar(conjunto, limit, offset);
-      res.json({ success: true, data });
+      res.json({ success: true, count: data.length, data });
     } catch (error) {
+      console.error('TipoAsientoController.listar error:', error);
       res.status(500).json({ success: false, message: 'Error al listar tipos de asiento', error: error instanceof Error ? error.message : 'Error' });
     }
   }

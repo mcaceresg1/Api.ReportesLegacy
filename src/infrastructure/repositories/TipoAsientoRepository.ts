@@ -7,20 +7,26 @@ import { QueryTypes } from 'sequelize';
 @injectable()
 export class TipoAsientoRepository implements ITipoAsientoRepository {
   async listar(conjunto: string, limit: number = 1000, offset: number = 0): Promise<TipoAsiento[]> {
-    const sql = `
-      SELECT TOP (:limit)
-        TIPO_ASIENTO,
-        DESCRIPCION
-      FROM ${conjunto}.TIPO_ASIENTO WITH (NOLOCK)
-      ORDER BY TIPO_ASIENTO ASC
-      OFFSET :offset ROWS
-    `;
+    try {
+      // Usar paginación estándar de SQL Server (OFFSET/FETCH) con parámetros
+      const sql = `
+        SELECT 
+          TIPO_ASIENTO,
+          DESCRIPCION
+        FROM ${conjunto}.TIPO_ASIENTO WITH (NOLOCK)
+        ORDER BY TIPO_ASIENTO ASC
+        OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
+      `;
 
-    const rows = await exactusSequelize.query(sql, {
-      type: QueryTypes.SELECT,
-      replacements: { limit, offset },
-    });
-    return rows as TipoAsiento[];
+      const rows = await exactusSequelize.query(sql, {
+        type: QueryTypes.SELECT,
+        replacements: { limit, offset },
+      });
+      return rows as TipoAsiento[];
+    } catch (error) {
+      console.error('Error listando tipos de asiento:', error);
+      throw error;
+    }
   }
 }
 
