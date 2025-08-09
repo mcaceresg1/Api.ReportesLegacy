@@ -109,7 +109,7 @@ export class ReporteGastosDestinoRepository implements IReporteGastosDestinoRepo
         'TOTAL'      AS ROW_TYPE,
         NULL, NULL, NULL,
         NULL        AS ASIENTO,
-        NULL, 'TOTAL GENERAL', NULL, NULL,
+        NULL, 'TOTAL GENERAL', NULL, NULL, NULL,
         SUM(DEBE_S), SUM(HABER_S), SUM(DEBE_US), SUM(HABER_US)
       FROM BASE
 
