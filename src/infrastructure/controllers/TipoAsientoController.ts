@@ -8,6 +8,20 @@ export class TipoAsientoController {
 
   /**
    * @swagger
+   * components:
+   *   schemas:
+   *     TipoAsiento:
+   *       type: object
+   *       properties:
+   *         TIPO_ASIENTO:
+   *           type: string
+   *           example: "01"
+   *         DESCRIPCION:
+   *           type: string
+   *           example: "Normal"
+   */
+  /**
+   * @swagger
    * /api/tipos-asiento/{conjunto}:
    *   get:
    *     summary: Lista tipos de asiento
@@ -28,6 +42,26 @@ export class TipoAsientoController {
    *         schema:
    *           type: integer
    *           default: 0
+   *     responses:
+   *       200:
+   *         description: Lista de tipos de asiento
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 count:
+   *                   type: integer
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     $ref: '#/components/schemas/TipoAsiento'
+   *       400:
+   *         description: Parámetros inválidos
+   *       500:
+   *         description: Error interno del servidor
    */
   async listar(req: Request, res: Response): Promise<void> {
     try {
