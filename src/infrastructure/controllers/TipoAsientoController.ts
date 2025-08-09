@@ -36,7 +36,7 @@ export class TipoAsientoController {
    *         name: limit
    *         schema:
    *           type: integer
-   *           default: 1000
+   *           default: 100
    *       - in: query
    *         name: offset
    *         schema:
