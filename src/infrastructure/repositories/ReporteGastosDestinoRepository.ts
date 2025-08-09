@@ -83,6 +83,97 @@ export class ReporteGastosDestinoRepository implements IReporteGastosDestinoRepo
     };
   }
 
+  // Detalle con subtotal por ASIENTO
+  async listarDetalle(
+    conjunto: string,
+    fechaInicio?: string,
+    fechaFin?: string,
+    limit: number = 5000,
+    offset: number = 0
+  ): Promise<any[]> {
+    const whereFecha = fechaInicio && fechaFin
+      ? `WHERE FECHA BETWEEN :fi AND :ff`
+      : '';
+
+    const sql = `
+      WITH BASE AS (
+        SELECT
+          CONVERT(date, FECHA) AS FECHA,
+          CUENTAGASTO        AS CTA_CONTABLE,
+          CENTROGASTO        AS C_COSTO,
+          ASIENTO,
+          TIPOASIENTO        AS TIPO,
+          TIPOASIENTODES     AS CLASE,
+          REFERENCIA,
+          NIT,
+          RAZONSOCIAL,
+          CAST(DEBITOLOCAL  AS decimal(18,2)) AS DEBE_S,
+          CAST(CREDITOLOCAL AS decimal(18,2)) AS HABER_S,
+          CAST(DEBITODOLAR  AS decimal(18,2)) AS DEBE_US,
+          CAST(CREDITODOLAR AS decimal(18,2)) AS HABER_US
+        FROM ${conjunto}.R_XML_8DDC5FC376ABAD0 WITH (NOLOCK)
+        ${whereFecha}
+      )
+      SELECT * FROM (
+        -- Detalle
+        SELECT 
+          0                          AS ROW_ORDER,
+          'DATA'                     AS ROW_TYPE,
+          FECHA, CTA_CONTABLE, C_COSTO, ASIENTO, TIPO, CLASE, REFERENCIA, NIT, RAZONSOCIAL,
+          DEBE_S, HABER_S, DEBE_US, HABER_US
+        FROM BASE
+
+        UNION ALL
+
+        -- Subtotal por asiento
+        SELECT 
+          1                          AS ROW_ORDER,
+          'SUBTOTAL'                 AS ROW_TYPE,
+          NULL as FECHA,
+          NULL as CTA_CONTABLE,
+          NULL as C_COSTO,
+          ASIENTO,
+          NULL as TIPO,
+          'SUBTOTAL ' + CAST(ASIENTO AS VARCHAR(50)) as CLASE,
+          NULL as REFERENCIA,
+          NULL as NIT,
+          NULL as RAZONSOCIAL,
+          SUM(DEBE_S)  AS DEBE_S,
+          SUM(HABER_S) AS HABER_S,
+          SUM(DEBE_US) AS DEBE_US,
+          SUM(HABER_US) AS HABER_US
+        FROM BASE
+        GROUP BY ASIENTO
+      ) X
+      UNION ALL
+      -- Total general
+      SELECT 
+        2            AS ROW_ORDER,
+        'TOTAL'      AS ROW_TYPE,
+        NULL, NULL, NULL,
+        NULL        AS ASIENTO,
+        NULL, 'TOTAL GENERAL', NULL, NULL,
+        SUM(DEBE_S), SUM(HABER_S), SUM(DEBE_US), SUM(HABER_US)
+      FROM BASE
+
+      ORDER BY 
+        ISNULL(ASIENTO, 'ZZZZZ'),
+        ROW_ORDER,
+        FECHA,
+        CTA_CONTABLE
+      OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
+    `;
+
+    const replacements: any = { offset, limit };
+    if (whereFecha) {
+      replacements.fi = fechaInicio;
+      replacements.ff = fechaFin;
+    }
+
+    const [rows] = await exactusSequelize.query(sql, { replacements });
+    return rows as any[];
+  }
+
   async count(conjunto: string): Promise<number> {
     const GastosDestinoModel = DynamicModelFactory.createGastosDestinoModel(conjunto);
     const total = await (GastosDestinoModel as any).count();

@@ -8,6 +8,7 @@ export function createReporteGastosDestinoRoutes(): Router {
 
   router.post('/:conjunto/generar', (req, res) => controller.generar(req, res));
   router.get('/:conjunto', (req, res) => controller.listar(req, res));
+  router.get('/:conjunto/detalle', (req, res) => controller.listarDetalle(req, res));
 
   return router;
 }
