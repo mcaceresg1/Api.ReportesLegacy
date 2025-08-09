@@ -116,7 +116,7 @@ export class ReporteGastosDestinoRepository implements IReporteGastosDestinoRepo
       ) U
 
       ORDER BY 
-        ISNULL(ASIENTO, 'ZZZZZ'),
+        ASIENTO,
         ROW_ORDER,
         FECHA,
         CTA_CONTABLE
