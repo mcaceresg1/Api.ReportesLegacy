@@ -1,11 +1,12 @@
-import { injectable } from 'inversify';
+import { injectable, inject } from 'inversify';
 import { IReporteCuentaContableModificadaRepository } from '../../domain/repositories/IReporteCuentaContableModificadaRepository';
 import { ReporteCuentaContableModificada } from '../../domain/entities/ReporteCuentaContableModificada';
+import { ICuentaContableService } from '../../domain/services/ICuentaContableService';
 
 @injectable()
-export class CuentaContableService {
+export class CuentaContableService implements ICuentaContableService {
   constructor(
-    private reporteCuentaContableModificadaRepository: IReporteCuentaContableModificadaRepository
+    @inject('IReporteCuentaContableModificadaRepository') private reporteCuentaContableModificadaRepository: IReporteCuentaContableModificadaRepository
   ) {}
 
   async generarReporteCuentasContablesModificadas(

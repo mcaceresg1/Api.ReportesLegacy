@@ -12,10 +12,12 @@ import { IConjuntoRepository } from '../../domain/repositories/IConjuntoReposito
 import { ICentroCostoRepository } from '../../domain/repositories/ICentroCostoRepository';
 import { IMovimientoContableRepository } from '../../domain/repositories/IMovimientoContableRepository';
 import { IReporteCuentaContableRepository } from '../../domain/repositories/IReporteCuentaContableRepository';
+import { IReporteCuentaContableModificadaRepository } from '../../domain/repositories/IReporteCuentaContableModificadaRepository';
 import { IReporteCentroCostoRepository } from '../../domain/repositories/IReporteCentroCostoRepository';
 import { ITipoAsientoRepository } from '../../domain/repositories/ITipoAsientoRepository';
 import { IReporteGastosDestinoRepository } from '../../domain/repositories/IReporteGastosDestinoRepository';
 import { IReporteAsientosSinDimensionRepository } from '../../domain/repositories/IReporteAsientosSinDimensionRepository';
+import { IResumenAsientosRepository } from '../../domain/repositories/IResumenAsientosRepository';
 
 import { ICuentaContableRepository } from '../../domain/repositories/ICuentaContableRepository';
 import { IUsuarioService } from '../../domain/services/IUsuarioService';
@@ -27,6 +29,8 @@ import { IConexionService } from '../../domain/services/IConexionService';
 import { IRolMenuService } from '../../domain/services/IRolMenuService';
 import { IRolSistemaMenuService } from '../../domain/services/IRolSistemaMenuService';
 import { IConjuntoService } from '../../domain/services/IConjuntoService';
+import { ICuentaContableService } from '../../domain/services/ICuentaContableService';
+import { IResumenAsientosService } from '../../domain/services/IResumenAsientosService';
 
 // CQRS interfaces
 import { ICommandBus } from '../../domain/cqrs/ICommandBus';
@@ -43,10 +47,12 @@ import { ConjuntoRepository } from '../repositories/ConjuntoRepository';
 import { CentroCostoRepository } from '../repositories/CentroCostoRepository';
 import { MovimientoContableRepository } from '../repositories/MovimientoContableRepository';
 import { ReporteCuentaContableRepository } from '../repositories/ReporteCuentaContableRepository';
+import { ReporteCuentaContableModificadaRepository } from '../repositories/ReporteCuentaContableModificadaRepository';
 import { ReporteCentroCostoRepository } from '../repositories/ReporteCentroCostoRepository';
 import { TipoAsientoRepository } from '../repositories/TipoAsientoRepository';
 import { ReporteGastosDestinoRepository } from '../repositories/ReporteGastosDestinoRepository';
 import { ReporteAsientosSinDimensionRepository } from '../repositories/ReporteAsientosSinDimensionRepository';
+import { ResumenAsientosRepository } from '../repositories/ResumenAsientosRepository';
 
 import { CuentaContableRepository } from '../repositories/CuentaContableRepository';
 import { UsuarioService } from '../../application/services/UsuarioService';
@@ -58,12 +64,15 @@ import { ConexionService } from '../../application/services/ConexionService';
 import { RolMenuService } from '../../application/services/RolMenuService';
 import { RolSistemaMenuService } from '../../application/services/RolSistemaMenuService';
 import { ConjuntoService } from '../../application/services/ConjuntoService';
+import { CuentaContableService } from '../../application/services/CuentaContableService';
+import { ResumenAsientosService } from '../../application/services/ResumenAsientosService';
 
 
 // Controllers
 import { UsuarioController } from '../controllers/UsuarioController';
 import { MenuController } from '../controllers/MenuController';
 import { RolController } from '../controllers/RolController';
+import { CuentaContableController } from '../controllers/CuentaContableController';
 import { SistemaController } from '../controllers/SistemaController';
 import { ConexionController } from '../controllers/ConexionController';
 import { RolMenuController } from '../controllers/RolMenuController';
@@ -72,6 +81,7 @@ import { ReporteCentroCostoController } from '../controllers/ReporteCentroCostoC
 import { TipoAsientoController } from '../controllers/TipoAsientoController';
 import { ReporteGastosDestinoController } from '../controllers/ReporteGastosDestinoController';
 import { ReporteAsientosSinDimensionController } from '../controllers/ReporteAsientosSinDimensionController';
+import { ResumenAsientosController } from '../controllers/ResumenAsientosController';
 
 // CQRS implementations
 import { CommandBus } from '../cqrs/CommandBus';
@@ -110,10 +120,12 @@ container.bind<IConjuntoRepository>('IConjuntoRepository').to(ConjuntoRepository
 container.bind<ICentroCostoRepository>('ICentroCostoRepository').to(CentroCostoRepository);
 container.bind<IMovimientoContableRepository>('IMovimientoContableRepository').to(MovimientoContableRepository);
 container.bind<IReporteCuentaContableRepository>('IReporteCuentaContableRepository').to(ReporteCuentaContableRepository);
+container.bind<IReporteCuentaContableModificadaRepository>('IReporteCuentaContableModificadaRepository').to(ReporteCuentaContableModificadaRepository);
 container.bind<IReporteCentroCostoRepository>('IReporteCentroCostoRepository').to(ReporteCentroCostoRepository);
 container.bind<ITipoAsientoRepository>('ITipoAsientoRepository').to(TipoAsientoRepository);
 container.bind<IReporteGastosDestinoRepository>('IReporteGastosDestinoRepository').to(ReporteGastosDestinoRepository);
 container.bind<IReporteAsientosSinDimensionRepository>('IReporteAsientosSinDimensionRepository').to(ReporteAsientosSinDimensionRepository);
+container.bind<IResumenAsientosRepository>('IResumenAsientosRepository').to(ResumenAsientosRepository);
 
 container.bind<ICuentaContableRepository>('ICuentaContableRepository').to(CuentaContableRepository);
 
@@ -128,12 +140,15 @@ container.bind<IConexionService>('IConexionService').to(ConexionService);
 container.bind<IRolMenuService>('IRolMenuService').to(RolMenuService);
 container.bind<IRolSistemaMenuService>('IRolSistemaMenuService').to(RolSistemaMenuService);
 container.bind<IConjuntoService>('IConjuntoService').to(ConjuntoService);
+container.bind<ICuentaContableService>('CuentaContableService').to(CuentaContableService);
+container.bind<IResumenAsientosService>('ResumenAsientosService').to(ResumenAsientosService);
 
 
 // Controllers
 container.bind<UsuarioController>('UsuarioController').to(UsuarioController);
 container.bind<MenuController>('MenuController').to(MenuController);
 container.bind<RolController>('RolController').to(RolController);
+container.bind<CuentaContableController>('CuentaContableController').to(CuentaContableController);
 container.bind<SistemaController>('SistemaController').to(SistemaController);
 container.bind<ConexionController>('ConexionController').to(ConexionController);
 container.bind<RolMenuController>('RolMenuController').to(RolMenuController);
@@ -142,6 +157,7 @@ container.bind<ReporteCentroCostoController>('ReporteCentroCostoController').to(
 container.bind<TipoAsientoController>('TipoAsientoController').to(TipoAsientoController);
 container.bind<ReporteGastosDestinoController>('ReporteGastosDestinoController').to(ReporteGastosDestinoController);
 container.bind<ReporteAsientosSinDimensionController>('ReporteAsientosSinDimensionController').to(ReporteAsientosSinDimensionController);
+container.bind<ResumenAsientosController>('ResumenAsientosController').to(ResumenAsientosController);
 
 
 // CQRS Buses

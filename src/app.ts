@@ -16,10 +16,12 @@ import { createConjuntoRoutes } from './infrastructure/routes/ConjuntoRoutes';
 import { createExactusRoutes } from './infrastructure/routes/ExactusRoutes';
 import { createMovimientoContableRoutes } from './infrastructure/routes/MovimientoContableRoutes';
 import { createReporteCuentaContableRoutes } from './infrastructure/routes/ReporteCuentaContableRoutes';
+import { createCuentaContableRoutes } from './infrastructure/routes/cuentaContable.routes';
 import { createReporteCentroCostoRoutes } from './infrastructure/routes/ReporteCentroCostoRoutes';
 import { createTipoAsientoRoutes } from './infrastructure/routes/TipoAsientoRoutes';
 import { createReporteGastosDestinoRoutes } from './infrastructure/routes/ReporteGastosDestinoRoutes';
 import ReporteAsientosSinDimensionRoutes from './infrastructure/routes/ReporteAsientosSinDimensionRoutes';
+import { createResumenAsientosRoutes } from './infrastructure/routes/resumenAsientos.routes';
 
 import { AuthMiddleware } from './infrastructure/middleware/AuthMiddleware';
 import { QueryOptimizationMiddleware } from './infrastructure/middleware/QueryOptimizationMiddleware';
@@ -90,6 +92,7 @@ const permisoRoutes = new PermisoRoutes();
   const reporteGastosDestinoRoutes = createReporteGastosDestinoRoutes();
   const tipoAsientoRoutes = createTipoAsientoRoutes();
   const reporteAsientosSinDimensionRoutes = ReporteAsientosSinDimensionRoutes;
+  const resumenAsientosRoutes = createResumenAsientosRoutes();
 
 // Endpoint de prueba
 app.get('/api/test', (req, res) => {
@@ -115,12 +118,14 @@ app.use('/api/permisos', authMiddleware.verifyToken, permisoRoutes.getRouter());
 // Rutas de EXACTUS (solo lectura, sin autenticación)
   app.use('/api/conjuntos', QueryOptimizationMiddleware.validateQueryParams, conjuntoRoutes);
   app.use('/api/exactus', QueryOptimizationMiddleware.validateQueryParams, exactusRoutes);
+  app.use('/api/cuentas-contables', QueryOptimizationMiddleware.validateQueryParams, createCuentaContableRoutes());
   app.use('/api/movimientos', QueryOptimizationMiddleware.validateQueryParams, movimientoContableRoutes);
   app.use('/api/reporte-cuenta-contable', QueryOptimizationMiddleware.validateQueryParams, reporteCuentaContableRoutes);
   app.use('/api/reporte-centro-costo', QueryOptimizationMiddleware.validateQueryParams, reporteCentroCostoRoutes);
   app.use('/api/tipos-asiento', QueryOptimizationMiddleware.validateQueryParams, tipoAsientoRoutes);
   app.use('/api/reporte-gastos-destino', QueryOptimizationMiddleware.validateQueryParams, reporteGastosDestinoRoutes);
   app.use('/api/reporte-asientos-sin-dimension', QueryOptimizationMiddleware.validateQueryParams, reporteAsientosSinDimensionRoutes);
+  app.use('/api/resumen-asientos', QueryOptimizationMiddleware.validateQueryParams, resumenAsientosRoutes);
 
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================
