@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { CuentaContableService } from '../../application/services/CuentaContableService';
-import { injectable } from 'inversify';
+import { injectable, inject } from 'inversify';
 
 /**
  * @swagger
@@ -39,7 +39,7 @@ import { injectable } from 'inversify';
 
 @injectable()
 export class CuentaContableController {
-  constructor(private cuentaContableService: CuentaContableService) {}
+  constructor(@inject('CuentaContableService') private cuentaContableService: CuentaContableService) {}
 
   /**
    * @swagger

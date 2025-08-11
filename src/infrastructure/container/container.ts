@@ -27,6 +27,7 @@ import { IConexionService } from '../../domain/services/IConexionService';
 import { IRolMenuService } from '../../domain/services/IRolMenuService';
 import { IRolSistemaMenuService } from '../../domain/services/IRolSistemaMenuService';
 import { IConjuntoService } from '../../domain/services/IConjuntoService';
+import { ICuentaContableService } from '../../domain/services/ICuentaContableService';
 
 // CQRS interfaces
 import { ICommandBus } from '../../domain/cqrs/ICommandBus';
@@ -58,6 +59,7 @@ import { ConexionService } from '../../application/services/ConexionService';
 import { RolMenuService } from '../../application/services/RolMenuService';
 import { RolSistemaMenuService } from '../../application/services/RolSistemaMenuService';
 import { ConjuntoService } from '../../application/services/ConjuntoService';
+import { CuentaContableService } from '../../application/services/CuentaContableService';
 
 
 // Controllers
@@ -129,6 +131,7 @@ container.bind<IConexionService>('IConexionService').to(ConexionService);
 container.bind<IRolMenuService>('IRolMenuService').to(RolMenuService);
 container.bind<IRolSistemaMenuService>('IRolSistemaMenuService').to(RolSistemaMenuService);
 container.bind<IConjuntoService>('IConjuntoService').to(ConjuntoService);
+container.bind<ICuentaContableService>('CuentaContableService').to(CuentaContableService);
 
 
 // Controllers
