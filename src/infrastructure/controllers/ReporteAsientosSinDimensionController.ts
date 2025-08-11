@@ -1,4 +1,4 @@
-import { injectable } from 'inversify';
+import { injectable, inject } from 'inversify';
 import { Request, Response } from 'express';
 import { IReporteAsientosSinDimensionRepository } from '../../domain/repositories/IReporteAsientosSinDimensionRepository';
 
@@ -51,7 +51,7 @@ import { IReporteAsientosSinDimensionRepository } from '../../domain/repositorie
 @injectable()
 export class ReporteAsientosSinDimensionController {
   constructor(
-    private readonly reporteAsientosSinDimensionRepository: IReporteAsientosSinDimensionRepository
+    @inject('IReporteAsientosSinDimensionRepository') private readonly reporteAsientosSinDimensionRepository: IReporteAsientosSinDimensionRepository
   ) {}
 
   /**
