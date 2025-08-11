@@ -91,6 +91,15 @@ const permisoRoutes = new PermisoRoutes();
   const tipoAsientoRoutes = createTipoAsientoRoutes();
   const reporteAsientosSinDimensionRoutes = ReporteAsientosSinDimensionRoutes;
 
+// Endpoint de prueba
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'Backend funcionando correctamente',
+    timestamp: new Date().toISOString(),
+    status: 'OK'
+  });
+});
+
 // Rutas de menús (algunas públicas, otras protegidas)
 app.use('/api/menus', menuRoutes.getRouter());
 
