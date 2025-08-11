@@ -9,3 +9,8 @@ export interface ResumenAsientosResponse {
   fechaFin?: Date;
   conjunto?: string;
 }
+
+// Tipo para crear respuestas sin propiedades undefined
+export type ResumenAsientosResponseInput = {
+  [K in keyof ResumenAsientosResponse]: ResumenAsientosResponse[K] extends undefined ? never : ResumenAsientosResponse[K];
+};

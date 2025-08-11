@@ -177,16 +177,38 @@ export class ResumenAsientosController {
    */
   async obtenerResumenAsientos(req: Request, res: Response): Promise<void> {
     try {
-      const conjunto = req.params.conjunto;
-      const filtros: FiltrosResumenAsientos = {
-        fechaInicio: req.query.fechaInicio ? new Date(req.query.fechaInicio as string) : undefined,
-        fechaFin: req.query.fechaFin ? new Date(req.query.fechaFin as string) : undefined,
-        tipoAsiento: req.query.tipoAsiento as string,
-        cuentaContable: req.query.cuentaContable as string,
-        centroCosto: req.query.centroCosto as string,
-        usuario: req.query.usuario as string,
-        contabilidad: req.query.contabilidad as 'F' | 'A' | 'T'
-      };
+      const conjunto = req.params['conjunto'];
+      
+      // Crear objeto de filtros solo con propiedades definidas
+      const filtros: Partial<FiltrosResumenAsientos> = {};
+      
+      if (req.query['fechaInicio']) {
+        filtros.fechaInicio = new Date(req.query['fechaInicio'] as string);
+      }
+      
+      if (req.query['fechaFin']) {
+        filtros.fechaFin = new Date(req.query['fechaFin'] as string);
+      }
+      
+      if (req.query['tipoAsiento']) {
+        filtros.tipoAsiento = req.query['tipoAsiento'] as string;
+      }
+      
+      if (req.query['cuentaContable']) {
+        filtros.cuentaContable = req.query['cuentaContable'] as string;
+      }
+      
+      if (req.query['centroCosto']) {
+        filtros.centroCosto = req.query['centroCosto'] as string;
+      }
+      
+      if (req.query['usuario']) {
+        filtros.usuario = req.query['usuario'] as string;
+      }
+      
+      if (req.query['contabilidad']) {
+        filtros.contabilidad = req.query['contabilidad'] as 'F' | 'A' | 'T';
+      }
 
       console.log(`🚀 Controlador - Obteniendo resumen de asientos para conjunto: ${conjunto}`);
       console.log('📋 Filtros recibidos:', filtros);
@@ -204,15 +226,23 @@ export class ResumenAsientosController {
       // Generar reporte
       const resultado = await this.resumenAsientosService.generarReporteResumenAsientos(conjunto, filtros);
 
+      // Crear respuesta solo con propiedades definidas
       const response: ResumenAsientosResponse = {
         success: true,
         message: `Reporte generado exitosamente con ${resultado.length} registros`,
         data: resultado,
         totalRegistros: resultado.length,
-        fechaInicio: filtros.fechaInicio,
-        fechaFin: filtros.fechaFin,
         conjunto: conjunto
       };
+      
+      // Agregar fechas solo si están definidas
+      if (filtros.fechaInicio) {
+        response.fechaInicio = filtros.fechaInicio;
+      }
+      
+      if (filtros.fechaFin) {
+        response.fechaFin = filtros.fechaFin;
+      }
 
       console.log(`✅ Controlador - Reporte enviado con ${resultado.length} registros`);
       res.status(200).json(response);

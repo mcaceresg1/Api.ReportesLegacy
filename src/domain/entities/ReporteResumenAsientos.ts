@@ -26,3 +26,8 @@ export interface FiltrosResumenAsientos {
   usuario?: string;
   contabilidad?: 'F' | 'A' | 'T'; // F=Fiscal, A=Administrativo, T=Todos
 }
+
+// Tipo para crear filtros sin propiedades undefined
+export type FiltrosResumenAsientosInput = {
+  [K in keyof FiltrosResumenAsientos]: FiltrosResumenAsientos[K] extends undefined ? never : FiltrosResumenAsientos[K];
+};

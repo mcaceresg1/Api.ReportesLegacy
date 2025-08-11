@@ -20,7 +20,7 @@ import { createCuentaContableRoutes } from './infrastructure/routes/cuentaContab
 import { createReporteCentroCostoRoutes } from './infrastructure/routes/ReporteCentroCostoRoutes';
 import { createTipoAsientoRoutes } from './infrastructure/routes/TipoAsientoRoutes';
 import { createReporteGastosDestinoRoutes } from './infrastructure/routes/ReporteGastosDestinoRoutes';
-import { createReporteAsientosSinDimensionRoutes } from './infrastructure/routes/ReporteAsientosSinDimensionRoutes';
+import ReporteAsientosSinDimensionRoutes from './infrastructure/routes/ReporteAsientosSinDimensionRoutes';
 import { createResumenAsientosRoutes } from './infrastructure/routes/resumenAsientos.routes';
 
 import { AuthMiddleware } from './infrastructure/middleware/AuthMiddleware';
@@ -91,7 +91,7 @@ const permisoRoutes = new PermisoRoutes();
   const reporteCentroCostoRoutes = createReporteCentroCostoRoutes(reporteCentroCostoRepository);
   const reporteGastosDestinoRoutes = createReporteGastosDestinoRoutes();
   const tipoAsientoRoutes = createTipoAsientoRoutes();
-  const reporteAsientosSinDimensionRoutes = createReporteAsientosSinDimensionRoutes();
+  const reporteAsientosSinDimensionRoutes = ReporteAsientosSinDimensionRoutes;
   const resumenAsientosRoutes = createResumenAsientosRoutes();
 
 // Endpoint de prueba
