@@ -5,7 +5,7 @@ import { ReporteAsientosSinDimensionController } from '../controllers/ReporteAsi
 const router = Router();
 
 // Obtener instancia del controlador desde el contenedor
-const reporteAsientosSinDimensionController = container.get<ReporteAsientosSinDimensionController>(ReporteAsientosSinDimensionController);
+const reporteAsientosSinDimensionController = container.get<ReporteAsientosSinDimensionController>('ReporteAsientosSinDimensionController');
 
 // Rutas para el reporte de asientos sin dimensión
 router.post('/:conjunto/generar', (req, res) => reporteAsientosSinDimensionController.generar(req, res));
