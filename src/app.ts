@@ -16,6 +16,7 @@ import { createConjuntoRoutes } from './infrastructure/routes/ConjuntoRoutes';
 import { createExactusRoutes } from './infrastructure/routes/ExactusRoutes';
 import { createMovimientoContableRoutes } from './infrastructure/routes/MovimientoContableRoutes';
 import { createReporteCuentaContableRoutes } from './infrastructure/routes/ReporteCuentaContableRoutes';
+import { createCuentaContableRoutes } from './infrastructure/routes/cuentaContable.routes';
 import { createReporteCentroCostoRoutes } from './infrastructure/routes/ReporteCentroCostoRoutes';
 import { createTipoAsientoRoutes } from './infrastructure/routes/TipoAsientoRoutes';
 import { createReporteGastosDestinoRoutes } from './infrastructure/routes/ReporteGastosDestinoRoutes';
@@ -115,6 +116,7 @@ app.use('/api/permisos', authMiddleware.verifyToken, permisoRoutes.getRouter());
 // Rutas de EXACTUS (solo lectura, sin autenticación)
   app.use('/api/conjuntos', QueryOptimizationMiddleware.validateQueryParams, conjuntoRoutes);
   app.use('/api/exactus', QueryOptimizationMiddleware.validateQueryParams, exactusRoutes);
+  app.use('/api/cuentas-contables', QueryOptimizationMiddleware.validateQueryParams, createCuentaContableRoutes());
   app.use('/api/movimientos', QueryOptimizationMiddleware.validateQueryParams, movimientoContableRoutes);
   app.use('/api/reporte-cuenta-contable', QueryOptimizationMiddleware.validateQueryParams, reporteCuentaContableRoutes);
   app.use('/api/reporte-centro-costo', QueryOptimizationMiddleware.validateQueryParams, reporteCentroCostoRoutes);

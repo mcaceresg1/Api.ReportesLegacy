@@ -2,6 +2,41 @@ import { Request, Response } from 'express';
 import { CuentaContableService } from '../../application/services/CuentaContableService';
 import { injectable } from 'inversify';
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     ReporteCuentaContableModificada:
+ *       type: object
+ *       properties:
+ *         cuentaContable:
+ *           type: string
+ *           description: Código de la cuenta contable
+ *         cuentaContableDesc:
+ *           type: string
+ *           description: Descripción de la cuenta contable
+ *         usuarioCreacion:
+ *           type: string
+ *           description: Usuario que creó la cuenta
+ *         usuarioCreacionDesc:
+ *           type: string
+ *           description: Nombre del usuario que creó la cuenta
+ *         fechaCreacion:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha de creación de la cuenta
+ *         usuarioModificacion:
+ *           type: string
+ *           description: Usuario que modificó la cuenta
+ *         usuarioModificacionDesc:
+ *           type: string
+ *           description: Nombre del usuario que modificó la cuenta
+ *         fechaModificacion:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha de última modificación de la cuenta
+ */
+
 @injectable()
 export class CuentaContableController {
   constructor(private cuentaContableService: CuentaContableService) {}
