@@ -165,12 +165,6 @@ export class ReporteAsientosSinDimensionController {
    *           type: integer
    *           default: 100
    *         description: Límite de registros
-   *       - in: query
-   *         name: offset
-   *         schema:
-   *           type: integer
-   *           default: 0
-   *         description: Desplazamiento de registros
    *     responses:
    *       200:
    *         description: Lista de asientos sin dimensión
@@ -193,7 +187,7 @@ export class ReporteAsientosSinDimensionController {
   async listar(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto } = req.params;
-      const { limit = 100, offset = 0 } = req.query;
+      const { limit = 100 } = req.query;
 
       if (!conjunto) {
         res.status(400).json({
@@ -205,8 +199,7 @@ export class ReporteAsientosSinDimensionController {
 
       const asientos = await this.reporteAsientosSinDimensionRepository.listar(
         conjunto,
-        Number(limit),
-        Number(offset)
+        Number(limit)
       );
 
       res.json({
@@ -257,12 +250,6 @@ export class ReporteAsientosSinDimensionController {
    *           type: integer
    *           default: 100
    *         description: Límite de registros
-   *       - in: query
-   *         name: offset
-   *         schema:
-   *           type: integer
-   *           default: 0
-   *         description: Desplazamiento de registros
    *     responses:
    *       200:
    *         description: Detalle de asientos sin dimensión
@@ -287,7 +274,7 @@ export class ReporteAsientosSinDimensionController {
   async listarDetalle(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto } = req.params;
-      const { fechaDesde, fechaHasta, limit = 100, offset = 0 } = req.body;
+      const { fechaDesde, fechaHasta, limit = 100 } = req.body;
 
       if (!conjunto) {
         res.status(400).json({
@@ -309,8 +296,7 @@ export class ReporteAsientosSinDimensionController {
         conjunto,
         fechaDesde as string,
         fechaHasta as string,
-        Number(limit),
-        Number(offset)
+        Number(limit)
       );
 
       res.json({

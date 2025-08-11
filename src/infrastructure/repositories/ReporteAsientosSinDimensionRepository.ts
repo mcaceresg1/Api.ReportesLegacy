@@ -41,7 +41,7 @@ export class ReporteAsientosSinDimensionRepository implements IReporteAsientosSi
       
       // Usar el método listarDetalle para obtener los datos reales
       console.log('Llamando a listarDetalle...');
-      const resultado = await this.listarDetalle(conjunto, fechaDesde, fechaHasta, 1000, 0);
+      const resultado = await this.listarDetalle(conjunto, fechaDesde, fechaHasta, 1000);
       
       console.log(`Resultado de listarDetalle:`, resultado);
       console.log(`Tipo de resultado:`, typeof resultado);
@@ -61,7 +61,7 @@ export class ReporteAsientosSinDimensionRepository implements IReporteAsientosSi
     }
   }
 
-  async listar(conjunto: string, limit: number = 100, offset: number = 0): Promise<ReporteAsientosSinDimension[]> {
+  async listar(conjunto: string, limit: number = 100): Promise<ReporteAsientosSinDimension[]> {
     try {
       const query = `
         SELECT TOP (${limit}) 
@@ -69,7 +69,6 @@ export class ReporteAsientosSinDimensionRepository implements IReporteAsientosSi
           FUENTE, REFERENCIA, MONTO_LOCAL, MONTO_DOLAR, CUENTA_CONTABLE, CENTRO_COSTO
         FROM ${conjunto}.R_XML_8DDC6068F9B43BF
         ORDER BY ROW_ORDER_BY
-        OFFSET ${offset} ROWS
       `;
 
       const result = await exactusSequelize.query(query, {
@@ -97,9 +96,9 @@ export class ReporteAsientosSinDimensionRepository implements IReporteAsientosSi
     }
   }
 
-  async listarDetalle(conjunto: string, fechaDesde: string, fechaHasta: string, limit: number = 100, offset: number = 0): Promise<ReporteAsientosSinDimension[]> {
+  async listarDetalle(conjunto: string, fechaDesde: string, fechaHasta: string, limit: number = 100): Promise<ReporteAsientosSinDimension[]> {
     try {
-      console.log(`listarDetalle llamado con: conjunto=${conjunto}, fechaDesde=${fechaDesde}, fechaHasta=${fechaHasta}, limit=${limit}, offset=${offset}`);
+      console.log(`listarDetalle llamado con: conjunto=${conjunto}, fechaDesde=${fechaDesde}, fechaHasta=${fechaHasta}, limit=${limit}`);
       
       // Query simplificada para evitar problemas de UNION complejos
       const query = `
@@ -114,7 +113,6 @@ export class ReporteAsientosSinDimensionRepository implements IReporteAsientosSi
         WHERE AD.FECHA >= :fechaDesde
           AND AD.FECHA <= :fechaHasta
         ORDER BY D.ASIENTO, D.CONSECUTIVO
-        OFFSET ${offset} ROWS
       `;
 
       console.log('Ejecutando query con parámetros:', { fechaDesde, fechaHasta });
