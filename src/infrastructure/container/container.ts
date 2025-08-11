@@ -17,6 +17,7 @@ import { IReporteCentroCostoRepository } from '../../domain/repositories/IReport
 import { ITipoAsientoRepository } from '../../domain/repositories/ITipoAsientoRepository';
 import { IReporteGastosDestinoRepository } from '../../domain/repositories/IReporteGastosDestinoRepository';
 import { IReporteAsientosSinDimensionRepository } from '../../domain/repositories/IReporteAsientosSinDimensionRepository';
+import { IResumenAsientosRepository } from '../../domain/repositories/IResumenAsientosRepository';
 
 import { ICuentaContableRepository } from '../../domain/repositories/ICuentaContableRepository';
 import { IUsuarioService } from '../../domain/services/IUsuarioService';
@@ -29,6 +30,7 @@ import { IRolMenuService } from '../../domain/services/IRolMenuService';
 import { IRolSistemaMenuService } from '../../domain/services/IRolSistemaMenuService';
 import { IConjuntoService } from '../../domain/services/IConjuntoService';
 import { ICuentaContableService } from '../../domain/services/ICuentaContableService';
+import { IResumenAsientosService } from '../../domain/services/IResumenAsientosService';
 
 // CQRS interfaces
 import { ICommandBus } from '../../domain/cqrs/ICommandBus';
@@ -50,6 +52,7 @@ import { ReporteCentroCostoRepository } from '../repositories/ReporteCentroCosto
 import { TipoAsientoRepository } from '../repositories/TipoAsientoRepository';
 import { ReporteGastosDestinoRepository } from '../repositories/ReporteGastosDestinoRepository';
 import { ReporteAsientosSinDimensionRepository } from '../repositories/ReporteAsientosSinDimensionRepository';
+import { ResumenAsientosRepository } from '../repositories/ResumenAsientosRepository';
 
 import { CuentaContableRepository } from '../repositories/CuentaContableRepository';
 import { UsuarioService } from '../../application/services/UsuarioService';
@@ -62,6 +65,7 @@ import { RolMenuService } from '../../application/services/RolMenuService';
 import { RolSistemaMenuService } from '../../application/services/RolSistemaMenuService';
 import { ConjuntoService } from '../../application/services/ConjuntoService';
 import { CuentaContableService } from '../../application/services/CuentaContableService';
+import { ResumenAsientosService } from '../../application/services/ResumenAsientosService';
 
 
 // Controllers
@@ -77,6 +81,7 @@ import { ReporteCentroCostoController } from '../controllers/ReporteCentroCostoC
 import { TipoAsientoController } from '../controllers/TipoAsientoController';
 import { ReporteGastosDestinoController } from '../controllers/ReporteGastosDestinoController';
 import { ReporteAsientosSinDimensionController } from '../controllers/ReporteAsientosSinDimensionController';
+import { ResumenAsientosController } from '../controllers/ResumenAsientosController';
 
 // CQRS implementations
 import { CommandBus } from '../cqrs/CommandBus';
@@ -120,6 +125,7 @@ container.bind<IReporteCentroCostoRepository>('IReporteCentroCostoRepository').t
 container.bind<ITipoAsientoRepository>('ITipoAsientoRepository').to(TipoAsientoRepository);
 container.bind<IReporteGastosDestinoRepository>('IReporteGastosDestinoRepository').to(ReporteGastosDestinoRepository);
 container.bind<IReporteAsientosSinDimensionRepository>('IReporteAsientosSinDimensionRepository').to(ReporteAsientosSinDimensionRepository);
+container.bind<IResumenAsientosRepository>('IResumenAsientosRepository').to(ResumenAsientosRepository);
 
 container.bind<ICuentaContableRepository>('ICuentaContableRepository').to(CuentaContableRepository);
 
@@ -135,6 +141,7 @@ container.bind<IRolMenuService>('IRolMenuService').to(RolMenuService);
 container.bind<IRolSistemaMenuService>('IRolSistemaMenuService').to(RolSistemaMenuService);
 container.bind<IConjuntoService>('IConjuntoService').to(ConjuntoService);
 container.bind<ICuentaContableService>('CuentaContableService').to(CuentaContableService);
+container.bind<IResumenAsientosService>('ResumenAsientosService').to(ResumenAsientosService);
 
 
 // Controllers
@@ -150,6 +157,7 @@ container.bind<ReporteCentroCostoController>('ReporteCentroCostoController').to(
 container.bind<TipoAsientoController>('TipoAsientoController').to(TipoAsientoController);
 container.bind<ReporteGastosDestinoController>('ReporteGastosDestinoController').to(ReporteGastosDestinoController);
 container.bind<ReporteAsientosSinDimensionController>('ReporteAsientosSinDimensionController').to(ReporteAsientosSinDimensionController);
+container.bind<ResumenAsientosController>('ResumenAsientosController').to(ResumenAsientosController);
 
 
 // CQRS Buses

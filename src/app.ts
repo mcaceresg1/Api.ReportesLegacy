@@ -20,7 +20,8 @@ import { createCuentaContableRoutes } from './infrastructure/routes/cuentaContab
 import { createReporteCentroCostoRoutes } from './infrastructure/routes/ReporteCentroCostoRoutes';
 import { createTipoAsientoRoutes } from './infrastructure/routes/TipoAsientoRoutes';
 import { createReporteGastosDestinoRoutes } from './infrastructure/routes/ReporteGastosDestinoRoutes';
-import ReporteAsientosSinDimensionRoutes from './infrastructure/routes/ReporteAsientosSinDimensionRoutes';
+import { createReporteAsientosSinDimensionRoutes } from './infrastructure/routes/ReporteAsientosSinDimensionRoutes';
+import { createResumenAsientosRoutes } from './infrastructure/routes/resumenAsientos.routes';
 
 import { AuthMiddleware } from './infrastructure/middleware/AuthMiddleware';
 import { QueryOptimizationMiddleware } from './infrastructure/middleware/QueryOptimizationMiddleware';
@@ -90,7 +91,8 @@ const permisoRoutes = new PermisoRoutes();
   const reporteCentroCostoRoutes = createReporteCentroCostoRoutes(reporteCentroCostoRepository);
   const reporteGastosDestinoRoutes = createReporteGastosDestinoRoutes();
   const tipoAsientoRoutes = createTipoAsientoRoutes();
-  const reporteAsientosSinDimensionRoutes = ReporteAsientosSinDimensionRoutes;
+  const reporteAsientosSinDimensionRoutes = createReporteAsientosSinDimensionRoutes();
+  const resumenAsientosRoutes = createResumenAsientosRoutes();
 
 // Endpoint de prueba
 app.get('/api/test', (req, res) => {
@@ -123,6 +125,7 @@ app.use('/api/permisos', authMiddleware.verifyToken, permisoRoutes.getRouter());
   app.use('/api/tipos-asiento', QueryOptimizationMiddleware.validateQueryParams, tipoAsientoRoutes);
   app.use('/api/reporte-gastos-destino', QueryOptimizationMiddleware.validateQueryParams, reporteGastosDestinoRoutes);
   app.use('/api/reporte-asientos-sin-dimension', QueryOptimizationMiddleware.validateQueryParams, reporteAsientosSinDimensionRoutes);
+  app.use('/api/resumen-asientos', QueryOptimizationMiddleware.validateQueryParams, resumenAsientosRoutes);
 
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================
