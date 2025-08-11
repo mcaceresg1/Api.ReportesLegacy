@@ -17,6 +17,9 @@ import { createExactusRoutes } from './infrastructure/routes/ExactusRoutes';
 import { createMovimientoContableRoutes } from './infrastructure/routes/MovimientoContableRoutes';
 import { createReporteCuentaContableRoutes } from './infrastructure/routes/ReporteCuentaContableRoutes';
 import { createReporteCentroCostoRoutes } from './infrastructure/routes/ReporteCentroCostoRoutes';
+import { createTipoAsientoRoutes } from './infrastructure/routes/TipoAsientoRoutes';
+import { createReporteGastosDestinoRoutes } from './infrastructure/routes/ReporteGastosDestinoRoutes';
+import ReporteAsientosSinDimensionRoutes from './infrastructure/routes/ReporteAsientosSinDimensionRoutes';
 
 import { AuthMiddleware } from './infrastructure/middleware/AuthMiddleware';
 import { QueryOptimizationMiddleware } from './infrastructure/middleware/QueryOptimizationMiddleware';
@@ -84,6 +87,18 @@ const permisoRoutes = new PermisoRoutes();
   const movimientoContableRoutes = createMovimientoContableRoutes(movimientoContableRepository);
   const reporteCuentaContableRoutes = createReporteCuentaContableRoutes(reporteCuentaContableRepository);
   const reporteCentroCostoRoutes = createReporteCentroCostoRoutes(reporteCentroCostoRepository);
+  const reporteGastosDestinoRoutes = createReporteGastosDestinoRoutes();
+  const tipoAsientoRoutes = createTipoAsientoRoutes();
+  const reporteAsientosSinDimensionRoutes = ReporteAsientosSinDimensionRoutes;
+
+// Endpoint de prueba
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'Backend funcionando correctamente',
+    timestamp: new Date().toISOString(),
+    status: 'OK'
+  });
+});
 
 // Rutas de menús (algunas públicas, otras protegidas)
 app.use('/api/menus', menuRoutes.getRouter());
@@ -103,6 +118,9 @@ app.use('/api/permisos', authMiddleware.verifyToken, permisoRoutes.getRouter());
   app.use('/api/movimientos', QueryOptimizationMiddleware.validateQueryParams, movimientoContableRoutes);
   app.use('/api/reporte-cuenta-contable', QueryOptimizationMiddleware.validateQueryParams, reporteCuentaContableRoutes);
   app.use('/api/reporte-centro-costo', QueryOptimizationMiddleware.validateQueryParams, reporteCentroCostoRoutes);
+  app.use('/api/tipos-asiento', QueryOptimizationMiddleware.validateQueryParams, tipoAsientoRoutes);
+  app.use('/api/reporte-gastos-destino', QueryOptimizationMiddleware.validateQueryParams, reporteGastosDestinoRoutes);
+  app.use('/api/reporte-asientos-sin-dimension', QueryOptimizationMiddleware.validateQueryParams, reporteAsientosSinDimensionRoutes);
 
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================

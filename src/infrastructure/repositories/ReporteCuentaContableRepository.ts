@@ -54,25 +54,29 @@ export class ReporteCuentaContableRepository implements IReporteCuentaContableRe
   }
 
   async obtenerCuentasContablesPorCentroCosto(
-    conjunto: string, 
+    conjunto: string,
     centroCosto: string,
     limit: number = 100,
     offset: number = 0
   ): Promise<ReporteCuentaContable[]> {
     try {
       const query = `
-        SELECT DISTINCT cta.cuenta_contable, cta.descripcion, cta.tipo  
-        FROM ${conjunto}.cuenta_contable CTA(NOLOCK), ${conjunto}.centro_cuenta CTR(NOLOCK)  
-        WHERE CTA.cuenta_contable = CTR.cuenta_contable 
-        AND centro_costo LIKE '${centroCosto}%'
-        ORDER BY 1 ASC
-        OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
+        SELECT DISTINCT CTA.cuenta_contable, CTA.descripcion, CTA.tipo
+        FROM ${conjunto}.cuenta_contable AS CTA WITH (NOLOCK)
+        INNER JOIN ${conjunto}.centro_cuenta AS CTR WITH (NOLOCK)
+          ON CTA.cuenta_contable = CTR.cuenta_contable
+        WHERE CTR.centro_costo LIKE :centroCostoLike
+        ORDER BY CTA.cuenta_contable ASC
+        OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
       `;
-      
-      const resultados = await exactusSequelize.query(query, { 
-        type: QueryTypes.SELECT 
+      const resultados = await exactusSequelize.query(query, {
+        type: QueryTypes.SELECT,
+        replacements: {
+          centroCostoLike: `${centroCosto}%`,
+          offset,
+          limit,
+        },
       });
-      
       return resultados as ReporteCuentaContable[];
     } catch (error) {
       console.error('Error al obtener cuentas contables por centro de costo:', error);
@@ -83,16 +87,16 @@ export class ReporteCuentaContableRepository implements IReporteCuentaContableRe
   async obtenerCuentasContablesCount(conjunto: string, centroCosto: string): Promise<number> {
     try {
       const query = `
-        SELECT COUNT(DISTINCT cta.cuenta_contable) as total
-        FROM ${conjunto}.cuenta_contable CTA(NOLOCK), ${conjunto}.centro_cuenta CTR(NOLOCK)  
-        WHERE CTA.cuenta_contable = CTR.cuenta_contable 
-        AND centro_costo LIKE '${centroCosto}%'
+        SELECT COUNT(DISTINCT CTA.cuenta_contable) AS total
+        FROM ${conjunto}.cuenta_contable AS CTA WITH (NOLOCK)
+        INNER JOIN ${conjunto}.centro_cuenta AS CTR WITH (NOLOCK)
+          ON CTA.cuenta_contable = CTR.cuenta_contable
+        WHERE CTR.centro_costo LIKE :centroCostoLike
       `;
-      
-      const resultados = await exactusSequelize.query(query, { 
-        type: QueryTypes.SELECT 
+      const resultados = await exactusSequelize.query(query, {
+        type: QueryTypes.SELECT,
+        replacements: { centroCostoLike: `${centroCosto}%` },
       });
-      
       return (resultados[0] as any).total;
     } catch (error) {
       console.error('Error al obtener conteo de cuentas contables:', error);

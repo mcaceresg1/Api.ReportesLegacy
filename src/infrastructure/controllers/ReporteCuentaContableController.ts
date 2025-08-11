@@ -235,9 +235,9 @@ export class ReporteCuentaContableController {
   async obtenerCuentasContablesPorCentroCosto(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto, centroCosto } = req.params;
-      const limit = parseInt(req.query["limit"] as string) || 100;
-      const offset = parseInt(req.query["offset"] as string) || 0;
-      const page = parseInt(req.query["page"] as string) || 1;
+      const limit = Number.parseInt(req.query["limit"] as string) || 100;
+      const page = Number.parseInt(req.query["page"] as string) || 1;
+      const offset = (page - 1) * limit;
       
       // Validar parámetros de ruta
       if (!conjunto || !centroCosto) {

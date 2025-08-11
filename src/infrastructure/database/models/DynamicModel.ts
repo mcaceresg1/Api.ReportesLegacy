@@ -100,6 +100,7 @@ export class DynamicModelFactory {
   private static centroCostoModelCache = new Map<string, typeof CentroCostoModel>();
   private static cuentaContableModelCache = new Map<string, typeof CuentaContableModel>();
   private static movimientoContableModelCache = new Map<string, typeof MovimientoContableModel>();
+  private static gastosDestinoModelCache = new Map<string, typeof Model>();
 
   // Método para limpiar el caché (útil para desarrollo)
   static clearCache(): void {
@@ -246,6 +247,53 @@ export class DynamicModelFactory {
     // Guardar en caché
     this.movimientoContableModelCache.set(conjunto, MovimientoContableModelForConjunto);
     return MovimientoContableModelForConjunto;
+  }
+
+  // Modelo dinámico para R_XML_8DDC5FC376ABAD0 (reporte gastos por clase destino)
+  static createGastosDestinoModel(conjunto: string): typeof Model {
+    if (this.gastosDestinoModelCache.has(conjunto)) {
+      return this.gastosDestinoModelCache.get(conjunto)!;
+    }
+
+    const modelName = `GastosDestino_${conjunto}`;
+    const GastosDestinoModelForConjunto = class extends Model {};
+
+    GastosDestinoModelForConjunto.init(
+      {
+        CUENTADESTINO: { type: DataTypes.STRING(50) },
+        CUENTADESTINODES: { type: DataTypes.STRING(200) },
+        CENTRODESTINO: { type: DataTypes.STRING(50) },
+        CENTRODESTINODES: { type: DataTypes.STRING(200) },
+        FECHA: { type: DataTypes.DATE },
+        ASIENTO: { type: DataTypes.STRING(50) },
+        CUENTAGASTO: { type: DataTypes.STRING(50) },
+        CUENTAGASTODES: { type: DataTypes.STRING(200) },
+        CENTROGASTO: { type: DataTypes.STRING(50) },
+        CENTROGASTODES: { type: DataTypes.STRING(200) },
+        TIPOASIENTO: { type: DataTypes.STRING(50) },
+        TIPOASIENTODES: { type: DataTypes.STRING(200) },
+        FUENTE: { type: DataTypes.STRING(100) },
+        REFERENCIA: { type: DataTypes.STRING(200) },
+        NIT: { type: DataTypes.STRING(50) },
+        RAZONSOCIAL: { type: DataTypes.STRING(200) },
+        DEBITOLOCAL: { type: DataTypes.DECIMAL(18, 2) },
+        CREDITOLOCAL: { type: DataTypes.DECIMAL(18, 2) },
+        DEBITODOLAR: { type: DataTypes.DECIMAL(18, 2) },
+        CREDITODOLAR: { type: DataTypes.DECIMAL(18, 2) },
+      },
+      {
+        sequelize: exactusSequelize,
+        tableName: 'R_XML_8DDC5FC376ABAD0',
+        schema: conjunto,
+        timestamps: false,
+        modelName: modelName,
+        createdAt: false,
+        updatedAt: false,
+      }
+    );
+
+    this.gastosDestinoModelCache.set(conjunto, GastosDestinoModelForConjunto);
+    return GastosDestinoModelForConjunto;
   }
 
   static createCuentaContableModel(conjunto: string): typeof CuentaContableModel {
