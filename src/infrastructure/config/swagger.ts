@@ -25,6 +25,101 @@ const swaggerOptions = {
           scheme: 'bearer',
           bearerFormat: 'JWT'
         }
+      },
+      schemas: {
+        ReporteResumenAsientos: {
+          type: 'object',
+          properties: {
+            cuentaContableDesc: {
+              type: 'string',
+              description: 'Descripción de la cuenta contable'
+            },
+            sDescTipoAsiento: {
+              type: 'string',
+              description: 'Descripción del tipo de asiento'
+            },
+            cuentaContable: {
+              type: 'string',
+              description: 'Código de la cuenta contable'
+            },
+            sNombreQuiebre: {
+              type: 'string',
+              description: 'Nombre del quiebre'
+            },
+            creditoLocal: {
+              type: 'number',
+              format: 'double',
+              description: 'Monto de crédito en moneda local'
+            },
+            creditoDolar: {
+              type: 'number',
+              format: 'double',
+              description: 'Monto de crédito en dólares'
+            },
+            centroCosto: {
+              type: 'string',
+              description: 'Código del centro de costo'
+            },
+            debitoLocal: {
+              type: 'number',
+              format: 'double',
+              description: 'Monto de débito en moneda local'
+            },
+            debitoDolar: {
+              type: 'number',
+              format: 'double',
+              description: 'Monto de débito en dólares'
+            },
+            tipoAsiento: {
+              type: 'string',
+              description: 'Tipo de asiento'
+            },
+            tipoReporte: {
+              type: 'string',
+              description: 'Tipo de reporte'
+            },
+            nomUsuario: {
+              type: 'string',
+              description: 'Nombre del usuario'
+            },
+            finicio: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Fecha de inicio del período'
+            },
+            quiebre: {
+              type: 'string',
+              description: 'Código del quiebre'
+            },
+            ffinal: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Fecha final del período'
+            },
+            rowOrderBy: {
+              type: 'integer',
+              description: 'Orden de la fila'
+            }
+          },
+          required: [
+            'cuentaContableDesc',
+            'sDescTipoAsiento',
+            'cuentaContable',
+            'sNombreQuiebre',
+            'creditoLocal',
+            'creditoDolar',
+            'centroCosto',
+            'debitoLocal',
+            'debitoDolar',
+            'tipoAsiento',
+            'tipoReporte',
+            'nomUsuario',
+            'finicio',
+            'quiebre',
+            'ffinal',
+            'rowOrderBy'
+          ]
+        }
       }
     },
     security: [
