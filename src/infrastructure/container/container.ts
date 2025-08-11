@@ -12,6 +12,7 @@ import { IConjuntoRepository } from '../../domain/repositories/IConjuntoReposito
 import { ICentroCostoRepository } from '../../domain/repositories/ICentroCostoRepository';
 import { IMovimientoContableRepository } from '../../domain/repositories/IMovimientoContableRepository';
 import { IReporteCuentaContableRepository } from '../../domain/repositories/IReporteCuentaContableRepository';
+import { IReporteCuentaContableModificadaRepository } from '../../domain/repositories/IReporteCuentaContableModificadaRepository';
 import { IReporteCentroCostoRepository } from '../../domain/repositories/IReporteCentroCostoRepository';
 import { ITipoAsientoRepository } from '../../domain/repositories/ITipoAsientoRepository';
 import { IReporteGastosDestinoRepository } from '../../domain/repositories/IReporteGastosDestinoRepository';
@@ -44,6 +45,7 @@ import { ConjuntoRepository } from '../repositories/ConjuntoRepository';
 import { CentroCostoRepository } from '../repositories/CentroCostoRepository';
 import { MovimientoContableRepository } from '../repositories/MovimientoContableRepository';
 import { ReporteCuentaContableRepository } from '../repositories/ReporteCuentaContableRepository';
+import { ReporteCuentaContableModificadaRepository } from '../repositories/ReporteCuentaContableModificadaRepository';
 import { ReporteCentroCostoRepository } from '../repositories/ReporteCentroCostoRepository';
 import { TipoAsientoRepository } from '../repositories/TipoAsientoRepository';
 import { ReporteGastosDestinoRepository } from '../repositories/ReporteGastosDestinoRepository';
@@ -113,6 +115,7 @@ container.bind<IConjuntoRepository>('IConjuntoRepository').to(ConjuntoRepository
 container.bind<ICentroCostoRepository>('ICentroCostoRepository').to(CentroCostoRepository);
 container.bind<IMovimientoContableRepository>('IMovimientoContableRepository').to(MovimientoContableRepository);
 container.bind<IReporteCuentaContableRepository>('IReporteCuentaContableRepository').to(ReporteCuentaContableRepository);
+container.bind<IReporteCuentaContableModificadaRepository>('IReporteCuentaContableModificadaRepository').to(ReporteCuentaContableModificadaRepository);
 container.bind<IReporteCentroCostoRepository>('IReporteCentroCostoRepository').to(ReporteCentroCostoRepository);
 container.bind<ITipoAsientoRepository>('ITipoAsientoRepository').to(TipoAsientoRepository);
 container.bind<IReporteGastosDestinoRepository>('IReporteGastosDestinoRepository').to(ReporteGastosDestinoRepository);
