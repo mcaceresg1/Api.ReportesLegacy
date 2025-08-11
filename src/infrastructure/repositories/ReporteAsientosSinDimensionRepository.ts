@@ -22,12 +22,26 @@ interface RawQueryResult {
 @injectable()
 export class ReporteAsientosSinDimensionRepository implements IReporteAsientosSinDimensionRepository {
   
-  async generar(conjunto: string, fechaDesde: string, fechaHasta: string): Promise<boolean> {
+  async generar(conjunto: string, fechaDesde: string, fechaHasta: string): Promise<ReporteAsientosSinDimension[]> {
     try {
-      // Como la conexión es readOnly, no podemos hacer INSERT
-      // Este método se mantiene por compatibilidad pero no ejecuta la operación
       console.log(`Generando reporte de asientos sin dimensión para conjunto ${conjunto} desde ${fechaDesde} hasta ${fechaHasta}`);
-      return true;
+      
+      // Usar el método listarDetalle para obtener los datos reales
+      console.log('Llamando a listarDetalle...');
+      const resultado = await this.listarDetalle(conjunto, fechaDesde, fechaHasta, 1000, 0);
+      
+      console.log(`Resultado de listarDetalle:`, resultado);
+      console.log(`Tipo de resultado:`, typeof resultado);
+      console.log(`Es array:`, Array.isArray(resultado));
+      console.log(`Longitud:`, Array.isArray(resultado) ? resultado.length : 'No es array');
+      
+      if (!Array.isArray(resultado)) {
+        console.error('listarDetalle no retornó un array, retornando array vacío');
+        return [];
+      }
+      
+      console.log(`Reporte generado con ${resultado.length} registros`);
+      return resultado;
     } catch (error) {
       console.error('Error al generar reporte de asientos sin dimensión:', error);
       throw error;
@@ -72,6 +86,8 @@ export class ReporteAsientosSinDimensionRepository implements IReporteAsientosSi
 
   async listarDetalle(conjunto: string, fechaDesde: string, fechaHasta: string, limit: number = 100, offset: number = 0): Promise<ReporteAsientosSinDimension[]> {
     try {
+      console.log(`listarDetalle llamado con: conjunto=${conjunto}, fechaDesde=${fechaDesde}, fechaHasta=${fechaHasta}, limit=${limit}, offset=${offset}`);
+      
       const query = `
         SELECT TOP (${limit}) 
           U.ASIENTO, U.CONSECUTIVO, U.FECHA AS FECHA_ASIENTO, U.ORIGEN, 
@@ -154,6 +170,11 @@ export class ReporteAsientosSinDimensionRepository implements IReporteAsientosSi
           fechaHasta
         }
       });
+
+      console.log('Query ejecutada, resultado:', result);
+      console.log('Tipo de resultado:', typeof result);
+      console.log('Es array:', Array.isArray(result));
+      console.log('Longitud del resultado:', Array.isArray(result) ? result.length : 'No es array');
 
       return (result as RawQueryResult[]).map((row: RawQueryResult) => ({
         asiento: row.ASIENTO || '',

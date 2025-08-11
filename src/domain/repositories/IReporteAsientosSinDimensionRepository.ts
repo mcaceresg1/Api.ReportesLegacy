@@ -1,7 +1,7 @@
 import { ReporteAsientosSinDimension, ReporteAsientosSinDimensionCreate, ReporteAsientosSinDimensionUpdate } from '../entities/ReporteAsientosSinDimension';
 
 export interface IReporteAsientosSinDimensionRepository {
-  generar(conjunto: string, fechaDesde: string, fechaHasta: string): Promise<boolean>;
+  generar(conjunto: string, fechaDesde: string, fechaHasta: string): Promise<ReporteAsientosSinDimension[]>;
   listar(conjunto: string, limit?: number, offset?: number): Promise<ReporteAsientosSinDimension[]>;
   listarDetalle(conjunto: string, fechaDesde: string, fechaHasta: string, limit?: number, offset?: number): Promise<ReporteAsientosSinDimension[]>;
   getById(conjunto: string, id: number): Promise<ReporteAsientosSinDimension | null>;
