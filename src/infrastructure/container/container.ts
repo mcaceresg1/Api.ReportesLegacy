@@ -31,6 +31,7 @@ import { IRolSistemaMenuService } from '../../domain/services/IRolSistemaMenuSer
 import { IConjuntoService } from '../../domain/services/IConjuntoService';
 import { ICuentaContableService } from '../../domain/services/ICuentaContableService';
 import { IResumenAsientosService } from '../../domain/services/IResumenAsientosService';
+import { ITipoAsientoService } from '../../domain/services/ITipoAsientoService';
 
 // CQRS interfaces
 import { ICommandBus } from '../../domain/cqrs/ICommandBus';
@@ -66,6 +67,7 @@ import { RolSistemaMenuService } from '../../application/services/RolSistemaMenu
 import { ConjuntoService } from '../../application/services/ConjuntoService';
 import { CuentaContableService } from '../../application/services/CuentaContableService';
 import { ResumenAsientosService } from '../../application/services/ResumenAsientosService';
+import { TipoAsientoService } from '../../application/services/TipoAsientoService';
 
 
 // Controllers
@@ -142,6 +144,7 @@ container.bind<IRolSistemaMenuService>('IRolSistemaMenuService').to(RolSistemaMe
 container.bind<IConjuntoService>('IConjuntoService').to(ConjuntoService);
 container.bind<ICuentaContableService>('CuentaContableService').to(CuentaContableService);
 container.bind<IResumenAsientosService>('ResumenAsientosService').to(ResumenAsientosService);
+container.bind<ITipoAsientoService>('TipoAsientoService').to(TipoAsientoService);
 
 
 // Controllers

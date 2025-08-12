@@ -17,7 +17,15 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
 
       let contabilidadFilter = '';
       if (contabilidad !== 'T') {
-        contabilidadFilter = `AND M.CONTABILIDAD = '${contabilidad}'`;
+        if (contabilidad === 'F') {
+          contabilidadFilter = `AND M.CONTABILIDAD = 'F'`;
+        } else if (contabilidad === 'SF') {
+          contabilidadFilter = `AND M.CONTABILIDAD != 'F'`;
+        } else if (contabilidad === 'C') {
+          contabilidadFilter = `AND M.CONTABILIDAD = 'C'`;
+        } else if (contabilidad === 'SC') {
+          contabilidadFilter = `AND M.CONTABILIDAD != 'C'`;
+        }
       }
 
       let tipoAsientoFilter = '';
@@ -40,8 +48,84 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
         usuarioFilter = `AND M.USUARIO = '${filtros.usuario}'`;
       }
 
-      const query = `
-        SELECT 
+      let origenFilter = '';
+      if (filtros.origen && filtros.origen !== 'AMBOS') {
+        if (filtros.origen === 'DIARIO') {
+          origenFilter = `AND M.ASIENTO IN (SELECT ASIENTO FROM ${conjunto}.ASIENTO_DE_DIARIO WITH (NOLOCK) WHERE FECHA BETWEEN :fechaInicio AND :fechaFin)`;
+        } else if (filtros.origen === 'MAYOR') {
+          origenFilter = `AND M.ASIENTO IN (SELECT ASIENTO FROM ${conjunto}.ASIENTO_MAYORIZADO WITH (NOLOCK) WHERE FECHA BETWEEN :fechaInicio AND :fechaFin)`;
+        }
+      }
+
+      let nitFilter = '';
+      if (filtros.nitDesde && filtros.nitHasta) {
+        nitFilter = `AND D.NIT BETWEEN '${filtros.nitDesde}' AND '${filtros.nitHasta}'`;
+      } else if (filtros.nitDesde) {
+        nitFilter = `AND D.NIT >= '${filtros.nitDesde}'`;
+      } else if (filtros.nitHasta) {
+        nitFilter = `AND D.NIT <= '${filtros.nitHasta}'`;
+      }
+
+      let cuentaContableRangeFilter = '';
+      if (filtros.cuentaContableDesde && filtros.cuentaContableHasta) {
+        cuentaContableRangeFilter = `AND D.CUENTA_CONTABLE BETWEEN '${filtros.cuentaContableDesde}' AND '${filtros.cuentaContableHasta}'`;
+      } else if (filtros.cuentaContableDesde) {
+        cuentaContableRangeFilter = `AND D.CUENTA_CONTABLE >= '${filtros.cuentaContableDesde}'`;
+      } else if (filtros.cuentaContableHasta) {
+        cuentaContableRangeFilter = `AND D.CUENTA_CONTABLE <= '${filtros.cuentaContableHasta}'`;
+      }
+
+      let asientoRangeFilter = '';
+      if (filtros.asientoDesde && filtros.asientoHasta) {
+        asientoRangeFilter = `AND M.ASIENTO BETWEEN '${filtros.asientoDesde}' AND '${filtros.asientoHasta}'`;
+      } else if (filtros.asientoDesde) {
+        asientoRangeFilter = `AND M.ASIENTO >= '${filtros.asientoDesde}'`;
+      } else if (filtros.asientoHasta) {
+        asientoRangeFilter = `AND M.ASIENTO <= '${filtros.asientoHasta}'`;
+      }
+
+      let tiposAsientoFilter = '';
+      if (filtros.tiposAsientoSeleccionados && filtros.tiposAsientoSeleccionados.length > 0) {
+        const tipos = filtros.tiposAsientoSeleccionados.map(t => `'${t}'`).join(',');
+        tiposAsientoFilter = `AND M.TIPO_ASIENTO IN (${tipos})`;
+      }
+
+      // Query muy simple para debugging - solo fechas básicas
+      const queryDebug = `
+        SELECT TOP 5
+          M.TIPO_ASIENTO,
+          M.FECHA,
+          CONVERT(DATE, M.FECHA) as fechaConvertida,
+          CAST(M.FECHA AS DATE) as fechaCast
+        FROM ${conjunto}.ASIENTO_MAYORIZADO M WITH (NOLOCK)
+        WHERE M.FECHA >= '2022-01-01'
+        ORDER BY M.FECHA DESC
+      `;
+
+      console.log('🔍 Debug - Query Debug:');
+      console.log(queryDebug);
+
+      try {
+        // Primero probamos una consulta muy simple
+        const debugResult = await exactusSequelize.query(queryDebug, {
+          type: QueryTypes.SELECT
+        });
+        
+        console.log('🔍 Debug - Resultado simple:', debugResult);
+      } catch (debugError) {
+        console.log('❌ Debug - Error en consulta simple:', debugError);
+      }
+
+      // Convertir fechas a formato YYYY-MM-DD para evitar problemas de zona horaria
+      const fechaInicioStr = fechaInicio.toISOString().split('T')[0];
+      const fechaFinStr = fechaFin.toISOString().split('T')[0];
+
+      console.log('🔍 Debug - Fechas convertidas:');
+      console.log('Fecha Inicio (string):', fechaInicioStr);
+      console.log('Fecha Fin (string):', fechaFinStr);
+
+      const querySimple = `
+        SELECT TOP 10
           C.DESCRIPCION as cuentaContableDesc,
           T.DESCRIPCION as sDescTipoAsiento,
           D.CUENTA_CONTABLE as cuentaContable,
@@ -54,56 +138,28 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
           M.TIPO_ASIENTO as tipoAsiento,
           'Resumen de Asientos' as tipoReporte,
           COALESCE(M.USUARIO, 'SISTEMA') as nomUsuario,
-          '${fechaInicio.toISOString()}' as finicio,
+          CONVERT(DATE, M.FECHA) as finicio,
           M.TIPO_ASIENTO as quiebre,
-          '${fechaFin.toISOString()}' as ffinal,
+          CONVERT(DATE, M.FECHA) as ffinal,
           ROW_NUMBER() OVER (ORDER BY M.TIPO_ASIENTO, D.CUENTA_CONTABLE) as rowOrderBy
-        FROM (
-          SELECT ASIENTO, FECHA, TIPO_ASIENTO, CONTABILIDAD, USUARIO 
-          FROM ${conjunto}.ASIENTO_MAYORIZADO WITH (NOLOCK)
-          WHERE FECHA BETWEEN :fechaInicio1 AND :fechaFin1
-          
-          UNION ALL
-          
-          SELECT ASIENTO, FECHA, TIPO_ASIENTO, CONTABILIDAD, USUARIO 
-          FROM ${conjunto}.ASIENTO_DE_DIARIO WITH (NOLOCK)
-          WHERE FECHA BETWEEN :fechaInicio2 AND :fechaFin2
-        ) M
-        INNER JOIN (
-          SELECT ASIENTO, CUENTA_CONTABLE, CENTRO_COSTO, NIT, DEBITO_LOCAL, CREDITO_LOCAL, DEBITO_DOLAR, CREDITO_DOLAR 
-          FROM ${conjunto}.DIARIO WITH (NOLOCK)
-          
-          UNION ALL
-          
-          SELECT ASIENTO, CUENTA_CONTABLE, CENTRO_COSTO, NIT, DEBITO_LOCAL, CREDITO_LOCAL, DEBITO_DOLAR, CREDITO_DOLAR 
-          FROM ${conjunto}.MAYOR WITH (NOLOCK)
-        ) D ON (M.ASIENTO = D.ASIENTO)
-        INNER JOIN ${conjunto}.CUENTA_CONTABLE C WITH (NOLOCK) ON (D.CUENTA_CONTABLE = C.CUENTA_CONTABLE)
-        INNER JOIN ${conjunto}.TIPO_ASIENTO T WITH (NOLOCK) ON (T.TIPO_ASIENTO = M.TIPO_ASIENTO)
-        WHERE M.ASIENTO = D.ASIENTO
-          AND M.FECHA BETWEEN :fechaInicio3 AND :fechaFin3
+        FROM ${conjunto}.ASIENTO_MAYORIZADO M WITH (NOLOCK)
+        INNER JOIN ${conjunto}.DIARIO D WITH (NOLOCK) ON M.ASIENTO = D.ASIENTO
+        INNER JOIN ${conjunto}.CUENTA_CONTABLE C WITH (NOLOCK) ON D.CUENTA_CONTABLE = C.CUENTA_CONTABLE
+        INNER JOIN ${conjunto}.TIPO_ASIENTO T WITH (NOLOCK) ON T.TIPO_ASIENTO = M.TIPO_ASIENTO
+        WHERE CONVERT(DATE, M.FECHA) BETWEEN '${fechaInicioStr}' AND '${fechaFinStr}'
           ${contabilidadFilter}
-          ${tipoAsientoFilter}
-          ${cuentaContableFilter}
-          ${centroCostoFilter}
-          ${usuarioFilter}
-        GROUP BY 
-          M.TIPO_ASIENTO, T.DESCRIPCION, D.CENTRO_COSTO, D.CUENTA_CONTABLE, C.DESCRIPCION, M.USUARIO
+          ${tiposAsientoFilter}
+        GROUP BY
+          M.TIPO_ASIENTO, T.DESCRIPCION, D.CENTRO_COSTO, D.CUENTA_CONTABLE, C.DESCRIPCION, M.USUARIO, M.FECHA
         ORDER BY M.TIPO_ASIENTO, D.CUENTA_CONTABLE
       `;
 
-      const replacements = {
-        fechaInicio1: fechaInicio,
-        fechaFin1: fechaFin,
-        fechaInicio2: fechaInicio,
-        fechaFin2: fechaFin,
-        fechaInicio3: fechaInicio,
-        fechaFin3: fechaFin
-      };
+      console.log('🔍 Debug - Query Simple:');
+      console.log(querySimple);
 
-      const result = await exactusSequelize.query(query, {
-        type: QueryTypes.SELECT,
-        replacements
+      // No necesitamos replacements para fechas literales
+      const result = await exactusSequelize.query(querySimple, {
+        type: QueryTypes.SELECT
       });
       
       return result.map((row: any) => ({

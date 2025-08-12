@@ -24,7 +24,15 @@ export interface FiltrosResumenAsientos {
   cuentaContable?: string;
   centroCosto?: string;
   usuario?: string;
-  contabilidad?: 'F' | 'A' | 'T'; // F=Fiscal, A=Administrativo, T=Todos
+  contabilidad?: 'F' | 'SF' | 'C' | 'SC' | 'T'; // F=Fiscal, SF=Sin Fiscal, C=Contable, SC=Sin Contable, T=Todos
+  origen?: 'DIARIO' | 'MAYOR' | 'AMBOS';
+  nitDesde?: string;
+  nitHasta?: string;
+  cuentaContableDesde?: string;
+  cuentaContableHasta?: string;
+  asientoDesde?: string;
+  asientoHasta?: string;
+  tiposAsientoSeleccionados?: string[];
 }
 
 // Tipo para crear filtros sin propiedades undefined

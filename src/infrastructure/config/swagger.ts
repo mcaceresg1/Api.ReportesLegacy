@@ -119,6 +119,55 @@ const swaggerOptions = {
             'ffinal',
             'rowOrderBy'
           ]
+        },
+        TipoAsiento: {
+          type: 'object',
+          properties: {
+            tipoAsiento: {
+              type: 'string',
+              description: 'Código del tipo de asiento'
+            },
+            descripcion: {
+              type: 'string',
+              description: 'Descripción del tipo de asiento'
+            },
+            noteExistsFlag: {
+              type: 'integer',
+              description: 'Flag de existencia de nota'
+            },
+            recordDate: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Fecha de registro'
+            },
+            rowPointer: {
+              type: 'string',
+              description: 'Puntero de fila'
+            },
+            createdBy: {
+              type: 'string',
+              description: 'Usuario que creó el registro'
+            },
+            updatedBy: {
+              type: 'string',
+              description: 'Usuario que actualizó el registro'
+            },
+            createDate: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Fecha de creación'
+            }
+          },
+          required: [
+            'tipoAsiento',
+            'descripcion',
+            'noteExistsFlag',
+            'recordDate',
+            'rowPointer',
+            'createdBy',
+            'updatedBy',
+            'createDate'
+          ]
         }
       }
     },

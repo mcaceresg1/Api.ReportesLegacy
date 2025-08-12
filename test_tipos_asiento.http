@@ -1,0 +1,14 @@
+### Obtener tipos de asiento para un conjunto específico
+GET http://localhost:3000/api/tipos-asiento/ASFSAC
+
+### Obtener tipos de asiento con límite personalizado
+GET http://localhost:3000/api/tipos-asiento/ASFSAC?limit=10
+
+### Filtrar por tipo de asiento
+GET http://localhost:3000/api/tipos-asiento/ASFSAC?tipoAsiento=DIARIO
+
+### Filtrar por descripción
+GET http://localhost:3000/api/tipos-asiento/ASFSAC?descripcion=Asiento
+
+### Combinar filtros
+GET http://localhost:3000/api/tipos-asiento/ASFSAC?tipoAsiento=DIARIO&descripcion=Asiento&limit=5

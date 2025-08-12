@@ -61,8 +61,51 @@ export class ResumenAsientosController {
    *         name: contabilidad
    *         schema:
    *           type: string
-   *           enum: [F, A, T]
-   *         description: Tipo de contabilidad (F=Fiscal, A=Administrativo, T=Todos)
+   *           enum: [F, SF, C, SC, T]
+   *         description: Tipo de contabilidad (F=Fiscal, SF=Sin Fiscal, C=Contable, SC=Sin Contable, T=Todos)
+   *       - in: query
+   *         name: origen
+   *         schema:
+   *           type: string
+   *           enum: [DIARIO, MAYOR, AMBOS]
+   *         description: Origen de los asientos (DIARIO, MAYOR, AMBOS)
+   *       - in: query
+   *         name: nitDesde
+   *         schema:
+   *           type: string
+   *         description: NIT desde para filtrar
+   *       - in: query
+   *         name: nitHasta
+   *         schema:
+   *           type: string
+   *         description: NIT hasta para filtrar
+   *       - in: query
+   *         name: cuentaContableDesde
+   *         schema:
+   *           type: string
+   *         description: Cuenta contable desde para filtrar
+   *       - in: query
+   *         name: cuentaContableHasta
+   *         schema:
+   *           type: string
+   *         description: Cuenta contable hasta para filtrar
+   *       - in: query
+   *         name: asientoDesde
+   *         schema:
+   *           type: string
+   *         description: Número de asiento desde para filtrar
+   *       - in: query
+   *         name: asientoHasta
+   *         schema:
+   *           type: string
+   *         description: Número de asiento hasta para filtrar
+   *       - in: query
+   *         name: tiposAsiento
+   *         schema:
+   *           type: array
+   *           items:
+   *             type: string
+   *         description: Array de tipos de asiento para filtrar
    *     responses:
    *       200:
    *         description: Reporte generado exitosamente
@@ -207,7 +250,43 @@ export class ResumenAsientosController {
       }
       
       if (req.query['contabilidad']) {
-        filtros.contabilidad = req.query['contabilidad'] as 'F' | 'A' | 'T';
+        filtros.contabilidad = req.query['contabilidad'] as 'F' | 'SF' | 'C' | 'SC' | 'T';
+      }
+      
+      if (req.query['origen']) {
+        filtros.origen = req.query['origen'] as 'DIARIO' | 'MAYOR' | 'AMBOS';
+      }
+      
+      if (req.query['nitDesde']) {
+        filtros.nitDesde = req.query['nitDesde'] as string;
+      }
+      
+      if (req.query['nitHasta']) {
+        filtros.nitHasta = req.query['nitHasta'] as string;
+      }
+      
+      if (req.query['cuentaContableDesde']) {
+        filtros.cuentaContableDesde = req.query['cuentaContableDesde'] as string;
+      }
+      
+      if (req.query['cuentaContableHasta']) {
+        filtros.cuentaContableHasta = req.query['cuentaContableHasta'] as string;
+      }
+      
+      if (req.query['asientoDesde']) {
+        filtros.asientoDesde = req.query['asientoDesde'] as string;
+      }
+      
+      if (req.query['asientoHasta']) {
+        filtros.asientoHasta = req.query['asientoHasta'] as string;
+      }
+      
+      if (req.query['tiposAsiento']) {
+        // Los tipos de asiento pueden venir como múltiples parámetros
+        const tiposAsiento = Array.isArray(req.query['tiposAsiento']) 
+          ? req.query['tiposAsiento'] as string[]
+          : [req.query['tiposAsiento'] as string];
+        filtros.tiposAsientoSeleccionados = tiposAsiento;
       }
 
       console.log(`🚀 Controlador - Obteniendo resumen de asientos para conjunto: ${conjunto}`);
