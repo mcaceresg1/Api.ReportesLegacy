@@ -90,32 +90,6 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
         tiposAsientoFilter = `AND M.TIPO_ASIENTO IN (${tipos})`;
       }
 
-      // Query muy simple para debugging - solo fechas básicas
-      const queryDebug = `
-        SELECT TOP 5
-          M.TIPO_ASIENTO,
-          M.FECHA,
-          CONVERT(DATE, M.FECHA) as fechaConvertida,
-          CAST(M.FECHA AS DATE) as fechaCast
-        FROM ${conjunto}.ASIENTO_MAYORIZADO M WITH (NOLOCK)
-        WHERE M.FECHA >= '2022-01-01'
-        ORDER BY M.FECHA DESC
-      `;
-
-      console.log('🔍 Debug - Query Debug:');
-      console.log(queryDebug);
-
-      try {
-        // Primero probamos una consulta muy simple
-        const debugResult = await exactusSequelize.query(queryDebug, {
-          type: QueryTypes.SELECT
-        });
-        
-        console.log('🔍 Debug - Resultado simple:', debugResult);
-      } catch (debugError) {
-        console.log('❌ Debug - Error en consulta simple:', debugError);
-      }
-
       // Convertir fechas a formato YYYY-MM-DD para evitar problemas de zona horaria
       const fechaInicioStr = fechaInicio.toISOString().split('T')[0];
       const fechaFinStr = fechaFin.toISOString().split('T')[0];
@@ -201,8 +175,8 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
         console.log('❌ Debug - Error en Query 4:', error4.message);
       }
 
-      // Ahora probamos la consulta completa
-      const querySimple = `
+      // Ahora probamos la consulta completa basada en el query original
+      const queryOriginal = `
         SELECT TOP 10
           C.DESCRIPCION as cuentaContableDesc,
           T.DESCRIPCION as sDescTipoAsiento,
@@ -220,23 +194,42 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
           M.TIPO_ASIENTO as quiebre,
           CONVERT(DATE, M.FECHA) as ffinal,
           ROW_NUMBER() OVER (ORDER BY M.TIPO_ASIENTO, D.CUENTA_CONTABLE) as rowOrderBy
-        FROM ${conjunto}.ASIENTO_MAYORIZADO M WITH (NOLOCK)
-        INNER JOIN ${conjunto}.DIARIO D WITH (NOLOCK) ON M.ASIENTO = D.ASIENTO
+        FROM (
+          SELECT ASIENTO, FECHA, TIPO_ASIENTO, CONTABILIDAD, USUARIO
+          FROM ${conjunto}.ASIENTO_MAYORIZADO WITH (NOLOCK)
+          WHERE CONVERT(DATE, FECHA) BETWEEN '${fechaInicioStr}' AND '${fechaFinStr}'
+            AND CONTABILIDAD = 'F'
+          
+          UNION ALL
+          
+          SELECT ASIENTO, FECHA, TIPO_ASIENTO, CONTABILIDAD, USUARIO
+          FROM ${conjunto}.ASIENTO_DE_DIARIO WITH (NOLOCK)
+          WHERE CONVERT(DATE, FECHA) BETWEEN '${fechaInicioStr}' AND '${fechaFinStr}'
+            AND CONTABILIDAD = 'F'
+        ) M
+        INNER JOIN (
+          SELECT ASIENTO, CUENTA_CONTABLE, CENTRO_COSTO, NIT, DEBITO_LOCAL, CREDITO_LOCAL, DEBITO_DOLAR, CREDITO_DOLAR
+          FROM ${conjunto}.DIARIO WITH (NOLOCK)
+          
+          UNION ALL
+          
+          SELECT ASIENTO, CUENTA_CONTABLE, CENTRO_COSTO, NIT, DEBITO_LOCAL, CREDITO_LOCAL, DEBITO_DOLAR, CREDITO_DOLAR
+          FROM ${conjunto}.MAYOR WITH (NOLOCK)
+        ) D ON M.ASIENTO = D.ASIENTO
         INNER JOIN ${conjunto}.CUENTA_CONTABLE C WITH (NOLOCK) ON D.CUENTA_CONTABLE = C.CUENTA_CONTABLE
         INNER JOIN ${conjunto}.TIPO_ASIENTO T WITH (NOLOCK) ON T.TIPO_ASIENTO = M.TIPO_ASIENTO
-        WHERE CONVERT(DATE, M.FECHA) BETWEEN '${fechaInicioStr}' AND '${fechaFinStr}'
-          ${contabilidadFilter}
+        WHERE M.ASIENTO = D.ASIENTO
           ${tiposAsientoFilter}
         GROUP BY
           M.TIPO_ASIENTO, T.DESCRIPCION, D.CENTRO_COSTO, D.CUENTA_CONTABLE, C.DESCRIPCION, M.USUARIO, M.FECHA
         ORDER BY M.TIPO_ASIENTO, D.CUENTA_CONTABLE
       `;
 
-      console.log('🔍 Debug - Query Simple:');
-      console.log(querySimple);
+      console.log('🔍 Debug - Query Original (basada en el query original del usuario):');
+      console.log(queryOriginal);
 
-      // No necesitamos replacements para fechas literales
-      const result = await exactusSequelize.query(querySimple, {
+      // Probar la consulta original
+      const result = await exactusSequelize.query(queryOriginal, {
         type: QueryTypes.SELECT
       });
       
