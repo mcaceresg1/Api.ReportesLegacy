@@ -90,8 +90,9 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
         tiposAsientoFilter = `AND M.TIPO_ASIENTO IN (${tipos})`;
       }
 
-      const query = `
-        SELECT 
+      // Consulta simplificada para testing
+      const querySimple = `
+        SELECT TOP 10
           C.DESCRIPCION as cuentaContableDesc,
           T.DESCRIPCION as sDescTipoAsiento,
           D.CUENTA_CONTABLE as cuentaContable,
@@ -108,51 +109,30 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
           M.TIPO_ASIENTO as quiebre,
           :fechaFin as ffinal,
           ROW_NUMBER() OVER (ORDER BY M.TIPO_ASIENTO, D.CUENTA_CONTABLE) as rowOrderBy
-        FROM (
-          SELECT ASIENTO, FECHA, TIPO_ASIENTO, CONTABILIDAD, USUARIO 
-          FROM ${conjunto}.ASIENTO_MAYORIZADO WITH (NOLOCK)
-          WHERE FECHA BETWEEN :fechaInicio AND :fechaFin
-          
-          UNION ALL
-          
-          SELECT ASIENTO, FECHA, TIPO_ASIENTO, CONTABILIDAD, USUARIO 
-          FROM ${conjunto}.ASIENTO_DE_DIARIO WITH (NOLOCK)
-          WHERE FECHA BETWEEN :fechaInicio AND :fechaFin
-        ) M
-        INNER JOIN (
-          SELECT ASIENTO, CUENTA_CONTABLE, CENTRO_COSTO, NIT, DEBITO_LOCAL, CREDITO_LOCAL, DEBITO_DOLAR, CREDITO_DOLAR 
-          FROM ${conjunto}.DIARIO WITH (NOLOCK)
-          
-          UNION ALL
-          
-          SELECT ASIENTO, CUENTA_CONTABLE, CENTRO_COSTO, NIT, DEBITO_LOCAL, CREDITO_LOCAL, DEBITO_DOLAR, CREDITO_DOLAR 
-          FROM ${conjunto}.MAYOR WITH (NOLOCK)
-        ) D ON (M.ASIENTO = D.ASIENTO)
-        INNER JOIN ${conjunto}.CUENTA_CONTABLE C WITH (NOLOCK) ON (D.CUENTA_CONTABLE = C.CUENTA_CONTABLE)
-        INNER JOIN ${conjunto}.TIPO_ASIENTO T WITH (NOLOCK) ON (T.TIPO_ASIENTO = M.TIPO_ASIENTO)
-        WHERE M.ASIENTO = D.ASIENTO
-          AND M.FECHA BETWEEN :fechaInicio AND :fechaFin
+        FROM ${conjunto}.ASIENTO_MAYORIZADO M WITH (NOLOCK)
+        INNER JOIN ${conjunto}.DIARIO D WITH (NOLOCK) ON M.ASIENTO = D.ASIENTO
+        INNER JOIN ${conjunto}.CUENTA_CONTABLE C WITH (NOLOCK) ON D.CUENTA_CONTABLE = C.CUENTA_CONTABLE
+        INNER JOIN ${conjunto}.TIPO_ASIENTO T WITH (NOLOCK) ON T.TIPO_ASIENTO = M.TIPO_ASIENTO
+        WHERE M.FECHA BETWEEN :fechaInicio AND :fechaFin
           ${contabilidadFilter}
-          ${tipoAsientoFilter}
-          ${cuentaContableFilter}
-          ${centroCostoFilter}
-          ${usuarioFilter}
-          ${origenFilter}
-          ${nitFilter}
-          ${cuentaContableRangeFilter}
-          ${asientoRangeFilter}
-          ${tiposAsientoFilter}
         GROUP BY 
           M.TIPO_ASIENTO, T.DESCRIPCION, D.CENTRO_COSTO, D.CUENTA_CONTABLE, C.DESCRIPCION, M.USUARIO
         ORDER BY M.TIPO_ASIENTO, D.CUENTA_CONTABLE
       `;
+
+      console.log('🔍 Debug - Query Simple:', querySimple);
 
       const replacements = {
         fechaInicio: fechaInicio,
         fechaFin: fechaFin
       };
 
-      const result = await exactusSequelize.query(query, {
+      console.log('🔍 Debug - Query SQL:', querySimple);
+      console.log('🔍 Debug - Replacements:', replacements);
+      console.log('🔍 Debug - Fecha Inicio:', fechaInicio);
+      console.log('🔍 Debug - Fecha Fin:', fechaFin);
+
+      const result = await exactusSequelize.query(querySimple, {
         type: QueryTypes.SELECT,
         replacements
       });
