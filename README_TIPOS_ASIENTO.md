@@ -141,3 +141,4 @@ interface FiltrosTipoAsiento {
 ## Testing
 
 Para probar el API, puedes usar el archivo `test_tipos_asiento.http` que incluye ejemplos de todas las operaciones disponibles.
+

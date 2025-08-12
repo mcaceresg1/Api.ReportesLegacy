@@ -90,32 +90,6 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
         tiposAsientoFilter = `AND M.TIPO_ASIENTO IN (${tipos})`;
       }
 
-      // Query muy simple para debugging - solo fechas básicas
-      const queryDebug = `
-        SELECT TOP 5
-          M.TIPO_ASIENTO,
-          M.FECHA,
-          CONVERT(DATE, M.FECHA) as fechaConvertida,
-          CAST(M.FECHA AS DATE) as fechaCast
-        FROM ${conjunto}.ASIENTO_MAYORIZADO M WITH (NOLOCK)
-        WHERE M.FECHA >= '2022-01-01'
-        ORDER BY M.FECHA DESC
-      `;
-
-      console.log('🔍 Debug - Query Debug:');
-      console.log(queryDebug);
-
-      try {
-        // Primero probamos una consulta muy simple
-        const debugResult = await exactusSequelize.query(queryDebug, {
-          type: QueryTypes.SELECT
-        });
-        
-        console.log('🔍 Debug - Resultado simple:', debugResult);
-      } catch (debugError) {
-        console.log('❌ Debug - Error en consulta simple:', debugError);
-      }
-
       // Convertir fechas a formato YYYY-MM-DD para evitar problemas de zona horaria
       const fechaInicioStr = fechaInicio.toISOString().split('T')[0];
       const fechaFinStr = fechaFin.toISOString().split('T')[0];
@@ -124,7 +98,85 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
       console.log('Fecha Inicio (string):', fechaInicioStr);
       console.log('Fecha Fin (string):', fechaFinStr);
 
-      const querySimple = `
+      // Debug paso a paso - probar cada JOIN individualmente
+      console.log('🔍 Debug - Probando JOINs paso a paso...');
+
+      // 1. Solo ASIENTO_MAYORIZADO
+      try {
+        const query1 = `
+          SELECT TOP 5 M.TIPO_ASIENTO, M.FECHA, M.CONTABILIDAD
+          FROM ${conjunto}.ASIENTO_MAYORIZADO M WITH (NOLOCK)
+          WHERE CONVERT(DATE, M.FECHA) BETWEEN '${fechaInicioStr}' AND '${fechaFinStr}'
+            AND M.CONTABILIDAD = 'F'
+        `;
+        console.log('🔍 Debug - Query 1 (Solo ASIENTO_MAYORIZADO):');
+        console.log(query1);
+        
+        const result1 = await exactusSequelize.query(query1, { type: QueryTypes.SELECT });
+        console.log('✅ Debug - Resultado 1 (Solo ASIENTO_MAYORIZADO):', result1.length, 'registros');
+      } catch (error1: any) {
+        console.log('❌ Debug - Error en Query 1:', error1.message);
+      }
+
+      // 2. ASIENTO_MAYORIZADO + DIARIO
+      try {
+        const query2 = `
+          SELECT TOP 5 M.TIPO_ASIENTO, M.FECHA, D.CUENTA_CONTABLE, D.CENTRO_COSTO
+          FROM ${conjunto}.ASIENTO_MAYORIZADO M WITH (NOLOCK)
+          INNER JOIN ${conjunto}.DIARIO D WITH (NOLOCK) ON M.ASIENTO = D.ASIENTO
+          WHERE CONVERT(DATE, M.FECHA) BETWEEN '${fechaInicioStr}' AND '${fechaFinStr}'
+            AND M.CONTABILIDAD = 'F'
+        `;
+        console.log('🔍 Debug - Query 2 (ASIENTO_MAYORIZADO + DIARIO):');
+        console.log(query2);
+        
+        const result2 = await exactusSequelize.query(query2, { type: QueryTypes.SELECT });
+        console.log('✅ Debug - Resultado 2 (ASIENTO_MAYORIZADO + DIARIO):', result2.length, 'registros');
+      } catch (error2: any) {
+        console.log('❌ Debug - Error en Query 2:', error2.message);
+      }
+
+      // 3. ASIENTO_MAYORIZADO + DIARIO + CUENTA_CONTABLE
+      try {
+        const query3 = `
+          SELECT TOP 5 M.TIPO_ASIENTO, M.FECHA, D.CUENTA_CONTABLE, C.DESCRIPCION
+          FROM ${conjunto}.ASIENTO_MAYORIZADO M WITH (NOLOCK)
+          INNER JOIN ${conjunto}.DIARIO D WITH (NOLOCK) ON M.ASIENTO = D.ASIENTO
+          INNER JOIN ${conjunto}.CUENTA_CONTABLE C WITH (NOLOCK) ON D.CUENTA_CONTABLE = C.CUENTA_CONTABLE
+          WHERE CONVERT(DATE, M.FECHA) BETWEEN '${fechaInicioStr}' AND '${fechaFinStr}'
+            AND M.CONTABILIDAD = 'F'
+        `;
+        console.log('🔍 Debug - Query 3 (ASIENTO_MAYORIZADO + DIARIO + CUENTA_CONTABLE):');
+        console.log(query3);
+        
+        const result3 = await exactusSequelize.query(query3, { type: QueryTypes.SELECT });
+        console.log('✅ Debug - Resultado 3 (ASIENTO_MAYORIZADO + DIARIO + CUENTA_CONTABLE):', result3.length, 'registros');
+      } catch (error3: any) {
+        console.log('❌ Debug - Error en Query 3:', error3.message);
+      }
+
+      // 4. ASIENTO_MAYORIZADO + DIARIO + CUENTA_CONTABLE + TIPO_ASIENTO
+      try {
+        const query4 = `
+          SELECT TOP 5 M.TIPO_ASIENTO, M.FECHA, D.CUENTA_CONTABLE, C.DESCRIPCION, T.DESCRIPCION as tipoDesc
+          FROM ${conjunto}.ASIENTO_MAYORIZADO M WITH (NOLOCK)
+          INNER JOIN ${conjunto}.DIARIO D WITH (NOLOCK) ON M.ASIENTO = D.ASIENTO
+          INNER JOIN ${conjunto}.CUENTA_CONTABLE C WITH (NOLOCK) ON D.CUENTA_CONTABLE = C.CUENTA_CONTABLE
+          INNER JOIN ${conjunto}.TIPO_ASIENTO T WITH (NOLOCK) ON T.TIPO_ASIENTO = M.TIPO_ASIENTO
+          WHERE CONVERT(DATE, M.FECHA) BETWEEN '${fechaInicioStr}' AND '${fechaFinStr}'
+            AND M.CONTABILIDAD = 'F'
+        `;
+        console.log('🔍 Debug - Query 4 (ASIENTO_MAYORIZADO + DIARIO + CUENTA_CONTABLE + TIPO_ASIENTO):');
+        console.log(query4);
+        
+        const result4 = await exactusSequelize.query(query4, { type: QueryTypes.SELECT });
+        console.log('✅ Debug - Resultado 4 (ASIENTO_MAYORIZADO + DIARIO + CUENTA_CONTABLE + TIPO_ASIENTO):', result4.length, 'registros');
+      } catch (error4: any) {
+        console.log('❌ Debug - Error en Query 4:', error4.message);
+      }
+
+      // Ahora probamos la consulta completa basada en el query original
+      const queryOriginal = `
         SELECT TOP 10
           C.DESCRIPCION as cuentaContableDesc,
           T.DESCRIPCION as sDescTipoAsiento,
@@ -137,49 +189,58 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
           SUM(COALESCE(D.DEBITO_DOLAR, 0)) as debitoDolar,
           M.TIPO_ASIENTO as tipoAsiento,
           'Resumen de Asientos' as tipoReporte,
-          COALESCE(M.USUARIO, 'SISTEMA') as nomUsuario,
+          'SISTEMA' as nomUsuario,
           CONVERT(DATE, M.FECHA) as finicio,
           M.TIPO_ASIENTO as quiebre,
           CONVERT(DATE, M.FECHA) as ffinal,
           ROW_NUMBER() OVER (ORDER BY M.TIPO_ASIENTO, D.CUENTA_CONTABLE) as rowOrderBy
-        FROM ${conjunto}.ASIENTO_MAYORIZADO M WITH (NOLOCK)
-        INNER JOIN ${conjunto}.DIARIO D WITH (NOLOCK) ON M.ASIENTO = D.ASIENTO
+        FROM (
+          SELECT ASIENTO, FECHA, TIPO_ASIENTO, CONTABILIDAD
+          FROM ${conjunto}.ASIENTO_MAYORIZADO WITH (NOLOCK)
+          WHERE CONVERT(DATE, FECHA) BETWEEN '${fechaInicioStr}' AND '${fechaFinStr}'
+            AND CONTABILIDAD = 'F'
+          
+          UNION ALL
+          
+          SELECT ASIENTO, FECHA, TIPO_ASIENTO, CONTABILIDAD
+          FROM ${conjunto}.ASIENTO_DE_DIARIO WITH (NOLOCK)
+          WHERE CONVERT(DATE, FECHA) BETWEEN '${fechaInicioStr}' AND '${fechaFinStr}'
+            AND CONTABILIDAD = 'F'
+        ) M
+        INNER JOIN (
+          SELECT ASIENTO, CUENTA_CONTABLE, CENTRO_COSTO, NIT, DEBITO_LOCAL, CREDITO_LOCAL, DEBITO_DOLAR, CREDITO_DOLAR
+          FROM ${conjunto}.DIARIO WITH (NOLOCK)
+          
+          UNION ALL
+          
+          SELECT ASIENTO, CUENTA_CONTABLE, CENTRO_COSTO, NIT, DEBITO_LOCAL, CREDITO_LOCAL, DEBITO_DOLAR, CREDITO_DOLAR
+          FROM ${conjunto}.MAYOR WITH (NOLOCK)
+        ) D ON LTRIM(RTRIM(CAST(M.ASIENTO AS NVARCHAR(50)))) = LTRIM(RTRIM(CAST(D.ASIENTO AS NVARCHAR(50))))
         INNER JOIN ${conjunto}.CUENTA_CONTABLE C WITH (NOLOCK) ON D.CUENTA_CONTABLE = C.CUENTA_CONTABLE
         INNER JOIN ${conjunto}.TIPO_ASIENTO T WITH (NOLOCK) ON T.TIPO_ASIENTO = M.TIPO_ASIENTO
-        WHERE CONVERT(DATE, M.FECHA) BETWEEN '${fechaInicioStr}' AND '${fechaFinStr}'
-          ${contabilidadFilter}
+        WHERE 1 = 1
           ${tiposAsientoFilter}
         GROUP BY
-          M.TIPO_ASIENTO, T.DESCRIPCION, D.CENTRO_COSTO, D.CUENTA_CONTABLE, C.DESCRIPCION, M.USUARIO, M.FECHA
+          M.TIPO_ASIENTO, T.DESCRIPCION, D.CENTRO_COSTO, D.CUENTA_CONTABLE, C.DESCRIPCION, CONVERT(DATE, M.FECHA)
         ORDER BY M.TIPO_ASIENTO, D.CUENTA_CONTABLE
       `;
 
-      console.log('🔍 Debug - Query Simple:');
-      console.log(querySimple);
+      console.log('🔍 Debug - Query Original (basada en el query original del usuario):');
+      console.log(queryOriginal);
 
-      // No necesitamos replacements para fechas literales
-      const result = await exactusSequelize.query(querySimple, {
-        type: QueryTypes.SELECT
-      });
-      
-      return result.map((row: any) => ({
-        cuentaContableDesc: row.cuentaContableDesc || '',
-        sDescTipoAsiento: row.sDescTipoAsiento || '',
-        cuentaContable: row.cuentaContable || '',
-        sNombreQuiebre: row.sNombreQuiebre || '',
-        creditoLocal: parseFloat(row.creditoLocal) || 0,
-        creditoDolar: parseFloat(row.creditoDolar) || 0,
-        centroCosto: row.centroCosto || '',
-        debitoLocal: parseFloat(row.debitoLocal) || 0,
-        debitoDolar: parseFloat(row.debitoDolar) || 0,
-        tipoAsiento: row.tipoAsiento || '',
-        tipoReporte: row.tipoReporte || 'Resumen de Asientos',
-        nomUsuario: row.nomUsuario || 'SISTEMA',
-        finicio: new Date(row.finicio || fechaInicio),
-        quiebre: row.quiebre || '',
-        ffinal: new Date(row.ffinal || fechaFin),
-        rowOrderBy: row.rowOrderBy || 0
-      }));
+      try {
+        // Probar la consulta original
+        const result = await exactusSequelize.query(queryOriginal, {
+          type: QueryTypes.SELECT
+        });
+        return result as any;
+      } catch (err: any) {
+        console.log('❌ SQL Error message:', err?.message);
+        console.log('❌ SQL Error parent:', err?.parent);
+        console.log('❌ SQL Error original:', err?.original);
+        console.log('❌ SQL (raw):', err?.sql || queryOriginal);
+        throw new Error('Error al obtener resumen de asientos: ' + (err?.message || ''));
+      }
 
     } catch (error) {
       console.error('Error en ResumenAsientosRepository.obtenerResumenAsientos:', error);

@@ -7,3 +7,4 @@ export interface TipoAsientoResponse {
   totalRegistros?: number;
   conjunto?: string;
 }
+

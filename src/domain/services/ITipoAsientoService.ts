@@ -6,3 +6,4 @@ export interface ITipoAsientoService {
     filtros: FiltrosTipoAsiento
   ): Promise<TipoAsiento[]>;
 }
+

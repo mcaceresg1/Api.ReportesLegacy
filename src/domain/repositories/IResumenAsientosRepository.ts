@@ -6,3 +6,4 @@ export interface IResumenAsientosRepository {
     filtros: FiltrosResumenAsientos
   ): Promise<ReporteResumenAsientos[]>;
 }
+
