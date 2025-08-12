@@ -90,7 +90,7 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
         tiposAsientoFilter = `AND M.TIPO_ASIENTO IN (${tipos})`;
       }
 
-      // Consulta simplificada para testing
+      // Consulta simplificada para testing - sin parámetros de fecha en SELECT
       const querySimple = `
         SELECT TOP 10
           C.DESCRIPCION as cuentaContableDesc,
@@ -105,18 +105,19 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
           M.TIPO_ASIENTO as tipoAsiento,
           'Resumen de Asientos' as tipoReporte,
           COALESCE(M.USUARIO, 'SISTEMA') as nomUsuario,
-          :fechaInicio as finicio,
+          M.FECHA as finicio,
           M.TIPO_ASIENTO as quiebre,
-          :fechaFin as ffinal,
+          M.FECHA as ffinal,
           ROW_NUMBER() OVER (ORDER BY M.TIPO_ASIENTO, D.CUENTA_CONTABLE) as rowOrderBy
         FROM ${conjunto}.ASIENTO_MAYORIZADO M WITH (NOLOCK)
         INNER JOIN ${conjunto}.DIARIO D WITH (NOLOCK) ON M.ASIENTO = D.ASIENTO
         INNER JOIN ${conjunto}.CUENTA_CONTABLE C WITH (NOLOCK) ON D.CUENTA_CONTABLE = C.CUENTA_CONTABLE
         INNER JOIN ${conjunto}.TIPO_ASIENTO T WITH (NOLOCK) ON T.TIPO_ASIENTO = M.TIPO_ASIENTO
         WHERE M.FECHA BETWEEN :fechaInicio AND :fechaFin
-          ${contabilidadFilter}
+          AND M.CONTABILIDAD = 'F'
+          ${tiposAsientoFilter}
         GROUP BY 
-          M.TIPO_ASIENTO, T.DESCRIPCION, D.CENTRO_COSTO, D.CUENTA_CONTABLE, C.DESCRIPCION, M.USUARIO
+          M.TIPO_ASIENTO, T.DESCRIPCION, D.CENTRO_COSTO, D.CUENTA_CONTABLE, C.DESCRIPCION, M.USUARIO, M.FECHA
         ORDER BY M.TIPO_ASIENTO, D.CUENTA_CONTABLE
       `;
 
@@ -131,6 +132,8 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
       console.log('🔍 Debug - Replacements:', replacements);
       console.log('🔍 Debug - Fecha Inicio:', fechaInicio);
       console.log('🔍 Debug - Fecha Fin:', fechaFin);
+      console.log('🔍 Debug - Tipos Asiento Filter:', tiposAsientoFilter);
+      console.log('🔍 Debug - Contabilidad Filter:', contabilidadFilter);
 
       const result = await exactusSequelize.query(querySimple, {
         type: QueryTypes.SELECT,
