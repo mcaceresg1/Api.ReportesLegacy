@@ -105,18 +105,18 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
           M.TIPO_ASIENTO as tipoAsiento,
           'Resumen de Asientos' as tipoReporte,
           COALESCE(M.USUARIO, 'SISTEMA') as nomUsuario,
-          M.FECHA as finicio,
+          CAST(M.FECHA AS DATE) as finicio,
           M.TIPO_ASIENTO as quiebre,
-          M.FECHA as ffinal,
+          CAST(M.FECHA AS DATE) as ffinal,
           ROW_NUMBER() OVER (ORDER BY M.TIPO_ASIENTO, D.CUENTA_CONTABLE) as rowOrderBy
         FROM ${conjunto}.ASIENTO_MAYORIZADO M WITH (NOLOCK)
         INNER JOIN ${conjunto}.DIARIO D WITH (NOLOCK) ON M.ASIENTO = D.ASIENTO
         INNER JOIN ${conjunto}.CUENTA_CONTABLE C WITH (NOLOCK) ON D.CUENTA_CONTABLE = C.CUENTA_CONTABLE
         INNER JOIN ${conjunto}.TIPO_ASIENTO T WITH (NOLOCK) ON T.TIPO_ASIENTO = M.TIPO_ASIENTO
-        WHERE M.FECHA BETWEEN :fechaInicio AND :fechaFin
-          AND M.CONTABILIDAD = 'F'
+        WHERE CAST(M.FECHA AS DATE) BETWEEN CAST(:fechaInicio AS DATE) AND CAST(:fechaFin AS DATE)
+          ${contabilidadFilter}
           ${tiposAsientoFilter}
-        GROUP BY 
+        GROUP BY
           M.TIPO_ASIENTO, T.DESCRIPCION, D.CENTRO_COSTO, D.CUENTA_CONTABLE, C.DESCRIPCION, M.USUARIO, M.FECHA
         ORDER BY M.TIPO_ASIENTO, D.CUENTA_CONTABLE
       `;
