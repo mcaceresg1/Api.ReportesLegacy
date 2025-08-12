@@ -124,6 +124,84 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
       console.log('Fecha Inicio (string):', fechaInicioStr);
       console.log('Fecha Fin (string):', fechaFinStr);
 
+      // Debug paso a paso - probar cada JOIN individualmente
+      console.log('🔍 Debug - Probando JOINs paso a paso...');
+
+      // 1. Solo ASIENTO_MAYORIZADO
+      try {
+        const query1 = `
+          SELECT TOP 5 M.TIPO_ASIENTO, M.FECHA, M.CONTABILIDAD
+          FROM ${conjunto}.ASIENTO_MAYORIZADO M WITH (NOLOCK)
+          WHERE CONVERT(DATE, M.FECHA) BETWEEN '${fechaInicioStr}' AND '${fechaFinStr}'
+            AND M.CONTABILIDAD = 'F'
+        `;
+        console.log('🔍 Debug - Query 1 (Solo ASIENTO_MAYORIZADO):');
+        console.log(query1);
+        
+        const result1 = await exactusSequelize.query(query1, { type: QueryTypes.SELECT });
+        console.log('✅ Debug - Resultado 1 (Solo ASIENTO_MAYORIZADO):', result1.length, 'registros');
+      } catch (error1: any) {
+        console.log('❌ Debug - Error en Query 1:', error1.message);
+      }
+
+      // 2. ASIENTO_MAYORIZADO + DIARIO
+      try {
+        const query2 = `
+          SELECT TOP 5 M.TIPO_ASIENTO, M.FECHA, D.CUENTA_CONTABLE, D.CENTRO_COSTO
+          FROM ${conjunto}.ASIENTO_MAYORIZADO M WITH (NOLOCK)
+          INNER JOIN ${conjunto}.DIARIO D WITH (NOLOCK) ON M.ASIENTO = D.ASIENTO
+          WHERE CONVERT(DATE, M.FECHA) BETWEEN '${fechaInicioStr}' AND '${fechaFinStr}'
+            AND M.CONTABILIDAD = 'F'
+        `;
+        console.log('🔍 Debug - Query 2 (ASIENTO_MAYORIZADO + DIARIO):');
+        console.log(query2);
+        
+        const result2 = await exactusSequelize.query(query2, { type: QueryTypes.SELECT });
+        console.log('✅ Debug - Resultado 2 (ASIENTO_MAYORIZADO + DIARIO):', result2.length, 'registros');
+      } catch (error2: any) {
+        console.log('❌ Debug - Error en Query 2:', error2.message);
+      }
+
+      // 3. ASIENTO_MAYORIZADO + DIARIO + CUENTA_CONTABLE
+      try {
+        const query3 = `
+          SELECT TOP 5 M.TIPO_ASIENTO, M.FECHA, D.CUENTA_CONTABLE, C.DESCRIPCION
+          FROM ${conjunto}.ASIENTO_MAYORIZADO M WITH (NOLOCK)
+          INNER JOIN ${conjunto}.DIARIO D WITH (NOLOCK) ON M.ASIENTO = D.ASIENTO
+          INNER JOIN ${conjunto}.CUENTA_CONTABLE C WITH (NOLOCK) ON D.CUENTA_CONTABLE = C.CUENTA_CONTABLE
+          WHERE CONVERT(DATE, M.FECHA) BETWEEN '${fechaInicioStr}' AND '${fechaFinStr}'
+            AND M.CONTABILIDAD = 'F'
+        `;
+        console.log('🔍 Debug - Query 3 (ASIENTO_MAYORIZADO + DIARIO + CUENTA_CONTABLE):');
+        console.log(query3);
+        
+        const result3 = await exactusSequelize.query(query3, { type: QueryTypes.SELECT });
+        console.log('✅ Debug - Resultado 3 (ASIENTO_MAYORIZADO + DIARIO + CUENTA_CONTABLE):', result3.length, 'registros');
+      } catch (error3: any) {
+        console.log('❌ Debug - Error en Query 3:', error3.message);
+      }
+
+      // 4. ASIENTO_MAYORIZADO + DIARIO + CUENTA_CONTABLE + TIPO_ASIENTO
+      try {
+        const query4 = `
+          SELECT TOP 5 M.TIPO_ASIENTO, M.FECHA, D.CUENTA_CONTABLE, C.DESCRIPCION, T.DESCRIPCION as tipoDesc
+          FROM ${conjunto}.ASIENTO_MAYORIZADO M WITH (NOLOCK)
+          INNER JOIN ${conjunto}.DIARIO D WITH (NOLOCK) ON M.ASIENTO = D.ASIENTO
+          INNER JOIN ${conjunto}.CUENTA_CONTABLE C WITH (NOLOCK) ON D.CUENTA_CONTABLE = C.CUENTA_CONTABLE
+          INNER JOIN ${conjunto}.TIPO_ASIENTO T WITH (NOLOCK) ON T.TIPO_ASIENTO = M.TIPO_ASIENTO
+          WHERE CONVERT(DATE, M.FECHA) BETWEEN '${fechaInicioStr}' AND '${fechaFinStr}'
+            AND M.CONTABILIDAD = 'F'
+        `;
+        console.log('🔍 Debug - Query 4 (ASIENTO_MAYORIZADO + DIARIO + CUENTA_CONTABLE + TIPO_ASIENTO):');
+        console.log(query4);
+        
+        const result4 = await exactusSequelize.query(query4, { type: QueryTypes.SELECT });
+        console.log('✅ Debug - Resultado 4 (ASIENTO_MAYORIZADO + DIARIO + CUENTA_CONTABLE + TIPO_ASIENTO):', result4.length, 'registros');
+      } catch (error4: any) {
+        console.log('❌ Debug - Error en Query 4:', error4.message);
+      }
+
+      // Ahora probamos la consulta completa
       const querySimple = `
         SELECT TOP 10
           C.DESCRIPCION as cuentaContableDesc,
