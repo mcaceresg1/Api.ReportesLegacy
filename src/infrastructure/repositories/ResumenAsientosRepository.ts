@@ -90,7 +90,32 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
         tiposAsientoFilter = `AND M.TIPO_ASIENTO IN (${tipos})`;
       }
 
-      // Consulta simplificada para testing - sin parámetros de fecha en SELECT
+      // Query muy simple para debugging - solo fechas básicas
+      const queryDebug = `
+        SELECT TOP 5
+          M.TIPO_ASIENTO,
+          M.FECHA,
+          CONVERT(DATE, M.FECHA) as fechaConvertida,
+          CAST(M.FECHA AS DATE) as fechaCast
+        FROM ${conjunto}.ASIENTO_MAYORIZADO M WITH (NOLOCK)
+        WHERE M.FECHA >= '2022-01-01'
+        ORDER BY M.FECHA DESC
+      `;
+
+      console.log('🔍 Debug - Query Debug:');
+      console.log(queryDebug);
+
+      try {
+        // Primero probamos una consulta muy simple
+        const debugResult = await exactusSequelize.query(queryDebug, {
+          type: QueryTypes.SELECT
+        });
+        
+        console.log('🔍 Debug - Resultado simple:', debugResult);
+      } catch (debugError) {
+        console.log('❌ Debug - Error en consulta simple:', debugError);
+      }
+
       const querySimple = `
         SELECT TOP 10
           C.DESCRIPCION as cuentaContableDesc,
@@ -105,15 +130,15 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
           M.TIPO_ASIENTO as tipoAsiento,
           'Resumen de Asientos' as tipoReporte,
           COALESCE(M.USUARIO, 'SISTEMA') as nomUsuario,
-          CAST(M.FECHA AS DATE) as finicio,
+          CONVERT(DATE, M.FECHA) as finicio,
           M.TIPO_ASIENTO as quiebre,
-          CAST(M.FECHA AS DATE) as ffinal,
+          CONVERT(DATE, M.FECHA) as ffinal,
           ROW_NUMBER() OVER (ORDER BY M.TIPO_ASIENTO, D.CUENTA_CONTABLE) as rowOrderBy
         FROM ${conjunto}.ASIENTO_MAYORIZADO M WITH (NOLOCK)
         INNER JOIN ${conjunto}.DIARIO D WITH (NOLOCK) ON M.ASIENTO = D.ASIENTO
         INNER JOIN ${conjunto}.CUENTA_CONTABLE C WITH (NOLOCK) ON D.CUENTA_CONTABLE = C.CUENTA_CONTABLE
         INNER JOIN ${conjunto}.TIPO_ASIENTO T WITH (NOLOCK) ON T.TIPO_ASIENTO = M.TIPO_ASIENTO
-        WHERE CAST(M.FECHA AS DATE) BETWEEN CAST(:fechaInicio AS DATE) AND CAST(:fechaFin AS DATE)
+        WHERE CONVERT(DATE, M.FECHA) BETWEEN CONVERT(DATE, :fechaInicio) AND CONVERT(DATE, :fechaFin)
           ${contabilidadFilter}
           ${tiposAsientoFilter}
         GROUP BY
