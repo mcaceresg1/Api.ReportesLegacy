@@ -6,3 +6,4 @@ export interface IResumenAsientosService {
     filtros: FiltrosResumenAsientos
   ): Promise<ReporteResumenAsientos[]>;
 }
+

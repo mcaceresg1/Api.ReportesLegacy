@@ -12,3 +12,4 @@ GET http://localhost:3000/api/tipos-asiento/ASFSAC?descripcion=Asiento
 
 ### Combinar filtros
 GET http://localhost:3000/api/tipos-asiento/ASFSAC?tipoAsiento=DIARIO&descripcion=Asiento&limit=5
+

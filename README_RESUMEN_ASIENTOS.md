@@ -159,3 +159,4 @@ Comparar movimientos entre contabilidad fiscal y administrativa.
 - Monitorear el uso de memoria en consultas grandes
 - Verificar la integridad de los datos de entrada
 - Actualizar índices de base de datos según sea necesario
+
