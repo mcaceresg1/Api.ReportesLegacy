@@ -116,6 +116,14 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
         console.log('❌ Debug - Error en consulta simple:', debugError);
       }
 
+      // Convertir fechas a formato YYYY-MM-DD para evitar problemas de zona horaria
+      const fechaInicioStr = fechaInicio.toISOString().split('T')[0];
+      const fechaFinStr = fechaFin.toISOString().split('T')[0];
+
+      console.log('🔍 Debug - Fechas convertidas:');
+      console.log('Fecha Inicio (string):', fechaInicioStr);
+      console.log('Fecha Fin (string):', fechaFinStr);
+
       const querySimple = `
         SELECT TOP 10
           C.DESCRIPCION as cuentaContableDesc,
@@ -138,7 +146,7 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
         INNER JOIN ${conjunto}.DIARIO D WITH (NOLOCK) ON M.ASIENTO = D.ASIENTO
         INNER JOIN ${conjunto}.CUENTA_CONTABLE C WITH (NOLOCK) ON D.CUENTA_CONTABLE = C.CUENTA_CONTABLE
         INNER JOIN ${conjunto}.TIPO_ASIENTO T WITH (NOLOCK) ON T.TIPO_ASIENTO = M.TIPO_ASIENTO
-        WHERE CONVERT(DATE, M.FECHA) BETWEEN CONVERT(DATE, :fechaInicio) AND CONVERT(DATE, :fechaFin)
+        WHERE CONVERT(DATE, M.FECHA) BETWEEN '${fechaInicioStr}' AND '${fechaFinStr}'
           ${contabilidadFilter}
           ${tiposAsientoFilter}
         GROUP BY
@@ -146,23 +154,12 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
         ORDER BY M.TIPO_ASIENTO, D.CUENTA_CONTABLE
       `;
 
-      console.log('🔍 Debug - Query Simple:', querySimple);
+      console.log('🔍 Debug - Query Simple:');
+      console.log(querySimple);
 
-      const replacements = {
-        fechaInicio: fechaInicio,
-        fechaFin: fechaFin
-      };
-
-      console.log('🔍 Debug - Query SQL:', querySimple);
-      console.log('🔍 Debug - Replacements:', replacements);
-      console.log('🔍 Debug - Fecha Inicio:', fechaInicio);
-      console.log('🔍 Debug - Fecha Fin:', fechaFin);
-      console.log('🔍 Debug - Tipos Asiento Filter:', tiposAsientoFilter);
-      console.log('🔍 Debug - Contabilidad Filter:', contabilidadFilter);
-
+      // No necesitamos replacements para fechas literales
       const result = await exactusSequelize.query(querySimple, {
-        type: QueryTypes.SELECT,
-        replacements
+        type: QueryTypes.SELECT
       });
       
       return result.map((row: any) => ({
