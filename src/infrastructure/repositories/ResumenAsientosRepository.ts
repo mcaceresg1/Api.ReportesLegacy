@@ -189,20 +189,20 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
           SUM(COALESCE(D.DEBITO_DOLAR, 0)) as debitoDolar,
           M.TIPO_ASIENTO as tipoAsiento,
           'Resumen de Asientos' as tipoReporte,
-          COALESCE(M.USUARIO, 'SISTEMA') as nomUsuario,
+          'SISTEMA' as nomUsuario,
           CONVERT(DATE, M.FECHA) as finicio,
           M.TIPO_ASIENTO as quiebre,
           CONVERT(DATE, M.FECHA) as ffinal,
           ROW_NUMBER() OVER (ORDER BY M.TIPO_ASIENTO, D.CUENTA_CONTABLE) as rowOrderBy
         FROM (
-          SELECT ASIENTO, FECHA, TIPO_ASIENTO, CONTABILIDAD, USUARIO
+          SELECT ASIENTO, FECHA, TIPO_ASIENTO, CONTABILIDAD
           FROM ${conjunto}.ASIENTO_MAYORIZADO WITH (NOLOCK)
           WHERE CONVERT(DATE, FECHA) BETWEEN '${fechaInicioStr}' AND '${fechaFinStr}'
             AND CONTABILIDAD = 'F'
           
           UNION ALL
           
-          SELECT ASIENTO, FECHA, TIPO_ASIENTO, CONTABILIDAD, USUARIO
+          SELECT ASIENTO, FECHA, TIPO_ASIENTO, CONTABILIDAD
           FROM ${conjunto}.ASIENTO_DE_DIARIO WITH (NOLOCK)
           WHERE CONVERT(DATE, FECHA) BETWEEN '${fechaInicioStr}' AND '${fechaFinStr}'
             AND CONTABILIDAD = 'F'
@@ -215,42 +215,32 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
           
           SELECT ASIENTO, CUENTA_CONTABLE, CENTRO_COSTO, NIT, DEBITO_LOCAL, CREDITO_LOCAL, DEBITO_DOLAR, CREDITO_DOLAR
           FROM ${conjunto}.MAYOR WITH (NOLOCK)
-        ) D ON M.ASIENTO = D.ASIENTO
+        ) D ON LTRIM(RTRIM(CAST(M.ASIENTO AS NVARCHAR(50)))) = LTRIM(RTRIM(CAST(D.ASIENTO AS NVARCHAR(50))))
         INNER JOIN ${conjunto}.CUENTA_CONTABLE C WITH (NOLOCK) ON D.CUENTA_CONTABLE = C.CUENTA_CONTABLE
         INNER JOIN ${conjunto}.TIPO_ASIENTO T WITH (NOLOCK) ON T.TIPO_ASIENTO = M.TIPO_ASIENTO
-        WHERE M.ASIENTO = D.ASIENTO
+        WHERE 1 = 1
           ${tiposAsientoFilter}
         GROUP BY
-          M.TIPO_ASIENTO, T.DESCRIPCION, D.CENTRO_COSTO, D.CUENTA_CONTABLE, C.DESCRIPCION, M.USUARIO, M.FECHA
+          M.TIPO_ASIENTO, T.DESCRIPCION, D.CENTRO_COSTO, D.CUENTA_CONTABLE, C.DESCRIPCION, CONVERT(DATE, M.FECHA)
         ORDER BY M.TIPO_ASIENTO, D.CUENTA_CONTABLE
       `;
 
       console.log('🔍 Debug - Query Original (basada en el query original del usuario):');
       console.log(queryOriginal);
 
-      // Probar la consulta original
-      const result = await exactusSequelize.query(queryOriginal, {
-        type: QueryTypes.SELECT
-      });
-      
-      return result.map((row: any) => ({
-        cuentaContableDesc: row.cuentaContableDesc || '',
-        sDescTipoAsiento: row.sDescTipoAsiento || '',
-        cuentaContable: row.cuentaContable || '',
-        sNombreQuiebre: row.sNombreQuiebre || '',
-        creditoLocal: parseFloat(row.creditoLocal) || 0,
-        creditoDolar: parseFloat(row.creditoDolar) || 0,
-        centroCosto: row.centroCosto || '',
-        debitoLocal: parseFloat(row.debitoLocal) || 0,
-        debitoDolar: parseFloat(row.debitoDolar) || 0,
-        tipoAsiento: row.tipoAsiento || '',
-        tipoReporte: row.tipoReporte || 'Resumen de Asientos',
-        nomUsuario: row.nomUsuario || 'SISTEMA',
-        finicio: new Date(row.finicio || fechaInicio),
-        quiebre: row.quiebre || '',
-        ffinal: new Date(row.ffinal || fechaFin),
-        rowOrderBy: row.rowOrderBy || 0
-      }));
+      try {
+        // Probar la consulta original
+        const result = await exactusSequelize.query(queryOriginal, {
+          type: QueryTypes.SELECT
+        });
+        return result as any;
+      } catch (err: any) {
+        console.log('❌ SQL Error message:', err?.message);
+        console.log('❌ SQL Error parent:', err?.parent);
+        console.log('❌ SQL Error original:', err?.original);
+        console.log('❌ SQL (raw):', err?.sql || queryOriginal);
+        throw new Error('Error al obtener resumen de asientos: ' + (err?.message || ''));
+      }
 
     } catch (error) {
       console.error('Error en ResumenAsientosRepository.obtenerResumenAsientos:', error);
