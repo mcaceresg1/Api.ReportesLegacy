@@ -21,211 +21,211 @@ export class ReporteMovimientosContablesRoutes {
      *       - in: path
      *         name: conjunto
      *         required: true
-     *         description: Conjunto de datos (ej: EXACTUS)
+     *         description: "Conjunto de datos (ej: EXACTUS)"
      *         schema: { type: string }
      *       - in: query
      *         name: usuario
      *         required: true
-     *         description: Usuario que solicita el reporte
+     *         description: "Usuario que solicita el reporte"
      *         schema: { type: string }
      *       - in: query
      *         name: fechaInicio
      *         required: true
-     *         description: Fecha de inicio del reporte (YYYY-MM-DD)
+     *         description: "Fecha de inicio del reporte (YYYY-MM-DD)"
      *         schema: { type: string, format: date }
      *       - in: query
      *         name: fechaFin
      *         required: true
-     *         description: Fecha de fin del reporte (YYYY-MM-DD)
+     *         description: "Fecha de fin del reporte (YYYY-MM-DD)"
      *         schema: { type: string, format: date }
      *       - in: query
      *         name: contabilidad
      *         required: false
-     *         description: Tipo de contabilidad (F=Fiscal, A=Administrativa, T=Todas)
+     *         description: "Tipo de contabilidad (F=Fiscal, A=Administrativa, T=Todas)"
      *         schema: { type: string, enum: [F, A, T], default: T }
      *       - in: query
      *         name: asientos
      *         required: false
-     *         description: Lista de números de asiento a incluir
+     *         description: "Lista de números de asiento a incluir"
      *         schema: { type: array, items: { type: number } }
      *       - in: query
      *         name: asientosExcluir
      *         required: false
-     *         description: Lista de números de asiento a excluir
+     *         description: "Lista de números de asiento a excluir"
      *         schema: { type: array, items: { type: number } }
      *       - in: query
      *         name: rangoAsientos
      *         required: false
-     *         description: Rango de asientos (JSON: {"desde": 1, "hasta": 100})
+     *         description: "Rango de asientos (JSON: {\"desde\": 1, \"hasta\": 100})"
      *         schema: { type: string }
      *       - in: query
      *         name: tiposAsiento
      *         required: false
-     *         description: Lista de tipos de asiento a incluir
+     *         description: "Lista de tipos de asiento a incluir"
      *         schema: { type: array, items: { type: string } }
      *       - in: query
      *         name: tiposAsientoExcluir
      *         required: false
-     *         description: Lista de tipos de asiento a excluir
+     *         description: "Lista de tipos de asiento a excluir"
      *         schema: { type: array, items: { type: string } }
      *       - in: query
      *         name: clasesAsiento
      *         required: false
-     *         description: Lista de clases de asiento a incluir
+     *         description: "Lista de clases de asiento a incluir"
      *         schema: { type: array, items: { type: string } }
      *       - in: query
      *         name: clasesAsientoExcluir
      *         required: false
-     *         description: Lista de clases de asiento a excluir
+     *         description: "Lista de clases de asiento a excluir"
      *         schema: { type: array, items: { type: string } }
      *       - in: query
      *         name: nits
      *         required: false
-     *         description: Lista de NITs a incluir
+     *         description: "Lista de NITs a incluir"
      *         schema: { type: array, items: { type: string } }
      *       - in: query
      *         name: nitsExcluir
      *         required: false
-     *         description: Lista de NITs a excluir
+     *         description: "Lista de NITs a excluir"
      *         schema: { type: array, items: { type: string } }
      *       - in: query
      *         name: centrosCosto
      *         required: false
-     *         description: Lista de centros de costo a incluir
+     *         description: "Lista de centros de costo a incluir"
      *         schema: { type: array, items: { type: string } }
      *       - in: query
      *         name: centrosCostoExcluir
      *         required: false
-     *         description: Lista de centros de costo a excluir
+     *         description: "Lista de centros de costo a excluir"
      *         schema: { type: array, items: { type: string } }
      *       - in: query
      *         name: referencias
      *         required: false
-     *         description: Lista de referencias a incluir
+     *         description: "Lista de referencias a incluir"
      *         schema: { type: array, items: { type: string } }
      *       - in: query
      *         name: referenciasExcluir
      *         required: false
-     *         description: Lista de referencias a excluir
+     *         description: "Lista de referencias a excluir"
      *         schema: { type: array, items: { type: string } }
      *       - in: query
      *         name: documentos
      *         required: false
-     *         description: Lista de documentos a incluir
+     *         description: "Lista de documentos a incluir"
      *         schema: { type: array, items: { type: string } }
      *       - in: query
      *         name: documentosExcluir
      *         required: false
-     *         description: Lista de documentos a excluir
+     *         description: "Lista de documentos a excluir"
      *         schema: { type: array, items: { type: string } }
      *       - in: query
      *         name: cuentasContables
      *         required: false
-     *         description: Lista de cuentas contables a incluir
+     *         description: "Lista de cuentas contables a incluir"
      *         schema: { type: array, items: { type: string } }
      *       - in: query
      *         name: cuentasContablesExcluir
      *         required: false
-     *         description: Lista de cuentas contables a excluir
+     *         description: "Lista de cuentas contables a excluir"
      *         schema: { type: array, items: { type: string } }
      *       - in: query
      *         name: criteriosCuentaContable
      *         required: false
-     *         description: Criterios avanzados de cuenta contable (JSON)
+     *         description: "Criterios avanzados de cuenta contable (JSON)"
      *         schema: { type: string }
      *       - in: query
      *         name: titulo
      *         required: false
-     *         description: Título del reporte
+     *         description: "Título del reporte"
      *         schema: { type: string }
      *       - in: query
      *         name: subtitulo
      *         required: false
-     *         description: Subtítulo del reporte
+     *         description: "Subtítulo del reporte"
      *         schema: { type: string }
      *       - in: query
      *         name: piePagina
      *         required: false
-     *         description: Pie de página del reporte
+     *         description: "Pie de página del reporte"
      *         schema: { type: string }
      *       - in: query
      *         name: mostrarTitulo
      *         required: false
-     *         description: Mostrar título en el reporte
+     *         description: "Mostrar título en el reporte"
      *         schema: { type: boolean, default: true }
      *       - in: query
      *         name: mostrarSubtitulo
      *         required: false
-     *         description: Mostrar subtítulo en el reporte
+     *         description: "Mostrar subtítulo en el reporte"
      *         schema: { type: boolean, default: true }
      *       - in: query
      *         name: mostrarPiePagina
      *         required: false
-     *         description: Mostrar pie de página en el reporte
+     *         description: "Mostrar pie de página en el reporte"
      *         schema: { type: boolean, default: true }
      *       - in: query
      *         name: camposPersonalizados
      *         required: false
-     *         description: Campos personalizados del reporte (JSON)
+     *         description: "Campos personalizados del reporte (JSON)"
      *         schema: { type: string }
      *       - in: query
      *         name: formatoExportacion
      *         required: false
-     *         description: Formato de exportación del reporte
+     *         description: "Formato de exportación del reporte"
      *         schema: { type: string, enum: [EXCEL, PDF, CSV, HTML], default: EXCEL }
      *       - in: query
      *         name: incluirTotales
      *         required: false
-     *         description: Incluir totales en el reporte
+     *         description: "Incluir totales en el reporte"
      *         schema: { type: boolean, default: true }
      *       - in: query
      *         name: incluirSubtotales
      *         required: false
-     *         description: Incluir subtotales en el reporte
+     *         description: "Incluir subtotales en el reporte"
      *         schema: { type: boolean, default: true }
      *       - in: query
      *         name: agruparPor
      *         required: false
-     *         description: Campo por el cual agrupar los resultados
+     *         description: "Campo por el cual agrupar los resultados"
      *         schema: { type: string, enum: [NINGUNO, CUENTA, CENTRO_COSTO, TIPO_ASIENTO, CLASE_ASIENTO, FECHA, USUARIO], default: NINGUNO }
      *       - in: query
      *         name: ordenarPor
      *         required: false
-     *         description: Campo por el cual ordenar los resultados
+     *         description: "Campo por el cual ordenar los resultados"
      *         schema: { type: string, enum: [FECHA, CUENTA, CENTRO_COSTO, TIPO_ASIENTO, CLASE_ASIENTO, USUARIO, VALOR], default: FECHA }
      *       - in: query
      *         name: orden
      *         required: false
-     *         description: Orden de los resultados
+     *         description: "Orden de los resultados"
      *         schema: { type: string, enum: [ASC, DESC], default: ASC }
      *       - in: query
      *         name: mostrarFiltros
      *         required: false
-     *         description: Mostrar filtros aplicados en el reporte
+     *         description: "Mostrar filtros aplicados en el reporte"
      *         schema: { type: boolean, default: true }
      *       - in: query
      *         name: mostrarResumen
      *         required: false
-     *         description: Mostrar resumen en el reporte
+     *         description: "Mostrar resumen en el reporte"
      *         schema: { type: boolean, default: true }
      *       - in: query
      *         name: maximoRegistros
      *         required: false
-     *         description: Número máximo de registros a retornar
+     *         description: "Número máximo de registros a retornar"
      *         schema: { type: number, minimum: 1, maximum: 100000, default: 1000 }
      *       - in: query
      *         name: incluirGraficos
      *         required: false
-     *         description: Incluir gráficos en el reporte
+     *         description: "Incluir gráficos en el reporte"
      *         schema: { type: boolean, default: false }
      *       - in: query
      *         name: incluirCalculos
      *         required: false
-     *         description: Incluir cálculos adicionales en el reporte
+     *         description: "Incluir cálculos adicionales en el reporte"
      *         schema: { type: boolean, default: true }
      *     responses:
      *       200:
-     *         description: Reporte generado exitosamente
+     *         description: "Reporte generado exitosamente"
      *         content:
      *           application/json:
      *             schema:
@@ -284,7 +284,7 @@ export class ReporteMovimientosContablesRoutes {
      *                       type: boolean
      *                       example: true
      *       400:
-     *         description: Parámetros inválidos o faltantes
+     *         description: "Parámetros inválidos o faltantes"
      *         content:
      *           application/json:
      *             schema:
@@ -297,7 +297,7 @@ export class ReporteMovimientosContablesRoutes {
      *                   type: string
      *                   example: "El parámetro conjunto es obligatorio"
      *       500:
-     *         description: Error interno del servidor
+     *         description: "Error interno del servidor"
      *         content:
      *           application/json:
      *             schema:
