@@ -19,6 +19,7 @@ import { IReporteGastosDestinoRepository } from '../../domain/repositories/IRepo
 import { IReporteAsientosSinDimensionRepository } from '../../domain/repositories/IReporteAsientosSinDimensionRepository';
 import { IResumenAsientosRepository } from '../../domain/repositories/IResumenAsientosRepository';
 import { IReporteMensualCuentaCentroRepository } from '../../domain/repositories/IReporteMensualCuentaCentroRepository';
+import { IReporteMovimientosContablesRepository } from '../../domain/repositories/IReporteMovimientosContablesRepository';
 
 import { ICuentaContableRepository } from '../../domain/repositories/ICuentaContableRepository';
 import { IUsuarioService } from '../../domain/services/IUsuarioService';
@@ -34,6 +35,7 @@ import { ICuentaContableService } from '../../domain/services/ICuentaContableSer
 import { IResumenAsientosService } from '../../domain/services/IResumenAsientosService';
 import { IReporteMensualCuentaCentroService } from '../../domain/services/IReporteMensualCuentaCentroService';
 import { ITipoAsientoService } from '../../domain/services/ITipoAsientoService';
+import { IReporteMovimientosContablesService } from '../../domain/services/IReporteMovimientosContablesService';
 
 // CQRS interfaces
 import { ICommandBus } from '../../domain/cqrs/ICommandBus';
@@ -57,6 +59,7 @@ import { ReporteGastosDestinoRepository } from '../repositories/ReporteGastosDes
 import { ReporteAsientosSinDimensionRepository } from '../repositories/ReporteAsientosSinDimensionRepository';
 import { ResumenAsientosRepository } from '../repositories/ResumenAsientosRepository';
 import { ReporteMensualCuentaCentroRepository } from '../repositories/ReporteMensualCuentaCentroRepository';
+import { ReporteMovimientosContablesRepository } from '../repositories/ReporteMovimientosContablesRepository';
 
 import { CuentaContableRepository } from '../repositories/CuentaContableRepository';
 import { UsuarioService } from '../../application/services/UsuarioService';
@@ -72,6 +75,7 @@ import { CuentaContableService } from '../../application/services/CuentaContable
 import { ResumenAsientosService } from '../../application/services/ResumenAsientosService';
 import { ReporteMensualCuentaCentroService } from '../../application/services/ReporteMensualCuentaCentroService';
 import { TipoAsientoService } from '../../application/services/TipoAsientoService';
+import { ReporteMovimientosContablesService } from '../../application/services/ReporteMovimientosContablesService';
 
 
 // Controllers
@@ -89,6 +93,7 @@ import { ReporteGastosDestinoController } from '../controllers/ReporteGastosDest
 import { ReporteAsientosSinDimensionController } from '../controllers/ReporteAsientosSinDimensionController';
 import { ResumenAsientosController } from '../controllers/ResumenAsientosController';
 import { ReporteMensualCuentaCentroController } from '../controllers/ReporteMensualCuentaCentroController';
+import { ReporteMovimientosContablesController } from '../controllers/ReporteMovimientosContablesController';
 
 // CQRS implementations
 import { CommandBus } from '../cqrs/CommandBus';
@@ -134,6 +139,7 @@ container.bind<IReporteGastosDestinoRepository>('IReporteGastosDestinoRepository
 container.bind<IReporteAsientosSinDimensionRepository>('IReporteAsientosSinDimensionRepository').to(ReporteAsientosSinDimensionRepository);
 container.bind<IResumenAsientosRepository>('IResumenAsientosRepository').to(ResumenAsientosRepository);
 container.bind<IReporteMensualCuentaCentroRepository>('IReporteMensualCuentaCentroRepository').to(ReporteMensualCuentaCentroRepository);
+container.bind<IReporteMovimientosContablesRepository>('IReporteMovimientosContablesRepository').to(ReporteMovimientosContablesRepository);
 
 container.bind<ICuentaContableRepository>('ICuentaContableRepository').to(CuentaContableRepository);
 
@@ -152,6 +158,7 @@ container.bind<ICuentaContableService>('CuentaContableService').to(CuentaContabl
 container.bind<IResumenAsientosService>('ResumenAsientosService').to(ResumenAsientosService);
 container.bind<IReporteMensualCuentaCentroService>('IReporteMensualCuentaCentroService').to(ReporteMensualCuentaCentroService);
 container.bind<ITipoAsientoService>('TipoAsientoService').to(TipoAsientoService);
+container.bind<IReporteMovimientosContablesService>('IReporteMovimientosContablesService').to(ReporteMovimientosContablesService);
 
 
 // Controllers
@@ -169,6 +176,7 @@ container.bind<ReporteGastosDestinoController>('ReporteGastosDestinoController')
 container.bind<ReporteAsientosSinDimensionController>('ReporteAsientosSinDimensionController').to(ReporteAsientosSinDimensionController);
 container.bind<ResumenAsientosController>('ResumenAsientosController').to(ResumenAsientosController);
 container.bind<ReporteMensualCuentaCentroController>('ReporteMensualCuentaCentroController').to(ReporteMensualCuentaCentroController);
+container.bind<ReporteMovimientosContablesController>('ReporteMovimientosContablesController').to(ReporteMovimientosContablesController);
 
 
 // CQRS Buses
