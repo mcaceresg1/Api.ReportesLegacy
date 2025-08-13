@@ -5,4 +5,9 @@ export interface IReporteMovimientosContablesService {
     conjunto: string,
     filtros: FiltrosReporteMovimientosContables
   ): Promise<ReporteMovimientoContableItem[]>;
+  
+  obtenerReporteMovimientosContables(
+    conjunto: string,
+    filtros: FiltrosReporteMovimientosContables
+  ): Promise<ReporteMovimientoContableItem[]>;
 }
