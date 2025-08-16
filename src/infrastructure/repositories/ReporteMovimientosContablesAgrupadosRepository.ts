@@ -1,3 +1,4 @@
+import { injectable } from 'inversify';
 import { IReporteMovimientosContablesAgrupadosRepository } from '../../domain/repositories/IReporteMovimientosContablesAgrupadosRepository';
 import { 
   FiltrosReporteMovimientosContablesAgrupados, 
@@ -6,6 +7,7 @@ import {
 } from '../../domain/entities/ReporteMovimientosContablesAgrupados';
 import { exactusSequelize } from '../database/config/exactus-database';
 
+@injectable()
 export class ReporteMovimientosContablesAgrupadosRepository implements IReporteMovimientosContablesAgrupadosRepository {
   constructor(
     private readonly dbConnection: typeof exactusSequelize
