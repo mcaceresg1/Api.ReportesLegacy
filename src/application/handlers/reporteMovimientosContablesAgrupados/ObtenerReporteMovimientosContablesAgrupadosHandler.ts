@@ -1,11 +1,13 @@
+import { injectable, inject } from 'inversify';
 import { IQueryHandler } from '../../../domain/cqrs/IQueryHandler';
 import { ObtenerReporteMovimientosContablesAgrupadosQuery } from '../../queries/reporteMovimientosContablesAgrupados/ObtenerReporteMovimientosContablesAgrupadosQuery';
 import { IReporteMovimientosContablesAgrupadosService } from '../../../domain/services/IReporteMovimientosContablesAgrupadosService';
 import { RespuestaReporteMovimientosContablesAgrupados } from '../../../domain/entities/ReporteMovimientosContablesAgrupados';
 
+@injectable()
 export class ObtenerReporteMovimientosContablesAgrupadosHandler implements IQueryHandler<ObtenerReporteMovimientosContablesAgrupadosQuery, RespuestaReporteMovimientosContablesAgrupados> {
   constructor(
-    private readonly reporteService: IReporteMovimientosContablesAgrupadosService
+    @inject('IReporteMovimientosContablesAgrupadosService') private readonly reporteService: IReporteMovimientosContablesAgrupadosService
   ) {}
 
   async handle(query: ObtenerReporteMovimientosContablesAgrupadosQuery): Promise<RespuestaReporteMovimientosContablesAgrupados> {

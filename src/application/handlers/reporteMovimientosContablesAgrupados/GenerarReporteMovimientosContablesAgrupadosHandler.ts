@@ -1,11 +1,13 @@
+import { injectable, inject } from 'inversify';
 import { ICommandHandler } from '../../../domain/cqrs/ICommandHandler';
 import { GenerarReporteMovimientosContablesAgrupadosCommand } from '../../commands/reporteMovimientosContablesAgrupados/GenerarReporteMovimientosContablesAgrupadosCommand';
 import { IReporteMovimientosContablesAgrupadosService } from '../../../domain/services/IReporteMovimientosContablesAgrupadosService';
 import { RespuestaReporteMovimientosContablesAgrupados } from '../../../domain/entities/ReporteMovimientosContablesAgrupados';
 
+@injectable()
 export class GenerarReporteMovimientosContablesAgrupadosHandler implements ICommandHandler<GenerarReporteMovimientosContablesAgrupadosCommand, RespuestaReporteMovimientosContablesAgrupados> {
   constructor(
-    private readonly reporteService: IReporteMovimientosContablesAgrupadosService
+    @inject('IReporteMovimientosContablesAgrupadosService') private readonly reporteService: IReporteMovimientosContablesAgrupadosService
   ) {}
 
   async handle(command: GenerarReporteMovimientosContablesAgrupadosCommand): Promise<RespuestaReporteMovimientosContablesAgrupados> {
