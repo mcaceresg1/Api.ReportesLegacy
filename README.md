@@ -206,6 +206,64 @@ API REST desarrollada en TypeScript con arquitectura hexagonal (Ports and Adapte
   - `POST /api/permisos` - Asignar permisos a un rol en un sistema  
   - `PUT /api/permisos/:id` - Actualizar un permiso específico
 
+## 📊 Reportes Disponibles
+
+### Reportes Contables
+- **Reporte de Cuentas Contables**: `/api/reporte-cuenta-contable/{conjunto}`
+- **Reporte de Centros de Costo**: `/api/reporte-centro-costo/{conjunto}`
+- **Reporte de Gastos por Destino**: `/api/reporte-gastos-destino/{conjunto}`
+- **Reporte de Asientos Sin Dimensión**: `/api/reporte-asientos-sin-dimension/{conjunto}`
+- **Resumen de Asientos**: `/api/resumen-asientos/{conjunto}`
+- **Reporte Mensual Cuenta-Centro**: `/api/reporte-mensual-cuenta-centro/{conjunto}`
+- **Reporte de Movimientos Contables**: `/api/reporte-movimientos-contables/{conjunto}`
+- **Reporte de Movimientos Contables Agrupados**: `/api/reporte-movimientos-contables-agrupados/{conjunto}`
+
+### Reporte de Movimientos Contables Agrupados por NIT y Dimensión Contable
+
+Este nuevo reporte combina datos del diario y mayor, agrupando movimientos contables por NIT y dimensión contable según el query SQL proporcionado.
+
+#### Endpoints Disponibles:
+
+1. **Obtener Reporte**: `GET /api/reporte-movimientos-contables-agrupados/{conjunto}`
+   - Genera el reporte con filtros personalizables
+   - Soporta paginación y ordenamiento
+   - Incluye totales y subtotales opcionales
+
+2. **Exportar Reporte**: `GET /api/reporte-movimientos-contables-agrupados/{conjunto}/exportar?formato={EXCEL|PDF|CSV}`
+   - Exporta el reporte en múltiples formatos
+   - Descarga directa del archivo
+
+3. **Obtener Estadísticas**: `GET /api/reporte-movimientos-contables-agrupados/{conjunto}/estadisticas`
+   - Proporciona totales y subtotales del reporte
+   - Útil para análisis y resúmenes ejecutivos
+
+#### Características Principales:
+
+- **Fuentes de Datos**: Combina movimientos del diario y mayor
+- **Agrupamiento**: Por cuenta contable, NIT, dimensión, fecha o ninguno
+- **Ordenamiento**: Múltiples criterios de ordenamiento
+- **Filtros Avanzados**: Cuentas, NITs, asientos, fechas, fuentes
+- **Paginación**: Control de registros por página
+- **Exportación**: Múltiples formatos (Excel, PDF, CSV)
+- **Estadísticas**: Totales y subtotales por grupos
+- **Performance**: Consultas SQL optimizadas
+
+#### Ejemplo de Uso:
+
+```bash
+# Obtener reporte básico
+GET /api/reporte-movimientos-contables-agrupados/ASFSAC?fechaInicio=2020-01-01&fechaFin=2023-12-31&contabilidad=T
+
+# Con filtros adicionales
+GET /api/reporte-movimientos-contables-agrupados/ASFSAC?fechaInicio=2020-01-01&fechaFin=2023-12-31&contabilidad=F&cuentaContableDesde=01.0.0.0.000&cuentaContableHasta=01.9.9.999&agruparPor=CUENTA&ordenarPor=MONTO&orden=DESC
+
+# Exportar a Excel
+GET /api/reporte-movimientos-contables-agrupados/ASFSAC/exportar?formato=EXCEL&fechaInicio=2020-01-01&fechaFin=2023-12-31
+
+# Obtener estadísticas
+GET /api/reporte-movimientos-contables-agrupados/ASFSAC/estadisticas?fechaInicio=2020-01-01&fechaFin=2023-12-31&agruparPor=CUENTA
+```
+
 ## Estructura del Proyecto
 
 ```
