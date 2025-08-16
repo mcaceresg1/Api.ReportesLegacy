@@ -42,8 +42,18 @@ export class ReporteMovimientosContablesAgrupadosRepository implements IReporteM
         type: 'SELECT'
       });
 
+      console.log('Result type:', typeof result);
+      console.log('Result is array:', Array.isArray(result));
+      console.log('Result length:', Array.isArray(result) ? result.length : 'N/A');
+      console.log('Result[0] type:', typeof result[0]);
+      console.log('Result[0] is array:', Array.isArray(result[0]));
+      if (Array.isArray(result) && result[0]) {
+        console.log('Result[0] length:', result[0].length);
+        console.log('First record sample:', result[0][0]);
+      }
+
       // Procesar resultados
-      const data = this.procesarResultados(result[0]);
+      const data = this.procesarResultados(result);
       
       // Calcular totales
       const totalRegistros = data.length;
@@ -242,8 +252,21 @@ export class ReporteMovimientosContablesAgrupadosRepository implements IReporteM
     return sql;
   }
 
-  private procesarResultados(recordset: any[]): ReporteMovimientoContableAgrupadoItem[] {
-    return recordset.map(record => ({
+  private procesarResultados(recordset: any): ReporteMovimientoContableAgrupadoItem[] {
+    // Sequelize devuelve un array con dos elementos: [data, metadata]
+    // El primer elemento es el array de registros
+    const records = Array.isArray(recordset) ? recordset : [recordset];
+    
+    // Si es un array de arrays, tomar el primer elemento
+    const data = Array.isArray(records[0]) ? records[0] : records;
+    
+    // Asegurar que sea un array
+    if (!Array.isArray(data)) {
+      console.error('Formato de respuesta inesperado:', recordset);
+      return [];
+    }
+    
+    return data.map(record => ({
       sNombreMonLocal: record.sNombreMonLocal || '',
       sNombreMonDolar: record.sNombreMonDolar || '',
       sTituloCuenta: record.sTituloCuenta || '',
