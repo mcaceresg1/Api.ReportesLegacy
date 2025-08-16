@@ -33,10 +33,14 @@ export class ReporteMovimientosContablesAgrupadosRepository implements IReporteM
       if (filtros.asientoDesde) replacements.asientoDesde = filtros.asientoDesde;
       if (filtros.asientoHasta) replacements.asientoHasta = filtros.asientoHasta;
       
+      console.log('SQL Query:', sql);
+      console.log('Replacements:', replacements);
+      
       // Ejecutar la consulta
       const result = await exactusSequelize.query(sql, {
         replacements,
-        type: 'SELECT'
+        type: 'SELECT',
+        bind: replacements // Agregar bind para asegurar que los parámetros se pasen
       });
 
       // Procesar resultados
@@ -140,11 +144,10 @@ export class ReporteMovimientosContablesAgrupadosRepository implements IReporteM
 
   private construirConsultaSQL(filtros: FiltrosReporteMovimientosContablesAgrupados): string {
     let sql = '';
-    
-    // Construir consulta para diario
-    if (filtros.incluirDiario !== false) { // Por defecto incluir diario
+
+    if (filtros.incluirDiario !== false) {
       sql += `
-        SELECT 
+        SELECT
           'PESOS' as sNombreMonLocal,
           'DOLARES' as sNombreMonDolar,
           'CUENTA CONTABLE' as sTituloCuenta,
@@ -169,49 +172,30 @@ export class ReporteMovimientosContablesAgrupadosRepository implements IReporteM
           '' as sQuiebreDesc2,
           '' as sQuiebreDesc3,
           1 as ORDEN
-        FROM ${filtros.conjunto}.diario m
-        INNER JOIN ${filtros.conjunto}.asiento_de_diario am ON m.asiento = am.asiento
-        INNER JOIN ${filtros.conjunto}.cuenta_contable c ON m.cuenta_contable = c.cuenta_contable
-        INNER JOIN ${filtros.conjunto}.nit n ON m.nit = n.nit
+        FROM :conjunto.diario m
+        INNER JOIN :conjunto.asiento_de_diario am ON m.asiento = am.asiento
+        INNER JOIN :conjunto.cuenta_contable c ON m.cuenta_contable = c.cuenta_contable
+        INNER JOIN :conjunto.nit n ON m.nit = n.nit
         WHERE 1=1
-          AND am.contabilidad IN (@contabilidad)
-          AND am.fecha >= @fechaInicio
-          AND am.fecha <= @fechaFin
+          AND am.contabilidad IN (:contabilidad)
+          AND am.fecha >= :fechaInicio
+          AND am.fecha <= :fechaFin
       `;
-      
-      // Agregar filtros adicionales
-      if (filtros.cuentaContableDesde) {
-        sql += ` AND m.cuenta_contable >= @cuentaContableDesde`;
-      }
-      if (filtros.cuentaContableHasta) {
-        sql += ` AND m.cuenta_contable <= @cuentaContableHasta`;
-      }
-      if (filtros.nitDesde) {
-        sql += ` AND n.nit >= @nitDesde`;
-      }
-      if (filtros.nitHasta) {
-        sql += ` AND n.nit <= @nitHasta`;
-      }
-      if (filtros.asientoDesde) {
-        sql += ` AND m.asiento >= @asientoDesde`;
-      }
-      if (filtros.asientoHasta) {
-        sql += ` AND m.asiento <= @asientoHasta`;
-      }
-      if (filtros.fuentes && filtros.fuentes.length > 0) {
-        sql += ` AND m.fuente IN (${filtros.fuentes.map(f => `'${f}'`).join(',')})`;
-      }
+
+      if (filtros.cuentaContableDesde) { sql += ` AND m.cuenta_contable >= :cuentaContableDesde`; }
+      if (filtros.cuentaContableHasta) { sql += ` AND m.cuenta_contable <= :cuentaContableHasta`; }
+      if (filtros.nitDesde) { sql += ` AND n.nit >= :nitDesde`; }
+      if (filtros.nitHasta) { sql += ` AND n.nit <= :nitHasta`; }
+      if (filtros.asientoDesde) { sql += ` AND m.asiento >= :asientoDesde`; }
+      if (filtros.asientoHasta) { sql += ` AND m.asiento <= :asientoHasta`; }
+      if (filtros.fuentes && filtros.fuentes.length > 0) { sql += ` AND m.fuente IN (${filtros.fuentes.map(f => `'${f}'`).join(',')})`; }
     }
 
-    // Agregar UNION si se incluyen ambas fuentes
-    if ((filtros.incluirDiario !== false) && (filtros.incluirMayor !== false)) {
-      sql += ' UNION ALL ';
-    }
+    if ((filtros.incluirDiario !== false) && (filtros.incluirMayor !== false)) { sql += ' UNION ALL '; }
 
-    // Construir consulta para mayor
-    if (filtros.incluirMayor !== false) { // Por defecto incluir mayor
+    if (filtros.incluirMayor !== false) {
       sql += `
-        SELECT 
+        SELECT
           'PESOS' as sNombreMonLocal,
           'DOLARES' as sNombreMonDolar,
           'CUENTA CONTABLE' as sTituloCuenta,
@@ -231,48 +215,31 @@ export class ReporteMovimientosContablesAgrupadosRepository implements IReporteM
           '' as sDimensionDesc,
           '' as sQuiebre1,
           '' as sQuiebre2,
-          '' as sQuiebre3,
+          '' as sQuiebreDesc3,
           '' as sQuiebreDesc1,
           '' as sQuiebreDesc2,
           '' as sQuiebreDesc3,
           2 as ORDEN
-        FROM ${filtros.conjunto}.mayor m
-        INNER JOIN ${filtros.conjunto}.asiento_mayorizado am ON m.asiento = am.asiento
-        INNER JOIN ${filtros.conjunto}.cuenta_contable c ON m.cuenta_contable = c.cuenta_contable
-        INNER JOIN ${filtros.conjunto}.nit n ON m.nit = n.nit
+        FROM :conjunto.mayor m
+        INNER JOIN :conjunto.asiento_mayorizado am ON m.asiento = am.asiento
+        INNER JOIN :conjunto.cuenta_contable c ON m.cuenta_contable = c.cuenta_contable
+        INNER JOIN :conjunto.nit n ON m.nit = n.nit
         WHERE 1=1
-          AND am.contabilidad IN (@contabilidad)
-          AND am.fecha >= @fechaInicio
-          AND am.fecha <= @fechaFin
+          AND am.contabilidad IN (:contabilidad)
+          AND am.fecha >= :fechaInicio
+          AND am.fecha <= :fechaFin
       `;
-      
-      // Agregar filtros adicionales para mayor
-      if (filtros.cuentaContableDesde) {
-        sql += ` AND m.cuenta_contable >= @cuentaContableDesde`;
-      }
-      if (filtros.cuentaContableHasta) {
-        sql += ` AND m.cuenta_contable <= @cuentaContableHasta`;
-      }
-      if (filtros.nitDesde) {
-        sql += ` AND n.nit >= @nitDesde`;
-      }
-      if (filtros.nitHasta) {
-        sql += ` AND n.nit <= @nitHasta`;
-      }
-      if (filtros.asientoDesde) {
-        sql += ` AND m.asiento >= @asientoDesde`;
-      }
-      if (filtros.asientoHasta) {
-        sql += ` AND m.asiento <= @asientoHasta`;
-      }
-      if (filtros.fuentes && filtros.fuentes.length > 0) {
-        sql += ` AND m.fuente IN (${filtros.fuentes.map(f => `'${f}'`).join(',')})`;
-      }
+
+      if (filtros.cuentaContableDesde) { sql += ` AND m.cuenta_contable >= :cuentaContableDesde`; }
+      if (filtros.cuentaContableHasta) { sql += ` AND m.cuenta_contable <= :cuentaContableHasta`; }
+      if (filtros.nitDesde) { sql += ` AND n.nit >= :nitDesde`; }
+      if (filtros.nitHasta) { sql += ` AND n.nit <= :nitHasta`; }
+      if (filtros.asientoDesde) { sql += ` AND m.asiento >= :asientoDesde`; }
+      if (filtros.asientoHasta) { sql += ` AND m.asiento <= :asientoHasta`; }
+      if (filtros.fuentes && filtros.fuentes.length > 0) { sql += ` AND m.fuente IN (${filtros.fuentes.map(f => `'${f}'`).join(',')})`; }
     }
 
-    // Agregar ORDER BY
     sql += ' ORDER BY sCuentaContable, sNit, ORDEN, sFuente';
-    
     return sql;
   }
 
