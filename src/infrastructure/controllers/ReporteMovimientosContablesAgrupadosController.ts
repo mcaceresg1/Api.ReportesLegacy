@@ -1,10 +1,12 @@
+import { injectable, inject } from 'inversify';
 import { Request, Response } from 'express';
 import { IReporteMovimientosContablesAgrupadosService } from '../../domain/services/IReporteMovimientosContablesAgrupadosService';
 import { FiltrosReporteMovimientosContablesAgrupados } from '../../domain/entities/ReporteMovimientosContablesAgrupados';
 
+@injectable()
 export class ReporteMovimientosContablesAgrupadosController {
   constructor(
-    private readonly reporteService: IReporteMovimientosContablesAgrupadosService
+    @inject('IReporteMovimientosContablesAgrupadosService') private readonly reporteService: IReporteMovimientosContablesAgrupadosService
   ) {}
 
   /**
