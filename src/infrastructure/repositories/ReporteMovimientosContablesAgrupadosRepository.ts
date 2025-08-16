@@ -17,14 +17,25 @@ export class ReporteMovimientosContablesAgrupadosRepository implements IReporteM
       // Construir la consulta SQL basada en el query original
       const sql = this.construirConsultaSQL(filtros);
       
+      // Preparar los parámetros para la consulta
+      const replacements: any = {
+        conjunto: filtros.conjunto,
+        fechaInicio: filtros.fechaInicio,
+        fechaFin: filtros.fechaFin,
+        contabilidad: filtros.contabilidad === 'T' ? ['F', 'A'] : [filtros.contabilidad]
+      };
+
+      // Agregar parámetros opcionales si existen
+      if (filtros.cuentaContableDesde) replacements.cuentaContableDesde = filtros.cuentaContableDesde;
+      if (filtros.cuentaContableHasta) replacements.cuentaContableHasta = filtros.cuentaContableHasta;
+      if (filtros.nitDesde) replacements.nitDesde = filtros.nitDesde;
+      if (filtros.nitHasta) replacements.nitHasta = filtros.nitHasta;
+      if (filtros.asientoDesde) replacements.asientoDesde = filtros.asientoDesde;
+      if (filtros.asientoHasta) replacements.asientoHasta = filtros.asientoHasta;
+      
       // Ejecutar la consulta
       const result = await exactusSequelize.query(sql, {
-        replacements: {
-          conjunto: filtros.conjunto,
-          fechaInicio: filtros.fechaInicio,
-          fechaFin: filtros.fechaFin,
-          contabilidad: filtros.contabilidad === 'T' ? ['F', 'A'] : [filtros.contabilidad]
-        },
+        replacements,
         type: 'SELECT'
       });
 
@@ -131,14 +142,14 @@ export class ReporteMovimientosContablesAgrupadosRepository implements IReporteM
     let sql = '';
     
     // Construir consulta para diario
-    if (filtros.incluirDiario) {
+    if (filtros.incluirDiario !== false) { // Por defecto incluir diario
       sql += `
         SELECT 
-          ISNULL('PESOS' as sNombreMonLocal, '') as sNombreMonLocal,
-          ISNULL('DOLARES' as sNombreMonDolar, '') as sNombreMonDolar,
-          ISNULL('CUENTA CONTABLE' as sTituloCuenta, '') as sTituloCuenta,
+          'PESOS' as sNombreMonLocal,
+          'DOLARES' as sNombreMonDolar,
+          'CUENTA CONTABLE' as sTituloCuenta,
           ISNULL(c.descripcion, '') as sCuentaContableDesc,
-          ISNULL('NIT' as sTituloNit, '') as sTituloNit,
+          'NIT' as sTituloNit,
           ISNULL(n.razon_social, '') as sNitNombre,
           ISNULL(m.referencia, '') as sReferencia,
           ISNULL(ISNULL(m.debito_local, m.credito_local * -1), 0) as nMontoLocal,
@@ -149,15 +160,15 @@ export class ReporteMovimientosContablesAgrupadosRepository implements IReporteM
           am.fecha as dtFecha,
           ISNULL(m.fuente, '') as sFuente,
           ISNULL(am.notas, '') as sNotas,
-          ISNULL(NULL, '') as sDimension,
-          ISNULL(NULL, '') as sDimensionDesc,
-          ISNULL('', '') as sQuiebre1,
-          ISNULL('', '') as sQuiebre2,
-          ISNULL('', '') as sQuiebre3,
-          ISNULL('', '') as sQuiebreDesc1,
-          ISNULL('', '') as sQuiebreDesc2,
-          ISNULL('', '') as sQuiebreDesc3,
-          ISNULL(2, 0) as ORDEN
+          '' as sDimension,
+          '' as sDimensionDesc,
+          '' as sQuiebre1,
+          '' as sQuiebre2,
+          '' as sQuiebre3,
+          '' as sQuiebreDesc1,
+          '' as sQuiebreDesc2,
+          '' as sQuiebreDesc3,
+          1 as ORDEN
         FROM ${filtros.conjunto}.diario m
         INNER JOIN ${filtros.conjunto}.asiento_de_diario am ON m.asiento = am.asiento
         INNER JOIN ${filtros.conjunto}.cuenta_contable c ON m.cuenta_contable = c.cuenta_contable
@@ -193,19 +204,19 @@ export class ReporteMovimientosContablesAgrupadosRepository implements IReporteM
     }
 
     // Agregar UNION si se incluyen ambas fuentes
-    if (filtros.incluirDiario && filtros.incluirMayor) {
+    if ((filtros.incluirDiario !== false) && (filtros.incluirMayor !== false)) {
       sql += ' UNION ALL ';
     }
 
     // Construir consulta para mayor
-    if (filtros.incluirMayor) {
+    if (filtros.incluirMayor !== false) { // Por defecto incluir mayor
       sql += `
         SELECT 
-          ISNULL('PESOS' as sNombreMonLocal, '') as sNombreMonLocal,
-          ISNULL('DOLARES' as sNombreMonDolar, '') as sNombreMonDolar,
-          ISNULL('CUENTA CONTABLE' as sTituloCuenta, '') as sTituloCuenta,
+          'PESOS' as sNombreMonLocal,
+          'DOLARES' as sNombreMonDolar,
+          'CUENTA CONTABLE' as sTituloCuenta,
           ISNULL(c.descripcion, '') as sCuentaContableDesc,
-          ISNULL('NIT' as sTituloNit, '') as sTituloNit,
+          'NIT' as sTituloNit,
           ISNULL(n.razon_social, '') as sNitNombre,
           ISNULL(m.referencia, '') as sReferencia,
           ISNULL(ISNULL(m.debito_local, m.credito_local * -1), 0) as nMontoLocal,
@@ -216,15 +227,15 @@ export class ReporteMovimientosContablesAgrupadosRepository implements IReporteM
           am.fecha as dtFecha,
           ISNULL(m.fuente, '') as sFuente,
           ISNULL(am.notas, '') as sNotas,
-          ISNULL(NULL, '') as sDimension,
-          ISNULL(NULL, '') as sDimensionDesc,
-          ISNULL('', '') as sQuiebre1,
-          ISNULL('', '') as sQuiebre2,
-          ISNULL('', '') as sQuiebre3,
-          ISNULL('', '') as sQuiebreDesc1,
-          ISNULL('', '') as sQuiebreDesc2,
-          ISNULL('', '') as sQuiebreDesc3,
-          ISNULL(2, 0) as ORDEN
+          '' as sDimension,
+          '' as sDimensionDesc,
+          '' as sQuiebre1,
+          '' as sQuiebre2,
+          '' as sQuiebre3,
+          '' as sQuiebreDesc1,
+          '' as sQuiebreDesc2,
+          '' as sQuiebreDesc3,
+          2 as ORDEN
         FROM ${filtros.conjunto}.mayor m
         INNER JOIN ${filtros.conjunto}.asiento_mayorizado am ON m.asiento = am.asiento
         INNER JOIN ${filtros.conjunto}.cuenta_contable c ON m.cuenta_contable = c.cuenta_contable
@@ -235,7 +246,7 @@ export class ReporteMovimientosContablesAgrupadosRepository implements IReporteM
           AND am.fecha <= @fechaFin
       `;
       
-      // Agregar filtros adicionales
+      // Agregar filtros adicionales para mayor
       if (filtros.cuentaContableDesde) {
         sql += ` AND m.cuenta_contable >= @cuentaContableDesde`;
       }
@@ -260,8 +271,8 @@ export class ReporteMovimientosContablesAgrupadosRepository implements IReporteM
     }
 
     // Agregar ORDER BY
-    sql += ` ORDER BY sCuentaContable, sNit, ORDEN, sFuente`;
-
+    sql += ' ORDER BY sCuentaContable, sNit, ORDEN, sFuente';
+    
     return sql;
   }
 
