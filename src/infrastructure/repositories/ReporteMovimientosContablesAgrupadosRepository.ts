@@ -9,9 +9,6 @@ import { exactusSequelize } from '../database/config/exactus-database';
 
 @injectable()
 export class ReporteMovimientosContablesAgrupadosRepository implements IReporteMovimientosContablesAgrupadosRepository {
-  constructor(
-    private readonly dbConnection: typeof exactusSequelize
-  ) {}
 
   async obtenerReporte(filtros: FiltrosReporteMovimientosContablesAgrupados): Promise<RespuestaReporteMovimientosContablesAgrupados> {
     const startTime = Date.now();
@@ -21,7 +18,7 @@ export class ReporteMovimientosContablesAgrupadosRepository implements IReporteM
       const sql = this.construirConsultaSQL(filtros);
       
       // Ejecutar la consulta
-      const result = await this.dbConnection.query(sql, {
+      const result = await exactusSequelize.query(sql, {
         replacements: {
           conjunto: filtros.conjunto,
           fechaInicio: filtros.fechaInicio,
