@@ -1,4 +1,4 @@
-import { injectable } from 'inversify';
+import { injectable, inject } from 'inversify';
 import { IReporteMovimientosContablesAgrupadosService } from '../../domain/services/IReporteMovimientosContablesAgrupadosService';
 import { 
   FiltrosReporteMovimientosContablesAgrupados, 
@@ -9,7 +9,7 @@ import { IReporteMovimientosContablesAgrupadosRepository } from '../../domain/re
 @injectable()
 export class ReporteMovimientosContablesAgrupadosService implements IReporteMovimientosContablesAgrupadosService {
   constructor(
-    private readonly reporteRepository: IReporteMovimientosContablesAgrupadosRepository
+    @inject('IReporteMovimientosContablesAgrupadosRepository') private readonly reporteRepository: IReporteMovimientosContablesAgrupadosRepository
   ) {}
 
   async generarReporte(filtros: FiltrosReporteMovimientosContablesAgrupados): Promise<RespuestaReporteMovimientosContablesAgrupados> {
