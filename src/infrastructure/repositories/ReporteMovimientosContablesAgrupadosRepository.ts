@@ -39,8 +39,7 @@ export class ReporteMovimientosContablesAgrupadosRepository implements IReporteM
       // Ejecutar la consulta
       const result = await exactusSequelize.query(sql, {
         replacements,
-        type: 'SELECT',
-        bind: replacements // Agregar bind para asegurar que los parámetros se pasen
+        type: 'SELECT'
       });
 
       // Procesar resultados
@@ -172,10 +171,10 @@ export class ReporteMovimientosContablesAgrupadosRepository implements IReporteM
           '' as sQuiebreDesc2,
           '' as sQuiebreDesc3,
           1 as ORDEN
-        FROM :conjunto.diario m
-        INNER JOIN :conjunto.asiento_de_diario am ON m.asiento = am.asiento
-        INNER JOIN :conjunto.cuenta_contable c ON m.cuenta_contable = c.cuenta_contable
-        INNER JOIN :conjunto.nit n ON m.nit = n.nit
+        FROM ${filtros.conjunto}.diario m
+        INNER JOIN ${filtros.conjunto}.asiento_de_diario am ON m.asiento = am.asiento
+        INNER JOIN ${filtros.conjunto}.cuenta_contable c ON m.cuenta_contable = c.cuenta_contable
+        INNER JOIN ${filtros.conjunto}.nit n ON m.nit = n.nit
         WHERE 1=1
           AND am.contabilidad IN (:contabilidad)
           AND am.fecha >= :fechaInicio
@@ -215,15 +214,15 @@ export class ReporteMovimientosContablesAgrupadosRepository implements IReporteM
           '' as sDimensionDesc,
           '' as sQuiebre1,
           '' as sQuiebre2,
-          '' as sQuiebreDesc3,
+          '' as sQuiebre3,
           '' as sQuiebreDesc1,
           '' as sQuiebreDesc2,
           '' as sQuiebreDesc3,
           2 as ORDEN
-        FROM :conjunto.mayor m
-        INNER JOIN :conjunto.asiento_mayorizado am ON m.asiento = am.asiento
-        INNER JOIN :conjunto.cuenta_contable c ON m.cuenta_contable = c.cuenta_contable
-        INNER JOIN :conjunto.nit n ON m.nit = n.nit
+        FROM ${filtros.conjunto}.mayor m
+        INNER JOIN ${filtros.conjunto}.asiento_mayorizado am ON m.asiento = am.asiento
+        INNER JOIN ${filtros.conjunto}.cuenta_contable c ON m.cuenta_contable = c.cuenta_contable
+        INNER JOIN ${filtros.conjunto}.nit n ON m.nit = n.nit
         WHERE 1=1
           AND am.contabilidad IN (:contabilidad)
           AND am.fecha >= :fechaInicio
