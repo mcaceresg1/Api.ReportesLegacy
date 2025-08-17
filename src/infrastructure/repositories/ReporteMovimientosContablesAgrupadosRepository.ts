@@ -1,11 +1,12 @@
-import { injectable } from 'inversify';
-import { IReporteMovimientosContablesAgrupadosRepository } from '../../domain/repositories/IReporteMovimientosContablesAgrupadosRepository';
+import { injectable, inject } from 'inversify';
+import { exactusSequelize } from '../database/config/exactus-database';
 import { 
   FiltrosReporteMovimientosContablesAgrupados, 
   RespuestaReporteMovimientosContablesAgrupados,
-  ReporteMovimientoContableAgrupadoItem
+  ReporteMovimientoContableAgrupadoItem 
 } from '../../domain/entities/ReporteMovimientosContablesAgrupados';
-import { exactusSequelize } from '../database/config/exactus-database';
+import { IReporteMovimientosContablesAgrupadosRepository } from '../../domain/repositories/IReporteMovimientosContablesAgrupadosRepository';
+import * as XLSX from 'xlsx';
 
 @injectable()
 export class ReporteMovimientosContablesAgrupadosRepository implements IReporteMovimientosContablesAgrupadosRepository {
@@ -391,17 +392,235 @@ export class ReporteMovimientosContablesAgrupadosRepository implements IReporteM
   }
 
   private exportarExcel(data: ReporteMovimientoContableAgrupadoItem[]): Buffer {
-    // Implementar exportación a Excel
-    throw new Error('Exportación a Excel no implementada');
+    try {
+      console.log(`Generando Excel con ${data.length} registros...`);
+      
+      // Preparar los datos para Excel
+      const excelData = data.map(item => ({
+        'Fecha': item.dtFecha ? new Date(item.dtFecha).toLocaleDateString('es-ES') : '',
+        'Número Voucher': item.sAsiento || '',
+        'Fuente': item.sFuente || '',
+        'Referencia': item.sReferencia || '',
+        'Cuenta Contable': item.sCuentaContable || '',
+        'Descripción Cuenta': item.sCuentaContableDesc || '',
+        'NIT': item.sNit || '',
+        'Nombre NIT': item.sNitNombre || '',
+        'Dimensión': item.sDimension || '',
+        'Descripción Dimensión': item.sDimensionDesc || '',
+        'Monto Local': Number(item.nMontoLocal || 0),
+        'Monto Dólar': Number(item.nMontoDolar || 0),
+        'Notas': item.sNotas || ''
+      }));
+
+      // Calcular totales
+      const totalLocal = data.reduce((sum, item) => sum + (item.nMontoLocal || 0), 0);
+      const totalDolar = data.reduce((sum, item) => sum + (item.nMontoDolar || 0), 0);
+
+      // Agregar fila de totales
+      const totalRow = {
+        'Fecha': '',
+        'Número Voucher': '',
+        'Fuente': '',
+        'Referencia': '',
+        'Cuenta Contable': '',
+        'Descripción Cuenta': '',
+        'NIT': '',
+        'Nombre NIT': '',
+        'Dimensión': '',
+        'Descripción Dimensión': '',
+        'Monto Local': totalLocal,
+        'Monto Dólar': totalDolar,
+        'Notas': 'TOTAL GENERAL'
+      };
+
+      // Agregar fila vacía antes del total
+      const emptyRow = {
+        'Fecha': '',
+        'Número Voucher': '',
+        'Fuente': '',
+        'Referencia': '',
+        'Cuenta Contable': '',
+        'Descripción Cuenta': '',
+        'NIT': '',
+        'Nombre NIT': '',
+        'Dimensión': '',
+        'Descripción Dimensión': '',
+        'Monto Local': '',
+        'Monto Dólar': '',
+        'Notas': ''
+      };
+
+      // Combinar datos con totales
+      const finalData = [...excelData, emptyRow, totalRow];
+
+      // Crear el workbook
+      const workbook = XLSX.utils.book_new();
+      
+      // Crear la hoja principal con los datos
+      const worksheet = XLSX.utils.json_to_sheet(finalData);
+      
+      // Configurar el ancho de las columnas
+      const columnWidths = [
+        { wch: 12 }, // Fecha
+        { wch: 15 }, // Número Voucher
+        { wch: 15 }, // Fuente
+        { wch: 30 }, // Referencia
+        { wch: 20 }, // Cuenta Contable
+        { wch: 15 }, // NIT
+        { wch: 30 }, // Nombre NIT
+        { wch: 15 }, // Dimensión
+        { wch: 30 }, // Descripción Dimensión
+        { wch: 15 }, // Monto Local
+        { wch: 15 }, // Monto Dólar
+        { wch: 40 }  // Notas
+      ];
+      
+      worksheet['!cols'] = columnWidths;
+      
+      // Agregar la hoja al workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Movimientos Contables');
+      
+      // Generar el buffer del archivo Excel
+      const excelBuffer = XLSX.write(workbook, { 
+        type: 'buffer', 
+        bookType: 'xlsx',
+        compression: true
+      });
+      
+      console.log('Archivo Excel generado exitosamente');
+      return excelBuffer;
+      
+    } catch (error) {
+      console.error('Error al generar Excel:', error);
+      throw new Error(`Error al generar archivo Excel: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    }
   }
 
   private exportarPDF(reporte: RespuestaReporteMovimientosContablesAgrupados): Buffer {
-    // Implementar exportación a PDF
-    throw new Error('Exportación a PDF no implementada');
+    try {
+      console.log(`Generando PDF con ${reporte.data.length} registros...`);
+      
+      // Por ahora, vamos a generar un PDF básico usando una librería simple
+      // En el futuro se puede mejorar con una librería más robusta como puppeteer
+      
+      // Crear contenido HTML básico para el PDF
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Reporte Movimientos Contables Agrupados</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
+            th { background-color: #f2f2f2; font-weight: bold; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .total { font-weight: bold; background-color: #e6f3ff; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Reporte de Movimientos Contables Agrupados</h1>
+            <p>Total de registros: ${reporte.totalRegistros}</p>
+            <p>Fecha de generación: ${new Date().toLocaleDateString('es-ES')}</p>
+          </div>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Voucher</th>
+                <th>Fuente</th>
+                <th>Cuenta</th>
+                <th>NIT</th>
+                <th>Monto Local</th>
+                <th>Monto Dólar</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${reporte.data.map(item => `
+                <tr>
+                  <td>${item.dtFecha ? new Date(item.dtFecha).toLocaleDateString('es-ES') : ''}</td>
+                  <td>${item.sAsiento || ''}</td>
+                  <td>${item.sFuente || ''}</td>
+                  <td>${item.sCuentaContable || ''}</td>
+                  <td>${item.sNit || ''}</td>
+                  <td>${item.nMontoLocal?.toLocaleString('es-ES', { minimumFractionDigits: 2 }) || '0.00'}</td>
+                  <td>${item.nMontoDolar?.toLocaleString('es-ES', { minimumFractionDigits: 2 }) || '0.00'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </body>
+        </html>
+      `;
+      
+      // Por ahora, retornamos el HTML como Buffer
+      // En el futuro se puede usar puppeteer para convertir HTML a PDF
+      const buffer = Buffer.from(htmlContent, 'utf-8');
+      
+      console.log('Archivo PDF (HTML) generado exitosamente');
+      return buffer;
+      
+    } catch (error) {
+      console.error('Error al generar PDF:', error);
+      throw new Error(`Error al generar archivo PDF: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    }
   }
 
   private exportarCSV(data: ReporteMovimientoContableAgrupadoItem[]): Buffer {
-    // Implementar exportación a CSV
-    throw new Error('Exportación a CSV no implementada');
+    try {
+      console.log(`Generando CSV con ${data.length} registros...`);
+      
+      // Definir los headers del CSV
+      const headers = [
+        'Fecha',
+        'Número Voucher',
+        'Fuente',
+        'Referencia',
+        'Cuenta Contable',
+        'Descripción Cuenta',
+        'NIT',
+        'Nombre NIT',
+        'Dimensión',
+        'Descripción Dimensión',
+        'Monto Local',
+        'Monto Dólar',
+        'Notas'
+      ];
+      
+      // Crear las filas de datos
+      const rows = data.map(item => [
+        item.dtFecha ? new Date(item.dtFecha).toLocaleDateString('es-ES') : '',
+        item.sAsiento || '',
+        item.sFuente || '',
+        item.sReferencia || '',
+        item.sCuentaContable || '',
+        item.sCuentaContableDesc || '',
+        item.sNit || '',
+        item.sNitNombre || '',
+        item.sDimension || '',
+        item.sDimensionDesc || '',
+        item.nMontoLocal || 0,
+        item.nMontoDolar || 0,
+        item.sNotas || ''
+      ]);
+      
+      // Combinar headers y datos
+      const csvContent = [headers, ...rows]
+        .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+        .join('\n');
+      
+      // Convertir a Buffer con encoding UTF-8
+      const buffer = Buffer.from(csvContent, 'utf-8');
+      
+      console.log('Archivo CSV generado exitosamente');
+      return buffer;
+      
+    } catch (error) {
+      console.error('Error al generar CSV:', error);
+      throw new Error(`Error al generar archivo CSV: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    }
   }
 }
