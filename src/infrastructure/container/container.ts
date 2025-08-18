@@ -20,6 +20,7 @@ import { IReporteAsientosSinDimensionRepository } from '../../domain/repositorie
 import { IResumenAsientosRepository } from '../../domain/repositories/IResumenAsientosRepository';
 import { IReporteMensualCuentaCentroRepository } from '../../domain/repositories/IReporteMensualCuentaCentroRepository';
 import { IReporteMovimientosContablesRepository } from '../../domain/repositories/IReporteMovimientosContablesRepository';
+import { IReporteMovimientosContablesAgrupadosRepository } from '../../domain/repositories/IReporteMovimientosContablesAgrupadosRepository';
 
 import { ICuentaContableRepository } from '../../domain/repositories/ICuentaContableRepository';
 import { IUsuarioService } from '../../domain/services/IUsuarioService';
@@ -36,6 +37,7 @@ import { IResumenAsientosService } from '../../domain/services/IResumenAsientosS
 import { IReporteMensualCuentaCentroService } from '../../domain/services/IReporteMensualCuentaCentroService';
 import { ITipoAsientoService } from '../../domain/services/ITipoAsientoService';
 import { IReporteMovimientosContablesService } from '../../domain/services/IReporteMovimientosContablesService';
+import { IReporteMovimientosContablesAgrupadosService } from '../../domain/services/IReporteMovimientosContablesAgrupadosService';
 
 // CQRS interfaces
 import { ICommandBus } from '../../domain/cqrs/ICommandBus';
@@ -60,6 +62,7 @@ import { ReporteAsientosSinDimensionRepository } from '../repositories/ReporteAs
 import { ResumenAsientosRepository } from '../repositories/ResumenAsientosRepository';
 import { ReporteMensualCuentaCentroRepository } from '../repositories/ReporteMensualCuentaCentroRepository';
 import { ReporteMovimientosContablesRepository } from '../repositories/ReporteMovimientosContablesRepository';
+import { ReporteMovimientosContablesAgrupadosRepository } from '../repositories/ReporteMovimientosContablesAgrupadosRepository';
 
 import { CuentaContableRepository } from '../repositories/CuentaContableRepository';
 import { UsuarioService } from '../../application/services/UsuarioService';
@@ -76,6 +79,7 @@ import { ResumenAsientosService } from '../../application/services/ResumenAsient
 import { ReporteMensualCuentaCentroService } from '../../application/services/ReporteMensualCuentaCentroService';
 import { TipoAsientoService } from '../../application/services/TipoAsientoService';
 import { ReporteMovimientosContablesService } from '../../application/services/ReporteMovimientosContablesService';
+import { ReporteMovimientosContablesAgrupadosService } from '../../application/services/ReporteMovimientosContablesAgrupadosService';
 
 
 // Controllers
@@ -94,6 +98,7 @@ import { ReporteAsientosSinDimensionController } from '../controllers/ReporteAsi
 import { ResumenAsientosController } from '../controllers/ResumenAsientosController';
 import { ReporteMensualCuentaCentroController } from '../controllers/ReporteMensualCuentaCentroController';
 import { ReporteMovimientosContablesController } from '../controllers/ReporteMovimientosContablesController';
+import { ReporteMovimientosContablesAgrupadosController } from '../controllers/ReporteMovimientosContablesAgrupadosController';
 
 // CQRS implementations
 import { CommandBus } from '../cqrs/CommandBus';
@@ -112,6 +117,10 @@ import { UpdateRolHandler } from '../../application/handlers/rol/UpdateRolHandle
 import { DeleteRolHandler } from '../../application/handlers/rol/DeleteRolHandler';
 import { GetAllRolesHandler } from '../../application/handlers/rol/GetAllRolesHandler';
 import { GetRolByIdHandler } from '../../application/handlers/rol/GetRolByIdHandler';
+
+// Reporte Movimientos Contables Agrupados Handlers
+import { GenerarReporteMovimientosContablesAgrupadosHandler } from '../../application/handlers/reporteMovimientosContablesAgrupados/GenerarReporteMovimientosContablesAgrupadosHandler';
+import { ObtenerReporteMovimientosContablesAgrupadosHandler } from '../../application/handlers/reporteMovimientosContablesAgrupados/ObtenerReporteMovimientosContablesAgrupadosHandler';
 
 // CQRS Service
 import { CqrsService } from '../cqrs/CqrsService';
@@ -140,6 +149,7 @@ container.bind<IReporteAsientosSinDimensionRepository>('IReporteAsientosSinDimen
 container.bind<IResumenAsientosRepository>('IResumenAsientosRepository').to(ResumenAsientosRepository);
 container.bind<IReporteMensualCuentaCentroRepository>('IReporteMensualCuentaCentroRepository').to(ReporteMensualCuentaCentroRepository);
 container.bind<IReporteMovimientosContablesRepository>('IReporteMovimientosContablesRepository').to(ReporteMovimientosContablesRepository);
+container.bind<IReporteMovimientosContablesAgrupadosRepository>('IReporteMovimientosContablesAgrupadosRepository').to(ReporteMovimientosContablesAgrupadosRepository);
 
 container.bind<ICuentaContableRepository>('ICuentaContableRepository').to(CuentaContableRepository);
 
@@ -159,6 +169,7 @@ container.bind<IResumenAsientosService>('ResumenAsientosService').to(ResumenAsie
 container.bind<IReporteMensualCuentaCentroService>('IReporteMensualCuentaCentroService').to(ReporteMensualCuentaCentroService);
 container.bind<ITipoAsientoService>('TipoAsientoService').to(TipoAsientoService);
 container.bind<IReporteMovimientosContablesService>('IReporteMovimientosContablesService').to(ReporteMovimientosContablesService);
+container.bind<IReporteMovimientosContablesAgrupadosService>('IReporteMovimientosContablesAgrupadosService').to(ReporteMovimientosContablesAgrupadosService);
 
 
 // Controllers
@@ -177,6 +188,7 @@ container.bind<ReporteAsientosSinDimensionController>('ReporteAsientosSinDimensi
 container.bind<ResumenAsientosController>('ResumenAsientosController').to(ResumenAsientosController);
 container.bind<ReporteMensualCuentaCentroController>('ReporteMensualCuentaCentroController').to(ReporteMensualCuentaCentroController);
 container.bind<ReporteMovimientosContablesController>('ReporteMovimientosContablesController').to(ReporteMovimientosContablesController);
+container.bind<ReporteMovimientosContablesAgrupadosController>('ReporteMovimientosContablesAgrupadosController').to(ReporteMovimientosContablesAgrupadosController);
 
 
 // CQRS Buses
@@ -200,6 +212,10 @@ container.bind<DeleteRolHandler>('DeleteRolHandler').to(DeleteRolHandler);
 // Rol Query Handlers
 container.bind<GetAllRolesHandler>('GetAllRolesHandler').to(GetAllRolesHandler);
 container.bind<GetRolByIdHandler>('GetRolByIdHandler').to(GetRolByIdHandler);
+
+// Reporte Movimientos Contables Agrupados Handlers
+container.bind<GenerarReporteMovimientosContablesAgrupadosHandler>('GenerarReporteMovimientosContablesAgrupadosHandler').to(GenerarReporteMovimientosContablesAgrupadosHandler);
+container.bind<ObtenerReporteMovimientosContablesAgrupadosHandler>('ObtenerReporteMovimientosContablesAgrupadosHandler').to(ObtenerReporteMovimientosContablesAgrupadosHandler);
 
 // CQRS Service
 container.bind<CqrsService>('CqrsService').to(CqrsService);
