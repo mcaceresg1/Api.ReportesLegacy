@@ -3,6 +3,7 @@ import { IReporteCuentaContableRepository } from '../../domain/repositories/IRep
 import { ReporteCuentaContable, FiltroCentroCosto } from '../../domain/entities/ReporteCuentaContable';
 import { QueryTypes } from 'sequelize';
 import { exactusSequelize } from '../database/config/exactus-database';
+import * as XLSX from 'xlsx';
 
 @injectable()
 export class ReporteCuentaContableRepository implements IReporteCuentaContableRepository {
@@ -101,6 +102,54 @@ export class ReporteCuentaContableRepository implements IReporteCuentaContableRe
     } catch (error) {
       console.error('Error al obtener conteo de cuentas contables:', error);
       throw new Error('Error al obtener conteo de cuentas contables');
+    }
+  }
+
+  async exportarExcel(conjunto: string, centroCosto: string): Promise<Buffer> {
+    try {
+      console.log(`Generando Excel de cuentas contables para conjunto ${conjunto}, centro de costo ${centroCosto}`);
+      
+      // Obtener todos los datos para el Excel (sin límite)
+      const cuentas = await this.obtenerCuentasContablesPorCentroCosto(conjunto, centroCosto, 10000, 0);
+      
+      // Preparar los datos para Excel
+      const excelData = cuentas.map(item => ({
+        'Cuenta Contable': item.CUENTA_CONTABLE || '',
+        'Descripción': item.DESCRIPCION || '',
+        'Tipo': item.TIPO || ''
+      }));
+
+      // Crear el workbook
+      const workbook = XLSX.utils.book_new();
+      
+      // Crear la hoja principal con los datos
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      
+      // Configurar el ancho de las columnas
+      const columnWidths = [
+        { wch: 25 }, // Cuenta Contable
+        { wch: 50 }, // Descripción
+        { wch: 15 }  // Tipo
+      ];
+      
+      worksheet['!cols'] = columnWidths;
+      
+      // Agregar la hoja al workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Cuentas Contables');
+      
+      // Generar el buffer del archivo Excel
+      const excelBuffer = XLSX.write(workbook, { 
+        type: 'buffer', 
+        bookType: 'xlsx',
+        compression: true
+      });
+      
+      console.log('Archivo Excel de cuentas contables generado exitosamente');
+      return excelBuffer;
+      
+    } catch (error) {
+      console.error('Error al generar Excel de cuentas contables:', error);
+      throw new Error(`Error al generar archivo Excel: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   }
 }

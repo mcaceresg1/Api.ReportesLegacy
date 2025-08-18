@@ -4,6 +4,7 @@ import { MovimientoContable } from '../../domain/entities/MovimientoContable';
 import { DynamicModelFactory } from '../database/models/DynamicModel';
 import { QueryTypes, Op } from 'sequelize';
 import { exactusSequelize } from '../database/config/exactus-database';
+import * as XLSX from 'xlsx';
 
 @injectable()
 export class MovimientoContableRepository implements IMovimientoContableRepository {
@@ -257,6 +258,162 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
     } catch (error) {
       console.error('Error al obtener conteo de movimientos:', error);
       throw new Error('Error al obtener conteo de movimientos');
+    }
+  }
+
+  async exportarExcel(
+    conjunto: string,
+    usuario: string,
+    fechaInicio: Date,
+    fechaFin: Date,
+    limit: number = 1000
+  ): Promise<Buffer> {
+    try {
+      console.log(`Generando Excel de movimientos contables para conjunto ${conjunto}, usuario ${usuario}`);
+      
+      // Obtener todos los datos sin paginación para el Excel
+      const movimientos = await this.generarReporteMovimientos(
+        conjunto,
+        usuario,
+        fechaInicio,
+        fechaFin,
+        limit,
+        0
+      );
+
+      // Preparar los datos para Excel
+      const excelData = movimientos.map(item => ({
+        'Usuario': item.USUARIO || '',
+        'Cuenta Contable': item.CUENTA_CONTABLE || '',
+        'Descripción Cuenta': item.DESCRIPCION_CUENTA_CONTABLE || '',
+        'Asiento': item.ASIENTO || '',
+        'Tipo': item.TIPO || '',
+        'Documento': item.DOCUMENTO || '',
+        'Referencia': item.REFERENCIA || '',
+        'Débito Local': Number(item.DEBITO_LOCAL || 0),
+        'Débito Dólar': Number(item.DEBITO_DOLAR || 0),
+        'Crédito Local': Number(item.CREDITO_LOCAL || 0),
+        'Crédito Dólar': Number(item.CREDITO_DOLAR || 0),
+        'Centro Costo': item.CENTRO_COSTO || '',
+        'Descripción Centro Costo': item.DESCRIPCION_CENTRO_COSTO || '',
+        'Tipo Asiento': item.TIPO_ASIENTO || '',
+        'Fecha': item.FECHA ? new Date(item.FECHA).toLocaleDateString('es-ES') : '',
+        'Acepta Datos': item.ACEPTA_DATOS ? 'Sí' : 'No',
+        'Consecutivo': item.CONSECUTIVO || '',
+        'NIT': item.NIT || '',
+        'Razón Social': item.RAZON_SOCIAL || '',
+        'Fuente': item.FUENTE || '',
+        'Notas': item.NOTAS || ''
+      }));
+
+      // Calcular totales
+      const totalDebitoLocal = movimientos.reduce((sum, item) => sum + (item.DEBITO_LOCAL || 0), 0);
+      const totalDebitoDolar = movimientos.reduce((sum, item) => sum + (item.DEBITO_DOLAR || 0), 0);
+      const totalCreditoLocal = movimientos.reduce((sum, item) => sum + (item.CREDITO_LOCAL || 0), 0);
+      const totalCreditoDolar = movimientos.reduce((sum, item) => sum + (item.CREDITO_DOLAR || 0), 0);
+
+      // Agregar fila de totales
+      const totalRow = {
+        'Usuario': '',
+        'Cuenta Contable': '',
+        'Descripción Cuenta': '',
+        'Asiento': '',
+        'Tipo': '',
+        'Documento': '',
+        'Referencia': '',
+        'Débito Local': totalDebitoLocal,
+        'Débito Dólar': totalDebitoDolar,
+        'Crédito Local': totalCreditoLocal,
+        'Crédito Dólar': totalCreditoDolar,
+        'Centro Costo': '',
+        'Descripción Centro Costo': '',
+        'Tipo Asiento': '',
+        'Fecha': '',
+        'Acepta Datos': '',
+        'Consecutivo': '',
+        'NIT': '',
+        'Razón Social': '',
+        'Fuente': '',
+        'Notas': 'TOTAL GENERAL'
+      };
+
+      // Agregar fila vacía antes del total
+      const emptyRow = {
+        'Usuario': '',
+        'Cuenta Contable': '',
+        'Descripción Cuenta': '',
+        'Asiento': '',
+        'Tipo': '',
+        'Documento': '',
+        'Referencia': '',
+        'Débito Local': '',
+        'Débito Dólar': '',
+        'Crédito Local': '',
+        'Crédito Dólar': '',
+        'Centro Costo': '',
+        'Descripción Centro Costo': '',
+        'Tipo Asiento': '',
+        'Fecha': '',
+        'Acepta Datos': '',
+        'Consecutivo': '',
+        'NIT': '',
+        'Razón Social': '',
+        'Fuente': '',
+        'Notas': ''
+      };
+
+      // Combinar datos con totales
+      const finalData = [...excelData, emptyRow, totalRow];
+
+      // Crear el workbook
+      const workbook = XLSX.utils.book_new();
+      
+      // Crear la hoja principal con los datos
+      const worksheet = XLSX.utils.json_to_sheet(finalData);
+      
+      // Configurar el ancho de las columnas
+      const columnWidths = [
+        { wch: 15 }, // Usuario
+        { wch: 20 }, // Cuenta Contable
+        { wch: 30 }, // Descripción Cuenta
+        { wch: 15 }, // Asiento
+        { wch: 10 }, // Tipo
+        { wch: 15 }, // Documento
+        { wch: 30 }, // Referencia
+        { wch: 15 }, // Débito Local
+        { wch: 15 }, // Débito Dólar
+        { wch: 15 }, // Crédito Local
+        { wch: 15 }, // Crédito Dólar
+        { wch: 15 }, // Centro Costo
+        { wch: 30 }, // Descripción Centro Costo
+        { wch: 15 }, // Tipo Asiento
+        { wch: 12 }, // Fecha
+        { wch: 12 }, // Acepta Datos
+        { wch: 12 }, // Consecutivo
+        { wch: 15 }, // NIT
+        { wch: 30 }, // Razón Social
+        { wch: 15 }, // Fuente
+        { wch: 40 }  // Notas
+      ];
+      
+      worksheet['!cols'] = columnWidths;
+      
+      // Agregar la hoja al workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Movimientos Contables');
+      
+      // Generar el buffer del archivo Excel
+      const excelBuffer = XLSX.write(workbook, { 
+        type: 'buffer', 
+        bookType: 'xlsx',
+        compression: true
+      });
+      
+      console.log('Archivo Excel de movimientos contables generado exitosamente');
+      return excelBuffer;
+      
+    } catch (error) {
+      console.error('Error al generar Excel de movimientos contables:', error);
+      throw new Error(`Error al generar archivo Excel: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   }
 }

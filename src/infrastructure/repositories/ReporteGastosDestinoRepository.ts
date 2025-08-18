@@ -4,6 +4,7 @@ import { QueryTypes } from 'sequelize';
 import { exactusSequelize } from '../database/config/exactus-database';
 import { DynamicModelFactory } from '../database/models/DynamicModel';
 import { ReporteGastosDestinoItem, ReporteGastosDestinoResult } from '../../domain/entities/ReporteGastosDestino';
+import * as XLSX from 'xlsx';
 
 @injectable()
 export class ReporteGastosDestinoRepository implements IReporteGastosDestinoRepository {
@@ -142,6 +143,129 @@ export class ReporteGastosDestinoRepository implements IReporteGastosDestinoRepo
   async limpiarPorRango(conjunto: string): Promise<void> {
     // Si se requiere limpiar por usuario o rango, aquí podría implementarse.
     return;
+  }
+
+  async exportarExcel(conjunto: string, fechaInicio?: string, fechaFin?: string): Promise<Buffer> {
+    try {
+      console.log(`Generando Excel de gastos por destino para conjunto ${conjunto}`);
+      
+      // Obtener todos los datos para el Excel
+      const resultado = await this.listarDetalle(conjunto, fechaInicio, fechaFin, 10000, 0);
+      
+      // Preparar los datos para Excel
+      const excelData = resultado.map(item => ({
+        'Fecha': item.FECHA ? new Date(item.FECHA).toLocaleDateString('es-ES') : '',
+        'Cuenta Contable': item.CTA_CONTABLE || '',
+        'Centro Costo': item.C_COSTO || '',
+        'Asiento': item.ASIENTO || '',
+        'Tipo': item.TIPO || '',
+        'Clase': item.CLASE || '',
+        'Referencia': item.REFERENCIA || '',
+        'NIT': item.NIT || '',
+        'Razón Social': item.RAZONSOCIAL || '',
+        'Débito Soles': Number(item.DEBE_S || 0),
+        'Haber Soles': Number(item.HABER_S || 0),
+        'Débito Dólares': Number(item.DEBE_US || 0),
+        'Haber Dólares': Number(item.HABER_US || 0),
+        'Tipo Fila': item.ROW_TYPE || ''
+      }));
+
+      // Calcular totales
+      const totalDebeS = resultado
+        .filter(item => item.ROW_TYPE === 'DATA')
+        .reduce((sum, item) => sum + (item.DEBE_S || 0), 0);
+      const totalHaberS = resultado
+        .filter(item => item.ROW_TYPE === 'DATA')
+        .reduce((sum, item) => sum + (item.HABER_S || 0), 0);
+      const totalDebeUS = resultado
+        .filter(item => item.ROW_TYPE === 'DATA')
+        .reduce((sum, item) => sum + (item.DEBE_US || 0), 0);
+      const totalHaberUS = resultado
+        .filter(item => item.ROW_TYPE === 'DATA')
+        .reduce((sum, item) => sum + (item.HABER_US || 0), 0);
+
+      // Agregar fila de totales
+      const totalRow = {
+        'Fecha': '',
+        'Cuenta Contable': '',
+        'Centro Costo': '',
+        'Asiento': '',
+        'Tipo': '',
+        'Clase': 'TOTAL GENERAL',
+        'Referencia': '',
+        'NIT': '',
+        'Razón Social': '',
+        'Débito Soles': totalDebeS,
+        'Haber Soles': totalHaberS,
+        'Débito Dólares': totalDebeUS,
+        'Haber Dólares': totalHaberUS,
+        'Tipo Fila': 'TOTAL'
+      };
+
+      // Agregar fila vacía antes del total
+      const emptyRow = {
+        'Fecha': '',
+        'Cuenta Contable': '',
+        'Centro Costo': '',
+        'Asiento': '',
+        'Tipo': '',
+        'Clase': '',
+        'Referencia': '',
+        'NIT': '',
+        'Razón Social': '',
+        'Débito Soles': '',
+        'Haber Soles': '',
+        'Débito Dólares': '',
+        'Haber Dólares': '',
+        'Tipo Fila': ''
+      };
+
+      // Combinar datos con totales
+      const finalData = [...excelData, emptyRow, totalRow];
+
+      // Crear el workbook
+      const workbook = XLSX.utils.book_new();
+      
+      // Crear la hoja principal con los datos
+      const worksheet = XLSX.utils.json_to_sheet(finalData);
+      
+      // Configurar el ancho de las columnas
+      const columnWidths = [
+        { wch: 12 }, // Fecha
+        { wch: 20 }, // Cuenta Contable
+        { wch: 20 }, // Centro Costo
+        { wch: 15 }, // Asiento
+        { wch: 15 }, // Tipo
+        { wch: 25 }, // Clase
+        { wch: 30 }, // Referencia
+        { wch: 15 }, // NIT
+        { wch: 30 }, // Razón Social
+        { wch: 15 }, // Débito Soles
+        { wch: 15 }, // Haber Soles
+        { wch: 15 }, // Débito Dólares
+        { wch: 15 }, // Haber Dólares
+        { wch: 15 }  // Tipo Fila
+      ];
+      
+      worksheet['!cols'] = columnWidths;
+      
+      // Agregar la hoja al workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Gastos por Destino');
+      
+      // Generar el buffer del archivo Excel
+      const excelBuffer = XLSX.write(workbook, { 
+        type: 'buffer', 
+        bookType: 'xlsx',
+        compression: true
+      });
+      
+      console.log('Archivo Excel de gastos por destino generado exitosamente');
+      return excelBuffer;
+      
+    } catch (error) {
+      console.error('Error al generar Excel de gastos por destino:', error);
+      throw new Error(`Error al generar archivo Excel: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    }
   }
 }
 

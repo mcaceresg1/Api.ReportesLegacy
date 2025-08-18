@@ -108,7 +108,7 @@ export class SistemaService implements ISistemaService {
       const sistemaCodeMapping: { [key: string]: string } = {
         'Excel': 'EXCEL',
         'Exactus': 'EXACTUS',
-        'Clipper': 'CLIPPER-TNEW0000',
+        'Clipper': 'CLIPPER',
         'Oficon': 'OFICON',
         'Hmis': 'HMIS'
       };

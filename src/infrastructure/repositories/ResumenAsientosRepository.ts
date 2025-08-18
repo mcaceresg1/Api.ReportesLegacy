@@ -3,6 +3,7 @@ import { IResumenAsientosRepository } from '../../domain/repositories/IResumenAs
 import { ReporteResumenAsientos, FiltrosResumenAsientos } from '../../domain/entities/ReporteResumenAsientos';
 import { exactusSequelize } from '../database/config/exactus-database';
 import { QueryTypes } from 'sequelize';
+import * as XLSX from 'xlsx';
 
 @injectable()
 export class ResumenAsientosRepository implements IResumenAsientosRepository {
@@ -245,6 +246,117 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
     } catch (error) {
       console.error('Error en ResumenAsientosRepository.obtenerResumenAsientos:', error);
       throw new Error(`Error al obtener resumen de asientos: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    }
+  }
+
+  async exportarExcel(conjunto: string, filtros: FiltrosResumenAsientos): Promise<Buffer> {
+    try {
+      console.log(`Generando Excel de resumen de asientos para conjunto ${conjunto}`);
+      
+      // Obtener todos los datos para el Excel
+      const datos = await this.obtenerResumenAsientos(conjunto, filtros);
+      
+      // Preparar los datos para Excel
+      const excelData = datos.map(item => ({
+        'Cuenta Contable': item.cuentaContable || '',
+        'Descripción Cuenta': item.cuentaContableDesc || '',
+        'Tipo Asiento': item.tipoAsiento || '',
+        'Descripción Tipo Asiento': item.sDescTipoAsiento || '',
+        'Centro Costo': item.centroCosto || '',
+        'Débito Local': Number(item.debitoLocal || 0),
+        'Débito Dólar': Number(item.debitoDolar || 0),
+        'Crédito Local': Number(item.creditoLocal || 0),
+        'Crédito Dólar': Number(item.creditoDolar || 0),
+        'Fecha Inicio': item.finicio ? new Date(item.finicio).toLocaleDateString('es-ES') : '',
+        'Fecha Fin': item.ffinal ? new Date(item.ffinal).toLocaleDateString('es-ES') : '',
+        'Usuario': item.nomUsuario || '',
+        'Tipo Reporte': item.tipoReporte || ''
+      }));
+
+      // Calcular totales
+      const totalDebitoLocal = datos.reduce((sum, item) => sum + (item.debitoLocal || 0), 0);
+      const totalDebitoDolar = datos.reduce((sum, item) => sum + (item.debitoDolar || 0), 0);
+      const totalCreditoLocal = datos.reduce((sum, item) => sum + (item.creditoLocal || 0), 0);
+      const totalCreditoDolar = datos.reduce((sum, item) => sum + (item.creditoDolar || 0), 0);
+
+      // Agregar fila de totales
+      const totalRow = {
+        'Cuenta Contable': '',
+        'Descripción Cuenta': '',
+        'Tipo Asiento': '',
+        'Descripción Tipo Asiento': '',
+        'Centro Costo': '',
+        'Débito Local': totalDebitoLocal,
+        'Débito Dólar': totalDebitoDolar,
+        'Crédito Local': totalCreditoLocal,
+        'Crédito Dólar': totalCreditoDolar,
+        'Fecha Inicio': '',
+        'Fecha Fin': '',
+        'Usuario': '',
+        'Tipo Reporte': 'TOTAL GENERAL'
+      };
+
+      // Agregar fila vacía antes del total
+      const emptyRow = {
+        'Cuenta Contable': '',
+        'Descripción Cuenta': '',
+        'Tipo Asiento': '',
+        'Descripción Tipo Asiento': '',
+        'Centro Costo': '',
+        'Débito Local': '',
+        'Débito Dólar': '',
+        'Crédito Local': '',
+        'Crédito Dólar': '',
+        'Fecha Inicio': '',
+        'Fecha Fin': '',
+        'Usuario': '',
+        'Tipo Reporte': ''
+      };
+
+      // Combinar datos con totales
+      const finalData = [...excelData, emptyRow, totalRow];
+
+      // Crear el workbook
+      const workbook = XLSX.utils.book_new();
+      
+      // Crear la hoja principal con los datos
+      const worksheet = XLSX.utils.json_to_sheet(finalData);
+      
+      // Configurar el ancho de las columnas
+      const columnWidths = [
+        { wch: 20 }, // Cuenta Contable
+        { wch: 40 }, // Descripción Cuenta
+        { wch: 20 }, // Tipo Asiento
+        { wch: 30 }, // Descripción Tipo Asiento
+        { wch: 20 }, // Centro Costo
+        { wch: 15 }, // Débito Local
+        { wch: 15 }, // Débito Dólar
+        { wch: 15 }, // Crédito Local
+        { wch: 15 }, // Crédito Dólar
+        { wch: 15 }, // Fecha Inicio
+        { wch: 15 }, // Fecha Fin
+        { wch: 20 }, // Usuario
+        { wch: 25 }  // Tipo Reporte
+      ];
+      
+      worksheet['!cols'] = columnWidths;
+      
+      // Agregar la hoja al workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Resumen de Asientos');
+      
+      // Generar el buffer del archivo Excel
+      const excelBuffer = XLSX.write(workbook, { 
+        type: 'buffer', 
+        bookType: 'xlsx',
+        compression: true
+      });
+      
+      console.log('Archivo Excel de resumen de asientos generado exitosamente');
+      return excelBuffer;
+      
+    } catch (error) {
+      console.error('Error al generar Excel de resumen de asientos:', error);
+      throw new Error(`Error al generar archivo Excel: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   }
 }

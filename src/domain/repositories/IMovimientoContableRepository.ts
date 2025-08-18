@@ -37,4 +37,12 @@ export interface IMovimientoContableRepository {
     fechaInicio?: Date,
     fechaFin?: Date
   ): Promise<number>;
+
+  exportarExcel(
+    conjunto: string,
+    usuario: string,
+    fechaInicio: Date,
+    fechaFin: Date,
+    limit?: number
+  ): Promise<Buffer>;
 }

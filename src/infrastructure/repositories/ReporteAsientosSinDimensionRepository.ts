@@ -3,6 +3,7 @@ import { IReporteAsientosSinDimensionRepository } from '../../domain/repositorie
 import { ReporteAsientosSinDimension, ReporteAsientosSinDimensionCreate, ReporteAsientosSinDimensionUpdate } from '../../domain/entities/ReporteAsientosSinDimension';
 import { exactusSequelize } from '../database/config/exactus-database';
 import { QueryTypes } from 'sequelize';
+import * as XLSX from 'xlsx';
 
 interface RawQueryResult {
   ASIENTO: string;
@@ -257,6 +258,107 @@ export class ReporteAsientosSinDimensionRepository implements IReporteAsientosSi
     } catch (error) {
       console.error('Error al eliminar asiento sin dimensión:', error);
       throw error;
+    }
+  }
+
+  async exportarExcel(conjunto: string, fechaDesde: string, fechaHasta: string): Promise<Buffer> {
+    try {
+      console.log(`Generando Excel de asientos sin dimensión para conjunto ${conjunto}`);
+      
+      // Obtener todos los datos para el Excel
+      const asientos = await this.listarDetalle(conjunto, fechaDesde, fechaHasta, 10000);
+      
+      // Preparar los datos para Excel
+      const excelData = asientos.map(item => ({
+        'Asiento': item.asiento || '',
+        'Consecutivo': item.consecutivo || 0,
+        'Fecha Asiento': item.fechaAsiento ? new Date(item.fechaAsiento).toLocaleDateString('es-ES') : '',
+        'Origen': item.origen || '',
+        'Usuario Creación': item.usuarioCreacion || '',
+        'Fuente': item.fuente || '',
+        'Referencia': item.referencia || '',
+        'Monto Local': Number(item.montoLocal || 0),
+        'Monto Dólar': Number(item.montoDolar || 0),
+        'Cuenta Contable': item.cuentaContable || '',
+        'Centro Costo': item.centroCosto || ''
+      }));
+
+      // Calcular totales
+      const totalLocal = asientos.reduce((sum, item) => sum + (item.montoLocal || 0), 0);
+      const totalDolar = asientos.reduce((sum, item) => sum + (item.montoDolar || 0), 0);
+
+      // Agregar fila de totales
+      const totalRow = {
+        'Asiento': '',
+        'Consecutivo': '',
+        'Fecha Asiento': '',
+        'Origen': '',
+        'Usuario Creación': '',
+        'Fuente': '',
+        'Referencia': '',
+        'Monto Local': totalLocal,
+        'Monto Dólar': totalDolar,
+        'Cuenta Contable': '',
+        'Centro Costo': ''
+      };
+
+      // Agregar fila vacía antes del total
+      const emptyRow = {
+        'Asiento': '',
+        'Consecutivo': '',
+        'Fecha Asiento': '',
+        'Origen': '',
+        'Usuario Creación': '',
+        'Fuente': '',
+        'Referencia': '',
+        'Monto Local': '',
+        'Monto Dólar': '',
+        'Cuenta Contable': '',
+        'Centro Costo': ''
+      };
+
+      // Combinar datos con totales
+      const finalData = [...excelData, emptyRow, totalRow];
+
+      // Crear el workbook
+      const workbook = XLSX.utils.book_new();
+      
+      // Crear la hoja principal con los datos
+      const worksheet = XLSX.utils.json_to_sheet(finalData);
+      
+      // Configurar el ancho de las columnas
+      const columnWidths = [
+        { wch: 15 }, // Asiento
+        { wch: 12 }, // Consecutivo
+        { wch: 15 }, // Fecha Asiento
+        { wch: 15 }, // Origen
+        { wch: 20 }, // Usuario Creación
+        { wch: 15 }, // Fuente
+        { wch: 30 }, // Referencia
+        { wch: 15 }, // Monto Local
+        { wch: 15 }, // Monto Dólar
+        { wch: 20 }, // Cuenta Contable
+        { wch: 15 }  // Centro Costo
+      ];
+      
+      worksheet['!cols'] = columnWidths;
+      
+      // Agregar la hoja al workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Asientos Sin Dimensión');
+      
+      // Generar el buffer del archivo Excel
+      const excelBuffer = XLSX.write(workbook, { 
+        type: 'buffer', 
+        bookType: 'xlsx',
+        compression: true
+      });
+      
+      console.log('Archivo Excel de asientos sin dimensión generado exitosamente');
+      return excelBuffer;
+      
+    } catch (error) {
+      console.error('Error al generar Excel de asientos sin dimensión:', error);
+      throw new Error(`Error al generar archivo Excel: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   }
 }
