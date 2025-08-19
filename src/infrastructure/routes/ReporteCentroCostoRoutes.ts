@@ -22,5 +22,10 @@ export function createReporteCentroCostoRoutes(reporteCentroCostoRepository: IRe
     (req, res) => controller.obtenerCentrosCostoPorCuentaContable(req, res)
   );
 
+  // POST /api/reporte-centro-costo/:conjunto/centros-costo/:cuentaContable/exportar-excel - Exportar a Excel
+  router.post('/:conjunto/centros-costo/:cuentaContable/exportar-excel', 
+    (req, res) => controller.exportarExcel(req, res)
+  );
+
   return router;
 }

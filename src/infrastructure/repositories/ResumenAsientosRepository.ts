@@ -251,12 +251,10 @@ export class ResumenAsientosRepository implements IResumenAsientosRepository {
 
   async exportarExcel(conjunto: string, filtros: FiltrosResumenAsientos): Promise<Buffer> {
     try {
-      console.log(`Generando Excel de resumen de asientos para conjunto ${conjunto}`);
-      
-      // Obtener todos los datos para el Excel
+      // Obtener los datos del reporte
       const datos = await this.obtenerResumenAsientos(conjunto, filtros);
       
-      // Preparar los datos para Excel
+      // Preparar datos para Excel
       const excelData = datos.map(item => ({
         'Cuenta Contable': item.cuentaContable || '',
         'Descripción Cuenta': item.cuentaContableDesc || '',

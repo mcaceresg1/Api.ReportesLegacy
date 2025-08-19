@@ -107,4 +107,84 @@ export class ReporteMensualCuentaCentroController {
       res.status(500).json({ success: false, message: error instanceof Error ? error.message : 'Error interno' });
     }
   }
+
+  /**
+   * @swagger
+   * /api/reporte-mensual-cuenta-centro/{conjunto}/exportar-excel:
+   *   post:
+   *     summary: Exportar Reporte Mensual Cuenta-Centro a Excel
+   *     description: Exporta el reporte mensual por cuenta contable y centro de costo a formato Excel
+   *     tags: [Reporte Mensual Cuenta-Centro]
+   *     parameters:
+   *       - in: path
+   *         name: conjunto
+   *         required: true
+   *         description: "Código del conjunto contable"
+   *         schema: { type: string }
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               anio:
+   *                 type: integer
+   *                 description: "Año del reporte"
+   *               contabilidad:
+   *                 type: string
+   *                 enum: [F, A]
+   *                 description: "Tipo de contabilidad (F=Fiscal, A=Administrativa)"
+   *     responses:
+   *       200:
+   *         description: "Archivo Excel generado exitosamente"
+   *         content:
+   *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+   *             schema:
+   *               type: string
+   *               format: binary
+   *       400:
+   *         description: "Parámetros inválidos o faltantes"
+   *       500:
+   *         description: "Error interno del servidor"
+   */
+  async exportarExcel(req: Request, res: Response): Promise<void> {
+    try {
+      const { conjunto } = req.params;
+      const { anio, contabilidad = 'F' } = req.body;
+
+      if (!conjunto || !anio) {
+        res.status(400).json({
+          success: false,
+          message: 'Los parámetros conjunto y anio son requeridos'
+        });
+        return;
+      }
+
+      const anioNum = Number(anio);
+      if (!Number.isInteger(anioNum)) {
+        res.status(400).json({
+          success: false,
+          message: 'El año debe ser un número entero válido'
+        });
+        return;
+      }
+
+      // Generar Excel usando el repositorio
+      const excelBuffer = await this.service.exportarExcel(conjunto, anioNum, contabilidad as 'F' | 'A');
+
+      // Configurar headers para descarga
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="comparativo-centros-costo-${conjunto}-${anioNum}-${contabilidad}-${new Date().toISOString().split('T')[0]}.xlsx"`);
+      
+      res.send(excelBuffer);
+    } catch (error) {
+      console.error('Error al exportar Excel en ReporteMensualCuentaCentroController:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error al exportar Excel',
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      });
+    }
+  }
 }

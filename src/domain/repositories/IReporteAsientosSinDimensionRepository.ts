@@ -8,4 +8,5 @@ export interface IReporteAsientosSinDimensionRepository {
   create(conjunto: string, entity: ReporteAsientosSinDimensionCreate): Promise<ReporteAsientosSinDimension>;
   update(conjunto: string, id: number, entity: ReporteAsientosSinDimensionUpdate): Promise<ReporteAsientosSinDimension>;
   delete(conjunto: string, id: number): Promise<boolean>;
+  exportarExcel(conjunto: string, fechaDesde: string, fechaHasta: string): Promise<Buffer>;
 }

@@ -23,5 +23,10 @@ export function createReporteCuentaContableRoutes(
     reporteCuentaContableController.obtenerCuentasContablesPorCentroCosto(req, res)
   );
 
+  // POST /api/reporte-cuenta-contable/:conjunto/cuentas-contables/:centroCosto/exportar-excel - Exportar a Excel
+  router.post('/:conjunto/cuentas-contables/:centroCosto/exportar-excel', (req, res) => 
+    reporteCuentaContableController.exportarExcel(req, res)
+  );
+
   return router;
 }

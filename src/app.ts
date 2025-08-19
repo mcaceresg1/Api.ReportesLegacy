@@ -25,6 +25,7 @@ import { createResumenAsientosRoutes } from './infrastructure/routes/resumenAsie
 import { createReporteMensualCuentaCentroRoutes } from './infrastructure/routes/ReporteMensualCuentaCentroRoutes';
 import { createReporteMovimientosContablesRoutes } from './infrastructure/routes/ReporteMovimientosContablesRoutes';
 import { createReporteMovimientosContablesAgrupadosRoutes } from './infrastructure/routes/ReporteMovimientosContablesAgrupadosRoutes';
+import { createReporteCatalogoCuentasModificadasRoutes } from './infrastructure/routes/ReporteCatalogoCuentasModificadasRoutes';
 
 import { AuthMiddleware } from './infrastructure/middleware/AuthMiddleware';
 import { QueryOptimizationMiddleware } from './infrastructure/middleware/QueryOptimizationMiddleware';
@@ -99,6 +100,7 @@ const permisoRoutes = new PermisoRoutes();
   const reporteMensualCuentaCentroRoutes = createReporteMensualCuentaCentroRoutes();
   const reporteMovimientosContablesRoutes = createReporteMovimientosContablesRoutes();
   const reporteMovimientosContablesAgrupadosRoutes = createReporteMovimientosContablesAgrupadosRoutes();
+  const reporteCatalogoCuentasModificadasRoutes = createReporteCatalogoCuentasModificadasRoutes();
 
 // Endpoint de prueba
 app.get('/api/test', (req, res) => {
@@ -135,6 +137,7 @@ app.use('/api/permisos', authMiddleware.verifyToken, permisoRoutes.getRouter());
   app.use('/api/reporte-mensual-cuenta-centro', QueryOptimizationMiddleware.validateQueryParams, reporteMensualCuentaCentroRoutes);
   app.use('/api/reporte-movimientos-contables', QueryOptimizationMiddleware.validateQueryParams, reporteMovimientosContablesRoutes);
   app.use('/api/reporte-movimientos-contables-agrupados', QueryOptimizationMiddleware.validateQueryParams, reporteMovimientosContablesAgrupadosRoutes);
+  app.use('/api/reporte-catalogo-cuentas-modificadas', QueryOptimizationMiddleware.validateQueryParams, reporteCatalogoCuentasModificadasRoutes);
 
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================

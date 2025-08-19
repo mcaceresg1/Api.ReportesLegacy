@@ -42,5 +42,24 @@ export class ResumenAsientosService implements IResumenAsientosService {
       throw new Error(`Error al generar reporte de resumen de asientos: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   }
+
+  async exportarExcel(
+    conjunto: string,
+    filtros: FiltrosResumenAsientos
+  ): Promise<Buffer> {
+    try {
+      console.log(`🔍 Exportando Excel de resumen de asientos para conjunto: ${conjunto}`);
+      
+      // Generar Excel usando el repositorio
+      const excelBuffer = await this.resumenAsientosRepository.exportarExcel(conjunto, filtros);
+      
+      console.log('✅ Excel de resumen de asientos generado exitosamente');
+      return excelBuffer;
+      
+    } catch (error) {
+      console.error('❌ Error en ResumenAsientosService.exportarExcel:', error);
+      throw new Error(`Error al exportar Excel: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    }
+  }
 }
 

@@ -315,6 +315,9 @@ export class ReporteMovimientosContablesRoutes {
      */
     router.get('/:conjunto', this.reporteMovimientosContablesController.obtenerReporteMovimientosContables.bind(this.reporteMovimientosContablesController));
     
+    // POST /api/reporte-movimientos-contables/:conjunto/exportar-excel - Exportar a Excel
+    router.post('/:conjunto/exportar-excel', this.reporteMovimientosContablesController.exportarExcel.bind(this.reporteMovimientosContablesController));
+    
     return router;
   }
 }

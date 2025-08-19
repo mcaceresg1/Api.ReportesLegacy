@@ -99,6 +99,7 @@ import { ResumenAsientosController } from '../controllers/ResumenAsientosControl
 import { ReporteMensualCuentaCentroController } from '../controllers/ReporteMensualCuentaCentroController';
 import { ReporteMovimientosContablesController } from '../controllers/ReporteMovimientosContablesController';
 import { ReporteMovimientosContablesAgrupadosController } from '../controllers/ReporteMovimientosContablesAgrupadosController';
+import { ReporteCatalogoCuentasModificadasController } from '../controllers/ReporteCatalogoCuentasModificadasController';
 
 // CQRS implementations
 import { CommandBus } from '../cqrs/CommandBus';
@@ -189,6 +190,7 @@ container.bind<ResumenAsientosController>('ResumenAsientosController').to(Resume
 container.bind<ReporteMensualCuentaCentroController>('ReporteMensualCuentaCentroController').to(ReporteMensualCuentaCentroController);
 container.bind<ReporteMovimientosContablesController>('ReporteMovimientosContablesController').to(ReporteMovimientosContablesController);
 container.bind<ReporteMovimientosContablesAgrupadosController>('ReporteMovimientosContablesAgrupadosController').to(ReporteMovimientosContablesAgrupadosController);
+container.bind<ReporteCatalogoCuentasModificadasController>('ReporteCatalogoCuentasModificadasController').to(ReporteCatalogoCuentasModificadasController);
 
 
 // CQRS Buses

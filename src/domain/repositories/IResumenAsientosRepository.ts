@@ -5,5 +5,10 @@ export interface IResumenAsientosRepository {
     conjunto: string,
     filtros: FiltrosResumenAsientos
   ): Promise<ReporteResumenAsientos[]>;
+  
+  exportarExcel(
+    conjunto: string,
+    filtros: FiltrosResumenAsientos
+  ): Promise<Buffer>;
 }
 
