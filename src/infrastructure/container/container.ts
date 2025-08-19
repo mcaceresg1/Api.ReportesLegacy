@@ -21,6 +21,7 @@ import { IResumenAsientosRepository } from '../../domain/repositories/IResumenAs
 import { IReporteMensualCuentaCentroRepository } from '../../domain/repositories/IReporteMensualCuentaCentroRepository';
 import { IReporteMovimientosContablesRepository } from '../../domain/repositories/IReporteMovimientosContablesRepository';
 import { IReporteMovimientosContablesAgrupadosRepository } from '../../domain/repositories/IReporteMovimientosContablesAgrupadosRepository';
+import { IReporteCatalogoCuentasModificadasRepository } from '../../domain/repositories/IReporteCatalogoCuentasModificadasRepository';
 
 import { ICuentaContableRepository } from '../../domain/repositories/ICuentaContableRepository';
 import { IUsuarioService } from '../../domain/services/IUsuarioService';
@@ -63,6 +64,7 @@ import { ResumenAsientosRepository } from '../repositories/ResumenAsientosReposi
 import { ReporteMensualCuentaCentroRepository } from '../repositories/ReporteMensualCuentaCentroRepository';
 import { ReporteMovimientosContablesRepository } from '../repositories/ReporteMovimientosContablesRepository';
 import { ReporteMovimientosContablesAgrupadosRepository } from '../repositories/ReporteMovimientosContablesAgrupadosRepository';
+import { ReporteCatalogoCuentasModificadasRepository } from '../repositories/ReporteCatalogoCuentasModificadasRepository';
 
 import { CuentaContableRepository } from '../repositories/CuentaContableRepository';
 import { UsuarioService } from '../../application/services/UsuarioService';
@@ -151,6 +153,7 @@ container.bind<IResumenAsientosRepository>('IResumenAsientosRepository').to(Resu
 container.bind<IReporteMensualCuentaCentroRepository>('IReporteMensualCuentaCentroRepository').to(ReporteMensualCuentaCentroRepository);
 container.bind<IReporteMovimientosContablesRepository>('IReporteMovimientosContablesRepository').to(ReporteMovimientosContablesRepository);
 container.bind<IReporteMovimientosContablesAgrupadosRepository>('IReporteMovimientosContablesAgrupadosRepository').to(ReporteMovimientosContablesAgrupadosRepository);
+container.bind<IReporteCatalogoCuentasModificadasRepository>('IReporteCatalogoCuentasModificadasRepository').to(ReporteCatalogoCuentasModificadasRepository);
 
 container.bind<ICuentaContableRepository>('ICuentaContableRepository').to(CuentaContableRepository);
 
