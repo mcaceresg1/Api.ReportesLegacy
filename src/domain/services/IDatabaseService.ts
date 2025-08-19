@@ -4,3 +4,4 @@ export interface IDatabaseService {
   ejecutarNonQuery(query: string, params?: any[]): Promise<number>;
   cerrarConexion(): Promise<void>;
 }
+

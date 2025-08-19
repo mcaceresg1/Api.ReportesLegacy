@@ -105,3 +105,4 @@ export interface IReporteLibroMayorService {
     version: string;
   }>;
 }
+

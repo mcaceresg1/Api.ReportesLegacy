@@ -102,3 +102,4 @@ export interface IReporteLibroMayorRepository {
    */
   validarDatosReporte(usuario: string): Promise<boolean>;
 }
+

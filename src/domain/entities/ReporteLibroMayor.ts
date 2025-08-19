@@ -195,3 +195,4 @@ export interface ReporteLibroMayorResponse {
     version: string;
   };
 }
+
