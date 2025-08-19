@@ -22,6 +22,7 @@ import { IReporteMensualCuentaCentroRepository } from '../../domain/repositories
 import { IReporteMovimientosContablesRepository } from '../../domain/repositories/IReporteMovimientosContablesRepository';
 import { IReporteMovimientosContablesAgrupadosRepository } from '../../domain/repositories/IReporteMovimientosContablesAgrupadosRepository';
 import { IReporteCatalogoCuentasModificadasRepository } from '../../domain/repositories/IReporteCatalogoCuentasModificadasRepository';
+import { IReporteLibroMayorRepository } from '../../domain/repositories/IReporteLibroMayorRepository';
 
 import { ICuentaContableRepository } from '../../domain/repositories/ICuentaContableRepository';
 import { IUsuarioService } from '../../domain/services/IUsuarioService';
@@ -39,6 +40,8 @@ import { IReporteMensualCuentaCentroService } from '../../domain/services/IRepor
 import { ITipoAsientoService } from '../../domain/services/ITipoAsientoService';
 import { IReporteMovimientosContablesService } from '../../domain/services/IReporteMovimientosContablesService';
 import { IReporteMovimientosContablesAgrupadosService } from '../../domain/services/IReporteMovimientosContablesAgrupadosService';
+import { IReporteLibroMayorService } from '../../domain/services/IReporteLibroMayorService';
+import { IDatabaseService } from '../../domain/services/IDatabaseService';
 
 // CQRS interfaces
 import { ICommandBus } from '../../domain/cqrs/ICommandBus';
@@ -65,6 +68,7 @@ import { ReporteMensualCuentaCentroRepository } from '../repositories/ReporteMen
 import { ReporteMovimientosContablesRepository } from '../repositories/ReporteMovimientosContablesRepository';
 import { ReporteMovimientosContablesAgrupadosRepository } from '../repositories/ReporteMovimientosContablesAgrupadosRepository';
 import { ReporteCatalogoCuentasModificadasRepository } from '../repositories/ReporteCatalogoCuentasModificadasRepository';
+import { ReporteLibroMayorRepository } from '../repositories/ReporteLibroMayorRepository';
 
 import { CuentaContableRepository } from '../repositories/CuentaContableRepository';
 import { UsuarioService } from '../../application/services/UsuarioService';
@@ -82,6 +86,8 @@ import { ReporteMensualCuentaCentroService } from '../../application/services/Re
 import { TipoAsientoService } from '../../application/services/TipoAsientoService';
 import { ReporteMovimientosContablesService } from '../../application/services/ReporteMovimientosContablesService';
 import { ReporteMovimientosContablesAgrupadosService } from '../../application/services/ReporteMovimientosContablesAgrupadosService';
+import { ReporteLibroMayorService } from '../../application/services/ReporteLibroMayorService';
+import { DatabaseService } from '../../application/services/DatabaseService';
 
 
 // Controllers
@@ -102,6 +108,7 @@ import { ReporteMensualCuentaCentroController } from '../controllers/ReporteMens
 import { ReporteMovimientosContablesController } from '../controllers/ReporteMovimientosContablesController';
 import { ReporteMovimientosContablesAgrupadosController } from '../controllers/ReporteMovimientosContablesAgrupadosController';
 import { ReporteCatalogoCuentasModificadasController } from '../controllers/ReporteCatalogoCuentasModificadasController';
+import { ReporteLibroMayorController } from '../controllers/ReporteLibroMayorController';
 
 // CQRS implementations
 import { CommandBus } from '../cqrs/CommandBus';
@@ -124,6 +131,9 @@ import { GetRolByIdHandler } from '../../application/handlers/rol/GetRolByIdHand
 // Reporte Movimientos Contables Agrupados Handlers
 import { GenerarReporteMovimientosContablesAgrupadosHandler } from '../../application/handlers/reporteMovimientosContablesAgrupados/GenerarReporteMovimientosContablesAgrupadosHandler';
 import { ObtenerReporteMovimientosContablesAgrupadosHandler } from '../../application/handlers/reporteMovimientosContablesAgrupados/ObtenerReporteMovimientosContablesAgrupadosHandler';
+
+// Reporte Libro Mayor Handlers
+import { ObtenerReporteLibroMayorHandler } from '../../application/handlers/reporteLibroMayor/ObtenerReporteLibroMayorHandler';
 
 // CQRS Service
 import { CqrsService } from '../cqrs/CqrsService';
@@ -154,6 +164,7 @@ container.bind<IReporteMensualCuentaCentroRepository>('IReporteMensualCuentaCent
 container.bind<IReporteMovimientosContablesRepository>('IReporteMovimientosContablesRepository').to(ReporteMovimientosContablesRepository);
 container.bind<IReporteMovimientosContablesAgrupadosRepository>('IReporteMovimientosContablesAgrupadosRepository').to(ReporteMovimientosContablesAgrupadosRepository);
 container.bind<IReporteCatalogoCuentasModificadasRepository>('IReporteCatalogoCuentasModificadasRepository').to(ReporteCatalogoCuentasModificadasRepository);
+container.bind<IReporteLibroMayorRepository>('IReporteLibroMayorRepository').to(ReporteLibroMayorRepository);
 
 container.bind<ICuentaContableRepository>('ICuentaContableRepository').to(CuentaContableRepository);
 
@@ -174,6 +185,8 @@ container.bind<IReporteMensualCuentaCentroService>('IReporteMensualCuentaCentroS
 container.bind<ITipoAsientoService>('TipoAsientoService').to(TipoAsientoService);
 container.bind<IReporteMovimientosContablesService>('IReporteMovimientosContablesService').to(ReporteMovimientosContablesService);
 container.bind<IReporteMovimientosContablesAgrupadosService>('IReporteMovimientosContablesAgrupadosService').to(ReporteMovimientosContablesAgrupadosService);
+container.bind<IReporteLibroMayorService>('IReporteLibroMayorService').to(ReporteLibroMayorService);
+container.bind<IDatabaseService>('IDatabaseService').to(DatabaseService);
 
 
 // Controllers
@@ -194,6 +207,7 @@ container.bind<ReporteMensualCuentaCentroController>('ReporteMensualCuentaCentro
 container.bind<ReporteMovimientosContablesController>('ReporteMovimientosContablesController').to(ReporteMovimientosContablesController);
 container.bind<ReporteMovimientosContablesAgrupadosController>('ReporteMovimientosContablesAgrupadosController').to(ReporteMovimientosContablesAgrupadosController);
 container.bind<ReporteCatalogoCuentasModificadasController>('ReporteCatalogoCuentasModificadasController').to(ReporteCatalogoCuentasModificadasController);
+container.bind<ReporteLibroMayorController>('ReporteLibroMayorController').to(ReporteLibroMayorController);
 
 
 // CQRS Buses
@@ -221,6 +235,9 @@ container.bind<GetRolByIdHandler>('GetRolByIdHandler').to(GetRolByIdHandler);
 // Reporte Movimientos Contables Agrupados Handlers
 container.bind<GenerarReporteMovimientosContablesAgrupadosHandler>('GenerarReporteMovimientosContablesAgrupadosHandler').to(GenerarReporteMovimientosContablesAgrupadosHandler);
 container.bind<ObtenerReporteMovimientosContablesAgrupadosHandler>('ObtenerReporteMovimientosContablesAgrupadosHandler').to(ObtenerReporteMovimientosContablesAgrupadosHandler);
+
+// Reporte Libro Mayor Handlers
+container.bind<ObtenerReporteLibroMayorHandler>('ObtenerReporteLibroMayorHandler').to(ObtenerReporteLibroMayorHandler);
 
 // CQRS Service
 container.bind<CqrsService>('CqrsService').to(CqrsService);
