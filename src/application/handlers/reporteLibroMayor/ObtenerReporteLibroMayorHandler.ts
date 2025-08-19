@@ -1,11 +1,13 @@
+import { injectable, inject } from 'inversify';
 import { IQueryHandler } from '../../../domain/cqrs/IQueryHandler';
 import { ObtenerReporteLibroMayorQuery } from '../../queries/reporteLibroMayor/ObtenerReporteLibroMayorQuery';
 import { IReporteLibroMayorService } from '../../../domain/services/IReporteLibroMayorService';
 import { ReporteLibroMayorResponse } from '../../../domain/entities/ReporteLibroMayor';
 
+@injectable()
 export class ObtenerReporteLibroMayorHandler implements IQueryHandler<ObtenerReporteLibroMayorQuery, ReporteLibroMayorResponse> {
   constructor(
-    private readonly reporteLibroMayorService: IReporteLibroMayorService
+    @inject('IReporteLibroMayorService') private readonly reporteLibroMayorService: IReporteLibroMayorService
   ) {}
 
   async handle(query: ObtenerReporteLibroMayorQuery): Promise<ReporteLibroMayorResponse> {
