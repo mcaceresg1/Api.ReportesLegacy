@@ -631,4 +631,42 @@ export class MovimientoContableController {
       });
     }
   }
+
+  async exportarExcel(req: Request, res: Response): Promise<void> {
+    try {
+      const { conjunto } = req.params;
+      const { usuario, fechaInicio, fechaFin, contabilidad, limit = 1000 } = req.query;
+
+      if (!conjunto || !usuario || !fechaInicio || !fechaFin) {
+        res.status(400).json({
+          success: false,
+          message: 'Faltan parámetros requeridos: conjunto, usuario, fechaInicio, fechaFin'
+        });
+        return;
+      }
+
+      const fechaInicioDate = new Date(fechaInicio as string);
+      const fechaFinDate = new Date(fechaFin as string);
+
+      const buffer = await this.movimientoContableRepository.exportarExcel(
+        conjunto as string,
+        usuario as string,
+        fechaInicioDate,
+        fechaFinDate,
+        Number(limit)
+      );
+
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="movimientos_contables_${conjunto}_${new Date().toISOString().split('T')[0]}.xlsx"`);
+      res.send(buffer);
+
+    } catch (error) {
+      console.error('Error al exportar movimientos contables a Excel:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error al exportar movimientos contables a Excel',
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      });
+    }
+  }
 }

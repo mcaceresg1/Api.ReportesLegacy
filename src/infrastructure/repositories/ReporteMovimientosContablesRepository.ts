@@ -1,7 +1,9 @@
 import { injectable } from 'inversify';
-import { exactusSequelize } from '../database/config/exactus-database';
 import { IReporteMovimientosContablesRepository } from '../../domain/repositories/IReporteMovimientosContablesRepository';
-import { FiltrosReporteMovimientosContables, ReporteMovimientoContableItem } from '../../domain/entities/ReporteMovimientosContables';
+import { ReporteMovimientoContableItem, FiltrosReporteMovimientosContables } from '../../domain/entities/ReporteMovimientosContables';
+import { exactusSequelize } from '../database/config/exactus-database';
+import { QueryTypes } from 'sequelize';
+import * as XLSX from 'xlsx';
 
 @injectable()
 export class ReporteMovimientosContablesRepository implements IReporteMovimientosContablesRepository {
@@ -55,79 +57,79 @@ export class ReporteMovimientosContablesRepository implements IReporteMovimiento
 
     // Filtros de Tipos de Asiento
     if (tiposAsiento && tiposAsiento.length > 0) {
-      const tiposStr = tiposAsiento.map(t => `'${t}'`).join(',');
+      const tiposStr = tiposAsiento.map((t: string) => `'${t}'`).join(',');
       whereConditions += ` AND A.ORIGEN IN (${tiposStr})`;
     }
     if (tiposAsientoExcluir && tiposAsientoExcluir.length > 0) {
-      const tiposExcluirStr = tiposAsientoExcluir.map(t => `'${t}'`).join(',');
+      const tiposExcluirStr = tiposAsientoExcluir.map((t: string) => `'${t}'`).join(',');
       whereConditions += ` AND A.ORIGEN NOT IN (${tiposExcluirStr})`;
     }
 
     // Filtros de Clase Asiento (basado en ORIGEN)
     if (clasesAsiento && clasesAsiento.length > 0) {
-      const clasesStr = clasesAsiento.map(c => `'${c}'`).join(',');
+      const clasesStr = clasesAsiento.map((c: string) => `'${c}'`).join(',');
       whereConditions += ` AND A.ORIGEN IN (${clasesStr})`;
     }
     if (clasesAsientoExcluir && clasesAsientoExcluir.length > 0) {
-      const clasesExcluirStr = clasesAsientoExcluir.map(c => `'${c}'`).join(',');
+      const clasesExcluirStr = clasesAsientoExcluir.map((c: string) => `'${c}'`).join(',');
       whereConditions += ` AND A.ORIGEN NOT IN (${clasesExcluirStr})`;
     }
 
     // Filtros de NITs
     if (nits && nits.length > 0) {
-      const nitsStr = nits.map(n => `'${n}'`).join(',');
+      const nitsStr = nits.map((n: string) => `'${n}'`).join(',');
       whereConditions += ` AND M.NIT IN (${nitsStr})`;
     }
     if (nitsExcluir && nitsExcluir.length > 0) {
-      const nitsExcluirStr = nitsExcluir.map(n => `'${n}'`).join(',');
+      const nitsExcluirStr = nitsExcluir.map((n: string) => `'${n}'`).join(',');
       whereConditions += ` AND M.NIT NOT IN (${nitsExcluirStr})`;
     }
 
     // Filtros de Centros de Costo
     if (centrosCosto && centrosCosto.length > 0) {
-      const centrosStr = centrosCosto.map(c => `'${c}'`).join(',');
+      const centrosStr = centrosCosto.map((c: string) => `'${c}'`).join(',');
       whereConditions += ` AND M.CENTRO_COSTO IN (${centrosStr})`;
     }
     if (centrosCostoExcluir && centrosCostoExcluir.length > 0) {
-      const centrosExcluirStr = centrosCostoExcluir.map(c => `'${c}'`).join(',');
+      const centrosExcluirStr = centrosCostoExcluir.map((c: string) => `'${c}'`).join(',');
       whereConditions += ` AND M.CENTRO_COSTO NOT IN (${centrosExcluirStr})`;
     }
 
     // Filtros de Referencias
     if (referencias && referencias.length > 0) {
-      const refsStr = referencias.map(r => `'${r}'`).join(',');
+      const refsStr = referencias.map((r: string) => `'${r}'`).join(',');
       whereConditions += ` AND M.REFERENCIA IN (${refsStr})`;
     }
     if (referenciasExcluir && referenciasExcluir.length > 0) {
-      const refsExcluirStr = referenciasExcluir.map(r => `'${r}'`).join(',');
+      const refsExcluirStr = referenciasExcluir.map((r: string) => `'${r}'`).join(',');
       whereConditions += ` AND M.REFERENCIA NOT IN (${refsExcluirStr})`;
     }
 
     // Filtros de Documentos
     if (documentos && documentos.length > 0) {
-      const docsStr = documentos.map(d => `'${d}'`).join(',');
+      const docsStr = documentos.map((d: string) => `'${d}'`).join(',');
       whereConditions += ` AND M.FUENTE IN (${docsStr})`;
     }
     if (documentosExcluir && documentosExcluir.length > 0) {
-      const docsExcluirStr = documentosExcluir.map(d => `'${d}'`).join(',');
+      const docsExcluirStr = documentosExcluir.map((d: string) => `'${d}'`).join(',');
       whereConditions += ` AND M.FUENTE NOT IN (${docsExcluirStr})`;
     }
 
     // Filtros de Cuentas Contables
     if (cuentasContables && cuentasContables.length > 0) {
-      const cuentasStr = cuentasContables.map(c => `'${c}'`).join(',');
+      const cuentasStr = cuentasContables.map((c: string) => `'${c}'`).join(',');
       whereConditions += ` AND SUBSTRING(M.CUENTA_CONTABLE, 1, 2) IN (${cuentasStr})`;
     }
     if (cuentasContablesExcluir && cuentasContablesExcluir.length > 0) {
-      const cuentasExcluirStr = cuentasContablesExcluir.map(c => `'${c}'`).join(',');
+      const cuentasExcluirStr = cuentasContablesExcluir.map((c: string) => `'${c}'`).join(',');
       whereConditions += ` AND SUBSTRING(M.CUENTA_CONTABLE, 1, 2) NOT IN (${cuentasExcluirStr})`;
     }
 
     // Filtros de Criterios de Cuenta Contable
     if (criteriosCuentaContable && criteriosCuentaContable.length > 0) {
-      const criteriosActivos = criteriosCuentaContable.filter(c => c.activo);
+      const criteriosActivos = criteriosCuentaContable.filter((c: any) => c.activo);
       if (criteriosActivos.length > 0) {
-        const criteriosWhere = criteriosActivos.map(c => {
+        const criteriosWhere = criteriosActivos.map((c: any) => {
           const cuenta = c.cuenta;
           switch (c.operador) {
             case 'IGUAL':
@@ -255,5 +257,128 @@ export class ReporteMovimientosContablesRepository implements IReporteMovimiento
     // Implementar lógica para aplicar campos personalizados
     // Por ahora retornamos los resultados sin modificar
     return results;
+  }
+
+  async exportarExcel(conjunto: string, filtros: FiltrosReporteMovimientosContables): Promise<Buffer> {
+    try {
+      console.log(`Generando Excel de movimientos contables para conjunto ${conjunto}`);
+      
+      // Obtener todos los datos para el Excel (sin límite)
+      const datos = await this.obtener(conjunto, filtros);
+      
+      // Preparar los datos para Excel
+      const excelData = datos.map(item => ({
+        'Centro Costo': item.centroCosto || '',
+        'Referencia': item.referencia || '',
+        'Documento': item.documento || '',
+        'Asiento': item.asiento || 0,
+        'Razón Social': item.razonSocial || '',
+        'Fecha': item.fecha ? new Date(item.fecha).toLocaleDateString('es-ES') : '',
+        'Tipo': item.tipo || '',
+        'NIT': item.nit || '',
+        'Crédito Dólar': Number(item.creditoDolar || 0),
+        'Crédito Local': Number(item.creditoLocal || 0),
+        'Débito Dólar': Number(item.debitoDolar || 0),
+        'Débito Local': Number(item.debitoLocal || 0),
+        'Cuenta Contable': item.cuentaContable || '',
+        'Descripción Cuenta Contable': item.descripcionCuentaContable || '',
+        'Descripción Centro Costo': item.descripcionCentroCosto || '',
+        'Usuario': item.usuario || ''
+      }));
+
+      // Calcular totales
+      const totalCreditoDolar = datos.reduce((sum, item) => sum + (item.creditoDolar || 0), 0);
+      const totalCreditoLocal = datos.reduce((sum, item) => sum + (item.creditoLocal || 0), 0);
+      const totalDebitoDolar = datos.reduce((sum, item) => sum + (item.debitoDolar || 0), 0);
+      const totalDebitoLocal = datos.reduce((sum, item) => sum + (item.debitoLocal || 0), 0);
+
+      // Agregar fila de totales
+      const totalRow = {
+        'Centro Costo': '',
+        'Referencia': '',
+        'Documento': '',
+        'Asiento': '',
+        'Razón Social': '',
+        'Fecha': '',
+        'Tipo': '',
+        'NIT': '',
+        'Crédito Dólar': totalCreditoDolar,
+        'Crédito Local': totalCreditoLocal,
+        'Débito Dólar': totalDebitoDolar,
+        'Débito Local': totalDebitoLocal,
+        'Cuenta Contable': '',
+        'Descripción Cuenta Contable': '',
+        'Descripción Centro Costo': '',
+        'Usuario': 'TOTAL GENERAL'
+      };
+
+      // Agregar fila vacía antes del total
+      const emptyRow = {
+        'Centro Costo': '',
+        'Referencia': '',
+        'Documento': '',
+        'Asiento': '',
+        'Razón Social': '',
+        'Fecha': '',
+        'Tipo': '',
+        'NIT': '',
+        'Crédito Dólar': '',
+        'Crédito Local': '',
+        'Débito Dólar': '',
+        'Débito Local': '',
+        'Cuenta Contable': '',
+        'Descripción Cuenta Contable': '',
+        'Descripción Centro Costo': '',
+        'Usuario': ''
+      };
+
+      // Combinar datos con totales
+      const finalData = [...excelData, emptyRow, totalRow];
+
+      // Crear el workbook
+      const workbook = XLSX.utils.book_new();
+      
+      // Crear la hoja principal con los datos
+      const worksheet = XLSX.utils.json_to_sheet(finalData);
+      
+      // Configurar el ancho de las columnas
+      const columnWidths = [
+        { wch: 20 }, // Centro Costo
+        { wch: 30 }, // Referencia
+        { wch: 15 }, // Documento
+        { wch: 15 }, // Asiento
+        { wch: 30 }, // Razón Social
+        { wch: 12 }, // Fecha
+        { wch: 15 }, // Tipo
+        { wch: 15 }, // NIT
+        { wch: 15 }, // Crédito Dólar
+        { wch: 15 }, // Crédito Local
+        { wch: 15 }, // Débito Dólar
+        { wch: 15 }, // Débito Local
+        { wch: 20 }, // Cuenta Contable
+        { wch: 40 }, // Descripción Cuenta Contable
+        { wch: 30 }, // Descripción Centro Costo
+        { wch: 20 }  // Usuario
+      ];
+      
+      worksheet['!cols'] = columnWidths;
+      
+      // Agregar la hoja al workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Movimientos Contables');
+      
+      // Generar el buffer del archivo Excel
+      const excelBuffer = XLSX.write(workbook, { 
+        type: 'buffer', 
+        bookType: 'xlsx',
+        compression: true
+      });
+      
+      console.log('Archivo Excel de movimientos contables generado exitosamente');
+      return excelBuffer;
+      
+    } catch (error) {
+      console.error('Error al generar Excel de movimientos contables:', error);
+      throw new Error(`Error al generar archivo Excel: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    }
   }
 }

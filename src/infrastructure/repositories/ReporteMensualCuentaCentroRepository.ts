@@ -2,6 +2,7 @@ import { injectable } from 'inversify';
 import { exactusSequelize } from '../database/config/exactus-database';
 import { IReporteMensualCuentaCentroRepository } from '../../domain/repositories/IReporteMensualCuentaCentroRepository';
 import { ReporteMensualCuentaCentroItem } from '../../domain/entities/ReporteMensualCuentaCentro';
+import * as XLSX from 'xlsx';
 
 function endOfMonthISO(anio: number, mesIndex0: number): string {
   const d = new Date(Date.UTC(anio, mesIndex0 + 1, 0, 0, 0, 0));
@@ -133,5 +134,138 @@ export class ReporteMensualCuentaCentroRepository implements IReporteMensualCuen
     })) as ReporteMensualCuentaCentroItem[];
 
     return data;
+  }
+
+  async exportarExcel(conjunto: string, anio: number, contabilidad: 'F' | 'A' = 'F'): Promise<Buffer> {
+    try {
+      console.log(`Generando Excel de reporte mensual para conjunto ${conjunto}, año ${anio}`);
+      
+      // Obtener todos los datos para el Excel
+      const datos = await this.obtenerPorAnio(conjunto, anio, contabilidad);
+      
+      // Preparar los datos para Excel
+      const excelData = datos.map(item => ({
+        'Cuenta Contable': item.cuentaContable || '',
+        'Descripción Cuenta': item.descCuentaContable || '',
+        'Centro Costo': item.centroCosto || '',
+        'Descripción Centro Costo': item.descCentroCosto || '',
+        'Enero': Number(item.enero || 0),
+        'Febrero': Number(item.febrero || 0),
+        'Marzo': Number(item.marzo || 0),
+        'Abril': Number(item.abril || 0),
+        'Mayo': Number(item.mayo || 0),
+        'Junio': Number(item.junio || 0),
+        'Julio': Number(item.julio || 0),
+        'Agosto': Number(item.agosto || 0),
+        'Setiembre': Number(item.setiembre || 0),
+        'Octubre': Number(item.octubre || 0),
+        'Noviembre': Number(item.noviembre || 0),
+        'Diciembre': Number(item.diciembre || 0)
+      }));
+
+      // Calcular totales por mes
+      const totalesMensuales = {
+        enero: datos.reduce((sum, item) => sum + (item.enero || 0), 0),
+        febrero: datos.reduce((sum, item) => sum + (item.febrero || 0), 0),
+        marzo: datos.reduce((sum, item) => sum + (item.marzo || 0), 0),
+        abril: datos.reduce((sum, item) => sum + (item.abril || 0), 0),
+        mayo: datos.reduce((sum, item) => sum + (item.mayo || 0), 0),
+        junio: datos.reduce((sum, item) => sum + (item.junio || 0), 0),
+        julio: datos.reduce((sum, item) => sum + (item.julio || 0), 0),
+        agosto: datos.reduce((sum, item) => sum + (item.agosto || 0), 0),
+        setiembre: datos.reduce((sum, item) => sum + (item.setiembre || 0), 0),
+        octubre: datos.reduce((sum, item) => sum + (item.octubre || 0), 0),
+        noviembre: datos.reduce((sum, item) => sum + (item.noviembre || 0), 0),
+        diciembre: datos.reduce((sum, item) => sum + (item.diciembre || 0), 0)
+      };
+
+      // Agregar fila de totales
+      const totalRow = {
+        'Cuenta Contable': '',
+        'Descripción Cuenta': '',
+        'Centro Costo': '',
+        'Descripción Centro Costo': '',
+        'Enero': totalesMensuales.enero,
+        'Febrero': totalesMensuales.febrero,
+        'Marzo': totalesMensuales.marzo,
+        'Abril': totalesMensuales.abril,
+        'Mayo': totalesMensuales.mayo,
+        'Junio': totalesMensuales.junio,
+        'Julio': totalesMensuales.julio,
+        'Agosto': totalesMensuales.agosto,
+        'Setiembre': totalesMensuales.setiembre,
+        'Octubre': totalesMensuales.octubre,
+        'Noviembre': totalesMensuales.noviembre,
+        'Diciembre': totalesMensuales.diciembre
+      };
+
+      // Agregar fila vacía antes del total
+      const emptyRow = {
+        'Cuenta Contable': '',
+        'Descripción Cuenta': '',
+        'Centro Costo': '',
+        'Descripción Centro Costo': '',
+        'Enero': '',
+        'Febrero': '',
+        'Marzo': '',
+        'Abril': '',
+        'Mayo': '',
+        'Junio': '',
+        'Julio': '',
+        'Agosto': '',
+        'Setiembre': '',
+        'Octubre': '',
+        'Noviembre': '',
+        'Diciembre': ''
+      };
+
+      // Combinar datos con totales
+      const finalData = [...excelData, emptyRow, totalRow];
+
+      // Crear el workbook
+      const workbook = XLSX.utils.book_new();
+      
+      // Crear la hoja principal con los datos
+      const worksheet = XLSX.utils.json_to_sheet(finalData);
+      
+      // Configurar el ancho de las columnas
+      const columnWidths = [
+        { wch: 20 }, // Cuenta Contable
+        { wch: 40 }, // Descripción Cuenta
+        { wch: 20 }, // Centro Costo
+        { wch: 40 }, // Descripción Centro Costo
+        { wch: 12 }, // Enero
+        { wch: 12 }, // Febrero
+        { wch: 12 }, // Marzo
+        { wch: 12 }, // Abril
+        { wch: 12 }, // Mayo
+        { wch: 12 }, // Junio
+        { wch: 12 }, // Julio
+        { wch: 12 }, // Agosto
+        { wch: 12 }, // Setiembre
+        { wch: 12 }, // Octubre
+        { wch: 12 }, // Noviembre
+        { wch: 12 }  // Diciembre
+      ];
+      
+      worksheet['!cols'] = columnWidths;
+      
+      // Agregar la hoja al workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, `Reporte Mensual ${anio}`);
+      
+      // Generar el buffer del archivo Excel
+      const excelBuffer = XLSX.write(workbook, { 
+        type: 'buffer', 
+        bookType: 'xlsx',
+        compression: true
+      });
+      
+      console.log('Archivo Excel de reporte mensual generado exitosamente');
+      return excelBuffer;
+      
+    } catch (error) {
+      console.error('Error al generar Excel de reporte mensual:', error);
+      throw new Error(`Error al generar archivo Excel: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    }
   }
 }
