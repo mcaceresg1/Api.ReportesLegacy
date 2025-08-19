@@ -113,6 +113,17 @@ app.get('/api/test', (req, res) => {
   });
 });
 
+// Endpoint de prueba para libro mayor
+app.get('/api/reporte-libro-mayor-test', (req, res) => {
+  res.json({ 
+    message: 'Endpoint de libro mayor funcionando',
+    timestamp: new Date().toISOString(),
+    status: 'OK',
+    params: req.params,
+    query: req.query
+  });
+});
+
 // Rutas de menús (algunas públicas, otras protegidas)
 app.use('/api/menus', menuRoutes.getRouter());
 

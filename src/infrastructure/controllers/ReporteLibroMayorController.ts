@@ -65,10 +65,18 @@ export class ReporteLibroMayorController {
    */
   async generarDatosReporte(req: Request, res: Response): Promise<void> {
     try {
+      console.log('🔍 generarDatosReporte - Iniciando...');
+      console.log('📋 Parámetros de la request:', req.params);
+      console.log('🔍 Query parameters:', req.query);
+      
       const { conjunto } = req.params;
+      console.log('🏢 Conjunto recibido:', conjunto);
+      
       const filtros = this.extraerFiltrosDeQuery(req.query);
+      console.log('⚙️ Filtros extraídos:', JSON.stringify(filtros, null, 2));
       
       if (!conjunto) {
+        console.log('❌ Error: Conjunto no proporcionado');
         res.status(400).json({
           success: false,
           message: 'El parámetro conjunto es requerido',
@@ -78,6 +86,10 @@ export class ReporteLibroMayorController {
       }
 
       if (!filtros.usuario || !filtros.fechaInicio || !filtros.fechaFin) {
+        console.log('❌ Error: Parámetros requeridos faltantes');
+        console.log('👤 Usuario:', filtros.usuario);
+        console.log('📅 Fecha Inicio:', filtros.fechaInicio);
+        console.log('📅 Fecha Fin:', filtros.fechaFin);
         res.status(400).json({
           success: false,
           message: 'Los parámetros usuario, fechaInicio y fechaFin son requeridos',
@@ -86,8 +98,10 @@ export class ReporteLibroMayorController {
         return;
       }
 
+      console.log('✅ Parámetros válidos, llamando al servicio...');
       const inicio = new Date();
       const datos = await this.reporteLibroMayorService.generarDatosReporte(filtros);
+      console.log('📊 Datos obtenidos del servicio:', datos?.length || 0, 'registros');
 
       res.json({
         success: true,
@@ -102,8 +116,9 @@ export class ReporteLibroMayorController {
           fechaGeneracion: new Date()
         }
       });
+      console.log('✅ Respuesta enviada exitosamente');
     } catch (error) {
-      console.error('Error en generarDatosReporte:', error);
+      console.error('❌ Error en generarDatosReporte:', error);
       res.status(500).json({
         success: false,
         message: 'Error al generar datos del reporte de Libro Mayor',
@@ -246,6 +261,8 @@ export class ReporteLibroMayorController {
    * Extrae y convierte los filtros de la query string
    */
   private extraerFiltrosDeQuery(query: any): FiltrosReporteLibroMayor {
+    console.log('🔍 extraerFiltrosDeQuery - Query recibida:', query);
+    
     const filtros: FiltrosReporteLibroMayor = {
       usuario: query.usuario || '',
       fechaInicio: query.fechaInicio ? new Date(query.fechaInicio) : new Date(),
@@ -346,6 +363,7 @@ export class ReporteLibroMayorController {
       incluirTotalesPorPeriodo: query.incluirTotalesPorPeriodo !== 'false'
     };
 
+    console.log('✅ Filtros generados:', JSON.stringify(filtros, null, 2));
     return filtros;
   }
 
