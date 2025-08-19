@@ -145,9 +145,13 @@ export class ReporteGastosDestinoRepository implements IReporteGastosDestinoRepo
     return;
   }
 
-  async exportarExcel(conjunto: string, fechaInicio?: string, fechaFin?: string): Promise<Buffer> {
+  async exportarExcel(conjunto: string, filtros: any): Promise<Buffer> {
     try {
       console.log(`Generando Excel de gastos por destino para conjunto ${conjunto}`);
+      
+      // Extraer fechas de los filtros
+      const fechaInicio = filtros?.asientos?.fechaInicio;
+      const fechaFin = filtros?.asientos?.fechaFin;
       
       // Obtener todos los datos para el Excel
       const resultado = await this.listarDetalle(conjunto, fechaInicio, fechaFin, 10000, 0);
