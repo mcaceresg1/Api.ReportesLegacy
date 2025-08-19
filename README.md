@@ -19,6 +19,38 @@ API REST desarrollada en TypeScript con arquitectura hexagonal (Ports and Adapte
 
 ## Cambios Recientes
 
+### v1.13.0 - Reporte de Libro Mayor y Correcciones de Errores
+
+- **Reporte de Libro Mayor**: Implementación completa del sistema de reportes de libro mayor con filtros avanzados
+- **Correcciones de Errores TypeScript**: Solucionados todos los errores de compilación del proyecto
+- **Nuevo Servicio de Base de Datos**: Implementación de `DatabaseService` para manejo centralizado de conexiones
+- **Entidades implementadas**:
+  - **ReporteLibroMayor**: Para el manejo de reportes de libro mayor
+  - **FiltrosReporteLibroMayor**: Sistema completo de filtros para reportes
+  - **ResumenLibroMayor**: Resúmenes estadísticos de los reportes
+- **Nuevos endpoints**:
+  - `GET /api/reporte-libro-mayor/{conjunto}` - Generar reporte completo
+  - `GET /api/reporte-libro-mayor/{conjunto}/datos` - Obtener solo datos del reporte
+  - `GET /api/reporte-libro-mayor/{conjunto}/resumen` - Obtener resumen del reporte
+  - `GET /api/reporte-libro-mayor/{conjunto}/exportar` - Exportar reporte en diferentes formatos
+  - `GET /api/reporte-libro-mayor/validar-filtros` - Validar filtros del reporte
+- **Correcciones implementadas**:
+  - Handler de reporte de libro mayor corregido con método `handle` correcto
+  - Query implementando interfaz `IQuery` correctamente
+  - Controlador con manejo de tipos corregido
+  - Repositorio con inyección de dependencias corregida
+  - Clase `DynamicModel` para consultas SQL dinámicas
+  - Servicio `ReporteLibroMayorService` implementado completamente
+  - Rutas registradas en la aplicación principal
+  - Contenedor de dependencias actualizado
+- **Beneficios**:
+  - Código TypeScript compilando sin errores
+  - Arquitectura CQRS implementada correctamente
+  - Inyección de dependencias funcionando
+  - Manejo centralizado de conexiones de base de datos
+  - Documentación Swagger completa
+  - Sistema de reportes completamente funcional
+
 ### v1.12.0 - Reporte de Centro de Costos
 
 - **Reporte de Centro de Costos**: Implementación completa del sistema de reportes de centro de costos con filtros por cuenta contable

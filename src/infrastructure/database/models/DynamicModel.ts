@@ -424,3 +424,34 @@ export class DynamicModelFactory {
     return CuentaContableModelForConjunto;
   }
 }
+
+// Clase simple para manejar consultas SQL dinámicas
+export class DynamicModel {
+  constructor(private connection: any) {}
+
+  async executeQuery(query: string, params: any[] = []): Promise<any[]> {
+    try {
+      const [results] = await this.connection.query(query, {
+        replacements: params,
+        type: this.connection.QueryTypes.SELECT
+      });
+      return results || [];
+    } catch (error) {
+      console.error('Error executing query:', error);
+      throw error;
+    }
+  }
+
+  async executeNonQuery(query: string, params: any[] = []): Promise<number> {
+    try {
+      const [results] = await this.connection.query(query, {
+        replacements: params,
+        type: this.connection.QueryTypes.INSERT
+      });
+      return results?.affectedRows || 0;
+    } catch (error) {
+      console.error('Error executing non-query:', error);
+      throw error;
+    }
+  }
+}
