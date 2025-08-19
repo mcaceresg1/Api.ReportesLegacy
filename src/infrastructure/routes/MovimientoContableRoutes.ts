@@ -20,5 +20,8 @@ export function createMovimientoContableRoutes(
   // GET /api/movimientos/:conjunto/por-cuenta-contable/:cuentaContable - Obtener movimientos por cuenta contable
   router.get('/:conjunto/por-cuenta-contable/:cuentaContable', (req, res) => movimientoContableController.obtenerMovimientosPorCuentaContable(req, res));
 
+  // POST /api/movimientos/:conjunto/exportar-excel - Exportar movimientos contables a Excel
+  router.post('/:conjunto/exportar-excel', (req, res) => movimientoContableController.exportarExcel(req, res));
+
   return router;
 }

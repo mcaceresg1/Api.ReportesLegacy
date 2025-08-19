@@ -8,5 +8,8 @@ export function createReporteMensualCuentaCentroRoutes(): Router {
 
   router.get('/:conjunto', (req, res) => controller.obtener(req, res));
 
+  // POST /api/reporte-mensual-cuenta-centro/:conjunto/exportar-excel - Exportar a Excel
+  router.post('/:conjunto/exportar-excel', (req, res) => controller.exportarExcel(req, res));
+
   return router;
 }

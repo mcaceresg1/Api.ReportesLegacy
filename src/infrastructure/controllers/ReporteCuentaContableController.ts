@@ -290,4 +290,65 @@ export class ReporteCuentaContableController {
       });
     }
   }
+
+  /**
+   * @swagger
+   * /api/reporte-cuenta-contable/{conjunto}/{centroCosto}/exportar-excel:
+   *   post:
+   *     summary: Exportar Reporte de Cuentas Contables a Excel
+   *     description: Exporta el reporte de cuentas contables a formato Excel
+   *     tags: [Reporte Cuenta Contable]
+   *     parameters:
+   *       - in: path
+   *         name: conjunto
+   *         required: true
+   *         description: "Código del conjunto contable"
+   *         schema: { type: string }
+   *       - in: path
+   *         name: centroCosto
+   *         required: true
+   *         description: "Centro de costo"
+   *         schema: { type: string }
+   *     responses:
+   *       200:
+   *         description: "Archivo Excel generado exitosamente"
+   *         content:
+   *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+   *             schema:
+   *               type: string
+   *               format: binary
+   *       400:
+   *         description: "Parámetros inválidos o faltantes"
+   *       500:
+   *         description: "Error interno del servidor"
+   */
+  async exportarExcel(req: Request, res: Response): Promise<void> {
+    try {
+      const { conjunto, centroCosto } = req.params;
+
+      if (!conjunto || !centroCosto) {
+        res.status(400).json({
+          success: false,
+          message: 'Los parámetros conjunto y centroCosto son requeridos'
+        });
+        return;
+      }
+
+      // Generar Excel usando el repositorio
+      const excelBuffer = await this.reporteCuentaContableRepository.exportarExcel(conjunto, centroCosto);
+
+      // Configurar headers para descarga
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="cuentas-contables-${conjunto}-${centroCosto}-${new Date().toISOString().split('T')[0]}.xlsx"`);
+      
+      res.send(excelBuffer);
+    } catch (error) {
+      console.error('Error al exportar Excel en ReporteCuentaContableController:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error al exportar Excel',
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      });
+    }
+  }
 }

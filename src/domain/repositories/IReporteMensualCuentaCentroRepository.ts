@@ -6,4 +6,10 @@ export interface IReporteMensualCuentaCentroRepository {
     anio: number,
     contabilidad?: 'F' | 'A'
   ): Promise<ReporteMensualCuentaCentroItem[]>;
+  
+  exportarExcel(
+    conjunto: string,
+    anio: number,
+    contabilidad: 'F' | 'A'
+  ): Promise<Buffer>;
 }

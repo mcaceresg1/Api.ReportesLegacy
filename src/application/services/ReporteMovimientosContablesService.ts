@@ -158,4 +158,19 @@ export class ReporteMovimientosContablesService implements IReporteMovimientosCo
       throw error;
     }
   }
+
+  async exportarExcel(conjunto: string, filtros: FiltrosReporteMovimientosContables): Promise<Buffer> {
+    try {
+      // Obtener los datos del reporte
+      const datos = await this.obtenerReporteMovimientosContables(conjunto, filtros);
+      
+      // Generar Excel usando el repositorio
+      const excelBuffer = await this.reporteMovimientosContablesRepository.exportarExcel(conjunto, filtros);
+      
+      return excelBuffer;
+    } catch (error) {
+      console.error('Error en ReporteMovimientosContablesService.exportarExcel:', error);
+      throw error;
+    }
+  }
 }

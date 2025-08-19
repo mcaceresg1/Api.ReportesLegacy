@@ -176,4 +176,86 @@ export class ReporteMovimientosContablesController {
       });
     }
   }
+
+  /**
+   * @swagger
+   * /api/reporte-movimientos-contables/{conjunto}/exportar-excel:
+   *   post:
+   *     summary: Exportar Reporte de Movimientos Contables a Excel
+   *     description: Exporta el reporte de movimientos contables a formato Excel
+   *     tags: [Reporte Movimientos Contables]
+   *     parameters:
+   *       - in: path
+   *         name: conjunto
+   *         required: true
+   *         description: "Conjunto de datos (ej: EXACTUS)"
+   *         schema: { type: string }
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/FiltrosReporteMovimientosContables'
+   *     responses:
+   *       200:
+   *         description: "Archivo Excel generado exitosamente"
+   *         content:
+   *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+   *             schema:
+   *               type: string
+   *               format: binary
+   *       400:
+   *         description: "Parámetros inválidos o faltantes"
+   *       500:
+   *         description: "Error interno del servidor"
+   */
+  async exportarExcel(req: Request, res: Response): Promise<void> {
+    try {
+      const { conjunto } = req.params;
+      const filtros = req.body;
+
+      if (!conjunto) {
+        res.status(400).json({
+          success: false,
+          message: 'El parámetro conjunto es obligatorio'
+        });
+        return;
+      }
+
+      // Validar filtros mínimos
+      if (!filtros.usuario || !filtros.fechaInicio || !filtros.fechaFin) {
+        res.status(400).json({
+          success: false,
+          message: 'Los filtros usuario, fechaInicio y fechaFin son obligatorios'
+        });
+        return;
+      }
+
+      // Convertir fechas
+      const filtrosValidados = {
+        ...filtros,
+        fechaInicio: new Date(filtros.fechaInicio),
+        fechaFin: new Date(filtros.fechaFin)
+      };
+
+      // Obtener el reporte del servicio
+      const resultados = await this.reporteMovimientosContablesService.obtenerReporteMovimientosContables(conjunto, filtrosValidados);
+
+      // Generar Excel usando el servicio
+      const excelBuffer = await this.reporteMovimientosContablesService.exportarExcel(conjunto, filtrosValidados);
+
+      // Configurar headers para descarga
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="movimientos-contables-${conjunto}-${new Date().toISOString().split('T')[0]}.xlsx"`);
+      
+      res.send(excelBuffer);
+    } catch (error) {
+      console.error('Error al exportar Excel en ReporteMovimientosContablesController:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error al exportar Excel',
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      });
+    }
+  }
 }

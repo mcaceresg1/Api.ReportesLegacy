@@ -10,4 +10,5 @@ export interface IReporteCentroCostoRepository {
     limit?: number
   ): Promise<{ data: ReporteCentroCosto[], pagination: any }>;
   obtenerCentrosCostoCount(conjunto: string, cuentaContable: string): Promise<number>;
+  exportarExcel(conjunto: string, cuentaContable: string): Promise<Buffer>;
 }

@@ -13,4 +13,5 @@ export interface IReporteCuentaContableRepository {
   ): Promise<ReporteCuentaContable[]>;
   
   obtenerCuentasContablesCount(conjunto: string, centroCosto: string): Promise<number>;
+  exportarExcel(conjunto: string, centroCosto: string): Promise<Buffer>;
 }

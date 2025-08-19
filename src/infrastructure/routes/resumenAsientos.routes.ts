@@ -224,5 +224,8 @@ export function createResumenAsientosRoutes(): Router {
     (req, res) => controller.obtenerResumenAsientos(req, res)
   );
 
+  // POST /api/resumen-asientos/:conjunto/exportar-excel - Exportar a Excel
+  router.post('/:conjunto/exportar-excel', (req, res) => controller.exportarExcel(req, res));
+
   return router;
 }

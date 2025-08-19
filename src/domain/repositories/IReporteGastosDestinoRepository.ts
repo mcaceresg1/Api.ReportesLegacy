@@ -5,6 +5,7 @@ export interface IReporteGastosDestinoRepository {
   listar(conjunto: string, limit?: number, offset?: number): Promise<ReporteGastosDestinoResult>;
   count(conjunto: string): Promise<number>;
   limpiarPorRango?(conjunto: string): Promise<void>;
+  exportarExcel(conjunto: string, filtros: any): Promise<Buffer>;
 }
 
 

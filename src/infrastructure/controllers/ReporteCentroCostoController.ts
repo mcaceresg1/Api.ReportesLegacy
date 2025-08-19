@@ -316,4 +316,65 @@ export class ReporteCentroCostoController {
       });
     }
   }
+
+  /**
+   * @swagger
+   * /api/reporte-centro-costo/{conjunto}/{cuentaContable}/exportar-excel:
+   *   post:
+   *     summary: Exportar Reporte de Centros de Costo a Excel
+   *     description: Exporta el reporte de centros de costo a formato Excel
+   *     tags: [Reporte Centro Costo]
+   *     parameters:
+   *       - in: path
+   *         name: conjunto
+   *         required: true
+   *         description: "Código del conjunto contable"
+   *         schema: { type: string }
+   *       - in: path
+   *         name: cuentaContable
+   *         required: true
+   *         description: "Código de la cuenta contable"
+   *         schema: { type: string }
+   *     responses:
+   *       200:
+   *         description: "Archivo Excel generado exitosamente"
+   *         content:
+   *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+   *             schema:
+   *               type: string
+   *               format: binary
+   *       400:
+   *         description: "Parámetros inválidos o faltantes"
+   *       500:
+   *         description: "Error interno del servidor"
+   */
+  async exportarExcel(req: Request, res: Response): Promise<void> {
+    try {
+      const { conjunto, cuentaContable } = req.params;
+
+      if (!conjunto || !cuentaContable) {
+        res.status(400).json({
+          success: false,
+          message: 'Los parámetros conjunto y cuentaContable son requeridos'
+        });
+        return;
+      }
+
+      // Generar Excel usando el repositorio
+      const excelBuffer = await this.reporteCentroCostoRepository.exportarExcel(conjunto, cuentaContable);
+
+      // Configurar headers para descarga
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="centros-costo-${conjunto}-${cuentaContable}-${new Date().toISOString().split('T')[0]}.xlsx"`);
+      
+      res.send(excelBuffer);
+    } catch (error) {
+      console.error('Error al exportar Excel en ReporteCentroCostoController:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error al exportar Excel',
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      });
+    }
+  }
 }

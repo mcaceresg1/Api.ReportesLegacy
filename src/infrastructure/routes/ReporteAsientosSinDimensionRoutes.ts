@@ -13,4 +13,7 @@ router.get('/:conjunto/listar', (req, res) => reporteAsientosSinDimensionControl
 router.get('/:conjunto/detalle', (req, res) => reporteAsientosSinDimensionController.listarDetalle(req, res));
 router.get('/:conjunto/:id', (req, res) => reporteAsientosSinDimensionController.getById(req, res));
 
+// POST /api/reporte-asientos-sin-dimension/:conjunto/exportar-excel - Exportar a Excel
+router.post('/:conjunto/exportar-excel', (req, res) => reporteAsientosSinDimensionController.exportarExcel(req, res));
+
 export default router;

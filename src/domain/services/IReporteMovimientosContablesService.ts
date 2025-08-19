@@ -10,4 +10,9 @@ export interface IReporteMovimientosContablesService {
     conjunto: string,
     filtros: FiltrosReporteMovimientosContables
   ): Promise<ReporteMovimientoContableItem[]>;
+  
+  exportarExcel(
+    conjunto: string,
+    filtros: FiltrosReporteMovimientosContables
+  ): Promise<Buffer>;
 }

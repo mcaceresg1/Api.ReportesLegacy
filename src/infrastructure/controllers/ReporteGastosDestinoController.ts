@@ -158,6 +158,100 @@ export class ReporteGastosDestinoController {
       res.status(500).json({ success: false, message: 'Error al listar detalle', error: error instanceof Error ? error.message : 'Error' });
     }
   }
+
+  /**
+   * @swagger
+   * /api/reporte-gastos-destino/{conjunto}/exportar-excel:
+   *   post:
+   *     summary: Exporta el reporte de gastos por clase destino a Excel
+   *     tags: [Reporte Gastos Destino]
+   *     parameters:
+   *       - in: path
+   *         name: conjunto
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Código de conjunto (esquema ASFSAC)
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               gasto:
+   *                 type: object
+   *                 properties:
+   *                   nivelAnalisis:
+   *                     type: number
+   *                   cuentaDesde:
+   *                     type: string
+   *                   cuentaHasta:
+   *                     type: string
+   *                   centroDesde:
+   *                     type: string
+   *                   centroHasta:
+   *                     type: string
+   *               destino:
+   *                 type: object
+   *                 properties:
+   *                   nivelAnalisis:
+   *                     type: number
+   *                   cuentaDesde:
+   *                     type: string
+   *                   cuentaHasta:
+   *                     type: string
+   *                   centroDesde:
+   *                     type: string
+   *                   centroHasta:
+   *                     type: string
+   *               asientos:
+   *                 type: object
+   *                 properties:
+   *                   contabilidad:
+   *                     type: string
+   *                   fechaInicio:
+   *                     type: string
+   *                     format: date
+   *                   fechaFin:
+   *                     type: string
+   *                     format: date
+   *     responses:
+   *       200:
+   *         description: Archivo Excel generado
+   *         content:
+   *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+   *             schema:
+   *               type: string
+   *               format: binary
+   *       400:
+   *         description: Parámetros inválidos
+   *       500:
+   *         description: Error interno del servidor
+   */
+  async exportarExcel(req: Request, res: Response): Promise<void> {
+    try {
+      const { conjunto } = req.params;
+      const filtros = req.body;
+
+      if (!conjunto) {
+        res.status(400).json({ success: false, message: 'conjunto requerido' });
+        return;
+      }
+
+      const buffer = await this.repo.exportarExcel(conjunto, filtros);
+      
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=gastos-destino-${conjunto}-${new Date().toISOString().split('T')[0]}.xlsx`);
+      res.send(buffer);
+    } catch (error) {
+      res.status(500).json({ 
+        success: false, 
+        message: 'Error al exportar Excel', 
+        error: error instanceof Error ? error.message : 'Error' 
+      });
+    }
+  }
 }
 
 
