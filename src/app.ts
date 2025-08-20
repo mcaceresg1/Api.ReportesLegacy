@@ -79,6 +79,31 @@ const menuService = container.get<IMenuService>('IMenuService');
 // Inicializar CQRS
 console.log('🚀 Inicializando CQRS Service...');
 const cqrsService = container.get<CqrsService>('CqrsService');
+
+// Registrar handlers manualmente como fallback
+console.log('🔧 Registrando handlers manualmente...');
+const commandBus = cqrsService.getCommandBus();
+const queryBus = cqrsService.getQueryBus();
+
+// Libro Mayor Handlers
+const generarReporteLibroMayorHandler = container.get('GenerarReporteLibroMayorHandler') as any;
+const obtenerLibroMayorHandler = container.get('ObtenerLibroMayorHandler') as any;
+const exportarLibroMayorExcelHandler = container.get('ExportarLibroMayorExcelHandler') as any;
+
+commandBus.register('GenerarReporteLibroMayorCommand', generarReporteLibroMayorHandler);
+queryBus.register('ObtenerLibroMayorQuery', obtenerLibroMayorHandler);
+queryBus.register('ExportarLibroMayorExcelQuery', exportarLibroMayorExcelHandler);
+
+// Diario Contabilidad Handlers
+const generarReporteDiarioContabilidadHandler = container.get('GenerarReporteDiarioContabilidadHandler') as any;
+const obtenerDiarioContabilidadHandler = container.get('ObtenerDiarioContabilidadHandler') as any;
+const exportarDiarioContabilidadExcelHandler = container.get('ExportarDiarioContabilidadExcelHandler') as any;
+
+commandBus.register('GenerarReporteDiarioContabilidadCommand', generarReporteDiarioContabilidadHandler);
+queryBus.register('ObtenerDiarioContabilidadQuery', obtenerDiarioContabilidadHandler);
+queryBus.register('ExportarDiarioContabilidadExcelQuery', exportarDiarioContabilidadExcelHandler);
+
+console.log('✅ Handlers registrados manualmente');
 console.log('✅ CQRS Service inicializado');
 
 // Rutas
