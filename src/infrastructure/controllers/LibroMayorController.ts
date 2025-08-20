@@ -1,17 +1,12 @@
 import { Request, Response } from 'express';
 import { injectable, inject } from 'inversify';
-import { ICommandBus } from '../../domain/cqrs/ICommandBus';
-import { IQueryBus } from '../../domain/cqrs/IQueryBus';
-import { GenerarReporteLibroMayorCommand } from '../../application/commands/libro-mayor/GenerarReporteLibroMayorCommand';
-import { ObtenerLibroMayorQuery } from '../../application/queries/libro-mayor/ObtenerLibroMayorQuery';
-import { ExportarLibroMayorExcelQuery } from '../../application/queries/libro-mayor/ExportarLibroMayorExcelQuery';
+import { ILibroMayorRepository } from '../../domain/repositories/ILibroMayorRepository';
 import { LibroMayorFiltros, LibroMayorResponse } from '../../domain/entities/LibroMayor';
 
 @injectable()
 export class LibroMayorController {
   constructor(
-    @inject('ICommandBus') private commandBus: ICommandBus,
-    @inject('IQueryBus') private queryBus: IQueryBus
+    @inject('ILibroMayorRepository') private libroMayorRepository: ILibroMayorRepository
   ) {}
 
   /**
@@ -54,15 +49,13 @@ export class LibroMayorController {
       console.log(`Generando reporte libro mayor para conjunto: ${conjunto}, usuario: ${usuario}`);
       console.log(`Período: ${fechaInicioDate.toISOString()} - ${fechaFinDate.toISOString()}`);
 
-      // Ejecutar comando
-      const command = new GenerarReporteLibroMayorCommand(
-        conjunto,
-        usuario,
+      // Usar directamente el repositorio
+      await this.libroMayorRepository.generarReporteLibroMayor(
+        conjunto as string,
+        usuario as string,
         fechaInicioDate,
         fechaFinDate
       );
-
-      await this.commandBus.execute(command);
 
       res.status(200).json({
         success: true,
@@ -157,9 +150,8 @@ export class LibroMayorController {
         offset
       };
 
-      // Ejecutar query
-      const query = new ObtenerLibroMayorQuery(filtros);
-      const resultado = await this.queryBus.execute(query as any) as LibroMayorResponse;
+      // Usar directamente el repositorio
+      const resultado = await this.libroMayorRepository.obtenerLibroMayor(filtros);
 
       res.status(200).json({
         success: true,
@@ -232,16 +224,14 @@ export class LibroMayorController {
       console.log(`Período: ${fechaInicioDate.toISOString()} - ${fechaFinDate.toISOString()}`);
       console.log(`Límite: ${limitNum} registros`);
 
-      // Ejecutar query
-      const query = new ExportarLibroMayorExcelQuery(
+      // Usar directamente el repositorio
+      const excelBuffer = await this.libroMayorRepository.exportarExcel(
         conjunto as string,
         usuario as string,
         fechaInicioDate,
         fechaFinDate,
         limitNum
       );
-
-      const excelBuffer = await this.queryBus.execute(query as any);
 
       // Configurar headers para descarga
       const filename = `LibroMayor_${conjunto}_${usuario}_${fechaInicioDate.toISOString().split('T')[0]}_${fechaFinDate.toISOString().split('T')[0]}.xlsx`;

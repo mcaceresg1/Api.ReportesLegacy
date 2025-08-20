@@ -1,18 +1,24 @@
 import { Request, Response } from 'express';
 import { injectable, inject } from 'inversify';
-import { ICommandBus } from '../../domain/cqrs/ICommandBus';
-import { IQueryBus } from '../../domain/cqrs/IQueryBus';
-import { GenerarReporteDiarioContabilidadCommand } from '../../application/commands/diario-contabilidad/GenerarReporteDiarioContabilidadCommand';
-import { ObtenerDiarioContabilidadQuery } from '../../application/queries/diario-contabilidad/ObtenerDiarioContabilidadQuery';
-import { ExportarDiarioContabilidadExcelQuery } from '../../application/queries/diario-contabilidad/ExportarDiarioContabilidadExcelQuery';
+import { IDiarioContabilidadRepository } from '../../domain/repositories/IDiarioContabilidadRepository';
 import { DiarioContabilidadFiltros, DiarioContabilidadResponse } from '../../domain/entities/DiarioContabilidad';
 
 @injectable()
 export class DiarioContabilidadController {
   constructor(
-    @inject('ICommandBus') private commandBus: ICommandBus,
-    @inject('IQueryBus') private queryBus: IQueryBus
+    @inject('IDiarioContabilidadRepository') private diarioContabilidadRepository: IDiarioContabilidadRepository
   ) {}
+
+  /**
+   * Health check endpoint
+   */
+  async health(req: Request, res: Response): Promise<void> {
+    res.status(200).json({
+      success: true,
+      message: 'Servicio de Diario de Contabilidad funcionando correctamente',
+      timestamp: new Date().toISOString()
+    });
+  }
 
   /**
    * Genera el reporte de Diario de Contabilidad
@@ -117,18 +123,15 @@ export class DiarioContabilidadController {
         return;
       }
 
-      // Crear comando
-      const command = new GenerarReporteDiarioContabilidadCommand(
-        conjunto,
-        usuario,
+      // Usar directamente el repositorio
+      await this.diarioContabilidadRepository.generarReporteDiarioContabilidad(
+        conjunto as string,
+        usuario as string,
         fechaInicioDate,
         fechaFinDate,
         contabilidad || 'F,A',
         tipoReporte || 'Preliminar'
       );
-
-      // Ejecutar comando
-      await this.commandBus.execute(command as any);
 
       res.status(200).json({
         success: true,
@@ -350,9 +353,8 @@ export class DiarioContabilidadController {
         offset
       };
 
-      // Ejecutar query
-      const query = new ObtenerDiarioContabilidadQuery(filtros);
-      const resultado = await this.queryBus.execute(query as any) as DiarioContabilidadResponse;
+      // Usar directamente el repositorio
+      const resultado = await this.diarioContabilidadRepository.obtenerDiarioContabilidad(filtros);
 
       res.status(200).json({
         success: true,
@@ -488,8 +490,8 @@ export class DiarioContabilidadController {
         return;
       }
 
-      // Crear query
-      const query = new ExportarDiarioContabilidadExcelQuery(
+      // Usar directamente el repositorio
+      const excelBuffer = await this.diarioContabilidadRepository.exportarExcel(
         conjunto as string,
         usuario as string,
         fechaInicioDate,
@@ -498,9 +500,6 @@ export class DiarioContabilidadController {
         tipoReporte as string,
         limitNum
       );
-
-      // Ejecutar query
-      const excelBuffer = await this.queryBus.execute(query as any) as Buffer;
 
       // Configurar headers para descarga
       const fileName = `diario-contabilidad-${conjunto}-${fechaInicio}-${fechaFin}.xlsx`;
@@ -521,52 +520,4 @@ export class DiarioContabilidadController {
     }
   }
 
-  /**
-   * Verifica el estado del servicio de Diario de Contabilidad
-   * @swagger
-   * /api/diario-contabilidad/health:
-   *   get:
-   *     tags:
-   *       - Diario de Contabilidad
-   *     summary: Verifica el estado del servicio
-   *     description: Endpoint de health check para verificar que el servicio esté funcionando
-   *     responses:
-   *       200:
-   *         description: Servicio funcionando correctamente
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 success:
-   *                   type: boolean
-   *                   example: true
-   *                 message:
-   *                   type: string
-   *                   example: "Servicio de Diario de Contabilidad funcionando correctamente"
-   *                 timestamp:
-   *                   type: string
-   *                   format: date-time
-   *                   example: "2024-01-15T10:30:00.000Z"
-   *                 version:
-   *                   type: string
-   *                   example: "1.0.0"
-   */
-  async health(req: Request, res: Response): Promise<void> {
-    try {
-      res.status(200).json({
-        success: true,
-        message: 'Servicio de Diario de Contabilidad funcionando correctamente',
-        timestamp: new Date().toISOString(),
-        version: '1.0.0'
-      });
-    } catch (error) {
-      console.error('Error en health check:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error en el servicio de Diario de Contabilidad',
-        error: error instanceof Error ? error.message : 'Error desconocido'
-      });
-    }
-  }
 }

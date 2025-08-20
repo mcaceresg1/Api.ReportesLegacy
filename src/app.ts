@@ -27,7 +27,8 @@ import { createReporteMovimientosContablesRoutes } from './infrastructure/routes
 import { createReporteMovimientosContablesAgrupadosRoutes } from './infrastructure/routes/ReporteMovimientosContablesAgrupadosRoutes';
 import { createReporteCatalogoCuentasModificadasRoutes } from './infrastructure/routes/ReporteCatalogoCuentasModificadasRoutes';
 import libroMayorRoutes from './infrastructure/routes/libroMayor.routes';
-import diarioContabilidadRoutes from './infrastructure/routes/diarioContabilidad.routes';
+import { createDiarioContabilidadRoutes } from './infrastructure/routes/diarioContabilidad.routes';
+import { createPlanContableRoutes } from './infrastructure/routes/planContable.routes';
 
 import { AuthMiddleware } from './infrastructure/middleware/AuthMiddleware';
 import { QueryOptimizationMiddleware } from './infrastructure/middleware/QueryOptimizationMiddleware';
@@ -77,7 +78,34 @@ const menuService = container.get<IMenuService>('IMenuService');
   const cuentaContableRepository = container.get<ICuentaContableRepository>('ICuentaContableRepository');
 
 // Inicializar CQRS
+console.log('🚀 Inicializando CQRS Service...');
 const cqrsService = container.get<CqrsService>('CqrsService');
+
+// Registrar handlers manualmente como fallback
+console.log('🔧 Registrando handlers manualmente...');
+const commandBus = cqrsService.getCommandBus();
+const queryBus = cqrsService.getQueryBus();
+
+// Libro Mayor Handlers
+const generarReporteLibroMayorHandler = container.get('GenerarReporteLibroMayorHandler') as any;
+const obtenerLibroMayorHandler = container.get('ObtenerLibroMayorHandler') as any;
+const exportarLibroMayorExcelHandler = container.get('ExportarLibroMayorExcelHandler') as any;
+
+commandBus.register('GenerarReporteLibroMayorCommand', generarReporteLibroMayorHandler);
+queryBus.register('ObtenerLibroMayorQuery', obtenerLibroMayorHandler);
+queryBus.register('ExportarLibroMayorExcelQuery', exportarLibroMayorExcelHandler);
+
+// Diario Contabilidad Handlers
+const generarReporteDiarioContabilidadHandler = container.get('GenerarReporteDiarioContabilidadHandler') as any;
+const obtenerDiarioContabilidadHandler = container.get('ObtenerDiarioContabilidadHandler') as any;
+const exportarDiarioContabilidadExcelHandler = container.get('ExportarDiarioContabilidadExcelHandler') as any;
+
+commandBus.register('GenerarReporteDiarioContabilidadCommand', generarReporteDiarioContabilidadHandler);
+queryBus.register('ObtenerDiarioContabilidadQuery', obtenerDiarioContabilidadHandler);
+queryBus.register('ExportarDiarioContabilidadExcelQuery', exportarDiarioContabilidadExcelHandler);
+
+console.log('✅ Handlers registrados manualmente');
+console.log('✅ CQRS Service inicializado');
 
 // Rutas
 const usuarioRoutes = new UsuarioRoutes();
@@ -153,7 +181,8 @@ app.use('/api/permisos', authMiddleware.verifyToken, permisoRoutes.getRouter());
   app.use('/api/reporte-movimientos-contables-agrupados', QueryOptimizationMiddleware.validateQueryParams, reporteMovimientosContablesAgrupadosRoutes);
   app.use('/api/reporte-catalogo-cuentas-modificadas', QueryOptimizationMiddleware.validateQueryParams, reporteCatalogoCuentasModificadasRoutes);
   app.use('/api/libro-mayor', QueryOptimizationMiddleware.validateQueryParams, libroMayorRoutes);
-  app.use('/api/diario-contabilidad', QueryOptimizationMiddleware.validateQueryParams, diarioContabilidadRoutes);
+  app.use('/api/diario-contabilidad', QueryOptimizationMiddleware.validateQueryParams, createDiarioContabilidadRoutes());
+  app.use('/api/plan-contable', QueryOptimizationMiddleware.validateQueryParams, createPlanContableRoutes());
 
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================

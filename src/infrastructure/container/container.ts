@@ -24,6 +24,7 @@ import { IReporteMovimientosContablesAgrupadosRepository } from '../../domain/re
 import { IReporteCatalogoCuentasModificadasRepository } from '../../domain/repositories/IReporteCatalogoCuentasModificadasRepository';
 import { ILibroMayorRepository } from '../../domain/repositories/ILibroMayorRepository';
 import { IDiarioContabilidadRepository } from '../../domain/repositories/IDiarioContabilidadRepository';
+import { IPlanContableRepository } from '../../domain/repositories/IPlanContableRepository';
 
 import { ICuentaContableRepository } from '../../domain/repositories/ICuentaContableRepository';
 import { IUsuarioService } from '../../domain/services/IUsuarioService';
@@ -71,6 +72,7 @@ import { ReporteMovimientosContablesAgrupadosRepository } from '../repositories/
 import { ReporteCatalogoCuentasModificadasRepository } from '../repositories/ReporteCatalogoCuentasModificadasRepository';
 import { LibroMayorRepository } from '../repositories/LibroMayorRepository';
 import { DiarioContabilidadRepository } from '../repositories/DiarioContabilidadRepository';
+import { PlanContableRepository } from '../repositories/PlanContableRepository';
 
 import { CuentaContableRepository } from '../repositories/CuentaContableRepository';
 import { UsuarioService } from '../../application/services/UsuarioService';
@@ -176,6 +178,7 @@ container.bind<IReporteMovimientosContablesAgrupadosRepository>('IReporteMovimie
 container.bind<IReporteCatalogoCuentasModificadasRepository>('IReporteCatalogoCuentasModificadasRepository').to(ReporteCatalogoCuentasModificadasRepository);
 container.bind<ILibroMayorRepository>('ILibroMayorRepository').to(LibroMayorRepository);
 container.bind<IDiarioContabilidadRepository>('IDiarioContabilidadRepository').to(DiarioContabilidadRepository);
+container.bind<IPlanContableRepository>('IPlanContableRepository').to(PlanContableRepository);
 
 container.bind<ICuentaContableRepository>('ICuentaContableRepository').to(CuentaContableRepository);
 
