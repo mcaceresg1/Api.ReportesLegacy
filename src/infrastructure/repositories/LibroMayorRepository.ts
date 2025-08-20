@@ -175,6 +175,19 @@ export class LibroMayorRepository implements ILibroMayorRepository {
     try {
       const { limit = 100, offset = 0 } = filtros;
       
+      // Verificar si existe la tabla temporal
+      const tablaExiste = await this.verificarTablaExiste(filtros.conjunto);
+      if (!tablaExiste) {
+        console.warn(`La tabla temporal no existe para el conjunto ${filtros.conjunto}. Retornando datos vacíos.`);
+        return {
+          data: [],
+          total: 0,
+          pagina: Math.floor(offset / limit) + 1,
+          porPagina: limit,
+          totalPaginas: 0
+        };
+      }
+      
       // Obtener total de registros
       const total = await this.obtenerTotalRegistros(
         filtros.conjunto,
@@ -511,6 +524,27 @@ export class LibroMayorRepository implements ILibroMayorRepository {
     } catch (error) {
       console.error('Error al generar Excel del libro mayor:', error);
       throw new Error(`Error al generar archivo Excel: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    }
+  }
+
+  /**
+   * Verifica si existe la tabla temporal para el conjunto especificado
+   */
+  private async verificarTablaExiste(conjunto: string): Promise<boolean> {
+    try {
+      const query = `
+        SELECT COUNT(*) as count 
+        FROM INFORMATION_SCHEMA.TABLES 
+        WHERE TABLE_SCHEMA = '${conjunto}' 
+        AND TABLE_NAME = 'R_XML_8DDC3925E54E9CF'
+      `;
+      
+      const resultado = await exactusSequelize.query(query, { type: QueryTypes.SELECT }) as any[];
+      return resultado[0]?.count > 0;
+      
+    } catch (error) {
+      console.error('Error al verificar existencia de tabla temporal:', error);
+      return false;
     }
   }
 }
