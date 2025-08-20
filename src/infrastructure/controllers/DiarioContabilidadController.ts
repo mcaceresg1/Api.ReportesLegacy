@@ -1,17 +1,12 @@
 import { Request, Response } from 'express';
 import { injectable, inject } from 'inversify';
-import { ICommandBus } from '../../domain/cqrs/ICommandBus';
-import { IQueryBus } from '../../domain/cqrs/IQueryBus';
-import { GenerarReporteDiarioContabilidadCommand } from '../../application/commands/diario-contabilidad/GenerarReporteDiarioContabilidadCommand';
-import { ObtenerDiarioContabilidadQuery } from '../../application/queries/diario-contabilidad/ObtenerDiarioContabilidadQuery';
-import { ExportarDiarioContabilidadExcelQuery } from '../../application/queries/diario-contabilidad/ExportarDiarioContabilidadExcelQuery';
+import { IDiarioContabilidadRepository } from '../../domain/repositories/IDiarioContabilidadRepository';
 import { DiarioContabilidadFiltros, DiarioContabilidadResponse } from '../../domain/entities/DiarioContabilidad';
 
 @injectable()
 export class DiarioContabilidadController {
   constructor(
-    @inject('ICommandBus') private commandBus: ICommandBus,
-    @inject('IQueryBus') private queryBus: IQueryBus
+    @inject('IDiarioContabilidadRepository') private diarioContabilidadRepository: IDiarioContabilidadRepository
   ) {}
 
   /**
@@ -127,8 +122,15 @@ export class DiarioContabilidadController {
         tipoReporte || 'Preliminar'
       );
 
-      // Ejecutar comando
-      await this.commandBus.execute(command as any);
+      // Usar directamente el repositorio
+      await this.diarioContabilidadRepository.generarReporteDiarioContabilidad(
+        conjunto as string,
+        usuario as string,
+        fechaInicioDate,
+        fechaFinDate,
+        contabilidad || 'F,A',
+        tipoReporte || 'Preliminar'
+      );
 
       res.status(200).json({
         success: true,
