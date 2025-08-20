@@ -55,6 +55,8 @@ export class CqrsService {
   }
 
   private registerHandlers(): void {
+    console.log('🔧 Registrando handlers CQRS...');
+    
     // Register Usuario Command Handlers
     this.commandBus.register('CreateUsuarioCommand', this.createUsuarioHandler);
     this.commandBus.register('UpdateUsuarioCommand', this.updateUsuarioHandler);
@@ -74,14 +76,19 @@ export class CqrsService {
     this.queryBus.register('GetRolByIdQuery', this.getRolByIdHandler);
 
     // Libro Mayor
+    console.log('📚 Registrando handlers de Libro Mayor...');
     this.commandBus.register('GenerarReporteLibroMayorCommand', this.generarReporteLibroMayorHandler);
     this.queryBus.register('ObtenerLibroMayorQuery', this.obtenerLibroMayorHandler);
     this.queryBus.register('ExportarLibroMayorExcelQuery', this.exportarLibroMayorExcelHandler);
+    console.log('✅ Handler ObtenerLibroMayorQuery registrado');
 
     // Diario Contabilidad
+    console.log('📖 Registrando handlers de Diario Contabilidad...');
     this.commandBus.register('GenerarReporteDiarioContabilidadCommand', this.generarReporteDiarioContabilidadHandler);
     this.queryBus.register('ObtenerDiarioContabilidadQuery', this.obtenerDiarioContabilidadHandler);
     this.queryBus.register('ExportarDiarioContabilidadExcelQuery', this.exportarDiarioContabilidadExcelHandler);
+    
+    console.log('🎉 Todos los handlers CQRS registrados exitosamente');
   }
 
   getCommandBus(): ICommandBus {
