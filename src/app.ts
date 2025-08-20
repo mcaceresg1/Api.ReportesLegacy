@@ -26,7 +26,7 @@ import { createReporteMensualCuentaCentroRoutes } from './infrastructure/routes/
 import { createReporteMovimientosContablesRoutes } from './infrastructure/routes/ReporteMovimientosContablesRoutes';
 import { createReporteMovimientosContablesAgrupadosRoutes } from './infrastructure/routes/ReporteMovimientosContablesAgrupadosRoutes';
 import { createReporteCatalogoCuentasModificadasRoutes } from './infrastructure/routes/ReporteCatalogoCuentasModificadasRoutes';
-import { ReporteLibroMayorRoutes } from './infrastructure/routes/ReporteLibroMayorRoutes';
+import libroMayorRoutes from './infrastructure/routes/libroMayor.routes';
 
 import { AuthMiddleware } from './infrastructure/middleware/AuthMiddleware';
 import { QueryOptimizationMiddleware } from './infrastructure/middleware/QueryOptimizationMiddleware';
@@ -102,7 +102,7 @@ const permisoRoutes = new PermisoRoutes();
   const reporteMovimientosContablesRoutes = createReporteMovimientosContablesRoutes();
   const reporteMovimientosContablesAgrupadosRoutes = createReporteMovimientosContablesAgrupadosRoutes();
   const reporteCatalogoCuentasModificadasRoutes = createReporteCatalogoCuentasModificadasRoutes();
-  const reporteLibroMayorRoutes = new ReporteLibroMayorRoutes(container.get('ReporteLibroMayorController'));
+  
 
 // Endpoint de prueba
 app.get('/api/test', (req, res) => {
@@ -151,7 +151,7 @@ app.use('/api/permisos', authMiddleware.verifyToken, permisoRoutes.getRouter());
   app.use('/api/reporte-movimientos-contables', QueryOptimizationMiddleware.validateQueryParams, reporteMovimientosContablesRoutes);
   app.use('/api/reporte-movimientos-contables-agrupados', QueryOptimizationMiddleware.validateQueryParams, reporteMovimientosContablesAgrupadosRoutes);
   app.use('/api/reporte-catalogo-cuentas-modificadas', QueryOptimizationMiddleware.validateQueryParams, reporteCatalogoCuentasModificadasRoutes);
-  app.use('/api/reporte-libro-mayor', QueryOptimizationMiddleware.validateQueryParams, reporteLibroMayorRoutes.getRouter());
+  app.use('/api/libro-mayor', QueryOptimizationMiddleware.validateQueryParams, libroMayorRoutes);
 
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================

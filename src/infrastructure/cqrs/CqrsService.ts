@@ -19,6 +19,10 @@ import { DeleteRolHandler } from '../../application/handlers/rol/DeleteRolHandle
 // Rol Query handlers
 import { GetAllRolesHandler } from '../../application/handlers/rol/GetAllRolesHandler';
 import { GetRolByIdHandler } from '../../application/handlers/rol/GetRolByIdHandler';
+// Libro Mayor handlers
+import { GenerarReporteLibroMayorHandler } from '../../application/handlers/libro-mayor/GenerarReporteLibroMayorHandler';
+import { ObtenerLibroMayorHandler } from '../../application/handlers/libro-mayor/ObtenerLibroMayorHandler';
+import { ExportarLibroMayorExcelHandler } from '../../application/handlers/libro-mayor/ExportarLibroMayorExcelHandler';
 
 @injectable()
 export class CqrsService {
@@ -34,7 +38,10 @@ export class CqrsService {
     @inject('UpdateRolHandler') private updateRolHandler: UpdateRolHandler,
     @inject('DeleteRolHandler') private deleteRolHandler: DeleteRolHandler,
     @inject('GetAllRolesHandler') private getAllRolesHandler: GetAllRolesHandler,
-    @inject('GetRolByIdHandler') private getRolByIdHandler: GetRolByIdHandler
+    @inject('GetRolByIdHandler') private getRolByIdHandler: GetRolByIdHandler,
+    @inject('GenerarReporteLibroMayorHandler') private generarReporteLibroMayorHandler: GenerarReporteLibroMayorHandler,
+    @inject('ObtenerLibroMayorHandler') private obtenerLibroMayorHandler: ObtenerLibroMayorHandler,
+    @inject('ExportarLibroMayorExcelHandler') private exportarLibroMayorExcelHandler: ExportarLibroMayorExcelHandler
   ) {
     this.registerHandlers();
   }
@@ -57,6 +64,11 @@ export class CqrsService {
     // Register Rol Query Handlers
     this.queryBus.register('GetAllRolesQuery', this.getAllRolesHandler);
     this.queryBus.register('GetRolByIdQuery', this.getRolByIdHandler);
+
+    // Libro Mayor
+    this.commandBus.register('GenerarReporteLibroMayorCommand', this.generarReporteLibroMayorHandler);
+    this.queryBus.register('ObtenerLibroMayorQuery', this.obtenerLibroMayorHandler);
+    this.queryBus.register('ExportarLibroMayorExcelQuery', this.exportarLibroMayorExcelHandler);
   }
 
   getCommandBus(): ICommandBus {
