@@ -77,7 +77,9 @@ const menuService = container.get<IMenuService>('IMenuService');
   const cuentaContableRepository = container.get<ICuentaContableRepository>('ICuentaContableRepository');
 
 // Inicializar CQRS
+console.log('🚀 Inicializando CQRS Service...');
 const cqrsService = container.get<CqrsService>('CqrsService');
+console.log('✅ CQRS Service inicializado');
 
 // Rutas
 const usuarioRoutes = new UsuarioRoutes();

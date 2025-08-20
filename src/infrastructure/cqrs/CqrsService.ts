@@ -51,7 +51,9 @@ export class CqrsService {
     @inject('ObtenerDiarioContabilidadHandler') private obtenerDiarioContabilidadHandler: ObtenerDiarioContabilidadHandler,
     @inject('ExportarDiarioContabilidadExcelHandler') private exportarDiarioContabilidadExcelHandler: ExportarDiarioContabilidadExcelHandler
   ) {
+    console.log('🔧 Constructor CqrsService ejecutándose...');
     this.registerHandlers();
+    console.log('🎯 Constructor CqrsService completado');
   }
 
   private registerHandlers(): void {
