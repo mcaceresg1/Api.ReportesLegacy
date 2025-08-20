@@ -24,6 +24,11 @@ import { GenerarReporteLibroMayorHandler } from '../../application/handlers/libr
 import { ObtenerLibroMayorHandler } from '../../application/handlers/libro-mayor/ObtenerLibroMayorHandler';
 import { ExportarLibroMayorExcelHandler } from '../../application/handlers/libro-mayor/ExportarLibroMayorExcelHandler';
 
+// Diario Contabilidad handlers
+import { GenerarReporteDiarioContabilidadHandler } from '../../application/handlers/diario-contabilidad/GenerarReporteDiarioContabilidadHandler';
+import { ObtenerDiarioContabilidadHandler } from '../../application/handlers/diario-contabilidad/ObtenerDiarioContabilidadHandler';
+import { ExportarDiarioContabilidadExcelHandler } from '../../application/handlers/diario-contabilidad/ExportarDiarioContabilidadExcelHandler';
+
 @injectable()
 export class CqrsService {
   constructor(
@@ -41,7 +46,10 @@ export class CqrsService {
     @inject('GetRolByIdHandler') private getRolByIdHandler: GetRolByIdHandler,
     @inject('GenerarReporteLibroMayorHandler') private generarReporteLibroMayorHandler: GenerarReporteLibroMayorHandler,
     @inject('ObtenerLibroMayorHandler') private obtenerLibroMayorHandler: ObtenerLibroMayorHandler,
-    @inject('ExportarLibroMayorExcelHandler') private exportarLibroMayorExcelHandler: ExportarLibroMayorExcelHandler
+    @inject('ExportarLibroMayorExcelHandler') private exportarLibroMayorExcelHandler: ExportarLibroMayorExcelHandler,
+    @inject('GenerarReporteDiarioContabilidadHandler') private generarReporteDiarioContabilidadHandler: GenerarReporteDiarioContabilidadHandler,
+    @inject('ObtenerDiarioContabilidadHandler') private obtenerDiarioContabilidadHandler: ObtenerDiarioContabilidadHandler,
+    @inject('ExportarDiarioContabilidadExcelHandler') private exportarDiarioContabilidadExcelHandler: ExportarDiarioContabilidadExcelHandler
   ) {
     this.registerHandlers();
   }
@@ -69,6 +77,11 @@ export class CqrsService {
     this.commandBus.register('GenerarReporteLibroMayorCommand', this.generarReporteLibroMayorHandler);
     this.queryBus.register('ObtenerLibroMayorQuery', this.obtenerLibroMayorHandler);
     this.queryBus.register('ExportarLibroMayorExcelQuery', this.exportarLibroMayorExcelHandler);
+
+    // Diario Contabilidad
+    this.commandBus.register('GenerarReporteDiarioContabilidadCommand', this.generarReporteDiarioContabilidadHandler);
+    this.queryBus.register('ObtenerDiarioContabilidadQuery', this.obtenerDiarioContabilidadHandler);
+    this.queryBus.register('ExportarDiarioContabilidadExcelQuery', this.exportarDiarioContabilidadExcelHandler);
   }
 
   getCommandBus(): ICommandBus {
