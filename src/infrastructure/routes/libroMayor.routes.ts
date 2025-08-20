@@ -3,7 +3,7 @@ import { container } from '../container/container';
 import { LibroMayorController } from '../controllers/LibroMayorController';
 
 const router = Router();
-const libroMayorController = container.get<LibroMayorController>(LibroMayorController);
+const libroMayorController = container.get<LibroMayorController>('LibroMayorController');
 
 /**
  * @swagger
