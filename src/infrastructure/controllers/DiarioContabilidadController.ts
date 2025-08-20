@@ -112,16 +112,6 @@ export class DiarioContabilidadController {
         return;
       }
 
-      // Crear comando
-      const command = new GenerarReporteDiarioContabilidadCommand(
-        conjunto,
-        usuario,
-        fechaInicioDate,
-        fechaFinDate,
-        contabilidad || 'F,A',
-        tipoReporte || 'Preliminar'
-      );
-
       // Usar directamente el repositorio
       await this.diarioContabilidadRepository.generarReporteDiarioContabilidad(
         conjunto as string,
@@ -352,9 +342,8 @@ export class DiarioContabilidadController {
         offset
       };
 
-      // Ejecutar query
-      const query = new ObtenerDiarioContabilidadQuery(filtros);
-      const resultado = await this.queryBus.execute(query as any) as DiarioContabilidadResponse;
+      // Usar directamente el repositorio
+      const resultado = await this.diarioContabilidadRepository.obtenerDiarioContabilidad(filtros);
 
       res.status(200).json({
         success: true,
@@ -490,8 +479,8 @@ export class DiarioContabilidadController {
         return;
       }
 
-      // Crear query
-      const query = new ExportarDiarioContabilidadExcelQuery(
+      // Usar directamente el repositorio
+      const excelBuffer = await this.diarioContabilidadRepository.exportarExcel(
         conjunto as string,
         usuario as string,
         fechaInicioDate,
@@ -500,9 +489,6 @@ export class DiarioContabilidadController {
         tipoReporte as string,
         limitNum
       );
-
-      // Ejecutar query
-      const excelBuffer = await this.queryBus.execute(query as any) as Buffer;
 
       // Configurar headers para descarga
       const fileName = `diario-contabilidad-${conjunto}-${fechaInicio}-${fechaFin}.xlsx`;
