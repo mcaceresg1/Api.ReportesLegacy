@@ -1,20 +1,20 @@
 import { injectable } from 'inversify';
-import { Sequelize } from 'sequelize';
+import { QueryTypes } from 'sequelize';
+import { exactusSequelize } from '../database/config/exactus-database';
 import { IPeriodoContableRepository } from '../../domain/repositories/IPeriodoContableRepository';
 import { PeriodoContable, FiltroPeriodoContable, CentroCosto } from '../../domain/entities/PeriodoContable';
 
 @injectable()
 export class PeriodoContableRepository implements IPeriodoContableRepository {
-  constructor(private sequelize: Sequelize) {}
 
   async obtenerCentrosCosto(conjunto: string): Promise<CentroCosto[]> {
     try {
       const schema = conjunto;
       
       // Verificar que la tabla existe
-      const tableExists = await this.sequelize.query(
+      const tableExists = await exactusSequelize.query(
         `SELECT COUNT(*) as count FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '${schema}' AND TABLE_NAME = 'centro_costo'`,
-        { type: 'SELECT' }
+        { type: QueryTypes.SELECT }
       );
 
       if (!tableExists || (tableExists[0] as any).count === 0) {
@@ -27,7 +27,7 @@ export class PeriodoContableRepository implements IPeriodoContableRepository {
         FROM ${schema}.centro_costo (NOLOCK)
       `;
 
-      const [results] = await this.sequelize.query(query, { type: 'SELECT' });
+      const [results] = await exactusSequelize.query(query, { type: QueryTypes.SELECT });
       
       return results as CentroCosto[];
     } catch (error) {
@@ -46,9 +46,9 @@ export class PeriodoContableRepository implements IPeriodoContableRepository {
       // Verificar que las tablas existen
       const tablesToCheck = ['cuenta_contable', 'saldo', 'mayor', 'centro_cuenta', 'hist_cierre_cg'];
       for (const table of tablesToCheck) {
-        const tableExists = await this.sequelize.query(
+        const tableExists = await exactusSequelize.query(
           `SELECT COUNT(*) as count FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '${schema}' AND TABLE_NAME = '${table}'`,
-          { type: 'SELECT' }
+          { type: QueryTypes.SELECT }
         );
         
         if (!tableExists || (tableExists[0] as any).count === 0) {
@@ -129,7 +129,7 @@ export class PeriodoContableRepository implements IPeriodoContableRepository {
         `;
       }
 
-      const [results] = await this.sequelize.query(query, { type: 'SELECT' });
+      const [results] = await exactusSequelize.query(query, { type: QueryTypes.SELECT });
       
       return results as PeriodoContable[];
     } catch (error) {
