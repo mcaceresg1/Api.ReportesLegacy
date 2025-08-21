@@ -1,11 +1,13 @@
-import { injectable } from 'inversify';
+import { injectable, inject } from 'inversify';
 import { Request, Response } from 'express';
 import { IPeriodoContableRepository } from '../../domain/repositories/IPeriodoContableRepository';
 import { FiltroPeriodoContable } from '../../domain/entities/PeriodoContable';
 
 @injectable()
 export class PeriodoContableController {
-  constructor(private periodoContableRepository: IPeriodoContableRepository) {}
+  constructor(
+    @inject('IPeriodoContableRepository') private periodoContableRepository: IPeriodoContableRepository
+  ) {}
 
   async obtenerCentrosCosto(req: Request, res: Response): Promise<void> {
     try {
