@@ -21,10 +21,9 @@ export interface PeriodoContable {
 export interface FiltroPeriodoContable {
   conjunto: string;
   centro_costo?: string;
-  fechaDesde: string;
-  fechaHasta: string;
-  saldosAntesCierre: boolean;
-  SoloCuentasMovimientos: boolean;
+  periodo: string;                // Fecha del período específico (YYYY-MM-DD)
+  soloCuentasMovimiento: boolean; // Solo cuentas con movimientos
+  saldosAntesCierre: boolean;     // Incluir saldos antes del cierre
 }
 
 export interface CentroCosto {

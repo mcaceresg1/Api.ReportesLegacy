@@ -83,24 +83,15 @@ export class PeriodoContableController {
       const filtros: FiltroPeriodoContable = {
         conjunto,
         centro_costo: req.body.centro_costo,
-        fechaDesde: req.body.fechaDesde,
-        fechaHasta: req.body.fechaHasta,
-        saldosAntesCierre: req.body.saldosAntesCierre || false,
-        SoloCuentasMovimientos: req.body.SoloCuentasMovimientos || false
+        periodo: req.body.periodo,
+        soloCuentasMovimiento: req.body.soloCuentasMovimiento || false,
+        saldosAntesCierre: req.body.saldosAntesCierre || false
       };
 
-      if (!conjunto) {
+      if (!filtros.periodo) {
         res.status(400).json({
           success: false,
-          message: 'El parámetro conjunto es requerido'
-        });
-        return;
-      }
-
-      if (!filtros.fechaDesde || !filtros.fechaHasta) {
-        res.status(400).json({
-          success: false,
-          message: 'Las fechas desde y hasta son requeridas'
+          message: 'El período es requerido'
         });
         return;
       }

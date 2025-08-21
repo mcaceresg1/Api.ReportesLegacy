@@ -170,30 +170,24 @@ export function createPeriodoContableRoutes(): Router {
    *     FiltroPeriodoContable:
    *       type: object
    *       required:
-   *         - fechaDesde
-   *         - fechaHasta
+   *         - periodo
    *       properties:
    *         centro_costo:
    *           type: string
    *           description: Código del centro de costo (opcional)
    *           example: "01.01.01.01.00"
-   *         fechaDesde:
+   *         periodo:
    *           type: string
    *           format: date
-   *           description: Fecha de inicio (YYYY-MM-DD)
-   *           example: "2021-01-01"
-   *         fechaHasta:
-   *           type: string
-   *           format: date
-   *           description: Fecha de fin (YYYY-MM-DD)
-   *           example: "2024-05-12"
+   *           description: Fecha del período específico (YYYY-MM-DD)
+   *           example: "2021-08-31"
+   *         soloCuentasMovimiento:
+   *           type: boolean
+   *           description: Solo cuentas con movimientos
+   *           example: true
    *         saldosAntesCierre:
    *           type: boolean
    *           description: Incluir saldos antes del cierre
-   *           example: false
-   *         SoloCuentasMovimientos:
-   *           type: boolean
-   *           description: Solo cuentas con movimientos
    *           example: false
    */
 

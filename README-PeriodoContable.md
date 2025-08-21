@@ -71,19 +71,17 @@ Genera el reporte de periodos contables basado en los filtros proporcionados.
 ```json
 {
   "centro_costo": "01.01.01.01.00",
-  "fechaDesde": "2021-01-01",
-  "fechaHasta": "2024-05-12",
-  "saldosAntesCierre": false,
-  "SoloCuentasMovimientos": false
+  "periodo": "2021-08-31",
+  "soloCuentasMovimiento": true,
+  "saldosAntesCierre": false
 }
 ```
 
 #### Parámetros del Cuerpo
 - `centro_costo` (string, opcional): Código del centro de costo específico
-- `fechaDesde` (string, requerido): Fecha de inicio en formato YYYY-MM-DD
-- `fechaHasta` (string, requerido): Fecha de fin en formato YYYY-MM-DD
+- `periodo` (string, requerido): Fecha del período específico en formato YYYY-MM-DD
+- `soloCuentasMovimiento` (boolean, opcional): Si es true, solo incluye cuentas con movimientos
 - `saldosAntesCierre` (boolean, opcional): Si es true, incluye saldos antes del cierre
-- `SoloCuentasMovimientos` (boolean, opcional): Si es true, solo incluye cuentas con movimientos
 
 #### Respuesta Exitosa
 ```json
@@ -162,10 +160,9 @@ interface PeriodoContableInfo {
 interface FiltroPeriodoContable {
   conjunto: string;               // Código del conjunto contable
   centro_costo?: string;          // Código del centro de costo (opcional)
-  fechaDesde: string;             // Fecha de inicio (YYYY-MM-DD)
-  fechaHasta: string;             // Fecha de fin (YYYY-MM-DD)
+  periodo: string;                // Fecha del período específico (YYYY-MM-DD)
+  soloCuentasMovimiento: boolean; // Solo cuentas con movimientos
   saldosAntesCierre: boolean;     // Incluir saldos antes del cierre
-  SoloCuentasMovimientos: boolean; // Solo cuentas con movimientos
 }
 ```
 
@@ -189,7 +186,7 @@ interface CentroCosto {
 - Obtiene saldos de las tablas `cuenta_contable` y `saldo`
 - Calcula saldos iniciales restando débitos y sumando créditos
 - Agrupa por centro de costo, cuenta contable, fecha y descripción
-- Filtra por rango de fechas y centro de costo específico
+- Filtra por fecha específica del período y centro de costo específico
 
 ### Query Saldos Antes del Cierre
 - Incluye lógica adicional para saldos antes del cierre contable
@@ -242,7 +239,11 @@ const periodosContables = await this.http.get<PeriodoContableInfo[]>(
 // Generar reporte
 const reporte = await this.http.post<PeriodoContable[]>(
   `${environment.apiUrl}/api/reporte-periodo-contable/${conjunto}/generar`,
-  filtros
+  {
+    periodo: '2021-08-31',
+    soloCuentasMovimiento: true,
+    saldosAntesCierre: false
+  }
 ).toPromise();
 ```
 
@@ -258,10 +259,9 @@ curl -X GET "http://localhost:3000/api/reporte-periodo-contable/ASFSAC/periodos"
 curl -X POST "http://localhost:3000/api/reporte-periodo-contable/ASFSAC/generar" \
   -H "Content-Type: application/json" \
   -d '{
-    "fechaDesde": "2021-01-01",
-    "fechaHasta": "2024-05-12",
-    "saldosAntesCierre": false,
-    "SoloCuentasMovimientos": false
+    "periodo": "2021-08-31",
+    "soloCuentasMovimiento": true,
+    "saldosAntesCierre": false
   }'
 ```
 
