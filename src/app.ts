@@ -29,7 +29,7 @@ import { createReporteCatalogoCuentasModificadasRoutes } from './infrastructure/
 import libroMayorRoutes from './infrastructure/routes/libroMayor.routes';
 import { createDiarioContabilidadRoutes } from './infrastructure/routes/diarioContabilidad.routes';
 import { createPlanContableRoutes } from './infrastructure/routes/planContable.routes';
-import periodoContableRoutes from './infrastructure/routes/periodoContable.routes';
+import { createPeriodoContableRoutes } from './infrastructure/routes/periodoContable.routes';
 
 import { AuthMiddleware } from './infrastructure/middleware/AuthMiddleware';
 import { QueryOptimizationMiddleware } from './infrastructure/middleware/QueryOptimizationMiddleware';
@@ -184,7 +184,7 @@ app.use('/api/permisos', authMiddleware.verifyToken, permisoRoutes.getRouter());
   app.use('/api/libro-mayor', QueryOptimizationMiddleware.validateQueryParams, libroMayorRoutes);
   app.use('/api/diario-contabilidad', QueryOptimizationMiddleware.validateQueryParams, createDiarioContabilidadRoutes());
   app.use('/api/plan-contable', QueryOptimizationMiddleware.validateQueryParams, createPlanContableRoutes());
-app.use('/api/reporte-periodo-contable', QueryOptimizationMiddleware.validateQueryParams, periodoContableRoutes);
+app.use('/api/reporte-periodo-contable', QueryOptimizationMiddleware.validateQueryParams, createPeriodoContableRoutes());
 
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================
