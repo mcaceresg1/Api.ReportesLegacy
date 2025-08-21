@@ -27,7 +27,7 @@ export class PeriodoContableRepository implements IPeriodoContableRepository {
         FROM ${schema}.centro_costo (NOLOCK)
       `;
 
-      const [results] = await exactusSequelize.query(query, { type: QueryTypes.SELECT });
+      const results = await exactusSequelize.query(query, { type: QueryTypes.SELECT });
       
       return results as CentroCosto[];
     } catch (error) {
@@ -68,7 +68,7 @@ export class PeriodoContableRepository implements IPeriodoContableRepository {
         ORDER BY [FECHA_FINAL] DESC
       `;
 
-      const [results] = await exactusSequelize.query(query, { type: QueryTypes.SELECT });
+      const results = await exactusSequelize.query(query, { type: QueryTypes.SELECT });
       
       return results as PeriodoContableInfo[];
     } catch (error) {
@@ -170,7 +170,7 @@ export class PeriodoContableRepository implements IPeriodoContableRepository {
         `;
       }
 
-      const [results] = await exactusSequelize.query(query, { type: QueryTypes.SELECT });
+      const results = await exactusSequelize.query(query, { type: QueryTypes.SELECT });
       
       return results as PeriodoContable[];
     } catch (error) {
