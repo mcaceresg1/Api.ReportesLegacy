@@ -25,6 +25,7 @@ import { IReporteCatalogoCuentasModificadasRepository } from '../../domain/repos
 import { ILibroMayorRepository } from '../../domain/repositories/ILibroMayorRepository';
 import { IDiarioContabilidadRepository } from '../../domain/repositories/IDiarioContabilidadRepository';
 import { IPlanContableRepository } from '../../domain/repositories/IPlanContableRepository';
+import { IPeriodoContableRepository } from '../../domain/repositories/IPeriodoContableRepository';
 
 import { ICuentaContableRepository } from '../../domain/repositories/ICuentaContableRepository';
 import { IUsuarioService } from '../../domain/services/IUsuarioService';
@@ -73,6 +74,7 @@ import { ReporteCatalogoCuentasModificadasRepository } from '../repositories/Rep
 import { LibroMayorRepository } from '../repositories/LibroMayorRepository';
 import { DiarioContabilidadRepository } from '../repositories/DiarioContabilidadRepository';
 import { PlanContableRepository } from '../repositories/PlanContableRepository';
+import { PeriodoContableRepository } from '../repositories/PeriodoContableRepository';
 
 import { CuentaContableRepository } from '../repositories/CuentaContableRepository';
 import { UsuarioService } from '../../application/services/UsuarioService';
@@ -114,6 +116,7 @@ import { ReporteMovimientosContablesAgrupadosController } from '../controllers/R
 import { ReporteCatalogoCuentasModificadasController } from '../controllers/ReporteCatalogoCuentasModificadasController';
 import { LibroMayorController } from '../controllers/LibroMayorController';
 import { DiarioContabilidadController } from '../controllers/DiarioContabilidadController';
+import { PeriodoContableController } from '../controllers/PeriodoContableController';
 
 // CQRS implementations
 import { CommandBus } from '../cqrs/CommandBus';
@@ -179,6 +182,7 @@ container.bind<IReporteCatalogoCuentasModificadasRepository>('IReporteCatalogoCu
 container.bind<ILibroMayorRepository>('ILibroMayorRepository').to(LibroMayorRepository);
 container.bind<IDiarioContabilidadRepository>('IDiarioContabilidadRepository').to(DiarioContabilidadRepository);
 container.bind<IPlanContableRepository>('IPlanContableRepository').to(PlanContableRepository);
+container.bind<IPeriodoContableRepository>('IPeriodoContableRepository').to(PeriodoContableRepository);
 
 container.bind<ICuentaContableRepository>('ICuentaContableRepository').to(CuentaContableRepository);
 
@@ -223,6 +227,7 @@ container.bind<ReporteMovimientosContablesAgrupadosController>('ReporteMovimient
 container.bind<ReporteCatalogoCuentasModificadasController>('ReporteCatalogoCuentasModificadasController').to(ReporteCatalogoCuentasModificadasController);
 container.bind<LibroMayorController>('LibroMayorController').to(LibroMayorController);
 container.bind<DiarioContabilidadController>('DiarioContabilidadController').to(DiarioContabilidadController);
+container.bind<PeriodoContableController>('PeriodoContableController').to(PeriodoContableController);
 
 
 // CQRS Buses
