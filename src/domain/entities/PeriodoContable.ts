@@ -31,3 +31,17 @@ export interface CentroCosto {
   centro_costo: string;
   descripcion: string;
 }
+
+export interface PeriodoContableInfo {
+  FECHA_FINAL: string;
+  DESCRIPCION: string;
+  CONTABILIDAD: string;
+  FIN_PERIODO_ANUAL: string;
+  ESTADO: string;
+  NoteExistsFlag: boolean;
+  RecordDate: string;
+  RowPointer: string;
+  CreatedBy: string;
+  UpdatedBy: string;
+  CreateDate: string;
+}

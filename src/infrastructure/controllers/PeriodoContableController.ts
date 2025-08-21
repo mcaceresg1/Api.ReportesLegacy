@@ -38,6 +38,36 @@ export class PeriodoContableController {
     }
   }
 
+  async obtenerPeriodosContables(req: Request, res: Response): Promise<void> {
+    try {
+      const { conjunto } = req.params;
+
+      if (!conjunto) {
+        res.status(400).json({
+          success: false,
+          message: 'El parámetro conjunto es requerido'
+        });
+        return;
+      }
+
+      const periodosContables = await this.periodoContableRepository.obtenerPeriodosContables(conjunto);
+
+      res.json({
+        success: true,
+        data: periodosContables,
+        message: 'Periodos contables obtenidos exitosamente',
+        total: periodosContables.length
+      });
+    } catch (error) {
+      console.error('Error en obtenerPeriodosContables:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error interno del servidor',
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      });
+    }
+  }
+
   async generarReporte(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto } = req.params;

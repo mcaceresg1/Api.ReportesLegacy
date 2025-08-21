@@ -2,7 +2,7 @@ import { injectable } from 'inversify';
 import { QueryTypes } from 'sequelize';
 import { exactusSequelize } from '../database/config/exactus-database';
 import { IPeriodoContableRepository } from '../../domain/repositories/IPeriodoContableRepository';
-import { PeriodoContable, FiltroPeriodoContable, CentroCosto } from '../../domain/entities/PeriodoContable';
+import { PeriodoContable, FiltroPeriodoContable, CentroCosto, PeriodoContableInfo } from '../../domain/entities/PeriodoContable';
 
 @injectable()
 export class PeriodoContableRepository implements IPeriodoContableRepository {
@@ -33,6 +33,47 @@ export class PeriodoContableRepository implements IPeriodoContableRepository {
     } catch (error) {
       console.error('Error al obtener centros de costo:', error);
       throw new Error('Error al obtener centros de costo');
+    }
+  }
+
+  async obtenerPeriodosContables(conjunto: string): Promise<PeriodoContableInfo[]> {
+    try {
+      const schema = conjunto;
+      
+      // Verificar que la tabla existe
+      const tableExists = await exactusSequelize.query(
+        `SELECT COUNT(*) as count FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '${schema}' AND TABLE_NAME = 'PERIODO_CONTABLE'`,
+        { type: QueryTypes.SELECT }
+      );
+
+      if (!tableExists || (tableExists[0] as any).count === 0) {
+        console.warn(`Tabla ${schema}.PERIODO_CONTABLE no existe`);
+        return [];
+      }
+
+      const query = `
+        SELECT TOP (1000) 
+          [FECHA_FINAL],
+          [DESCRIPCION],
+          [CONTABILIDAD],
+          [FIN_PERIODO_ANUAL],
+          [ESTADO],
+          [NoteExistsFlag],
+          [RecordDate],
+          [RowPointer],
+          [CreatedBy],
+          [UpdatedBy],
+          [CreateDate]
+        FROM [EXACTUS].[${schema}].[PERIODO_CONTABLE]
+        ORDER BY [FECHA_FINAL] DESC
+      `;
+
+      const [results] = await exactusSequelize.query(query, { type: QueryTypes.SELECT });
+      
+      return results as PeriodoContableInfo[];
+    } catch (error) {
+      console.error('Error al obtener periodos contables:', error);
+      throw new Error('Error al obtener periodos contables');
     }
   }
 

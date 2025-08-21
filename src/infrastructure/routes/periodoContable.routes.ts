@@ -13,6 +13,11 @@ export function createPeriodoContableRoutes(): Router {
     controller.obtenerCentrosCosto(req, res);
   });
 
+  // Obtener periodos contables para un conjunto
+  router.get('/:conjunto/periodos', (req, res) => {
+    controller.obtenerPeriodosContables(req, res);
+  });
+
   // Generar reporte de periodos contables
   router.post('/:conjunto/generar', (req, res) => {
     controller.generarReporte(req, res);
