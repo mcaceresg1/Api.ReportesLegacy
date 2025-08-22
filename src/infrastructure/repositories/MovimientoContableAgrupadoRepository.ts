@@ -29,7 +29,7 @@ export class MovimientoContableAgrupadoRepository implements IMovimientoContable
       const insertDiarioQuery = `
         INSERT INTO ${schema}.R_XML_8DDC5F23E38311C (
           sCuentaContable, sCuentaContableDesc, sNit, sNitNombre, sDimension, sDimensionDesc,
-          dtFecha, sAsiento, sFuente, sReferencia, nMontoLocal, nMontoDolar, sNotas, orden
+          dtFecha, sAsiento, sFuente, sReferencia, nMontoLocal, nMontoDolar, sNotas
         )
         SELECT  
           m.cuenta_contable,
@@ -44,8 +44,7 @@ export class MovimientoContableAgrupadoRepository implements IMovimientoContable
           m.referencia,
           ISNULL(m.debito_local, m.credito_local * -1) as monto_local,
           ISNULL(m.debito_dolar, m.credito_dolar * -1) as monto_dolar,
-          am.notas,
-          2 as orden
+          am.notas
         FROM ${schema}.diario m
         INNER JOIN ${schema}.asiento_de_diario am ON m.asiento = am.asiento
         INNER JOIN ${schema}.cuenta_contable c ON m.cuenta_contable = c.cuenta_contable
@@ -64,7 +63,7 @@ export class MovimientoContableAgrupadoRepository implements IMovimientoContable
       const insertMayorQuery = `
         INSERT INTO ${schema}.R_XML_8DDC5F23E38311C (
           sCuentaContable, sCuentaContableDesc, sNit, sNitNombre, sDimension, sDimensionDesc,
-          dtFecha, sAsiento, sFuente, sReferencia, nMontoLocal, nMontoDolar, sNotas, orden
+          dtFecha, sAsiento, sFuente, sReferencia, nMontoLocal, nMontoDolar, sNotas
         )
         SELECT  
           m.cuenta_contable,
@@ -79,8 +78,7 @@ export class MovimientoContableAgrupadoRepository implements IMovimientoContable
           m.referencia,
           ISNULL(m.debito_local, m.credito_local * -1) as monto_local,
           ISNULL(m.debito_dolar, m.credito_dolar * -1) as monto_dolar,
-          am.notas,
-          2 as orden
+          am.notas
         FROM ${schema}.mayor m
         INNER JOIN ${schema}.asiento_mayorizado am ON m.asiento = am.asiento
         INNER JOIN ${schema}.cuenta_contable c ON m.cuenta_contable = c.cuenta_contable
