@@ -26,6 +26,7 @@ import { ILibroMayorRepository } from '../../domain/repositories/ILibroMayorRepo
 import { IDiarioContabilidadRepository } from '../../domain/repositories/IDiarioContabilidadRepository';
 import { IPlanContableRepository } from '../../domain/repositories/IPlanContableRepository';
 import { IPeriodoContableRepository } from '../../domain/repositories/IPeriodoContableRepository';
+import { IMovimientoContableAgrupadoRepository } from '../../domain/repositories/IMovimientoContableAgrupadoRepository';
 
 import { ICuentaContableRepository } from '../../domain/repositories/ICuentaContableRepository';
 import { IUsuarioService } from '../../domain/services/IUsuarioService';
@@ -75,6 +76,7 @@ import { LibroMayorRepository } from '../repositories/LibroMayorRepository';
 import { DiarioContabilidadRepository } from '../repositories/DiarioContabilidadRepository';
 import { PlanContableRepository } from '../repositories/PlanContableRepository';
 import { PeriodoContableRepository } from '../repositories/PeriodoContableRepository';
+import { MovimientoContableAgrupadoRepository } from '../repositories/MovimientoContableAgrupadoRepository';
 
 import { CuentaContableRepository } from '../repositories/CuentaContableRepository';
 import { UsuarioService } from '../../application/services/UsuarioService';
@@ -117,6 +119,7 @@ import { ReporteCatalogoCuentasModificadasController } from '../controllers/Repo
 import { LibroMayorController } from '../controllers/LibroMayorController';
 import { DiarioContabilidadController } from '../controllers/DiarioContabilidadController';
 import { PeriodoContableController } from '../controllers/PeriodoContableController';
+import { MovimientoContableAgrupadoController } from '../controllers/MovimientoContableAgrupadoController';
 
 // CQRS implementations
 import { CommandBus } from '../cqrs/CommandBus';
@@ -183,6 +186,7 @@ container.bind<ILibroMayorRepository>('ILibroMayorRepository').to(LibroMayorRepo
 container.bind<IDiarioContabilidadRepository>('IDiarioContabilidadRepository').to(DiarioContabilidadRepository);
 container.bind<IPlanContableRepository>('IPlanContableRepository').to(PlanContableRepository);
 container.bind<IPeriodoContableRepository>('IPeriodoContableRepository').to(PeriodoContableRepository);
+container.bind<IMovimientoContableAgrupadoRepository>('IMovimientoContableAgrupadoRepository').to(MovimientoContableAgrupadoRepository);
 
 container.bind<ICuentaContableRepository>('ICuentaContableRepository').to(CuentaContableRepository);
 
