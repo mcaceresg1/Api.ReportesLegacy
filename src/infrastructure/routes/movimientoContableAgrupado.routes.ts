@@ -476,6 +476,117 @@ export function createMovimientoContableAgrupadoRoutes(): Router {
 
   /**
    * @swagger
+   * /api/movimiento-contable-agrupado/{conjunto}/nit/{nit}:
+   *   get:
+   *     summary: Obtener información completa de un NIT específico
+   *     tags: [Movimientos Contables Agrupados]
+   *     parameters:
+   *       - in: path
+   *         name: conjunto
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Código del conjunto
+   *       - in: path
+   *         name: nit
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Número de identificación tributaria
+   *     responses:
+   *       200:
+   *         description: NIT obtenido exitosamente
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 message:
+   *                   type: string
+   *                 data:
+   *                   type: object
+   *                   description: Información completa del NIT
+   *       404:
+   *         description: NIT no encontrado
+   *       400:
+   *         description: Parámetros inválidos
+   *       500:
+   *         description: Error interno del servidor
+   */
+  router.get('/:conjunto/nit/:nit', (req, res) => controller.obtenerNitCompleto(req, res));
+
+  /**
+   * @swagger
+   * /api/movimiento-contable-agrupado/{conjunto}/nits-completos:
+   *   get:
+   *     summary: Obtener lista completa de NITs con paginación
+   *     tags: [Movimientos Contables Agrupados]
+   *     parameters:
+   *       - in: path
+   *         name: conjunto
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Código del conjunto
+   *       - in: query
+   *         name: page
+   *         schema:
+   *           type: integer
+   *           minimum: 1
+   *           default: 1
+   *         description: Número de página
+   *       - in: query
+   *         name: limit
+   *         schema:
+   *           type: integer
+   *           minimum: 1
+   *           maximum: 1000
+   *           default: 1000
+   *         description: Registros por página
+   *       - in: query
+   *         name: filtro
+   *         schema:
+   *           type: string
+   *         description: Filtro de búsqueda por NIT o razón social
+   *     responses:
+   *       200:
+   *         description: NITs obtenidos exitosamente
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 message:
+   *                   type: string
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     data:
+   *                       type: array
+   *                       items:
+   *                         type: object
+   *                         description: Información completa del NIT
+   *                     total:
+   *                       type: integer
+   *                     pagina:
+   *                       type: integer
+   *                     porPagina:
+   *                       type: integer
+   *                     totalPaginas:
+   *                       type: integer
+   *       400:
+   *         description: Parámetros inválidos
+   *       500:
+   *         description: Error interno del servidor
+   */
+  router.get('/:conjunto/nits-completos', (req, res) => controller.obtenerNitsCompletos(req, res));
+
+  /**
+   * @swagger
    * /api/movimiento-contable-agrupado/{conjunto}/limpiar:
    *   delete:
    *     summary: Limpiar datos temporales

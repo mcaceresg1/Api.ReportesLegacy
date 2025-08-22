@@ -303,6 +303,100 @@ export class MovimientoContableAgrupadoController {
   }
 
   /**
+   * Obtener información completa de un NIT específico
+   */
+  async obtenerNitCompleto(req: Request, res: Response): Promise<void> {
+    try {
+      const { conjunto, nit } = req.params;
+      
+      if (!conjunto || !nit) {
+        res.status(400).json({
+          success: false,
+          message: 'Los parámetros conjunto y nit son requeridos'
+        });
+        return;
+      }
+
+      const nitCompleto = await this.movimientoContableAgrupadoRepository.obtenerNitCompleto(conjunto, nit);
+
+      if (!nitCompleto) {
+        res.status(404).json({
+          success: false,
+          message: 'NIT no encontrado'
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'NIT obtenido exitosamente',
+        data: nitCompleto
+      });
+
+    } catch (error) {
+      console.error('Error al obtener NIT completo:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error interno del servidor',
+        error: error instanceof Error ? error.message : 'Error al obtener el NIT'
+      });
+    }
+  }
+
+  /**
+   * Obtener lista de NITs completos con paginación
+   */
+  async obtenerNitsCompletos(req: Request, res: Response): Promise<void> {
+    try {
+      const { conjunto } = req.params;
+      
+      if (!conjunto) {
+        res.status(400).json({
+          success: false,
+          message: 'El parámetro conjunto es requerido'
+        });
+        return;
+      }
+
+      // Parámetros de consulta
+      const page = parseInt(req.query['page'] as string) || 1;
+      const limit = parseInt(req.query['limit'] as string) || 1000;
+      const filtro = req.query['filtro'] as string;
+
+      const offset = (page - 1) * limit;
+
+      const resultado = await this.movimientoContableAgrupadoRepository.obtenerNitsCompletos(
+        conjunto, 
+        limit, 
+        offset, 
+        filtro
+      );
+
+      const totalPaginas = Math.ceil(resultado.total / limit);
+
+      res.status(200).json({
+        success: true,
+        message: 'NITs obtenidos exitosamente',
+        data: {
+          data: resultado.data,
+          total: resultado.total,
+          pagina: page,
+          porPagina: limit,
+          totalPaginas
+        }
+      });
+
+    } catch (error) {
+      console.error('Error al obtener NITs completos:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error interno del servidor',
+        error: error instanceof Error ? error.message : 'Error al obtener los NITs'
+      });
+    }
+  }
+
+  /**
    * Limpiar tabla temporal
    */
   async limpiarDatos(req: Request, res: Response): Promise<void> {

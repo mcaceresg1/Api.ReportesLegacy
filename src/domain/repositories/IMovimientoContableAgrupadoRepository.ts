@@ -1,7 +1,8 @@
 import { 
   MovimientoContableAgrupadoItem,
   FiltroMovimientoContableAgrupado,
-  MovimientoContableAgrupadoCreate
+  MovimientoContableAgrupadoCreate,
+  NitCompleto
 } from '../entities/MovimientoContableAgrupado';
 
 export interface IMovimientoContableAgrupadoRepository {
@@ -53,6 +54,19 @@ export interface IMovimientoContableAgrupadoRepository {
   obtenerFuentes(conjunto: string): Promise<Array<{
     fuente: string;
   }>>;
+
+  /**
+   * Obtiene información completa de un NIT específico
+   */
+  obtenerNitCompleto(conjunto: string, nit: string): Promise<NitCompleto | null>;
+
+  /**
+   * Obtiene lista de NITs completos con paginación
+   */
+  obtenerNitsCompletos(conjunto: string, limit?: number, offset?: number, filtro?: string): Promise<{
+    data: NitCompleto[];
+    total: number;
+  }>;
 
   /**
    * Verifica el estado de salud del repositorio

@@ -1,7 +1,8 @@
 import { IMovimientoContableAgrupadoRepository } from '../../domain/repositories/IMovimientoContableAgrupadoRepository';
 import { 
   MovimientoContableAgrupadoItem,
-  FiltroMovimientoContableAgrupado
+  FiltroMovimientoContableAgrupado,
+  NitCompleto
 } from '../../domain/entities/MovimientoContableAgrupado';
 import { exactusSequelize } from '../database/config/exactus-database';
 import { QueryTypes } from 'sequelize';
@@ -376,6 +377,278 @@ export class MovimientoContableAgrupadoRepository implements IMovimientoContable
   }
 
 
+
+  async obtenerNitCompleto(conjunto: string, nit: string): Promise<NitCompleto | null> {
+    try {
+      const query = `
+        SELECT TOP 1 
+          NIT,
+          RAZON_SOCIAL,
+          ALIAS,
+          NOTAS,
+          TIPO,
+          NoteExistsFlag,
+          RecordDate,
+          RowPointer,
+          CreatedBy,
+          UpdatedBy,
+          CreateDate,
+          TIPO_DOC_IDENTIFICACION,
+          PRIMER_NOMBRE_PE,
+          SEGUNDO_NOMBRE_PE,
+          PRIMER_APELLIDO_PE,
+          SEGUNDO_APELLIDO_PE,
+          FECHA_NACIMIENTO,
+          SEXO,
+          NACIONALIDAD,
+          TELEFONO_PE,
+          CORREO_ELECTRONICO,
+          IND_ESSALUD,
+          IND_DOMICILIADO,
+          DETALLE_DIRECCION_PE,
+          CUARTA_CAT,
+          IDENTIFICACION,
+          TIPO_ID_NATURAL,
+          SOLICITUD,
+          FECHA_PRES,
+          MEDIO,
+          DIRECCION_PE,
+          ACTIVIDAD_PS,
+          CONVENIO,
+          TIPO_PERS,
+          FECHA_ULT_MODIF,
+          FECHA_CREACION,
+          EMPRESA_DESTACA1,
+          EMPRESA_DESTACA2,
+          DIGITO_VERIFICADOR,
+          ASEGURADO,
+          USA_REPORTE_D151,
+          ORIGEN,
+          NUMERO_DOC_NIT,
+          SUCURSAL,
+          PRIMER_NOMBRE,
+          SEGUNDO_NOMBRE,
+          PRIMER_APELLIDO,
+          SEGUNDO_APELLIDO,
+          TIPO_DOCUMENTO,
+          CLASE_DOCUMENTO,
+          DEPARTAMENTO,
+          MUNICIPIO,
+          PAIS,
+          EXTERIOR,
+          DETALLE_DIRECCION,
+          DIRECCION,
+          NATURALEZA,
+          ACTIVIDAD_ECONOMINA,
+          CORREO,
+          TELEFONO,
+          CELULAR,
+          ACTIVO,
+          TIPO_DIR_LEGAL,
+          TIPO_DOC_ND,
+          FECHA_EMISION_ELECT,
+          FECHA_EMISION_ELECT_FAC,
+          FECHA_EMISION_ELECT_BV,
+          FECHA_EMISION_ELECT_RHP,
+          PAIS_EMISOR_DOC,
+          COD_LDN,
+          DETALLE_DIRECCION2,
+          DIRECCION2,
+          CENTRO_ESSALUD,
+          TIPO_CONTRIBUYENTE,
+          NRC,
+          GIRO,
+          CATEGORIA,
+          DUI,
+          TIPO_REGIMEN,
+          PASAPORTE,
+          CARNE,
+          OTRO,
+          INF_LEGAL,
+          COD_POSTAL,
+          OBLIG_RESPON_RUT,
+          RESPONSABLE_RUT,
+          TRIBUTO_RUT,
+          COD_INTERNO_EMP,
+          CARGO,
+          AREA_DEPTO_SECC,
+          GLN,
+          XSLT_PERSONALIZADO,
+          XSLT_PERSONALIZADO_CREDITO,
+          UBICACION,
+          EMAIL_DOC_ELECTRONICO,
+          EMAIL_DOC_ELECTRONICO_COPIA,
+          DETALLAR_KITS,
+          ACEPTA_DOC_ELECTRONICO
+        FROM ${conjunto}.NIT
+        WHERE NIT = :nit
+      `;
+
+      const results: any[] = await exactusSequelize.query(query, {
+        type: QueryTypes.SELECT,
+        replacements: { nit }
+      });
+
+      if (results.length === 0) {
+        return null;
+      }
+
+      return results[0] as NitCompleto;
+
+    } catch (error) {
+      console.error('Error al obtener NIT completo:', error);
+      return null;
+    }
+  }
+
+  async obtenerNitsCompletos(conjunto: string, limit: number = 1000, offset: number = 0, filtro?: string): Promise<{
+    data: NitCompleto[];
+    total: number;
+  }> {
+    try {
+      // Construir condición de filtro
+      let whereClause = '';
+      let replacements: any = {};
+
+      if (filtro) {
+        whereClause = `WHERE (NIT LIKE :filtro OR RAZON_SOCIAL LIKE :filtro)`;
+        replacements.filtro = `%${filtro}%`;
+      }
+
+      // Consulta para obtener el total
+      const countQuery = `
+        SELECT COUNT(*) as total
+        FROM ${conjunto}.NIT
+        ${whereClause}
+      `;
+
+      const countResult: any[] = await exactusSequelize.query(countQuery, {
+        type: QueryTypes.SELECT,
+        replacements
+      });
+
+      const total = countResult[0]?.total || 0;
+
+      // Consulta para obtener los datos con paginación
+      const dataQuery = `
+        SELECT 
+          NIT,
+          RAZON_SOCIAL,
+          ALIAS,
+          NOTAS,
+          TIPO,
+          NoteExistsFlag,
+          RecordDate,
+          RowPointer,
+          CreatedBy,
+          UpdatedBy,
+          CreateDate,
+          TIPO_DOC_IDENTIFICACION,
+          PRIMER_NOMBRE_PE,
+          SEGUNDO_NOMBRE_PE,
+          PRIMER_APELLIDO_PE,
+          SEGUNDO_APELLIDO_PE,
+          FECHA_NACIMIENTO,
+          SEXO,
+          NACIONALIDAD,
+          TELEFONO_PE,
+          CORREO_ELECTRONICO,
+          IND_ESSALUD,
+          IND_DOMICILIADO,
+          DETALLE_DIRECCION_PE,
+          CUARTA_CAT,
+          IDENTIFICACION,
+          TIPO_ID_NATURAL,
+          SOLICITUD,
+          FECHA_PRES,
+          MEDIO,
+          DIRECCION_PE,
+          ACTIVIDAD_PS,
+          CONVENIO,
+          TIPO_PERS,
+          FECHA_ULT_MODIF,
+          FECHA_CREACION,
+          EMPRESA_DESTACA1,
+          EMPRESA_DESTACA2,
+          DIGITO_VERIFICADOR,
+          ASEGURADO,
+          USA_REPORTE_D151,
+          ORIGEN,
+          NUMERO_DOC_NIT,
+          SUCURSAL,
+          PRIMER_NOMBRE,
+          SEGUNDO_NOMBRE,
+          PRIMER_APELLIDO,
+          SEGUNDO_APELLIDO,
+          TIPO_DOCUMENTO,
+          CLASE_DOCUMENTO,
+          DEPARTAMENTO,
+          MUNICIPIO,
+          PAIS,
+          EXTERIOR,
+          DETALLE_DIRECCION,
+          DIRECCION,
+          NATURALEZA,
+          ACTIVIDAD_ECONOMINA,
+          CORREO,
+          TELEFONO,
+          CELULAR,
+          ACTIVO,
+          TIPO_DIR_LEGAL,
+          TIPO_DOC_ND,
+          FECHA_EMISION_ELECT,
+          FECHA_EMISION_ELECT_FAC,
+          FECHA_EMISION_ELECT_BV,
+          FECHA_EMISION_ELECT_RHP,
+          PAIS_EMISOR_DOC,
+          COD_LDN,
+          DETALLE_DIRECCION2,
+          DIRECCION2,
+          CENTRO_ESSALUD,
+          TIPO_CONTRIBUYENTE,
+          NRC,
+          GIRO,
+          CATEGORIA,
+          DUI,
+          TIPO_REGIMEN,
+          PASAPORTE,
+          CARNE,
+          OTRO,
+          INF_LEGAL,
+          COD_POSTAL,
+          OBLIG_RESPON_RUT,
+          RESPONSABLE_RUT,
+          TRIBUTO_RUT,
+          COD_INTERNO_EMP,
+          CARGO,
+          AREA_DEPTO_SECC,
+          GLN,
+          XSLT_PERSONALIZADO,
+          XSLT_PERSONALIZADO_CREDITO,
+          UBICACION,
+          EMAIL_DOC_ELECTRONICO,
+          EMAIL_DOC_ELECTRONICO_COPIA,
+          DETALLAR_KITS,
+          ACEPTA_DOC_ELECTRONICO
+        FROM ${conjunto}.NIT
+        ${whereClause}
+        ORDER BY NIT
+        OFFSET ${offset} ROWS
+        FETCH NEXT ${limit} ROWS ONLY
+      `;
+
+      const data: NitCompleto[] = await exactusSequelize.query(dataQuery, {
+        type: QueryTypes.SELECT,
+        replacements
+      }) as NitCompleto[];
+
+      return { data, total };
+
+    } catch (error) {
+      console.error('Error al obtener NITs completos:', error);
+      return { data: [], total: 0 };
+    }
+  }
 
   async health(): Promise<boolean> {
     try {
