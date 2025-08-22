@@ -1,5 +1,5 @@
 import { inject } from 'inversify';
-import { TYPES } from '../container/container';
+import { TYPES } from '../container/types';
 import { Sequelize, QueryTypes } from 'sequelize';
 import { ISaldoPromediosRepository } from '../../domain/repositories/ISaldoPromediosRepository';
 import { SaldoPromediosItem, FiltroSaldoPromedios, CuentaContableOption } from '../../domain/entities/SaldoPromedios';

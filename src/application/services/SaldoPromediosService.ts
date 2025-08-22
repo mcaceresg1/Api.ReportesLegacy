@@ -1,5 +1,5 @@
 import { inject } from 'inversify';
-import { TYPES } from '../../infrastructure/container/container';
+import { TYPES } from '../../infrastructure/container/types';
 import { ISaldoPromediosService } from '../../domain/services/ISaldoPromediosService';
 import { ISaldoPromediosRepository } from '../../domain/repositories/ISaldoPromediosRepository';
 import { SaldoPromediosItem, FiltroSaldoPromedios, CuentaContableOption } from '../../domain/entities/SaldoPromedios';

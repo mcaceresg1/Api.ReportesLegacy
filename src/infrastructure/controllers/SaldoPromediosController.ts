@@ -1,6 +1,6 @@
 import { inject } from 'inversify';
 import { Request, Response } from 'express';
-import { TYPES } from '../container/container';
+import { TYPES } from '../container/types';
 import { ISaldoPromediosService } from '../../domain/services/ISaldoPromediosService';
 import { FiltroSaldoPromedios } from '../../domain/entities/SaldoPromedios';
 
