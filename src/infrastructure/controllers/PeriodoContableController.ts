@@ -72,6 +72,11 @@ export class PeriodoContableController {
     try {
       const { conjunto } = req.params;
       
+      console.log('=== DEBUG GENERAR REPORTE ===');
+      console.log('Conjunto:', conjunto);
+      console.log('Body completo:', req.body);
+      console.log('Content-Type:', req.headers['content-type']);
+      
       if (!conjunto) {
         res.status(400).json({
           success: false,
@@ -87,6 +92,8 @@ export class PeriodoContableController {
         soloCuentasMovimiento: req.body.soloCuentasMovimiento || false,
         saldosAntesCierre: req.body.saldosAntesCierre || false
       };
+
+      console.log('Filtros procesados:', filtros);
 
       if (!filtros.periodo) {
         res.status(400).json({
