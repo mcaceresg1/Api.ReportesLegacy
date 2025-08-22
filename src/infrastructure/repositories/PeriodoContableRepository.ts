@@ -82,7 +82,18 @@ export class PeriodoContableRepository implements IPeriodoContableRepository {
   async generarReporte(filtros: FiltroPeriodoContable): Promise<PeriodoContable[]> {
     try {
       const schema = filtros.conjunto;
-      const periodo = filtros.periodo.replace(/-/g, '');
+      
+      // Convertir la fecha ISO a formato SQL Server (YYYYMMDD)
+      let periodo: string;
+      if (filtros.periodo) {
+        const fecha = new Date(filtros.periodo);
+        periodo = fecha.getFullYear().toString() + 
+                 (fecha.getMonth() + 1).toString().padStart(2, '0') + 
+                 fecha.getDate().toString().padStart(2, '0');
+      } else {
+        throw new Error('El período es requerido');
+      }
+      
       const centroCosto = filtros.centro_costo || '01.01.01.01.00';
       
       // Verificar que las tablas existen
