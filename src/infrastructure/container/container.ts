@@ -27,6 +27,7 @@ import { IDiarioContabilidadRepository } from '../../domain/repositories/IDiario
 import { IPlanContableRepository } from '../../domain/repositories/IPlanContableRepository';
 import { IPeriodoContableRepository } from '../../domain/repositories/IPeriodoContableRepository';
 import { IMovimientoContableAgrupadoRepository } from '../../domain/repositories/IMovimientoContableAgrupadoRepository';
+import { ISaldoPromediosRepository } from '../../domain/repositories/ISaldoPromediosRepository';
 
 import { ICuentaContableRepository } from '../../domain/repositories/ICuentaContableRepository';
 import { IUsuarioService } from '../../domain/services/IUsuarioService';
@@ -44,6 +45,7 @@ import { IReporteMensualCuentaCentroService } from '../../domain/services/IRepor
 import { ITipoAsientoService } from '../../domain/services/ITipoAsientoService';
 import { IReporteMovimientosContablesService } from '../../domain/services/IReporteMovimientosContablesService';
 import { IReporteMovimientosContablesAgrupadosService } from '../../domain/services/IReporteMovimientosContablesAgrupadosService';
+import { ISaldoPromediosService } from '../../domain/services/ISaldoPromediosService';
 
 import { IDatabaseService } from '../../domain/services/IDatabaseService';
 
@@ -77,6 +79,7 @@ import { DiarioContabilidadRepository } from '../repositories/DiarioContabilidad
 import { PlanContableRepository } from '../repositories/PlanContableRepository';
 import { PeriodoContableRepository } from '../repositories/PeriodoContableRepository';
 import { MovimientoContableAgrupadoRepository } from '../repositories/MovimientoContableAgrupadoRepository';
+import { SaldoPromediosRepository } from '../repositories/SaldoPromediosRepository';
 
 import { CuentaContableRepository } from '../repositories/CuentaContableRepository';
 import { UsuarioService } from '../../application/services/UsuarioService';
@@ -94,6 +97,7 @@ import { ReporteMensualCuentaCentroService } from '../../application/services/Re
 import { TipoAsientoService } from '../../application/services/TipoAsientoService';
 import { ReporteMovimientosContablesService } from '../../application/services/ReporteMovimientosContablesService';
 import { ReporteMovimientosContablesAgrupadosService } from '../../application/services/ReporteMovimientosContablesAgrupadosService';
+import { SaldoPromediosService } from '../../application/services/SaldoPromediosService';
 
 import { DatabaseService } from '../../application/services/DatabaseService';
 
@@ -120,6 +124,7 @@ import { LibroMayorController } from '../controllers/LibroMayorController';
 import { DiarioContabilidadController } from '../controllers/DiarioContabilidadController';
 import { PeriodoContableController } from '../controllers/PeriodoContableController';
 import { MovimientoContableAgrupadoController } from '../controllers/MovimientoContableAgrupadoController';
+import { SaldoPromediosController } from '../controllers/SaldoPromediosController';
 
 // CQRS implementations
 import { CommandBus } from '../cqrs/CommandBus';
@@ -187,6 +192,7 @@ container.bind<IDiarioContabilidadRepository>('IDiarioContabilidadRepository').t
 container.bind<IPlanContableRepository>('IPlanContableRepository').to(PlanContableRepository);
 container.bind<IPeriodoContableRepository>('IPeriodoContableRepository').to(PeriodoContableRepository);
 container.bind<IMovimientoContableAgrupadoRepository>('IMovimientoContableAgrupadoRepository').to(MovimientoContableAgrupadoRepository);
+container.bind<ISaldoPromediosRepository>('ISaldoPromediosRepository').to(SaldoPromediosRepository);
 
 container.bind<ICuentaContableRepository>('ICuentaContableRepository').to(CuentaContableRepository);
 
@@ -207,6 +213,7 @@ container.bind<IReporteMensualCuentaCentroService>('IReporteMensualCuentaCentroS
 container.bind<ITipoAsientoService>('TipoAsientoService').to(TipoAsientoService);
 container.bind<IReporteMovimientosContablesService>('IReporteMovimientosContablesService').to(ReporteMovimientosContablesService);
 container.bind<IReporteMovimientosContablesAgrupadosService>('IReporteMovimientosContablesAgrupadosService').to(ReporteMovimientosContablesAgrupadosService);
+container.bind<ISaldoPromediosService>('ISaldoPromediosService').to(SaldoPromediosService);
 
 container.bind<IDatabaseService>('IDatabaseService').to(DatabaseService);
 
@@ -232,6 +239,8 @@ container.bind<ReporteCatalogoCuentasModificadasController>('ReporteCatalogoCuen
 container.bind<LibroMayorController>('LibroMayorController').to(LibroMayorController);
 container.bind<DiarioContabilidadController>('DiarioContabilidadController').to(DiarioContabilidadController);
 container.bind<PeriodoContableController>('PeriodoContableController').to(PeriodoContableController);
+container.bind<MovimientoContableAgrupadoController>('MovimientoContableAgrupadoController').to(MovimientoContableAgrupadoController);
+container.bind<SaldoPromediosController>('SaldoPromediosController').to(SaldoPromediosController);
 
 
 // CQRS Buses
@@ -276,4 +285,122 @@ container.bind<CqrsService>('CqrsService').to(CqrsService);
 // Middleware
 container.bind<AuthMiddleware>('AuthMiddleware').to(AuthMiddleware);
 
-export { container }; 
+export { container };
+
+// Export TYPES constant for dependency injection
+export const TYPES = {
+    // Repositories
+    IUsuarioRepository: 'IUsuarioRepository',
+    IMenuRepository: 'IMenuRepository',
+    IRolRepository: 'IRolRepository',
+    ISistemaRepository: 'ISistemaRepository',
+    IConexionRepository: 'IConexionRepository',
+    IRolSistemaMenuRepository: 'IRolSistemaMenuRepository',
+    IConjuntoRepository: 'IConjuntoRepository',
+    ICentroCostoRepository: 'ICentroCostoRepository',
+    IMovimientoContableRepository: 'IMovimientoContableRepository',
+    IReporteCuentaContableRepository: 'IReporteCuentaContableRepository',
+    IReporteCuentaContableModificadaRepository: 'IReporteCuentaContableModificadaRepository',
+    IReporteCentroCostoRepository: 'IReporteCentroCostoRepository',
+    ITipoAsientoRepository: 'ITipoAsientoRepository',
+    IReporteGastosDestinoRepository: 'IReporteGastosDestinoRepository',
+    IReporteAsientosSinDimensionRepository: 'IReporteAsientosSinDimensionRepository',
+    IResumenAsientosRepository: 'IResumenAsientosRepository',
+    IReporteMensualCuentaCentroRepository: 'IReporteMensualCuentaCentroRepository',
+    IReporteMovimientosContablesRepository: 'IReporteMovimientosContablesRepository',
+    IReporteMovimientosContablesAgrupadosRepository: 'IReporteMovimientosContablesAgrupadosRepository',
+    IReporteCatalogoCuentasModificadasRepository: 'IReporteCatalogoCuentasModificadasRepository',
+    ILibroMayorRepository: 'ILibroMayorRepository',
+    IDiarioContabilidadRepository: 'IDiarioContabilidadRepository',
+    IPlanContableRepository: 'IPlanContableRepository',
+    IPeriodoContableRepository: 'IPeriodoContableRepository',
+    IMovimientoContableAgrupadoRepository: 'IMovimientoContableAgrupadoRepository',
+    ISaldoPromediosRepository: 'ISaldoPromediosRepository',
+    ICuentaContableRepository: 'ICuentaContableRepository',
+
+    // Services
+    IUsuarioService: 'IUsuarioService',
+    IAuthService: 'IAuthService',
+    IMenuService: 'IMenuService',
+    IRolService: 'IRolService',
+    ISistemaService: 'ISistemaService',
+    IConexionService: 'IConexionService',
+    IRolMenuService: 'IRolMenuService',
+    IRolSistemaMenuService: 'IRolSistemaMenuService',
+    IConjuntoService: 'IConjuntoService',
+    ICuentaContableService: 'CuentaContableService',
+    IResumenAsientosService: 'ResumenAsientosService',
+    IReporteMensualCuentaCentroService: 'IReporteMensualCuentaCentroService',
+    ITipoAsientoService: 'TipoAsientoService',
+    IReporteMovimientosContablesService: 'IReporteMovimientosContablesService',
+    IReporteMovimientosContablesAgrupadosService: 'IReporteMovimientosContablesAgrupadosService',
+    ISaldoPromediosService: 'ISaldoPromediosService',
+    IDatabaseService: 'IDatabaseService',
+
+    // Controllers
+    UsuarioController: 'UsuarioController',
+    MenuController: 'MenuController',
+    RolController: 'RolController',
+    CuentaContableController: 'CuentaContableController',
+    SistemaController: 'SistemaController',
+    ConexionController: 'ConexionController',
+    RolMenuController: 'RolMenuController',
+    RolSistemaMenuController: 'RolSistemaMenuController',
+    ReporteCentroCostoController: 'ReporteCentroCostoController',
+    TipoAsientoController: 'TipoAsientoController',
+    ReporteGastosDestinoController: 'ReporteGastosDestinoController',
+    ReporteAsientosSinDimensionController: 'ReporteAsientosSinDimensionController',
+    ResumenAsientosController: 'ResumenAsientosController',
+    ReporteMensualCuentaCentroController: 'ReporteMensualCuentaCentroController',
+    ReporteMovimientosContablesController: 'ReporteMovimientosContablesController',
+    ReporteMovimientosContablesAgrupadosController: 'ReporteMovimientosContablesAgrupadosController',
+    ReporteCatalogoCuentasModificadasController: 'ReporteCatalogoCuentasModificadasController',
+    LibroMayorController: 'LibroMayorController',
+    DiarioContabilidadController: 'DiarioContabilidadController',
+    PeriodoContableController: 'PeriodoContableController',
+    MovimientoContableAgrupadoController: 'MovimientoContableAgrupadoController',
+    SaldoPromediosController: 'SaldoPromediosController',
+
+    // CQRS
+    ICommandBus: 'ICommandBus',
+    IQueryBus: 'IQueryBus',
+    CommandBus: 'CommandBus',
+    QueryBus: 'QueryBus',
+
+    // Command Handlers
+    CreateUsuarioHandler: 'CreateUsuarioHandler',
+    UpdateUsuarioHandler: 'UpdateUsuarioHandler',
+    DeleteUsuarioHandler: 'DeleteUsuarioHandler',
+    CreateRolHandler: 'CreateRolHandler',
+    UpdateRolHandler: 'UpdateRolHandler',
+    DeleteRolHandler: 'DeleteRolHandler',
+
+    // Query Handlers
+    GetAllUsuariosHandler: 'GetAllUsuariosHandler',
+    GetUsuarioByIdHandler: 'GetUsuarioByIdHandler',
+    GetAllRolesHandler: 'GetAllRolesHandler',
+    GetRolByIdHandler: 'GetRolByIdHandler',
+
+    // Reporte Movimientos Contables Agrupados Handlers
+    GenerarReporteMovimientosContablesAgrupadosHandler: 'GenerarReporteMovimientosContablesAgrupadosHandler',
+    ObtenerReporteMovimientosContablesAgrupadosHandler: 'ObtenerReporteMovimientosContablesAgrupadosHandler',
+
+    // Libro Mayor Handlers
+    GenerarReporteLibroMayorHandler: 'GenerarReporteLibroMayorHandler',
+    ObtenerLibroMayorHandler: 'ObtenerLibroMayorHandler',
+    ExportarLibroMayorExcelHandler: 'ExportarLibroMayorExcelHandler',
+
+    // Diario Contabilidad Handlers
+    GenerarReporteDiarioContabilidadHandler: 'GenerarReporteDiarioContabilidadHandler',
+    ObtenerDiarioContabilidadHandler: 'ObtenerDiarioContabilidadHandler',
+    ExportarDiarioContabilidadExcelHandler: 'ExportarDiarioContabilidadExcelHandler',
+
+    // CQRS Service
+    CqrsService: 'CqrsService',
+
+    // Middleware
+    AuthMiddleware: 'AuthMiddleware',
+
+    // Infrastructure
+    Sequelize: 'Sequelize'
+}; 

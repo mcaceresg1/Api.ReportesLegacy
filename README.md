@@ -19,6 +19,28 @@ API REST desarrollada en TypeScript con arquitectura hexagonal (Ports and Adapte
 
 ## Cambios Recientes
 
+### v1.14.0 - Reporte de Saldo Promedios
+
+- **Reporte de Saldo Promedios**: Implementación completa del sistema de reportes de saldos promedios con filtros por cuenta contable y período
+- **Cálculos Avanzados**: Sistema de cálculos de saldos promedios combinando saldos históricos, antes del cierre y movimientos de cierre
+- **Queries SQL Complejas**: Consultas SQL optimizadas que combinan múltiples fuentes de datos (SALDO, MAYOR, cuenta_contable)
+- **Entidades implementadas**:
+  - **SaldoPromediosItem**: Para el manejo de reportes de saldos promedios
+  - **FiltroSaldoPromedios**: Sistema completo de filtros para reportes
+  - **CuentaContableOption**: Opciones de cuentas contables para filtros
+- **Nuevos endpoints**:
+  - `GET /api/saldo-promedios/{conjunto}/cuentas-contables` - Obtener cuentas contables para filtros
+  - `POST /api/saldo-promedios/{conjunto}/generar` - Generar reporte completo de saldos promedios
+  - `POST /api/saldo-promedios/{conjunto}/reporte` - Obtener reporte paginado de saldos promedios
+  - `DELETE /api/saldo-promedios/limpiar` - Limpiar datos temporales
+- **Beneficios**:
+  - Consultas SQL complejas optimizadas para mejor rendimiento
+  - Cálculos automáticos de saldos promedios
+  - Filtros dinámicos por cuenta contable y período
+  - Paginación automática para grandes volúmenes de datos
+  - Documentación Swagger completa
+  - Integración con el sistema de conjuntos existente
+
 ### v1.13.0 - Reporte de Libro Mayor y Correcciones de Errores
 
 - **Reporte de Libro Mayor**: Implementación completa del sistema de reportes de libro mayor con filtros avanzados
