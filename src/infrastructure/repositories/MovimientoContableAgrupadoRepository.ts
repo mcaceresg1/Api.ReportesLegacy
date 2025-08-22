@@ -32,19 +32,19 @@ export class MovimientoContableAgrupadoRepository implements IMovimientoContable
           dtFecha, sAsiento, sFuente, sReferencia, nMontoLocal, nMontoDolar, sNotas
         )
         SELECT  
-          m.cuenta_contable,
-          c.descripcion,
-          n.nit,
-          n.razon_social,
+          SUBSTRING(ISNULL(m.cuenta_contable, ''), 1, 254) as cuenta_contable,
+          SUBSTRING(ISNULL(c.descripcion, ''), 1, 254) as descripcion,
+          SUBSTRING(ISNULL(n.nit, ''), 1, 254) as nit,
+          SUBSTRING(ISNULL(n.razon_social, ''), 1, 254) as razon_social,
           NULL as dimension,
           NULL as dimension_desc,
           am.fecha,
-          m.asiento,
-          m.fuente,
-          m.referencia,
+          SUBSTRING(ISNULL(m.asiento, ''), 1, 254) as asiento,
+          SUBSTRING(ISNULL(m.fuente, ''), 1, 254) as fuente,
+          SUBSTRING(ISNULL(m.referencia, ''), 1, 254) as referencia,
           ISNULL(m.debito_local, m.credito_local * -1) as monto_local,
           ISNULL(m.debito_dolar, m.credito_dolar * -1) as monto_dolar,
-          am.notas
+          SUBSTRING(ISNULL(am.notas, ''), 1, 254) as notas
         FROM ${schema}.diario m
         INNER JOIN ${schema}.asiento_de_diario am ON m.asiento = am.asiento
         INNER JOIN ${schema}.cuenta_contable c ON m.cuenta_contable = c.cuenta_contable
@@ -66,19 +66,19 @@ export class MovimientoContableAgrupadoRepository implements IMovimientoContable
           dtFecha, sAsiento, sFuente, sReferencia, nMontoLocal, nMontoDolar, sNotas
         )
         SELECT  
-          m.cuenta_contable,
-          c.descripcion,
-          n.nit,
-          n.razon_social,
+          SUBSTRING(ISNULL(m.cuenta_contable, ''), 1, 254) as cuenta_contable,
+          SUBSTRING(ISNULL(c.descripcion, ''), 1, 254) as descripcion,
+          SUBSTRING(ISNULL(n.nit, ''), 1, 254) as nit,
+          SUBSTRING(ISNULL(n.razon_social, ''), 1, 254) as razon_social,
           NULL as dimension,
           NULL as dimension_desc,
           am.fecha,
-          m.asiento,
-          m.fuente,
-          m.referencia,
+          SUBSTRING(ISNULL(m.asiento, ''), 1, 254) as asiento,
+          SUBSTRING(ISNULL(m.fuente, ''), 1, 254) as fuente,
+          SUBSTRING(ISNULL(m.referencia, ''), 1, 254) as referencia,
           ISNULL(m.debito_local, m.credito_local * -1) as monto_local,
           ISNULL(m.debito_dolar, m.credito_dolar * -1) as monto_dolar,
-          am.notas
+          SUBSTRING(ISNULL(am.notas, ''), 1, 254) as notas
         FROM ${schema}.mayor m
         INNER JOIN ${schema}.asiento_mayorizado am ON m.asiento = am.asiento
         INNER JOIN ${schema}.cuenta_contable c ON m.cuenta_contable = c.cuenta_contable
