@@ -6,9 +6,7 @@ import { SaldoPromediosItem, FiltroSaldoPromedios, CuentaContableOption } from '
 import { exactusSequelize } from '../database/config/exactus-database';
 
 export class SaldoPromediosRepository implements ISaldoPromediosRepository {
-  constructor(
-    @inject(TYPES.Sequelize) private sequelize: Sequelize
-  ) {}
+  constructor() {}
 
   async obtenerCuentasContables(conjunto: string): Promise<CuentaContableOption[]> {
     try {
