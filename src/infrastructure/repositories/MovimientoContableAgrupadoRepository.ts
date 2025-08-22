@@ -21,7 +21,8 @@ export class MovimientoContableAgrupadoRepository implements IMovimientoContable
       const fechaDesde = `${filtros.fechaDesde} 00:00:00`;
       const fechaHasta = `${filtros.fechaHasta} 00:00:00`;
       
-      // Limpiar tabla temporal primero
+      // Crear y limpiar tabla temporal primero
+      await this.crearTablaTemp(schema);
       await this.limpiarTablaTemp(schema);
 
       // 1. Insertar datos desde la tabla diario
@@ -231,6 +232,49 @@ export class MovimientoContableAgrupadoRepository implements IMovimientoContable
     }
   }
 
+  async crearTablaTemp(conjunto: string): Promise<void> {
+    try {
+      const createTableQuery = `
+        IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'${conjunto}.R_XML_8DDC5F23E38311C') AND type in (N'U'))
+        BEGIN
+          CREATE TABLE ${conjunto}.R_XML_8DDC5F23E38311C (
+            sNombreMonLocal VARCHAR(254),
+            sNombreMonDolar VARCHAR(254),
+            sTituloCuenta VARCHAR(254),
+            sCuentaContableDesc VARCHAR(254),
+            sTituloNit VARCHAR(254),
+            sNitNombre VARCHAR(254),
+            sReferencia VARCHAR(254),
+            nMontoLocal DECIMAL(18,2),
+            nMontoDolar DECIMAL(18,2),
+            sAsiento VARCHAR(254),
+            sCuentaContable VARCHAR(254),
+            sNit VARCHAR(254),
+            dtFecha DATETIME,
+            sFuente VARCHAR(254),
+            sNotas VARCHAR(254),
+            sDimension VARCHAR(254),
+            sDimensionDesc VARCHAR(254),
+            sQuiebre1 VARCHAR(254),
+            sQuiebre2 VARCHAR(254),
+            sQuiebre3 VARCHAR(254),
+            sQuiebreDesc1 VARCHAR(254),
+            sQuiebreDesc2 VARCHAR(254),
+            sQuiebreDesc3 VARCHAR(254),
+            ORDEN INT NOT NULL IDENTITY PRIMARY KEY
+          )
+        END
+      `;
+      
+      await exactusSequelize.query(createTableQuery, {
+        type: QueryTypes.RAW
+      });
+    } catch (error) {
+      console.error('Error al crear tabla temporal:', error);
+      throw new Error('Error al crear la tabla temporal');
+    }
+  }
+
   async limpiarTablaTemp(conjunto: string): Promise<void> {
     try {
       const deleteQuery = `DELETE FROM ${conjunto}.R_XML_8DDC5F23E38311C`;
@@ -332,6 +376,8 @@ export class MovimientoContableAgrupadoRepository implements IMovimientoContable
       return [];
     }
   }
+
+
 
   async health(): Promise<boolean> {
     try {
