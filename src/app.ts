@@ -30,6 +30,8 @@ import libroMayorRoutes from './infrastructure/routes/libroMayor.routes';
 import { createDiarioContabilidadRoutes } from './infrastructure/routes/diarioContabilidad.routes';
 import { createPlanContableRoutes } from './infrastructure/routes/planContable.routes';
 import { createPeriodoContableRoutes } from './infrastructure/routes/periodoContable.routes';
+import { createMovimientoContableAgrupadoRoutes } from './infrastructure/routes/movimientoContableAgrupado.routes';
+import { createSaldoPromediosRoutes } from './infrastructure/routes/saldoPromedios.routes';
 
 import { AuthMiddleware } from './infrastructure/middleware/AuthMiddleware';
 import { QueryOptimizationMiddleware } from './infrastructure/middleware/QueryOptimizationMiddleware';
@@ -185,6 +187,8 @@ app.use('/api/permisos', authMiddleware.verifyToken, permisoRoutes.getRouter());
   app.use('/api/diario-contabilidad', QueryOptimizationMiddleware.validateQueryParams, createDiarioContabilidadRoutes());
   app.use('/api/plan-contable', QueryOptimizationMiddleware.validateQueryParams, createPlanContableRoutes());
 app.use('/api/reporte-periodo-contable', QueryOptimizationMiddleware.validateQueryParams, createPeriodoContableRoutes());
+app.use('/api/movimiento-contable-agrupado', QueryOptimizationMiddleware.validateQueryParams, createMovimientoContableAgrupadoRoutes());
+app.use('/api/saldo-promedios', QueryOptimizationMiddleware.validateQueryParams, createSaldoPromediosRoutes());
 
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================

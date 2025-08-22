@@ -1,5 +1,6 @@
 import { Container } from 'inversify';
 import 'reflect-metadata';
+import { TYPES } from './types';
 
 // Domain interfaces
 import { IUsuarioRepository } from '../../domain/repositories/IUsuarioRepository';
@@ -26,6 +27,8 @@ import { ILibroMayorRepository } from '../../domain/repositories/ILibroMayorRepo
 import { IDiarioContabilidadRepository } from '../../domain/repositories/IDiarioContabilidadRepository';
 import { IPlanContableRepository } from '../../domain/repositories/IPlanContableRepository';
 import { IPeriodoContableRepository } from '../../domain/repositories/IPeriodoContableRepository';
+import { IMovimientoContableAgrupadoRepository } from '../../domain/repositories/IMovimientoContableAgrupadoRepository';
+import { ISaldoPromediosRepository } from '../../domain/repositories/ISaldoPromediosRepository';
 
 import { ICuentaContableRepository } from '../../domain/repositories/ICuentaContableRepository';
 import { IUsuarioService } from '../../domain/services/IUsuarioService';
@@ -43,6 +46,7 @@ import { IReporteMensualCuentaCentroService } from '../../domain/services/IRepor
 import { ITipoAsientoService } from '../../domain/services/ITipoAsientoService';
 import { IReporteMovimientosContablesService } from '../../domain/services/IReporteMovimientosContablesService';
 import { IReporteMovimientosContablesAgrupadosService } from '../../domain/services/IReporteMovimientosContablesAgrupadosService';
+import { ISaldoPromediosService } from '../../domain/services/ISaldoPromediosService';
 
 import { IDatabaseService } from '../../domain/services/IDatabaseService';
 
@@ -75,6 +79,8 @@ import { LibroMayorRepository } from '../repositories/LibroMayorRepository';
 import { DiarioContabilidadRepository } from '../repositories/DiarioContabilidadRepository';
 import { PlanContableRepository } from '../repositories/PlanContableRepository';
 import { PeriodoContableRepository } from '../repositories/PeriodoContableRepository';
+import { MovimientoContableAgrupadoRepository } from '../repositories/MovimientoContableAgrupadoRepository';
+import { SaldoPromediosRepository } from '../repositories/SaldoPromediosRepository';
 
 import { CuentaContableRepository } from '../repositories/CuentaContableRepository';
 import { UsuarioService } from '../../application/services/UsuarioService';
@@ -92,6 +98,7 @@ import { ReporteMensualCuentaCentroService } from '../../application/services/Re
 import { TipoAsientoService } from '../../application/services/TipoAsientoService';
 import { ReporteMovimientosContablesService } from '../../application/services/ReporteMovimientosContablesService';
 import { ReporteMovimientosContablesAgrupadosService } from '../../application/services/ReporteMovimientosContablesAgrupadosService';
+import { SaldoPromediosService } from '../../application/services/SaldoPromediosService';
 
 import { DatabaseService } from '../../application/services/DatabaseService';
 
@@ -117,6 +124,8 @@ import { ReporteCatalogoCuentasModificadasController } from '../controllers/Repo
 import { LibroMayorController } from '../controllers/LibroMayorController';
 import { DiarioContabilidadController } from '../controllers/DiarioContabilidadController';
 import { PeriodoContableController } from '../controllers/PeriodoContableController';
+import { MovimientoContableAgrupadoController } from '../controllers/MovimientoContableAgrupadoController';
+import { SaldoPromediosController } from '../controllers/SaldoPromediosController';
 
 // CQRS implementations
 import { CommandBus } from '../cqrs/CommandBus';
@@ -183,6 +192,8 @@ container.bind<ILibroMayorRepository>('ILibroMayorRepository').to(LibroMayorRepo
 container.bind<IDiarioContabilidadRepository>('IDiarioContabilidadRepository').to(DiarioContabilidadRepository);
 container.bind<IPlanContableRepository>('IPlanContableRepository').to(PlanContableRepository);
 container.bind<IPeriodoContableRepository>('IPeriodoContableRepository').to(PeriodoContableRepository);
+container.bind<IMovimientoContableAgrupadoRepository>('IMovimientoContableAgrupadoRepository').to(MovimientoContableAgrupadoRepository);
+container.bind<ISaldoPromediosRepository>('ISaldoPromediosRepository').to(SaldoPromediosRepository);
 
 container.bind<ICuentaContableRepository>('ICuentaContableRepository').to(CuentaContableRepository);
 
@@ -203,6 +214,7 @@ container.bind<IReporteMensualCuentaCentroService>('IReporteMensualCuentaCentroS
 container.bind<ITipoAsientoService>('TipoAsientoService').to(TipoAsientoService);
 container.bind<IReporteMovimientosContablesService>('IReporteMovimientosContablesService').to(ReporteMovimientosContablesService);
 container.bind<IReporteMovimientosContablesAgrupadosService>('IReporteMovimientosContablesAgrupadosService').to(ReporteMovimientosContablesAgrupadosService);
+container.bind<ISaldoPromediosService>('ISaldoPromediosService').to(SaldoPromediosService);
 
 container.bind<IDatabaseService>('IDatabaseService').to(DatabaseService);
 
@@ -228,6 +240,8 @@ container.bind<ReporteCatalogoCuentasModificadasController>('ReporteCatalogoCuen
 container.bind<LibroMayorController>('LibroMayorController').to(LibroMayorController);
 container.bind<DiarioContabilidadController>('DiarioContabilidadController').to(DiarioContabilidadController);
 container.bind<PeriodoContableController>('PeriodoContableController').to(PeriodoContableController);
+container.bind<MovimientoContableAgrupadoController>('MovimientoContableAgrupadoController').to(MovimientoContableAgrupadoController);
+container.bind<SaldoPromediosController>('SaldoPromediosController').to(SaldoPromediosController);
 
 
 // CQRS Buses
