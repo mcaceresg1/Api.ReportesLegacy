@@ -4,9 +4,8 @@ import { MovimientoContableAgrupadoController } from '../controllers/MovimientoC
 
 export function createMovimientoContableAgrupadoRoutes(): Router {
   const router = Router();
-  const controller = new MovimientoContableAgrupadoController(
-    container.get('IMovimientoContableAgrupadoRepository')
-  );
+  // ✅ SOLUCIÓN: Usar el container correctamente en lugar de instanciación manual
+  const controller = container.get<MovimientoContableAgrupadoController>('MovimientoContableAgrupadoController');
 
   /**
    * @swagger
