@@ -67,6 +67,7 @@ export class PeriodoContableRepository implements IPeriodoContableRepository {
           [UpdatedBy],
           [CreateDate]
         FROM [EXACTUS].[${schema}].[PERIODO_CONTABLE]
+        WHERE [CONTABILIDAD] = 'S'
         ORDER BY [FECHA_FINAL] DESC
       `;
 
