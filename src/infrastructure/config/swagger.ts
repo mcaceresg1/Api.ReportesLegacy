@@ -14,9 +14,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: process.env['NODE_ENV'] === 'production' 
-          ? `http://${process.env['SWAGGER_HOST'] || '192.168.90.73:3000'}` 
-          : `http://${process.env['SWAGGER_HOST'] || 'localhost:3002'}`,
+        url: process.env['NODE_ENV'] === 'production' ? 'http://localhost:3000' : 'http://localhost:3000',
         description: process.env['NODE_ENV'] === 'production' ? 'Servidor de producción' : 'Servidor de desarrollo'
       }
     ],

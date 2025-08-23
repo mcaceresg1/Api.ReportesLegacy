@@ -1,27 +1,11 @@
 import 'reflect-metadata';
-import dotenv from 'dotenv';
-
-// Configurar variables de entorno según el ambiente
-const environment = process.env['NODE_ENV'] || 'development';
-console.log(`🌍 Iniciando en ambiente: ${environment}`);
-
-// Cargar archivo de configuración específico del ambiente
-let envFile: string;
-if (environment === 'production') {
-  envFile = 'config.production.env';
-} else {
-  envFile = 'config.development.env';
-}
-
-dotenv.config({ path: envFile });
 
 import app from './app';
 import { sequelize } from './infrastructure/database/config/database';
 import './infrastructure/database/models'; // Importar modelos para establecer asociaciones
 import './infrastructure/container/container'; // Importar contenedor para inicializar DI
 
-const PORT = process.env['PORT'] || (environment === 'production' ? 3000 : 3002);
-const HOST = process.env['HOST'] || (environment === 'production' ? '192.168.90.73' : 'localhost');
+const PORT = process.env['PORT'] || 3000;
 
 async function startServer() {
   try {
@@ -35,19 +19,9 @@ async function startServer() {
 
     // Iniciar servidor
     app.listen(PORT, () => {
-      const baseUrl = `http://${HOST}:${PORT}`;
-      console.log(`🚀 Servidor escuchando en ${baseUrl}`);
-      console.log(`🔗 Swagger disponible en ${baseUrl}/api-docs`);
-      console.log(`🏥 Health check en ${baseUrl}/health`);
-      console.log(`📚 Documentación API en ${baseUrl}/api-docs`);
-      
-      if (environment === 'development') {
-        console.log(`🔧 Modo DESARROLLO - Puerto ${PORT}`);
-        console.log(`🔗 Acceso local: http://localhost:${PORT}`);
-      } else {
-        console.log(`🚀 Modo PRODUCCIÓN - Servidor ${HOST}:${PORT}`);
-        console.log(`🌐 Acceso remoto: ${baseUrl}`);
-      }
+      console.log(`🚀 Servidor escuchando en http://localhost:${PORT}`);
+      console.log(`🔗 Swagger en http://localhost:${PORT}/api-docs`);
+      console.log(`🏥 Health check en http://localhost:${PORT}/health`);
     });
   } catch (error) {
     console.error('❌ Error al iniciar el servidor:', error);

@@ -13,7 +13,7 @@ API REST desarrollada en TypeScript con arquitectura hexagonal (Ports and Adapte
 - **Sequelize**: ORM para SQL Server
 - **JWT**: Autenticación con tokens
 - **Swagger**: Documentación automática de la API
-- **Multi-Ambiente**: Configuración para desarrollo y producción
+- **Docker**: Containerización
 - **SOLID Principles**: Principios de diseño aplicados
 - **Python Integration**: Integración con Python para generación de PDFs
 
@@ -338,18 +338,9 @@ src/
 npm install
 ```
 
-## Configuración de Ambientes
+## Configuración
 
-El proyecto está configurado para funcionar en dos ambientes: **DESARROLLO** y **PRODUCCIÓN**.
-
-### Archivos de Configuración
-
-- **`config.development.env`**: Configuración para desarrollo (puerto 3002)
-- **`config.production.env`**: Configuración para producción (puerto 3000)
-
-### Variables de Entorno
-
-Las variables de entorno son las mismas para ambos ambientes:
+1. Crear archivo `.env` en la raíz del proyecto con las siguientes variables:
 
 ```env
 # Configuración de la base de datos principal
@@ -395,55 +386,25 @@ JWT_SECRET=your-secret-key-here
    - `JWT_SECRET`: Clave secreta para JWT
    - `PORT`: Puerto del servidor (default: 3000)
 
-## Ejecución
-
-### Desarrollo (Puerto 3002)
+## Desarrollo
 
 ```bash
-# Opción 1: Con reinicio automático (recomendado)
-npm run dev:watch
-
-# Opción 2: Sin reinicio automático
 npm run dev
-
-# Opción 3: Script de Windows
-start-dev.bat
 ```
 
-**URLs de desarrollo:**
-- 🌐 API: http://localhost:3002
-- 📚 Swagger: http://localhost:3002/api-docs
-- 🏥 Health Check: http://localhost:3002/health
-
-### Producción (Puerto 3000)
+## Producción
 
 ```bash
-# Opción 1: Compilar y ejecutar
-npm run prod
-
-# Opción 2: Compilar por separado
 npm run build
-npm run start:prod
-
-# Opción 3: Script de Windows
-start-prod.bat
+npm start
 ```
 
-**URLs de producción:**
-- 🌐 API: http://192.168.90.73:3000
-- 📚 Swagger: http://192.168.90.73:3000/api-docs
-- 🏥 Health Check: http://192.168.90.73:3000/health
+## Docker
 
-### Scripts Disponibles
-
-| Script | Descripción | Ambiente |
-|--------|-------------|----------|
-| `npm run dev` | Desarrollo con tsx | Desarrollo |
-| `npm run dev:watch` | Desarrollo con nodemon | Desarrollo |
-| `npm run build` | Compilar TypeScript | Ambos |
-| `npm run start:dev` | Ejecutar compilado en desarrollo | Desarrollo |
-| `npm run start:prod` | Ejecutar compilado en producción | Producción |
-| `npm run prod` | Compilar y ejecutar en producción | Producción |
+```bash
+docker build -t api-reportes-legacy .
+docker run -p 3000:3000 api-reportes-legacy
+```
 
 ## Generación de PDFs
 
@@ -552,27 +513,6 @@ El endpoint `/api/movimientos-contables/pdf` acepta:
 | `PUT` | `/api/conexiones/:id` | Actualizar conexión |
 | `DELETE` | `/api/conexiones/:id` | Eliminar conexión |
 
-## Swagger
-
-La documentación de la API está disponible a través de Swagger UI en ambos ambientes:
-
-### Desarrollo
-- **URL**: http://localhost:3002/api-docs
-- **Host**: localhost:3002
-- **Descripción**: Servidor de desarrollo
-
-### Producción  
-- **URL**: http://192.168.90.73:3000/api-docs
-- **Host**: 192.168.90.73:3000
-- **Descripción**: Servidor de producción
-
-### Características
-- Documentación automática de todos los endpoints
-- Pruebas interactivas de la API
-- Esquemas de datos completos
-- Autenticación JWT integrada
-- Ejemplos de requests y responses
-
 ## Autenticación
 
 La API utiliza JWT (JSON Web Tokens) para la autenticación. Los endpoints protegidos requieren el token en el header:
@@ -588,53 +528,4 @@ Authorization: Bearer <token>
 - `/api/roles/activos` - Roles activos
 
 ### Endpoints Protegidos
-Todos los demás endpoints requieren autenticación con token JWT válido.
-
-## Troubleshooting
-
-### Problemas Comunes
-
-#### Error de Puerto en Uso
-```bash
-# Verificar puertos en uso
-netstat -an | find "3002"  # Para desarrollo
-netstat -an | find "3000"  # Para producción
-
-# Terminar proceso que usa el puerto
-taskkill /PID <PID> /F
-```
-
-#### Error de Compilación TypeScript
-```bash
-# Limpiar y reinstalar dependencias
-rm -rf node_modules
-rm -rf dist
-npm install
-npm run build
-```
-
-#### Error de Conexión a Base de Datos
-- Verificar que SQL Server esté ejecutándose
-- Verificar credenciales en archivos de configuración
-- Verificar que las bases de datos existan
-
-#### Error de Variables de Entorno
-- Verificar que existan los archivos `config.development.env` y `config.production.env`
-- Verificar que las variables estén correctamente definidas
-- Verificar que no haya espacios extra en los valores
-
-### Logs
-Los logs se guardan en la carpeta `logs/`:
-- `combined.log`: Logs combinados
-- `error.log`: Solo errores
-
-### Verificación de Estado
-```bash
-# Health check
-curl http://localhost:3002/health  # Desarrollo
-curl http://192.168.90.73:3000/health  # Producción
-
-# Test endpoint
-curl http://localhost:3002/api/test  # Desarrollo
-curl http://192.168.90.73:3000/api/test  # Producción
-``` 
+Todos los demás endpoints requieren autenticación con token JWT válido. 

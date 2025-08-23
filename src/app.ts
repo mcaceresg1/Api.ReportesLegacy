@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import { specs } from './infrastructure/config/swagger';
+import { specs as specsDocker } from './infrastructure/config/swagger-docker';
 import { container } from './infrastructure/container/container';
 import { UsuarioRoutes } from './infrastructure/routes/UsuarioRoutes';
 import { MenuRoutes } from './infrastructure/routes/MenuRoutes';
@@ -61,11 +62,8 @@ app.use(QueryOptimizationMiddleware.basicRateLimit);
 app.use(QueryOptimizationMiddleware.addCacheHeaders);
 
 // Swagger configuration
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: "Globalis API Documentation",
-  customfavIcon: "/assets/favicon.ico"
-}));
+const swaggerSpecs = process.env['NODE_ENV'] === 'production' ? specsDocker : specs;
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
 // Obtener servicios del contenedor
 const usuarioService = container.get<IUsuarioService>('IUsuarioService');
