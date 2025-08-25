@@ -189,6 +189,7 @@ app.use('/api/permisos', authMiddleware.verifyToken, permisoRoutes.getRouter());
 app.use('/api/reporte-periodo-contable', QueryOptimizationMiddleware.validateQueryParams, createPeriodoContableRoutes());
 app.use('/api/movimiento-contable-agrupado', QueryOptimizationMiddleware.validateQueryParams, createMovimientoContableAgrupadoRoutes());
 app.use('/api/saldo-promedios', QueryOptimizationMiddleware.validateQueryParams, createSaldoPromediosRoutes());
+app.use('/api/reporte-saldo-promedio', QueryOptimizationMiddleware.validateQueryParams, createSaldoPromediosRoutes());
 
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================

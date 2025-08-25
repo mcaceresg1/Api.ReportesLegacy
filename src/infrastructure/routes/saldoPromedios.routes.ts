@@ -10,48 +10,10 @@ export function createSaldoPromediosRoutes(): Router {
 
   /**
    * @swagger
-   * /api/saldo-promedios/{conjunto}/cuentas-contables:
-   *   get:
-   *     summary: Obtener lista de cuentas contables para filtros
-   *     description: Retorna todas las cuentas contables disponibles para el conjunto especificado
-   *     tags: [Saldo Promedios]
-   *     parameters:
-   *       - in: path
-   *         name: conjunto
-   *         required: true
-   *         schema:
-   *           type: string
-   *         description: Código del conjunto contable
-   *     responses:
-   *       200:
-   *         description: Lista de cuentas contables obtenida exitosamente
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 success:
-   *                   type: boolean
-   *                   example: true
-   *                 data:
-   *                   type: array
-   *                   items:
-   *                     $ref: '#/components/schemas/CuentaContableOption'
-   *       400:
-   *         description: Parámetros inválidos
-   *       500:
-   *         description: Error interno del servidor
-   */
-  router.get('/:conjunto/cuentas-contables', 
-    saldoPromediosController.obtenerCuentasContables.bind(saldoPromediosController)
-  );
-
-  /**
-   * @swagger
-   * /api/saldo-promedios/{conjunto}/generar:
+   * /api/reporte-saldo-promedio/{conjunto}/generar:
    *   post:
-   *     summary: Generar reporte de saldos promedios
-   *     description: Genera el reporte completo de saldos promedios según los filtros especificados
+   *     summary: Generar reporte de saldos promedios (ruta alternativa)
+   *     description: Genera el reporte completo de saldos promedios según los filtros especificados - Ruta alternativa para compatibilidad con frontend
    *     tags: [Saldo Promedios]
    *     parameters:
    *       - in: path
@@ -94,6 +56,44 @@ export function createSaldoPromediosRoutes(): Router {
    */
   router.post('/:conjunto/generar', 
     saldoPromediosController.generarReporte.bind(saldoPromediosController)
+  );
+
+  /**
+   * @swagger
+   * /api/saldo-promedios/{conjunto}/cuentas-contables:
+   *   get:
+   *     summary: Obtener lista de cuentas contables para filtros
+   *     description: Retorna todas las cuentas contables disponibles para el conjunto especificado
+   *     tags: [Saldo Promedios]
+   *     parameters:
+   *       - in: path
+   *         name: conjunto
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Código del conjunto contable
+   *     responses:
+   *       200:
+   *         description: Lista de cuentas contables obtenida exitosamente
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     $ref: '#/components/schemas/CuentaContableOption'
+   *       400:
+   *         description: Parámetros inválidos
+   *       500:
+   *         description: Error interno del servidor
+   */
+  router.get('/:conjunto/cuentas-contables', 
+    saldoPromediosController.obtenerCuentasContables.bind(saldoPromediosController)
   );
 
   /**
