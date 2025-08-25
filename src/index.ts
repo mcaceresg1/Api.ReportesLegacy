@@ -23,6 +23,8 @@ async function startServer() {
       console.log(`🔗 Swagger en http://localhost:${PORT}/api-docs`);
       console.log(`🏥 Health check en http://localhost:${PORT}/health`);
     });
+    console.log("✅ app.use('/api/reporte-clipper') ejecutado");
+
   } catch (error) {
     console.error('❌ Error al iniciar el servidor:', error);
     process.exit(1);

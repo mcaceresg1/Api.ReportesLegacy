@@ -164,6 +164,11 @@ import { CqrsService } from '../cqrs/CqrsService';
 
 // Middleware
 import { AuthMiddleware } from '../middleware/AuthMiddleware';
+import { IReporteClipperRepository } from '../../domain/repositories/IReporteClipperRepository';
+import { ReporteClipperRepository } from '../repositories/ReporteClipperRepository';
+import { ClipperController } from '../controllers/ClipperController';
+import { IReporteClipperService } from '../../domain/services/IReporteClipperService';
+import { ReporteClipperService } from '../../application/services/ReporteCliperService';
 
 const container = new Container();
 
@@ -196,7 +201,7 @@ container.bind<IMovimientoContableAgrupadoRepository>('IMovimientoContableAgrupa
 container.bind<ISaldoPromediosRepository>('ISaldoPromediosRepository').to(SaldoPromediosRepository);
 
 container.bind<ICuentaContableRepository>('ICuentaContableRepository').to(CuentaContableRepository);
-
+container.bind<IReporteClipperRepository>('IReporteClipperRepository').to(ReporteClipperRepository);
 
 // Services
 container.bind<IUsuarioService>('IUsuarioService').to(UsuarioService);
@@ -217,6 +222,7 @@ container.bind<IReporteMovimientosContablesAgrupadosService>('IReporteMovimiento
 container.bind<ISaldoPromediosService>('ISaldoPromediosService').to(SaldoPromediosService);
 
 container.bind<IDatabaseService>('IDatabaseService').to(DatabaseService);
+container.bind<IReporteClipperService>('IReporteClipperService').to(ReporteClipperService);
 
 
 // Controllers
@@ -242,6 +248,7 @@ container.bind<DiarioContabilidadController>('DiarioContabilidadController').to(
 container.bind<PeriodoContableController>('PeriodoContableController').to(PeriodoContableController);
 container.bind<MovimientoContableAgrupadoController>('MovimientoContableAgrupadoController').to(MovimientoContableAgrupadoController);
 container.bind<SaldoPromediosController>('SaldoPromediosController').to(SaldoPromediosController);
+container.bind<ClipperController>('ClipperController').to(ClipperController);
 
 
 // CQRS Buses
