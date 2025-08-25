@@ -6,9 +6,7 @@ export function createSaldoPromediosRoutes(): Router {
   const router = Router();
   
   // Obtener instancia del controlador usando el contenedor
-  const saldoPromediosController = new SaldoPromediosController(
-    container.get('ISaldoPromediosService')
-  );
+  const saldoPromediosController = container.get<SaldoPromediosController>('SaldoPromediosController');
 
   /**
    * @swagger
