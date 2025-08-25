@@ -275,8 +275,17 @@ export class SaldoPromediosRepository implements ISaldoPromediosRepository {
       `;
 
       console.log('📊 Query SQL con paginación:', { page, limit, offset });
+      console.log('🔍 Filtros aplicados:', { conjunto, cuenta_contable_desde, cuenta_contable_hasta, fechaDesde, fechaHasta });
       
       const results = await exactusSequelize.query(query, { type: QueryTypes.SELECT });
+      
+      console.log('📊 Resultados obtenidos del repositorio:', {
+        totalResultados: results.length,
+        pagina: page,
+        limite: limit,
+        offset: offset
+      });
+      
       return results as SaldoPromediosItem[];
     } catch (error) {
       console.error('Error generando reporte paginado:', error);
