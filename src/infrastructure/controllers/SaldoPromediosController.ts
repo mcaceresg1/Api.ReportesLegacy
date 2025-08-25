@@ -40,7 +40,14 @@ export class SaldoPromediosController {
       const { conjunto } = req.params;
       const filtros: FiltroSaldoPromedios = req.body;
       
+      console.log('🔍 Controlador generarReporte llamado con:');
+      console.log('  - Parámetros:', req.params);
+      console.log('  - Body:', req.body);
+      console.log('  - Conjunto:', conjunto);
+      console.log('  - Filtros:', filtros);
+      
       if (!conjunto) {
+        console.log('❌ Error: Conjunto no proporcionado');
         res.status(400).json({
           success: false,
           message: 'El parámetro conjunto es requerido'
@@ -49,6 +56,7 @@ export class SaldoPromediosController {
       }
 
       if (!filtros.fecha_desde || !filtros.fecha_hasta) {
+        console.log('❌ Error: Fechas no proporcionadas');
         res.status(400).json({
           success: false,
           message: 'Las fechas desde y hasta son requeridas'
@@ -59,9 +67,11 @@ export class SaldoPromediosController {
       // Asignar el conjunto del parámetro de la URL
       filtros.conjunto = conjunto;
 
-      console.log('Generando reporte de saldos promedios con filtros:', filtros);
+      console.log('✅ Generando reporte de saldos promedios con filtros:', filtros);
       
       const resultado = await this.saldoPromediosService.generarReporte(filtros);
+      
+      console.log('✅ Reporte generado exitosamente, registros:', resultado.length);
       
       res.json({
         success: true,
@@ -70,7 +80,7 @@ export class SaldoPromediosController {
         message: 'Reporte generado exitosamente'
       });
     } catch (error) {
-      console.error('Error en controlador al generar reporte:', error);
+      console.error('❌ Error en controlador al generar reporte:', error);
       res.status(500).json({
         success: false,
         message: 'Error interno del servidor',
