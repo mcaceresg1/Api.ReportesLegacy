@@ -39,12 +39,14 @@ export class SaldoPromediosController {
     try {
       const { conjunto } = req.params;
       const filtros: FiltroSaldoPromedios = req.body;
+      const { page = 1, limit = 100 } = req.body; // Agregar parámetros de paginación
       
       console.log('🔍 Controlador generarReporte llamado con:');
       console.log('  - Parámetros:', req.params);
       console.log('  - Body:', req.body);
       console.log('  - Conjunto:', conjunto);
       console.log('  - Filtros:', filtros);
+      console.log('  - Paginación:', { page, limit });
       
       if (!conjunto) {
         console.log('❌ Error: Conjunto no proporcionado');
@@ -69,15 +71,37 @@ export class SaldoPromediosController {
 
       console.log('✅ Generando reporte de saldos promedios con filtros:', filtros);
       
-      const resultado = await this.saldoPromediosService.generarReporte(filtros);
+      // Obtener todos los datos primero
+      const todosLosDatos = await this.saldoPromediosService.generarReporte(filtros);
       
-      console.log('✅ Reporte generado exitosamente, registros:', resultado.length);
+      console.log('✅ Reporte generado exitosamente, total de registros:', todosLosDatos.length);
+      
+      // Aplicar paginación
+      const paginaActual = parseInt(page.toString());
+      const registrosPorPagina = parseInt(limit.toString());
+      const offset = (paginaActual - 1) * registrosPorPagina;
+      const datosPagina = todosLosDatos.slice(offset, offset + registrosPorPagina);
+      
+      console.log('📊 Paginación aplicada:', {
+        pagina: paginaActual,
+        registrosPorPagina,
+        total: todosLosDatos.length,
+        offset,
+        datosEnPagina: datosPagina.length
+      });
       
       res.json({
         success: true,
-        data: resultado,
-        total: resultado.length,
-        message: 'Reporte generado exitosamente'
+        data: datosPagina,
+        pagination: {
+          page: paginaActual,
+          limit: registrosPorPagina,
+          total: todosLosDatos.length,
+          totalPages: Math.ceil(todosLosDatos.length / registrosPorPagina),
+          hasNext: paginaActual < Math.ceil(todosLosDatos.length / registrosPorPagina),
+          hasPrev: paginaActual > 1
+        },
+        message: `Página ${paginaActual} de ${Math.ceil(todosLosDatos.length / registrosPorPagina)}`
       });
     } catch (error) {
       console.error('❌ Error en controlador al generar reporte:', error);
