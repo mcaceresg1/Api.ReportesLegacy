@@ -27,6 +27,16 @@ export class SaldoPromediosService implements ISaldoPromediosService {
     }
   }
 
+  async generarReportePaginado(filtros: FiltroSaldoPromedios, page: number = 1, limit: number = 100): Promise<SaldoPromediosItem[]> {
+    try {
+      console.log('📊 Service: Generando reporte paginado:', { page, limit });
+      return await this.saldoPromediosRepository.generarReportePaginado(filtros, page, limit);
+    } catch (error) {
+      console.error('Error en servicio al generar reporte paginado:', error);
+      throw error;
+    }
+  }
+
   async obtenerReporte(filtros: FiltroSaldoPromedios, pagina?: number, limite?: number): Promise<{ data: SaldoPromediosItem[], total: number }> {
     try {
       return await this.saldoPromediosRepository.obtenerReporte(filtros, pagina, limite);

@@ -71,37 +71,31 @@ export class SaldoPromediosController {
 
       console.log('✅ Generando reporte de saldos promedios con filtros:', filtros);
       
-      // Obtener todos los datos primero
-      const todosLosDatos = await this.saldoPromediosService.generarReporte(filtros);
-      
-      console.log('✅ Reporte generado exitosamente, total de registros:', todosLosDatos.length);
-      
-      // Aplicar paginación
+      // Obtener datos paginados directamente del servicio
       const paginaActual = parseInt(page.toString());
       const registrosPorPagina = parseInt(limit.toString());
-      const offset = (paginaActual - 1) * registrosPorPagina;
-      const datosPagina = todosLosDatos.slice(offset, offset + registrosPorPagina);
+      const resultado = await this.saldoPromediosService.generarReportePaginado(filtros, paginaActual, registrosPorPagina);
       
-      console.log('📊 Paginación aplicada:', {
-        pagina: paginaActual,
-        registrosPorPagina,
-        total: todosLosDatos.length,
-        offset,
-        datosEnPagina: datosPagina.length
-      });
+      console.log('✅ Reporte generado exitosamente, registros en página:', resultado.length);
+      
+      // Obtener el total real de registros para la paginación (sin paginación)
+      const todosLosDatos = await this.saldoPromediosService.generarReporte(filtros);
+      const totalRegistros = todosLosDatos.length;
+      
+      console.log('📊 Total real de registros disponibles:', totalRegistros);
       
       res.json({
         success: true,
-        data: datosPagina,
+        data: resultado,
         pagination: {
           page: paginaActual,
           limit: registrosPorPagina,
-          total: todosLosDatos.length,
-          totalPages: Math.ceil(todosLosDatos.length / registrosPorPagina),
-          hasNext: paginaActual < Math.ceil(todosLosDatos.length / registrosPorPagina),
+          total: totalRegistros,
+          totalPages: Math.ceil(totalRegistros / registrosPorPagina),
+          hasNext: paginaActual < Math.ceil(totalRegistros / registrosPorPagina),
           hasPrev: paginaActual > 1
         },
-        message: `Página ${paginaActual} de ${Math.ceil(todosLosDatos.length / registrosPorPagina)}`
+        message: `Página ${paginaActual} de ${Math.ceil(totalRegistros / registrosPorPagina)}`
       });
     } catch (error) {
       console.error('❌ Error en controlador al generar reporte:', error);

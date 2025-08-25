@@ -3,6 +3,7 @@ import { SaldoPromediosItem, FiltroSaldoPromedios, CuentaContableOption } from '
 export interface ISaldoPromediosService {
   obtenerCuentasContables(conjunto: string): Promise<CuentaContableOption[]>;
   generarReporte(filtros: FiltroSaldoPromedios): Promise<SaldoPromediosItem[]>;
+  generarReportePaginado(filtros: FiltroSaldoPromedios, page?: number, limit?: number): Promise<SaldoPromediosItem[]>;
   obtenerReporte(filtros: FiltroSaldoPromedios, pagina?: number, limite?: number): Promise<{ data: SaldoPromediosItem[], total: number }>;
   limpiarDatos(): Promise<boolean>;
 }
