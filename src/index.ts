@@ -6,6 +6,7 @@ import './infrastructure/database/models'; // Importar modelos para establecer a
 import './infrastructure/container/container'; // Importar contenedor para inicializar DI
 
 const PORT = process.env['PORT'] || 3000;
+const HOST = process.env['HOST'] || '0.0.0.0';
 
 async function startServer() {
   try {
@@ -19,9 +20,9 @@ async function startServer() {
 
     // Iniciar servidor
     app.listen(PORT, () => {
-      console.log(`🚀 Servidor escuchando en http://localhost:${PORT}`);
-      console.log(`🔗 Swagger en http://localhost:${PORT}/api-docs`);
-      console.log(`🏥 Health check en http://localhost:${PORT}/health`);
+      console.log(`🚀 Servidor escuchando en http://${HOST}:${PORT}`);
+      console.log(`🔗 Swagger en http://${HOST}:${PORT}/api-docs`);
+      console.log(`🏥 Health check en http://${HOST}:${PORT}/health`);
     });
   } catch (error) {
     console.error('❌ Error al iniciar el servidor:', error);

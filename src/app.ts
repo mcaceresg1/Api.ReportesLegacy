@@ -156,6 +156,41 @@ app.get('/api/reporte-libro-mayor-test', (req, res) => {
   });
 });
 
+// Endpoint de prueba para saldos promedios
+app.get('/api/saldo-promedios-test', (req, res) => {
+  res.json({ 
+    message: 'Endpoint de saldos promedios funcionando',
+    timestamp: new Date().toISOString(),
+    status: 'OK',
+    params: req.params,
+    query: req.query
+  });
+});
+
+// Endpoint de prueba para verificar la ruta específica
+app.get('/api/saldo-promedios/:conjunto/test', (req, res) => {
+  const { conjunto } = req.params;
+  res.json({ 
+    message: 'Endpoint de saldos promedios para conjunto funcionando',
+    conjunto: conjunto,
+    timestamp: new Date().toISOString(),
+    status: 'OK',
+    params: req.params,
+    query: req.query
+  });
+});
+
+// Endpoint de health check
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env['NODE_ENV'] || 'development',
+    version: '1.15.0'
+  });
+});
+
 // Rutas de menús (algunas públicas, otras protegidas)
 app.use('/api/menus', menuRoutes.getRouter());
 
@@ -189,7 +224,6 @@ app.use('/api/permisos', authMiddleware.verifyToken, permisoRoutes.getRouter());
 app.use('/api/reporte-periodo-contable', QueryOptimizationMiddleware.validateQueryParams, createPeriodoContableRoutes());
 app.use('/api/movimiento-contable-agrupado', QueryOptimizationMiddleware.validateQueryParams, createMovimientoContableAgrupadoRoutes());
 app.use('/api/saldo-promedios', QueryOptimizationMiddleware.validateQueryParams, createSaldoPromediosRoutes());
-app.use('/api/reporte-saldo-promedio', QueryOptimizationMiddleware.validateQueryParams, createSaldoPromediosRoutes());
 
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================
@@ -795,13 +829,6 @@ app.post('/api/login', async (req, res) => {
  *                   type: string
  *                   format: date-time
  */
-app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    service: 'Globalis API'
-  });
-});
 
 // Middleware de manejo de errores
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

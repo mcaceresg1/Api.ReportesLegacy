@@ -1,12 +1,10 @@
-import { inject } from 'inversify';
 import { Request, Response } from 'express';
-import { TYPES } from '../container/types';
 import { ISaldoPromediosService } from '../../domain/services/ISaldoPromediosService';
 import { FiltroSaldoPromedios } from '../../domain/entities/SaldoPromedios';
 
 export class SaldoPromediosController {
   constructor(
-    @inject(TYPES.ISaldoPromediosService) private saldoPromediosService: ISaldoPromediosService
+    private saldoPromediosService: ISaldoPromediosService
   ) {}
 
   async obtenerCuentasContables(req: Request, res: Response): Promise<void> {
@@ -106,17 +104,14 @@ export class SaldoPromediosController {
       // Asignar el conjunto del parámetro de la URL
       filtros.conjunto = conjunto;
 
-      const paginaNum = parseInt(pagina as string) || 1;
-      const limiteNum = parseInt(limite as string) || 50;
-      
-      const resultado = await this.saldoPromediosService.obtenerReporte(filtros, paginaNum, limiteNum);
+      const resultado = await this.saldoPromediosService.obtenerReporte(filtros, Number(pagina), Number(limite));
       
       res.json({
         success: true,
         data: resultado.data,
         total: resultado.total,
-        pagina: paginaNum,
-        limite: limiteNum,
+        pagina: Number(pagina),
+        limite: Number(limite),
         message: 'Reporte obtenido exitosamente'
       });
     } catch (error) {
@@ -131,19 +126,12 @@ export class SaldoPromediosController {
 
   async limpiarDatos(req: Request, res: Response): Promise<void> {
     try {
-      const resultado = await this.saldoPromediosService.limpiarDatos();
+      await this.saldoPromediosService.limpiarDatos();
       
-      if (resultado) {
-        res.json({
-          success: true,
-          message: 'Datos limpiados exitosamente'
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          message: 'Error al limpiar datos'
-        });
-      }
+      res.json({
+        success: true,
+        message: 'Datos limpiados exitosamente'
+      });
     } catch (error) {
       console.error('Error en controlador al limpiar datos:', error);
       res.status(500).json({

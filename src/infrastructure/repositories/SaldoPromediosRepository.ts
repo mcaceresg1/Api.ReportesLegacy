@@ -179,94 +179,9 @@ export class SaldoPromediosRepository implements ISaldoPromediosRepository {
     try {
       const offset = (pagina - 1) * limite;
       
-      const { conjunto, cuenta_contable_desde, cuenta_contable_hasta, fecha_desde, fecha_hasta } = filtros;
-      
-      // Convertir fechas al formato requerido por SQL Server
-      const fechaDesde = new Date(fecha_desde).toISOString().slice(0, 10).replace(/-/g, '-');
-      const fechaHasta = new Date(fecha_hasta).toISOString().slice(0, 10).replace(/-/g, '-');
-      
       const query = `
         WITH SaldosPromedios AS (
-          SELECT 
-            CENTRO_COSTO, 
-            CUENTA_CONTABLE,
-            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_inicial_local,
-            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_inicial_dolar,
-            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_inicial_corp_local,
-            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_inicial_corp_dolar,
-            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_inicial_fisc_und,
-            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_inicial_corp_und,
-            SUM(DEBITO_FISC_LOCAL) AS debito_fisc_local,
-            SUM(CREDITO_FISC_LOCAL) AS credito_fisc_local,
-            SUM(DEBITO_FISC_DOLAR) AS debito_fisc_dolar,
-            SUM(CREDITO_FISC_DOLAR) AS credito_fisc_dolar,
-            SUM(DEBITO_CORP_LOCAL) AS debito_corp_local,
-            SUM(CREDITO_CORP_LOCAL) AS credito_corp_local,
-            SUM(DEBITO_CORP_DOLAR) AS debito_corp_dolar,
-            SUM(CREDITO_CORP_DOLAR) AS credito_corp_dolar,
-            SUM(DEBITO_FISC_UND) AS debito_fisc_und,
-            SUM(CREDITO_FISC_UND) AS credito_fisc_und,
-            SUM(DEBITO_CORP_UND) AS debito_corp_und,
-            SUM(CREDITO_CORP_UND) AS credito_corp_und,
-            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_final_local,
-            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_final_dolar,
-            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_final_corp_local,
-            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_final_corp_dolar,
-            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_final_fisc_und,
-            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_final_corp_und,
-            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_promedio_local,
-            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_promedio_dolar,
-            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_promedio_corp_local,
-            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_promedio_corp_dolar,
-            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_promedio_fisc_und,
-            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_promedio_corp_und
-          FROM ${conjunto}.SALDO
-          WHERE cuenta_contable >= '${cuenta_contable_desde || '00.0.0.0.000'}'
-          AND cuenta_contable <= '${cuenta_contable_hasta || 'ZZ.Z.Z.Z.ZZZ'}'
-          AND FECHA >= '${fechaDesde}'
-          AND FECHA < '${fechaHasta}'
-          GROUP BY CENTRO_COSTO, CUENTA_CONTABLE
-          
-          UNION ALL
-          
-          SELECT 
-            CENTRO_COSTO, 
-            CUENTA_CONTABLE,
-            SUM(s.saldo_fisc_local) AS saldo_inicial_local,
-            SUM(s.saldo_fisc_dolar) AS saldo_inicial_dolar,
-            SUM(s.saldo_corp_local) AS saldo_inicial_corp_local,
-            SUM(s.saldo_corp_dolar) AS saldo_inicial_corp_dolar,
-            SUM(s.saldo_fisc_und) AS saldo_inicial_fisc_und,
-            SUM(s.saldo_corp_und) AS saldo_inicial_corp_und,
-            0 AS debito_fisc_local,
-            0 AS credito_fisc_local,
-            0 AS debito_fisc_dolar,
-            0 AS credito_fisc_dolar,
-            0 AS debito_corp_local,
-            0 AS credito_corp_local,
-            0 AS debito_corp_dolar,
-            0 AS credito_corp_dolar,
-            0 AS debito_fisc_und,
-            0 AS credito_fisc_und,
-            0 AS debito_corp_und,
-            0 AS credito_corp_und,
-            SUM(ISNULL(CASE CONTABILIDAD WHEN 'A' THEN DEBITO_LOCAL WHEN 'F' THEN DEBITO_LOCAL ELSE 0 END, 0)) AS saldo_final_local,
-            SUM(ISNULL(CASE CONTABILIDAD WHEN 'A' THEN CREDITO_LOCAL WHEN 'F' THEN CREDITO_LOCAL ELSE 0 END, 0)) AS saldo_final_dolar,
-            SUM(ISNULL(CASE CONTABILIDAD WHEN 'A' THEN DEBITO_DOLAR WHEN 'F' THEN DEBITO_DOLAR ELSE 0 END, 0)) AS saldo_final_corp_local,
-            SUM(ISNULL(CASE CONTABILIDAD WHEN 'A' THEN CREDITO_DOLAR WHEN 'F' THEN CREDITO_DOLAR ELSE 0 END, 0)) AS saldo_final_corp_dolar,
-            SUM(ISNULL(CASE CONTABILIDAD WHEN 'A' THEN DEBITO_LOCAL WHEN 'C' THEN DEBITO_LOCAL ELSE 0 END, 0)) AS saldo_final_fisc_und,
-            SUM(ISNULL(CASE CONTABILIDAD WHEN 'A' THEN CREDITO_LOCAL WHEN 'C' THEN CREDITO_LOCAL ELSE 0 END, 0)) AS saldo_final_corp_und,
-            SUM(ISNULL(CASE CONTABILIDAD WHEN 'A' THEN DEBITO_DOLAR WHEN 'C' THEN DEBITO_DOLAR ELSE 0 END, 0)) AS saldo_promedio_local,
-            SUM(ISNULL(CASE CONTABILIDAD WHEN 'A' THEN CREDITO_DOLAR WHEN 'C' THEN CREDITO_DOLAR ELSE 0 END, 0)) AS saldo_promedio_dolar,
-            SUM(ISNULL(CASE CONTABILIDAD WHEN 'A' THEN DEBITO_UNIDADES WHEN 'F' THEN DEBITO_UNIDADES ELSE 0 END, 0)) AS saldo_promedio_corp_local,
-            SUM(ISNULL(CASE CONTABILIDAD WHEN 'A' THEN CREDITO_UNIDADES WHEN 'F' THEN CREDITO_UNIDADES ELSE 0 END, 0)) AS saldo_promedio_corp_dolar,
-            SUM(ISNULL(CASE CONTABILIDAD WHEN 'A' THEN DEBITO_UNIDADES WHEN 'C' THEN DEBITO_UNIDADES ELSE 0 END, 0)) AS saldo_promedio_fisc_und,
-            SUM(ISNULL(CASE CONTABILIDAD WHEN 'A' THEN CREDITO_UNIDADES WHEN 'C' THEN CREDITO_UNIDADES ELSE 0 END, 0)) AS saldo_promedio_corp_und
-          FROM ${conjunto}.MAYOR
-          WHERE cuenta_contable >= '${cuenta_contable_desde || '00.0.0.0.000'}'
-          AND cuenta_contable <= '${cuenta_contable_hasta || 'ZZ.Z.Z.Z.ZZZ'}'
-          AND (FECHA >= '${fechaDesde}' AND FECHA < '${fechaHasta}')
-          GROUP BY CENTRO_COSTO, CUENTA_CONTABLE
+          ${await this.generarReporte(filtros)}
         )
         SELECT 
           *,
