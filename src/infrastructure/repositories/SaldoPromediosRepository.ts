@@ -186,100 +186,102 @@ export class SaldoPromediosRepository implements ISaldoPromediosRepository {
       // Calcular offset para paginación
       const offset = (page - 1) * limit;
       
+      // Usar una subconsulta para aplicar la paginación correctamente
       const query = `
-        SELECT 
-          CENTRO_COSTO, 
-          CUENTA_CONTABLE,
-          SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_inicial_local,
-          SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_inicial_dolar,
-          SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_inicial_corp_local,
-          SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_inicial_corp_dolar,
-          SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_inicial_fisc_und,
-          SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_inicial_corp_und,
-          SUM(DEBITO_FISC_LOCAL) AS debito_fisc_local,
-          SUM(CREDITO_FISC_LOCAL) AS credito_fisc_local,
-          SUM(DEBITO_FISC_DOLAR) AS debito_fisc_dolar,
-          SUM(CREDITO_FISC_DOLAR) AS credito_fisc_dolar,
-          SUM(DEBITO_CORP_LOCAL) AS debito_corp_local,
-          SUM(CREDITO_CORP_LOCAL) AS credito_corp_local,
-          SUM(DEBITO_CORP_DOLAR) AS debito_corp_dolar,
-          SUM(CREDITO_CORP_DOLAR) AS credito_corp_dolar,
-          SUM(DEBITO_FISC_UND) AS debito_fisc_und,
-          SUM(CREDITO_FISC_UND) AS credito_fisc_und,
-          SUM(DEBITO_CORP_UND) AS debito_corp_und,
-          SUM(CREDITO_CORP_UND) AS credito_corp_und,
-          SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_final_local,
-          SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_final_dolar,
-          SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_final_corp_local,
-          SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_final_corp_dolar,
-          SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_final_fisc_und,
-          SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_final_corp_und,
-          SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_promedio_local,
-          SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_promedio_dolar,
-          SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_promedio_corp_local,
-          SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_promedio_corp_dolar,
-          SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_promedio_fisc_und,
-          SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_promedio_corp_und
-        FROM ${conjunto}.SALDO
-        WHERE cuenta_contable >= '${cuenta_contable_desde || '00.0.0.0.000'}'
-        AND cuenta_contable <= '${cuenta_contable_hasta || 'ZZ.Z.Z.Z.ZZZ'}'
-        AND FECHA >= '${fechaDesde}'
-        AND FECHA < '${fechaHasta}'
-        GROUP BY CENTRO_COSTO, CUENTA_CONTABLE
-        
-        UNION ALL
-        
-        SELECT 
-          CENTRO_COSTO, 
-          CUENTA_CONTABLE,
-          SUM(s.saldo_fisc_local) AS saldo_inicial_local,
-          SUM(s.saldo_fisc_dolar) AS saldo_inicial_dolar,
-          SUM(s.saldo_corp_local) AS saldo_inicial_corp_local,
-          SUM(s.saldo_corp_dolar) AS saldo_inicial_corp_dolar,
-          SUM(s.saldo_fisc_und) AS saldo_inicial_fisc_und,
-          SUM(s.saldo_corp_und) AS saldo_inicial_corp_und,
-          0 AS debito_fisc_local,
-          0 AS credito_fisc_local,
-          0 AS debito_fisc_dolar,
-          0 AS credito_fisc_dolar,
-          0 AS debito_corp_local,
-          0 AS credito_corp_local,
-          0 AS debito_corp_dolar,
-          0 AS credito_corp_dolar,
-          0 AS debito_fisc_und,
-          0 AS credito_fisc_und,
-          0 AS debito_corp_und,
-          0 AS credito_corp_und,
-          SUM(s.saldo_fisc_local) AS saldo_final_local,
-          SUM(s.saldo_fisc_dolar) AS saldo_final_dolar,
-          SUM(s.saldo_corp_local) AS saldo_final_corp_local,
-          SUM(s.saldo_corp_dolar) AS saldo_final_corp_dolar,
-          SUM(s.saldo_fisc_und) AS saldo_final_fisc_und,
-          SUM(s.saldo_corp_und) AS saldo_final_corp_und,
-          SUM(s.saldo_fisc_local) AS saldo_promedio_local,
-          SUM(s.saldo_fisc_dolar) AS saldo_promedio_dolar,
-          SUM(s.saldo_corp_local) AS saldo_promedio_corp_local,
-          SUM(s.saldo_corp_dolar) AS saldo_promedio_corp_dolar,
-          SUM(s.saldo_fisc_und) AS saldo_promedio_fisc_und,
-          SUM(s.saldo_corp_und) AS saldo_promedio_corp_und
-        FROM ${conjunto}.SALDO_PROMEDIO s
-        WHERE s.cuenta_contable >= '${cuenta_contable_desde || '00.0.0.0.000'}'
-        AND s.cuenta_contable <= '${cuenta_contable_hasta || 'ZZ.Z.Z.Z.ZZZ'}'
-        AND s.FECHA >= '${fechaDesde}'
-        AND s.FECHA < '${fechaHasta}'
-        GROUP BY CENTRO_COSTO, CUENTA_CONTABLE
-        
+        SELECT * FROM (
+          SELECT 
+            CENTRO_COSTO, 
+            CUENTA_CONTABLE,
+            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_inicial_local,
+            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_inicial_dolar,
+            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_inicial_corp_local,
+            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_inicial_corp_dolar,
+            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_inicial_fisc_und,
+            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_inicial_corp_und,
+            SUM(DEBITO_FISC_LOCAL) AS debito_fisc_local,
+            SUM(CREDITO_FISC_LOCAL) AS credito_fisc_local,
+            SUM(DEBITO_FISC_DOLAR) AS debito_fisc_dolar,
+            SUM(CREDITO_FISC_DOLAR) AS credito_fisc_dolar,
+            SUM(DEBITO_CORP_LOCAL) AS debito_corp_local,
+            SUM(CREDITO_CORP_LOCAL) AS credito_corp_local,
+            SUM(DEBITO_CORP_DOLAR) AS debito_corp_dolar,
+            SUM(CREDITO_CORP_DOLAR) AS credito_corp_dolar,
+            SUM(DEBITO_FISC_UND) AS debito_fisc_und,
+            SUM(CREDITO_FISC_UND) AS credito_fisc_und,
+            SUM(DEBITO_CORP_UND) AS debito_corp_und,
+            SUM(CREDITO_CORP_UND) AS credito_corp_und,
+            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_final_local,
+            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_final_dolar,
+            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_final_corp_local,
+            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_final_corp_dolar,
+            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_final_fisc_und,
+            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_final_corp_und,
+            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_promedio_local,
+            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_promedio_dolar,
+            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_promedio_corp_local,
+            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_promedio_corp_dolar,
+            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_promedio_fisc_und,
+            SUM(SALDO_FISC_LOCAL - SALDO_FISC_LOCAL) AS saldo_promedio_corp_und
+          FROM ${conjunto}.SALDO
+          WHERE cuenta_contable >= '${cuenta_contable_desde || '00.0.0.0.000'}'
+          AND cuenta_contable <= '${cuenta_contable_hasta || 'ZZ.Z.Z.Z.ZZZ'}'
+          AND FECHA >= '${fechaDesde}'
+          AND FECHA < '${fechaHasta}'
+          GROUP BY CENTRO_COSTO, CUENTA_CONTABLE
+          
+          UNION ALL
+          
+          SELECT 
+            CENTRO_COSTO, 
+            CUENTA_CONTABLE,
+            SUM(s.saldo_fisc_local) AS saldo_inicial_local,
+            SUM(s.saldo_fisc_dolar) AS saldo_inicial_dolar,
+            SUM(s.saldo_corp_local) AS saldo_inicial_corp_local,
+            SUM(s.saldo_corp_dolar) AS saldo_inicial_corp_dolar,
+            SUM(s.saldo_fisc_und) AS saldo_inicial_fisc_und,
+            SUM(s.saldo_corp_und) AS saldo_inicial_corp_und,
+            0 AS debito_fisc_local,
+            0 AS credito_fisc_local,
+            0 AS debito_fisc_dolar,
+            0 AS credito_fisc_dolar,
+            0 AS debito_corp_local,
+            0 AS credito_corp_local,
+            0 AS debito_corp_dolar,
+            0 AS credito_corp_dolar,
+            0 AS debito_fisc_und,
+            0 AS credito_fisc_und,
+            0 AS debito_corp_und,
+            0 AS credito_corp_und,
+            SUM(s.saldo_fisc_local) AS saldo_final_local,
+            SUM(s.saldo_fisc_dolar) AS saldo_final_dolar,
+            SUM(s.saldo_corp_local) AS saldo_final_corp_local,
+            SUM(s.saldo_corp_dolar) AS saldo_final_corp_dolar,
+            SUM(s.saldo_fisc_und) AS saldo_final_fisc_und,
+            SUM(s.saldo_corp_und) AS saldo_final_corp_und,
+            SUM(s.saldo_fisc_local) AS saldo_promedio_local,
+            SUM(s.saldo_fisc_dolar) AS saldo_promedio_dolar,
+            SUM(s.saldo_corp_local) AS saldo_promedio_corp_local,
+            SUM(s.saldo_corp_dolar) AS saldo_promedio_corp_dolar,
+            SUM(s.saldo_fisc_und) AS saldo_promedio_fisc_und,
+            SUM(s.saldo_corp_und) AS saldo_promedio_corp_und
+          FROM ${conjunto}.SALDO_PROMEDIO s
+          WHERE s.cuenta_contable >= '${cuenta_contable_desde || '00.0.0.0.000'}'
+          AND s.cuenta_contable <= '${cuenta_contable_hasta || 'ZZ.Z.Z.Z.ZZZ'}'
+          AND s.FECHA >= '${fechaDesde}'
+          AND s.FECHA < '${fechaHasta}'
+          GROUP BY CENTRO_COSTO, CUENTA_CONTABLE
+        ) AS combined_data
         ORDER BY CENTRO_COSTO, CUENTA_CONTABLE
         OFFSET ${offset} ROWS
         FETCH NEXT ${limit} ROWS ONLY
       `;
 
-      console.log('📊 Query SQL con paginación:', { page, limit, offset });
+      console.log('📊 Query SQL con paginación CORREGIDA:', { page, limit, offset });
       console.log('🔍 Filtros aplicados:', { conjunto, cuenta_contable_desde, cuenta_contable_hasta, fechaDesde, fechaHasta });
       
       const results = await exactusSequelize.query(query, { type: QueryTypes.SELECT });
       
-      console.log('📊 Resultados obtenidos del repositorio:', {
+      console.log('📊 Resultados obtenidos del repositorio PAGINADO:', {
         totalResultados: results.length,
         pagina: page,
         limite: limit,
