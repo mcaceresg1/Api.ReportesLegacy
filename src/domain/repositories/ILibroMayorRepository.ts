@@ -63,4 +63,9 @@ export interface ILibroMayorRepository {
     fechaFin: Date,
     limit?: number
   ): Promise<Buffer>;
+
+  /**
+   * Obtiene las cuentas contables para el filtro
+   */
+  obtenerCuentasContables(conjunto: string): Promise<any[]>;
 }

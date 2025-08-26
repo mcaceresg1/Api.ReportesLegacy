@@ -21,129 +21,93 @@ export class LibroMayorRepository implements ILibroMayorRepository {
       // 1. Limpiar datos temporales del usuario
       await this.limpiarDatosTemporales(conjunto, usuario);
       
-      // 2. Obtener período contable más reciente antes de la fecha de inicio
-      const periodoAnterior = await this.obtenerPeriodoContableReciente(conjunto, fechaInicio);
-      if (!periodoAnterior) {
-        throw new Error('No se pudo determinar el período contable anterior');
+      // 2. Generar reporte usando las nuevas queries optimizadas
+      const queryReporte = `
+        SELECT 
+          may.cuenta_contable,
+          may.centro_costo,
+          0 as tipo_linea,
+          cta.acepta_datos,
+          max(cta.descripcion) as descripcion,
+          cta.saldo_normal,
+          '' as asiento,
+          convert(varchar(10), may.FECHA, 23) as fecha,
+          am.fecha_creacion,
+          'asiento' as origen,
+          sum(may.debito_local) as debito_local,
+          sum(may.credito_local) as credito_local,
+          sum(may.debito_dolar) as debito_dolar,
+          sum(may.credito_dolar) as credito_dolar,
+          '${usuario}' as usuario
+        FROM ${conjunto}.mayor may
+        JOIN ${conjunto}.asiento_mayorizado am ON may.ASIENTO = am.ASIENTO
+        JOIN ${conjunto}.cuenta_contable cta ON may.cuenta_contable = cta.cuenta_contable
+        WHERE may.fecha >= '${fechaInicio.toISOString().split('T')[0]} 00:00:00.000'
+        AND may.fecha <= '${fechaFin.toISOString().split('T')[0]} 23:59:59.998'
+        AND may.contabilidad IN ('F', 'A')
+        AND cta.tipo_detallado IN ('A','P','T','I','G','O')
+        GROUP BY may.centro_costo, cta.acepta_datos, cta.SALDO_NORMAL, 
+                 convert(varchar(10), may.FECHA, 23), am.fecha_creacion, may.cuenta_contable
+
+        UNION
+
+        SELECT 
+          cta.cuenta_contable,
+          '' as centro_costo,
+          0 as tipo_linea,
+          cta.acepta_datos,
+          cta.descripcion,
+          cta.saldo_normal,
+          '' as asiento,
+          '1980-1-1' as fecha,
+          '1980-1-1' as fecha_creacion,
+          '' as origen,
+          0 as debito_local,
+          0 as credito_local,
+          0 as debito_dolar,
+          0 as credito_dolar,
+          '${usuario}' as usuario
+        FROM ${conjunto}.cuenta_contable cta
+        WHERE cta.cuenta_contable IN (
+          SELECT may.cuenta_contable
+          FROM ${conjunto}.mayor may
+          WHERE may.cuenta_contable NOT IN (
+            SELECT may.cuenta_contable 
+            FROM ${conjunto}.mayor may 
+            WHERE may.contabilidad IN ('F', 'A')
+            AND may.fecha >= '${fechaInicio.toISOString().split('T')[0]} 00:00:00.000'
+            AND may.fecha <= '${fechaFin.toISOString().split('T')[0]} 23:59:59.998'
+          )
+          AND may.fecha < '${fechaInicio.toISOString().split('T')[0]} 00:00:00.000'
+        )
+        AND cta.tipo_detallado IN ('A','P','T','I','G','O')
+        
+        ORDER BY 1, 8, 10, 3
+      `;
+      
+      // 3. Ejecutar la query principal
+      const resultados = await exactusSequelize.query(queryReporte, { type: QueryTypes.SELECT });
+      
+      // 4. Insertar resultados en la tabla temporal
+      for (const row of resultados as any[]) {
+        const queryInsert = `
+          INSERT INTO ${conjunto}.REPCG_MAYOR (
+            CUENTA_CONTABLE, CENTRO_COSTO, TIPO_LINEA, ACEPTA_DATOS, DESCRIPCION,
+            SALDO_NORMAL, ASIENTO, FECHA, FECHA_CREACION, ORIGEN,
+            DEBITO_LOCAL, CREDITO_LOCAL, DEBITO_DOLAR, CREDITO_DOLAR, USUARIO
+          ) VALUES (
+            '${row.cuenta_contable}', '${row.centro_costo}', ${row.tipo_linea}, ${row.acepta_datos},
+            '${row.descripcion?.replace(/'/g, "''") || ''}', '${row.saldo_normal}', '${row.asiento}',
+            '${row.fecha}', '${row.fecha_creacion}', '${row.origen}',
+            ${row.debito_local || 0}, ${row.credito_local || 0},
+            ${row.debito_dolar || 0}, ${row.credito_dolar || 0}, '${usuario}'
+          )
+        `;
+        
+        await exactusSequelize.query(queryInsert, { type: QueryTypes.INSERT });
       }
       
-      // 3. Insertar saldos iniciales (TIPO_LINEA = 1)
-      const querySaldosIniciales = `
-        INSERT INTO ${conjunto}.REPCG_MAYOR  
-        (CUENTA, FECHA, SALDO_DEUDOR, SALDO_DEUDOR_DOLAR, SALDO_ACREEDOR, 
-         SALDO_ACREEDOR_DOLAR, ASIENTO, ORIGEN, FUENTE, REFERENCIA, TIPO_LINEA,  
-         CENTRO_COSTO, DESCRIPCION, ACEPTA, CONSECUTIVO, TIPO_ASIENTO, NIT, NIT_NOMBRE, USUARIO)
-        SELECT 
-          CUENTA, FECHA, SUM(DEBITO_LOCAL), SUM(DEBITO_DOLAR), SUM(CREDITO_LOCAL), SUM(CREDITO_DOLAR),
-          '' ASIENTO, '' ORIGEN, '' FUENTE, '' REFERENCIA, '1' TIPO_LINEA, '' CENTRO_COSTO, 
-          DESCRIPCION, ACEPTA, NULL CONSECUTIVO, NULL TIPO_ASIENTO, NULL NIT, NULL NIT_NOMBRE,  
-          '${usuario}' USUARIO    
-        FROM (    
-          SELECT 
-            SUBSTRING(M.CUENTA_CONTABLE, 1, 2) CUENTA, 
-            '${fechaInicio.toISOString().split('T')[0]}' FECHA,   
-            (CASE CC.SALDO_NORMAL WHEN 'D' THEN ISNULL(DEBITO_LOCAL, 0) - ISNULL(CREDITO_LOCAL, 0) ELSE 0 END) DEBITO_LOCAL, 
-            (CASE CC.SALDO_NORMAL WHEN 'D' THEN ISNULL(DEBITO_DOLAR, 0) - ISNULL(CREDITO_DOLAR, 0) ELSE 0 END) DEBITO_DOLAR,  
-            (CASE CC.SALDO_NORMAL WHEN 'A' THEN ISNULL(CREDITO_LOCAL, 0) - ISNULL(DEBITO_LOCAL, 0) ELSE 0 END) CREDITO_LOCAL,  
-            (CASE CC.SALDO_NORMAL WHEN 'A' THEN ISNULL(CREDITO_DOLAR, 0) - ISNULL(DEBITO_DOLAR, 0) ELSE 0 END) CREDITO_DOLAR, 
-            CC.DESCRIPCION DESCRIPCION,
-            CASE CC.ACEPTA_DATOS WHEN 'N' THEN 0 ELSE 1 END ACEPTA  
-          FROM (   	
-            SELECT 
-              M.CENTRO_COSTO, M.CUENTA_CONTABLE,  	
-              CASE WHEN M.SALDO_FISC_LOCAL > 0 THEN ABS(M.SALDO_FISC_LOCAL) ELSE 0 END DEBITO_LOCAL,  	
-              CASE WHEN M.SALDO_FISC_LOCAL < 0 THEN ABS(M.SALDO_FISC_LOCAL) ELSE 0 END CREDITO_LOCAL,  	
-              CASE WHEN M.SALDO_FISC_DOLAR > 0 THEN ABS(M.SALDO_FISC_DOLAR) ELSE 0 END DEBITO_DOLAR,  	
-              CASE WHEN M.SALDO_FISC_DOLAR < 0 THEN ABS(M.SALDO_FISC_DOLAR) ELSE 0 END CREDITO_DOLAR   	 
-            FROM ${conjunto}.SALDO M  
-            INNER JOIN ( 
-              SELECT M.CENTRO_COSTO, M.CUENTA_CONTABLE, MAX(M.FECHA) FECHA  
-              FROM ${conjunto}.SALDO M  	
-              WHERE M.FECHA <= '${periodoAnterior.toISOString().split('T')[0]}'  
-              GROUP BY M.CENTRO_COSTO, M.CUENTA_CONTABLE  
-            ) SMAX ON (M.CENTRO_COSTO = SMAX.CENTRO_COSTO AND M.CUENTA_CONTABLE = SMAX.CUENTA_CONTABLE AND M.FECHA = SMAX.FECHA)  
-            WHERE 1 = 1   
-            UNION ALL    	
-            SELECT 
-              M.CENTRO_COSTO, M.CUENTA_CONTABLE,  	
-              COALESCE(M.DEBITO_LOCAL, 0) DEBITO_LOCAL,  	
-              COALESCE(M.CREDITO_LOCAL, 0) CREDITO_LOCAL,  	
-              COALESCE(M.DEBITO_DOLAR, 0) DEBITO_DOLAR,  	
-              COALESCE(M.CREDITO_DOLAR, 0) CREDITO_DOLAR  	 
-            FROM ${conjunto}.ASIENTO_DE_DIARIO AM
-            INNER JOIN ${conjunto}.DIARIO M ON (AM.ASIENTO = M.ASIENTO) 
-            WHERE AM.FECHA <= '${periodoAnterior.toISOString().split('T')[0]}'                                      
-            AND CONTABILIDAD IN ('F', 'A')  
-          ) M  	
-          INNER JOIN ${conjunto}.CUENTA_CONTABLE CC  		
-          ON CC.CUENTA_CONTABLE = SUBSTRING(M.CUENTA_CONTABLE, 1, 2) + '.0.0.0.000'  
-        ) VISTA 
-        GROUP BY CUENTA, FECHA, DESCRIPCION, ACEPTA
-      `;
-      
-      await exactusSequelize.query(querySaldosIniciales, { type: QueryTypes.INSERT });
-      
-      // 4. Insertar movimientos del mayor (TIPO_LINEA = 2)
-      const queryMovimientosMayor = `
-        INSERT INTO ${conjunto}.REPCG_MAYOR  
-        (CUENTA, FECHA, ASIENTO, ORIGEN, FUENTE, REFERENCIA, TIPO_LINEA, 
-         DEBITO_LOCAL, DEBITO_DOLAR, CREDITO_LOCAL, CREDITO_DOLAR, 
-         CENTRO_COSTO, DESCRIPCION, ACEPTA, CONSECUTIVO, TIPO_ASIENTO, NIT, NIT_NOMBRE, TIPO, DOCUMENTO, USUARIO)   
-        SELECT 
-          SUBSTRING(M.CUENTA_CONTABLE, 1, 2), M.FECHA, M.ASIENTO, M.ORIGEN, M.FUENTE, M.REFERENCIA,  
-          '2' TIPO_LINEA, M.DEBITO_LOCAL, M.DEBITO_DOLAR, M.CREDITO_LOCAL, M.CREDITO_DOLAR, 
-          M.CENTRO_COSTO, CC.DESCRIPCION, 
-          CASE CC.ACEPTA_DATOS WHEN 'N' THEN 0 ELSE 1 END, M.CONSECUTIVO, M.TIPO_ASIENTO, M.NIT, N.RAZON_SOCIAL, 
-          CASE WHEN M.ORIGEN IN ('CP', 'CB', 'CC', 'FEE', 'PY', 'MT', 'IC') THEN SUBSTRING(M.FUENTE, 1, 3)  
-               WHEN M.ORIGEN = 'CJ' THEN SUBSTRING(M.FUENTE, 1, 3) ELSE '' END,  
-          CASE WHEN M.ORIGEN IN ('CP', 'CB', 'CC', 'FEE', 'IC') THEN SUBSTRING(M.FUENTE, 4, 40)	 
-               WHEN M.ORIGEN = 'CJ' THEN SUBSTRING(M.FUENTE, 4, 40) ELSE '' END, 
-          '${usuario}'                
-        FROM ${conjunto}.MAYOR M   
-        INNER JOIN ${conjunto}.CUENTA_CONTABLE CC  		
-        ON CC.CUENTA_CONTABLE = SUBSTRING(M.CUENTA_CONTABLE, 1, 2) + '.0.0.0.000'  	
-        INNER JOIN ${conjunto}.NIT N ON M.NIT = N.NIT  	   
-        WHERE M.CONTABILIDAD IN ('A','F') 
-        AND M.FECHA >= '${fechaInicio.toISOString().split('T')[0]}'                        
-        AND M.FECHA <= '${fechaFin.toISOString().split('T')[0]}'                      
-        AND M.CLASE_ASIENTO != 'C'
-      `;
-      
-      await exactusSequelize.query(queryMovimientosMayor, { type: QueryTypes.INSERT });
-      
-      // 5. Insertar movimientos del diario (TIPO_LINEA = 2)
-      const queryMovimientosDiario = `
-        INSERT INTO ${conjunto}.REPCG_MAYOR  
-        (CUENTA, FECHA, ASIENTO, ORIGEN, FUENTE, REFERENCIA, TIPO_LINEA, 
-         DEBITO_LOCAL, DEBITO_DOLAR, CREDITO_LOCAL, CREDITO_DOLAR,  
-         CENTRO_COSTO, DESCRIPCION, ACEPTA, CONSECUTIVO, TIPO_ASIENTO, NIT, NIT_NOMBRE, TIPO, DOCUMENTO, USUARIO)    
-        SELECT 
-          SUBSTRING(M.CUENTA_CONTABLE, 1, 2), A.FECHA, M.ASIENTO, A.ORIGEN, M.FUENTE, M.REFERENCIA,  
-          '2' TIPO_LINEA, M.DEBITO_LOCAL, M.DEBITO_DOLAR, M.CREDITO_LOCAL, M.CREDITO_DOLAR,  
-          M.CENTRO_COSTO, CC.DESCRIPCION,  
-          CASE CC.ACEPTA_DATOS WHEN 'N' THEN 0 ELSE 1 END, M.CONSECUTIVO,  
-          A.TIPO_ASIENTO, M.NIT, N.RAZON_SOCIAL, 
-          CASE WHEN A.ORIGEN IN ('CP', 'CB', 'CC', 'FEE', 'PY', 'MT', 'IC') THEN SUBSTRING(M.FUENTE, 1, 3) 
-               WHEN A.ORIGEN = 'CJ' THEN SUBSTRING(M.FUENTE, 1, 3) ELSE '' END,  
-          CASE WHEN A.ORIGEN IN ('CP', 'CB', 'CC', 'FEE', 'IC') THEN SUBSTRING(M.FUENTE, 4, 40) 
-               WHEN A.ORIGEN = 'CJ' THEN SUBSTRING(M.FUENTE, 4, 40) ELSE '' END,  
-          '${usuario}'              
-        FROM ${conjunto}.DIARIO M   	
-        INNER JOIN ${conjunto}.ASIENTO_DE_DIARIO A ON M.ASIENTO = A.ASIENTO  	
-        INNER JOIN ${conjunto}.CUENTA_CONTABLE CC ON CC.CUENTA_CONTABLE = SUBSTRING(M.CUENTA_CONTABLE, 1, 2) + '.0.0.0.000'	
-        INNER JOIN ${conjunto}.NIT N ON M.NIT = N.NIT  	    	
-        WHERE A.CONTABILIDAD IN ('A','F') 
-        AND A.FECHA >= '${fechaInicio.toISOString().split('T')[0]}'                         
-        AND A.FECHA <= '${fechaFin.toISOString().split('T')[0]}'                       
-        AND A.CLASE_ASIENTO != 'C'
-      `;
-      
-      await exactusSequelize.query(queryMovimientosDiario, { type: QueryTypes.INSERT });
-      
-      // 6. Actualizar períodos contables
-      await this.actualizarPeriodosContables(conjunto, usuario);
-      
-      // 7. Insertar en tabla final de resultados
+      // 5. Insertar en tabla final de resultados
       const queryInsertarResultados = `
         INSERT INTO ${conjunto}.R_XML_8DDC3925E54E9CF (
           PERIODO_CONTABLE, CUENTA_CONTABLE, DESCRIPCION, ASIENTO, TIPO, DOCUMENTO, REFERENCIA,  
@@ -152,18 +116,37 @@ export class LibroMayorRepository implements ILibroMayorRepository {
           FECHA, NIT, NIT_NOMBRE, FUENTE, CONSECUTIVO, CORRELATIVO_ASIENTO, TIPO_LINEA
         )
         SELECT 
-          PERIODO_CONTABLE, CUENTA, DESCRIPCION, ASIENTO, TIPO, DOCUMENTO, REFERENCIA,  
-          COALESCE(DEBITO_LOCAL, 0), COALESCE(DEBITO_DOLAR, 0), COALESCE(CREDITO_LOCAL, 0), 
-          COALESCE(CREDITO_DOLAR, 0), COALESCE(SALDO_DEUDOR, 0), COALESCE(SALDO_DEUDOR_DOLAR, 0), 
-          COALESCE(SALDO_ACREEDOR, 0), COALESCE(SALDO_ACREEDOR_DOLAR, 0), CENTRO_COSTO, TIPO_ASIENTO, 
-          FECHA, NIT, NIT_NOMBRE, FUENTE, CONSECUTIVO, CORRELATIVO_ASIENTO, TIPO_LINEA  
-        FROM ${conjunto}.REPCG_MAYOR  
+          '${fechaInicio.getFullYear()}' as PERIODO_CONTABLE,
+          CUENTA_CONTABLE,
+          DESCRIPCION,
+          ASIENTO,
+          ORIGEN as TIPO,
+          '' as DOCUMENTO,
+          '' as REFERENCIA,
+          DEBITO_LOCAL,
+          DEBITO_DOLAR as DEBITO_DOLAR_MAYOR,
+          CREDITO_LOCAL,
+          CREDITO_DOLAR as CREDITO_DOLAR_MAYOR,
+          CASE WHEN SALDO_NORMAL = 'D' THEN DEBITO_LOCAL - CREDITO_LOCAL ELSE 0 END as SALDO_DEUDOR,
+          CASE WHEN SALDO_NORMAL = 'D' THEN DEBITO_DOLAR - CREDITO_DOLAR ELSE 0 END as SALDO_DEUDOR_DOLAR,
+          CASE WHEN SALDO_NORMAL = 'A' THEN CREDITO_LOCAL - DEBITO_LOCAL ELSE 0 END as SALDO_ACREEDOR,
+          CASE WHEN SALDO_NORMAL = 'A' THEN CREDITO_DOLAR - DEBITO_DOLAR ELSE 0 END as SALDO_ACREEDOR_DOLAR,
+          CENTRO_COSTO,
+          '' as TIPO_ASIENTO,
+          FECHA,
+          '' as NIT,
+          '' as NIT_NOMBRE,
+          '' as FUENTE,
+          0 as CONSECUTIVO,
+          0 as CORRELATIVO_ASIENTO,
+          TIPO_LINEA
+        FROM ${conjunto}.REPCG_MAYOR
         WHERE USUARIO = '${usuario}'
       `;
       
       await exactusSequelize.query(queryInsertarResultados, { type: QueryTypes.INSERT });
       
-      console.log('Reporte libro mayor generado exitosamente');
+      console.log('Reporte libro mayor generado exitosamente usando queries optimizadas');
       
     } catch (error) {
       console.error('Error al generar reporte libro mayor:', error);
@@ -524,6 +507,26 @@ export class LibroMayorRepository implements ILibroMayorRepository {
     } catch (error) {
       console.error('Error al generar Excel del libro mayor:', error);
       throw new Error(`Error al generar archivo Excel: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    }
+  }
+
+  /**
+   * Obtiene las cuentas contables para el filtro
+   */
+  async obtenerCuentasContables(conjunto: string): Promise<any[]> {
+    try {
+      const query = `
+        SELECT cuenta_contable 
+        FROM ${conjunto}.cuenta_contable
+        ORDER BY cuenta_contable
+      `;
+      
+      const resultado = await exactusSequelize.query(query, { type: QueryTypes.SELECT });
+      return resultado as any[];
+      
+    } catch (error) {
+      console.error('Error al obtener cuentas contables:', error);
+      return [];
     }
   }
 
