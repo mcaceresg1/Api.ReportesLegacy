@@ -27,6 +27,7 @@ import { createReporteMovimientosContablesRoutes } from './infrastructure/routes
 import { createReporteMovimientosContablesAgrupadosRoutes } from './infrastructure/routes/ReporteMovimientosContablesAgrupadosRoutes';
 import { createReporteCatalogoCuentasModificadasRoutes } from './infrastructure/routes/ReporteCatalogoCuentasModificadasRoutes';
 import libroMayorRoutes from './infrastructure/routes/libroMayor.routes';
+
 import { createDiarioContabilidadRoutes } from './infrastructure/routes/diarioContabilidad.routes';
 import { createPlanContableRoutes } from './infrastructure/routes/planContable.routes';
 import { createPeriodoContableRoutes } from './infrastructure/routes/periodoContable.routes';
@@ -92,14 +93,7 @@ console.log('🔧 Registrando handlers manualmente...');
 const commandBus = cqrsService.getCommandBus();
 const queryBus = cqrsService.getQueryBus();
 
-// Libro Mayor Handlers
-const generarReporteLibroMayorHandler = container.get('GenerarReporteLibroMayorHandler') as any;
-const obtenerLibroMayorHandler = container.get('ObtenerLibroMayorHandler') as any;
-const exportarLibroMayorExcelHandler = container.get('ExportarLibroMayorExcelHandler') as any;
 
-commandBus.register('GenerarReporteLibroMayorCommand', generarReporteLibroMayorHandler);
-queryBus.register('ObtenerLibroMayorQuery', obtenerLibroMayorHandler);
-queryBus.register('ExportarLibroMayorExcelQuery', exportarLibroMayorExcelHandler);
 
 // Diario Contabilidad Handlers
 const generarReporteDiarioContabilidadHandler = container.get('GenerarReporteDiarioContabilidadHandler') as any;
@@ -197,8 +191,9 @@ app.use('/api/permisos', authMiddleware.verifyToken, permisoRoutes.getRouter());
   app.use('/api/reporte-movimientos-contables', QueryOptimizationMiddleware.validateQueryParams, reporteMovimientosContablesRoutes);
   app.use('/api/reporte-movimientos-contables-agrupados', QueryOptimizationMiddleware.validateQueryParams, reporteMovimientosContablesAgrupadosRoutes);
   app.use('/api/reporte-catalogo-cuentas-modificadas', QueryOptimizationMiddleware.validateQueryParams, reporteCatalogoCuentasModificadasRoutes);
-  app.use('/api/libro-mayor', QueryOptimizationMiddleware.validateQueryParams, libroMayorRoutes);
-  app.use('/api/diario-contabilidad', QueryOptimizationMiddleware.validateQueryParams, createDiarioContabilidadRoutes());
+app.use('/api/libro-mayor', QueryOptimizationMiddleware.validateQueryParams, libroMayorRoutes);
+    
+app.use('/api/diario-contabilidad', QueryOptimizationMiddleware.validateQueryParams, createDiarioContabilidadRoutes());
   app.use('/api/plan-contable', QueryOptimizationMiddleware.validateQueryParams, createPlanContableRoutes());
 app.use('/api/reporte-periodo-contable', QueryOptimizationMiddleware.validateQueryParams, createPeriodoContableRoutes());
 app.use('/api/movimiento-contable-agrupado', QueryOptimizationMiddleware.validateQueryParams, createMovimientoContableAgrupadoRoutes());
@@ -830,3 +825,5 @@ app.use('*', (req, res) => {
 // Endpoint original modificado para incluir paginación
 
 export default app; 
+
+
