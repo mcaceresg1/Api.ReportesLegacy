@@ -140,7 +140,7 @@ export class LibroMayorRepository implements ILibroMayorRepository {
           0 as CONSECUTIVO,
           0 as CORRELATIVO_ASIENTO,
           TIPO_LINEA
-        FROM ${conjunto}.REPCG_MAYOR
+        FROM ${conjunto}.REPCG_MAYOR  
         WHERE USUARIO = '${usuario}'
       `;
       
