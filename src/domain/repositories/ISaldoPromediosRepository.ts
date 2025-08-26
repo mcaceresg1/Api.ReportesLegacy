@@ -1,9 +1,7 @@
-import { SaldoPromediosItem, FiltroSaldoPromedios, CuentaContableOption } from '../entities/SaldoPromedios';
+import { CuentaContableOption, FiltroSaldoPromedios, SaldoPromediosItem } from '../entities/SaldoPromedios';
 
 export interface ISaldoPromediosRepository {
   obtenerCuentasContables(conjunto: string): Promise<CuentaContableOption[]>;
-  generarReporte(filtros: FiltroSaldoPromedios): Promise<SaldoPromediosItem[]>;
-  generarReportePaginado(filtros: FiltroSaldoPromedios, page?: number, limit?: number): Promise<SaldoPromediosItem[]>;
-  obtenerReporte(filtros: FiltroSaldoPromedios, pagina?: number, limite?: number): Promise<{ data: SaldoPromediosItem[], total: number }>;
-  limpiarDatos(): Promise<boolean>;
+  generarReportePaginado(filtros: FiltroSaldoPromedios, page: number, limit: number): Promise<SaldoPromediosItem[]>;
+  obtenerTotalRegistros(filtros: FiltroSaldoPromedios): Promise<number>;
 }

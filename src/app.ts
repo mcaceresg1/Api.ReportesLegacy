@@ -156,30 +156,6 @@ app.get('/api/reporte-libro-mayor-test', (req, res) => {
   });
 });
 
-// Endpoint de prueba para saldos promedios
-app.get('/api/saldo-promedios-test', (req, res) => {
-  res.json({ 
-    message: 'Endpoint de saldos promedios funcionando',
-    timestamp: new Date().toISOString(),
-    status: 'OK',
-    params: req.params,
-    query: req.query
-  });
-});
-
-// Endpoint de prueba para verificar la ruta específica
-app.get('/api/saldo-promedios/:conjunto/test', (req, res) => {
-  const { conjunto } = req.params;
-  res.json({ 
-    message: 'Endpoint de saldos promedios para conjunto funcionando',
-    conjunto: conjunto,
-    timestamp: new Date().toISOString(),
-    status: 'OK',
-    params: req.params,
-    query: req.query
-  });
-});
-
 // Endpoint de health check
 app.get('/health', (req, res) => {
   res.json({ 

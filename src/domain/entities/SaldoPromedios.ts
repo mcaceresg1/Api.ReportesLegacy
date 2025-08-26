@@ -1,9 +1,24 @@
+// Entidades para Saldo Promedios basadas en las queries SQL proporcionadas
+
+export interface CuentaContableOption {
+  cuenta_contable: string;
+  descripcion: string;
+  descripcion_ifrs: string | null;
+  Uso_restringido: string;
+}
+
+export interface FiltroSaldoPromedios {
+  conjunto: string;
+  cuenta_contable_desde?: string;
+  cuenta_contable_hasta?: string;
+  fecha_desde: string;
+  fecha_hasta: string;
+  saldosAntesCierre?: boolean;
+}
+
 export interface SaldoPromediosItem {
   centro_costo: string;
   cuenta_contable: string;
-  descripcion?: string;
-  descripcion_ifrs?: string;
-  uso_restringido?: string;
   saldo_inicial_local: number;
   saldo_inicial_dolar: number;
   saldo_inicial_corp_local: number;
@@ -34,33 +49,4 @@ export interface SaldoPromediosItem {
   saldo_promedio_corp_dolar: number;
   saldo_promedio_fisc_und: number;
   saldo_promedio_corp_und: number;
-}
-
-export interface FiltroSaldoPromedios {
-  conjunto: string;
-  cuenta_contable_desde?: string;
-  cuenta_contable_hasta?: string;
-  fecha_desde: string;
-  fecha_hasta: string;
-  saldosAntesCierre?: boolean;
-}
-
-export interface CuentaContableOption {
-  cuenta_contable: string;
-  descripcion: string;
-  descripcion_ifrs?: string;
-  uso_restringido?: string;
-}
-
-export interface SaldoPromediosResponse {
-  success: boolean;
-  data: SaldoPromediosItem[];
-  total: number;
-  message?: string;
-}
-
-export interface CuentaContableResponse {
-  success: boolean;
-  data: CuentaContableOption[];
-  message?: string;
 }
