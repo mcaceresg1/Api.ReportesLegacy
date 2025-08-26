@@ -38,16 +38,15 @@ export class LibroMayorRepository implements ILibroMayorRepository {
           WHERE may.fecha >= @fechaDesde 
             AND may.fecha <= @fechaHasta
             AND may.contabilidad IN ('F', 'A')
-            AND cta.tipo_detallado IN ('A','P','T','I','G','O')
-      `;
+            AND cta.tipo_detallado IN ('A','P','T','I','G','O')`;
 
       // Agregar filtros de cuenta contable solo si están presentes
       if (cuentaContableDesde) {
-        query += `\n            AND may.cuenta_contable >= @cuentaContableDesde`;
+        query += ` AND may.cuenta_contable >= @cuentaContableDesde`;
       }
       
       if (cuentaContableHasta) {
-        query += `\n            AND may.cuenta_contable <= @cuentaContableHasta`;
+        query += ` AND may.cuenta_contable <= @cuentaContableHasta`;
       }
 
       query += `
@@ -142,15 +141,14 @@ export class LibroMayorRepository implements ILibroMayorRepository {
           WHERE may.fecha >= @fechaDesde 
             AND may.fecha <= @fechaHasta
             AND may.contabilidad IN ('F', 'A')
-            AND cta.tipo_detallado IN ('A','P','T','I','G','O')
-      `;
+            AND cta.tipo_detallado IN ('A','P','T','I','G','O')`;
 
       if (cuentaContableDesde) {
-        countQuery += `\n            AND may.cuenta_contable >= @cuentaContableDesde`;
+        countQuery += ` AND may.cuenta_contable >= @cuentaContableDesde`;
       }
       
       if (cuentaContableHasta) {
-        countQuery += `\n            AND may.cuenta_contable <= @cuentaContableHasta`;
+        countQuery += ` AND may.cuenta_contable <= @cuentaContableHasta`;
       }
 
       countQuery += `
