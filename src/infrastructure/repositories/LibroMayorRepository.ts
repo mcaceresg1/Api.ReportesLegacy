@@ -10,7 +10,11 @@ export class LibroMayorRepository implements ILibroMayorRepository {
   
   async generarReporte(filtros: LibroMayorFiltros): Promise<LibroMayorResponse> {
     try {
+      console.log('🔍 Iniciando generarReporte LibroMayor con filtros:', JSON.stringify(filtros, null, 2));
+      
       const { conjunto, usuario, fechaDesde, fechaHasta, cuentaContableDesde, cuentaContableHasta, saldoAntesCierre, page = 1, limit = 25 } = filtros;
+      
+      console.log('📊 Parámetros extraídos:', { conjunto, usuario, fechaDesde, fechaHasta, cuentaContableDesde, cuentaContableHasta, saldoAntesCierre, page, limit });
       
       // Query principal basada en las queries SQL proporcionadas
       const query = `
@@ -98,11 +102,17 @@ export class LibroMayorRepository implements ILibroMayorRepository {
 
       if (cuentaContableDesde) replacements.cuentaContableDesde = cuentaContableDesde;
       if (cuentaContableHasta) replacements.cuentaContableHasta = cuentaContableHasta;
+      
+      console.log('🔧 Query SQL generado:', query);
+      console.log('🔧 Replacements:', JSON.stringify(replacements, null, 2));
+      console.log('🔧 Conjunto:', conjunto);
 
+      console.log('📡 Ejecutando query principal...');
       const data = await exactusSequelize.query(query, {
         type: QueryTypes.SELECT,
         replacements
       });
+      console.log('✅ Query principal ejecutado exitosamente. Registros obtenidos:', data.length);
 
       // Query para obtener el total
       const countQuery = `
@@ -143,6 +153,7 @@ export class LibroMayorRepository implements ILibroMayorRepository {
         ) as totalData
       `;
 
+      console.log('📡 Ejecutando query de conteo...');
       const totalResult = await exactusSequelize.query(countQuery, {
         type: QueryTypes.SELECT,
         replacements: {
@@ -152,11 +163,14 @@ export class LibroMayorRepository implements ILibroMayorRepository {
           cuentaContableHasta: cuentaContableHasta || ''
         }
       });
+      console.log('✅ Query de conteo ejecutado exitosamente. Resultado:', totalResult);
 
       const total = (totalResult[0] as any).total;
       const totalPages = Math.ceil(total / limit);
+      
+      console.log('📊 Cálculos finales:', { total, totalPages, page, limit });
 
-      return {
+      const response = {
         success: true,
         message: 'Reporte generado exitosamente',
         data: data as LibroMayor[],
@@ -165,10 +179,20 @@ export class LibroMayorRepository implements ILibroMayorRepository {
         limit,
         totalPages
       };
+      
+      console.log('🎉 Respuesta final generada:', { success: response.success, total: response.total, dataLength: response.data.length });
+      return response;
 
     } catch (error) {
-      console.error('Error en generarReporte LibroMayor:', error);
-      throw new Error(`Error al generar reporte de Libro Mayor: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+      console.error('❌ Error en generarReporte LibroMayor:', error);
+      console.error('❌ Stack trace:', error instanceof Error ? error.stack : 'No stack trace available');
+      console.error('❌ Error type:', typeof error);
+      console.error('❌ Error constructor:', error?.constructor?.name);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      console.error('❌ Error message:', errorMessage);
+      
+      throw new Error(`Error al generar reporte de Libro Mayor: ${errorMessage}`);
     }
   }
 
