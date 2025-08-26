@@ -1,9 +1,13 @@
 import { Request, Response } from 'express';
+import { inject } from 'inversify';
+import { TYPES } from '../container/types';
 import { ISaldoPromediosService } from '../../domain/services/ISaldoPromediosService';
 import { FiltroSaldoPromedios } from '../../domain/entities/SaldoPromedios';
 
 export class SaldoPromediosController {
-  constructor(private saldoPromediosService: ISaldoPromediosService) {}
+  constructor(
+    @inject(TYPES.ISaldoPromediosService) private saldoPromediosService: ISaldoPromediosService
+  ) {}
 
   async obtenerCuentasContables(req: Request, res: Response): Promise<void> {
     try {
