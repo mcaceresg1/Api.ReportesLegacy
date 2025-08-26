@@ -16,25 +16,8 @@ export class LibroMayorRepository implements ILibroMayorRepository {
       
       console.log('📊 Parámetros extraídos:', { conjunto, usuario, fechaDesde, fechaHasta, cuentaContableDesde, cuentaContableHasta, saldoAntesCierre, page, limit });
       
-      // Construir la consulta dinámicamente basada en los filtros disponibles
-      let whereClause = `
-        WHERE may.fecha >= @fechaDesde 
-          AND may.fecha <= @fechaHasta
-          AND may.contabilidad IN ('F', 'A')
-      `;
-      
-      if (cuentaContableDesde) {
-        whereClause += ` AND may.cuenta_contable >= @cuentaContableDesde`;
-      }
-      
-      if (cuentaContableHasta) {
-        whereClause += ` AND may.cuenta_contable <= @cuentaContableHasta`;
-      }
-      
-      whereClause += ` AND cta.tipo_detallado IN ('A','P','T','I','G','O')`;
-      
-      // Query principal basada en las queries SQL proporcionadas
-      const query = `
+      // Construir la consulta de manera más simple y segura
+      let query = `
         WITH LibroMayorData AS (
           SELECT 
             may.cuenta_contable as cuentaContable,
@@ -52,7 +35,22 @@ export class LibroMayorRepository implements ILibroMayorRepository {
           FROM ${conjunto}.mayor may
           JOIN ${conjunto}.asiento_mayorizado am ON may.ASIENTO = am.ASIENTO
           JOIN ${conjunto}.cuenta_contable cta ON may.cuenta_contable = cta.cuenta_contable
-          ${whereClause}
+          WHERE may.fecha >= @fechaDesde 
+            AND may.fecha <= @fechaHasta
+            AND may.contabilidad IN ('F', 'A')
+            AND cta.tipo_detallado IN ('A','P','T','I','G','O')
+      `;
+
+      // Agregar filtros de cuenta contable solo si están presentes
+      if (cuentaContableDesde) {
+        query += ` AND may.cuenta_contable >= @cuentaContableDesde`;
+      }
+      
+      if (cuentaContableHasta) {
+        query += ` AND may.cuenta_contable <= @cuentaContableHasta`;
+      }
+
+      query += `
           GROUP BY may.centro_costo, cta.acepta_datos, cta.SALDO_NORMAL, 
                    CONVERT(VARCHAR(10), may.FECHA, 23), am.fecha_creacion, may.cuenta_contable
           
@@ -132,24 +130,8 @@ export class LibroMayorRepository implements ILibroMayorRepository {
       });
       console.log('✅ Query principal ejecutado exitosamente. Registros obtenidos:', data.length);
 
-      // Query para obtener el total - también construido dinámicamente
-      let countWhereClause = `
-        WHERE may.fecha >= @fechaDesde 
-          AND may.fecha <= @fechaHasta
-          AND may.contabilidad IN ('F', 'A')
-      `;
-      
-      if (cuentaContableDesde) {
-        countWhereClause += ` AND may.cuenta_contable >= @cuentaContableDesde`;
-      }
-      
-      if (cuentaContableHasta) {
-        countWhereClause += ` AND may.cuenta_contable <= @cuentaContableHasta`;
-      }
-      
-      countWhereClause += ` AND cta.tipo_detallado IN ('A','P','T','I','G','O')`;
-
-      const countQuery = `
+      // Query para obtener el total - también construido de manera simple
+      let countQuery = `
         SELECT COUNT(*) as total
         FROM (
           SELECT 
@@ -157,7 +139,21 @@ export class LibroMayorRepository implements ILibroMayorRepository {
           FROM ${conjunto}.mayor may
           JOIN ${conjunto}.asiento_mayorizado am ON may.ASIENTO = am.ASIENTO
           JOIN ${conjunto}.cuenta_contable cta ON may.cuenta_contable = cta.cuenta_contable
-          ${countWhereClause}
+          WHERE may.fecha >= @fechaDesde 
+            AND may.fecha <= @fechaHasta
+            AND may.contabilidad IN ('F', 'A')
+            AND cta.tipo_detallado IN ('A','P','T','I','G','O')
+      `;
+
+      if (cuentaContableDesde) {
+        countQuery += ` AND may.cuenta_contable >= @cuentaContableDesde`;
+      }
+      
+      if (cuentaContableHasta) {
+        countQuery += ` AND may.cuenta_contable <= @cuentaContableHasta`;
+      }
+
+      countQuery += `
           GROUP BY may.centro_costo, cta.acepta_datos, cta.SALDO_NORMAL, 
                    CONVERT(VARCHAR(10), may.FECHA, 23), am.fecha_creacion, may.cuenta_contable
           
