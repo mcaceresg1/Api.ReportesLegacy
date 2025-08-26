@@ -169,103 +169,324 @@ const swaggerOptions = {
             'createDate'
           ]
         },
-        LibroMayor: {
+        ReporteLibroMayorItem: {
           type: 'object',
           properties: {
+            saldoAcreedorDolar: {
+              type: 'number',
+              format: 'double',
+              description: 'Saldo acreedor en dólares'
+            },
+            creditoDolarMayor: {
+              type: 'number',
+              format: 'double',
+              description: 'Crédito en dólares del mayor'
+            },
+            saldoDeudorDolar: {
+              type: 'number',
+              format: 'double',
+              description: 'Saldo deudor en dólares'
+            },
+            debitoDolarMayor: {
+              type: 'number',
+              format: 'double',
+              description: 'Débito en dólares del mayor'
+            },
             cuentaContable: {
               type: 'string',
               description: 'Código de la cuenta contable'
-            },
-            centroCosto: {
-              type: 'string',
-              description: 'Código del centro de costo'
             },
             descripcion: {
               type: 'string',
               description: 'Descripción de la cuenta'
             },
-            saldoNormal: {
-              type: 'string',
-              description: 'Saldo normal de la cuenta'
-            },
-            fecha: {
-              type: 'string',
-              description: 'Fecha del movimiento'
-            },
-            fechaCreacion: {
-              type: 'string',
-              description: 'Fecha de creación del asiento'
-            },
-            tipo: {
-              type: 'string',
-              description: 'Tipo de registro'
-            },
-            debitoLocal: {
+            saldoAcreedor: {
               type: 'number',
               format: 'double',
-              description: 'Débito en moneda local'
+              description: 'Saldo acreedor en moneda local'
+            },
+            saldoDeudor: {
+              type: 'number',
+              format: 'double',
+              description: 'Saldo deudor en moneda local'
+            },
+            creditoDolar: {
+              type: 'number',
+              format: 'double',
+              description: 'Crédito en dólares'
             },
             creditoLocal: {
               type: 'number',
               format: 'double',
               description: 'Crédito en moneda local'
             },
-            saldoInicialLocal: {
+            debitoDolar: {
               type: 'number',
               format: 'double',
-              description: 'Saldo inicial en moneda local'
+              description: 'Débito en dólares'
             },
-            saldoFinalLocal: {
+            debitoLocal: {
               type: 'number',
               format: 'double',
-              description: 'Saldo final en moneda local'
+              description: 'Débito en moneda local'
+            },
+            asiento: {
+              type: 'string',
+              description: 'Número de asiento'
+            },
+            consecutivo: {
+              type: 'integer',
+              description: 'Consecutivo del asiento'
+            },
+            correlativoAsiento: {
+              type: 'string',
+              description: 'Correlativo del asiento'
+            },
+            centroCosto: {
+              type: 'string',
+              description: 'Código del centro de costo'
+            },
+            tipoAsiento: {
+              type: 'string',
+              description: 'Tipo de asiento'
+            },
+            referencia: {
+              type: 'string',
+              description: 'Referencia del asiento'
+            },
+            documento: {
+              type: 'string',
+              description: 'Documento de referencia'
+            },
+            nit: {
+              type: 'string',
+              description: 'NIT del tercero'
+            },
+            nitNombre: {
+              type: 'string',
+              description: 'Nombre del tercero'
+            },
+            origen: {
+              type: 'string',
+              description: 'Origen del asiento'
+            },
+            fuente: {
+              type: 'string',
+              description: 'Fuente del asiento'
+            },
+            periodoContable: {
+              type: 'string',
+              description: 'Período contable'
+            },
+            usuario: {
+              type: 'string',
+              description: 'Usuario que creó el asiento'
+            },
+            tipoLinea: {
+              type: 'integer',
+              description: 'Tipo de línea (1=Saldo Inicial, 2=Movimiento)'
+            },
+            fecha: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Fecha del movimiento'
+            },
+            acepta: {
+              type: 'boolean',
+              description: 'Indica si el asiento es aceptado'
+            },
+            tipo: {
+              type: 'string',
+              description: 'Tipo de registro'
             }
           },
           required: [
             'cuentaContable',
-            'centroCosto',
             'descripcion',
-            'saldoNormal',
-            'fecha',
-            'fechaCreacion',
-            'tipo',
-            'debitoLocal',
-            'creditoLocal',
-            'saldoInicialLocal',
-            'saldoFinalLocal'
+            'centroCosto',
+            'tipoAsiento',
+            'usuario',
+            'tipoLinea',
+            'fecha'
           ]
         },
-        LibroMayorResponse: {
+        FiltrosReporteLibroMayor: {
           type: 'object',
           properties: {
-            success: {
-              type: 'boolean',
-              description: 'Indica si la operación fue exitosa'
-            },
-            message: {
+            usuario: {
               type: 'string',
-              description: 'Mensaje de respuesta'
+              description: 'Usuario que solicita el reporte'
             },
-            data: {
+            fechaInicio: {
+              type: 'string',
+              format: 'date',
+              description: 'Fecha de inicio del reporte'
+            },
+            fechaFin: {
+              type: 'string',
+              format: 'date',
+              description: 'Fecha de fin del reporte'
+            },
+            contabilidad: {
+              type: 'string',
+              enum: ['F', 'A', 'T'],
+              description: 'Tipo de contabilidad (F=Fiscal, A=Administrativa, T=Todas)'
+            },
+            cuentasContables: {
               type: 'array',
-              items: { $ref: '#/components/schemas/LibroMayor' },
-              description: 'Lista de registros del Libro Mayor'
+              items: { type: 'string' },
+              description: 'Lista de cuentas contables a incluir'
             },
-            total: {
-              type: 'integer',
-              description: 'Total de registros'
+            centrosCosto: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Lista de centros de costo a incluir'
             },
-            page: {
-              type: 'integer',
-              description: 'Página actual'
+            incluirSaldosIniciales: {
+              type: 'boolean',
+              description: 'Incluir saldos iniciales'
             },
-            limit: {
-              type: 'integer',
-              description: 'Registros por página'
+            incluirMovimientos: {
+              type: 'boolean',
+              description: 'Incluir movimientos'
             },
-            totalPages: {
+            agruparPor: {
+              type: 'string',
+              enum: ['NINGUNO', 'CUENTA', 'CENTRO_COSTO', 'TIPO_ASIENTO', 'CLASE_ASIENTO', 'FECHA', 'USUARIO', 'PERIODO_CONTABLE'],
+              description: 'Criterio de agrupación'
+            },
+            ordenarPor: {
+              type: 'string',
+              enum: ['FECHA', 'CUENTA', 'CENTRO_COSTO', 'TIPO_ASIENTO', 'CLASE_ASIENTO', 'USUARIO', 'VALOR', 'PERIODO_CONTABLE'],
+              description: 'Campo por el cual ordenar'
+            },
+            orden: {
+              type: 'string',
+              enum: ['ASC', 'DESC'],
+              description: 'Dirección del ordenamiento'
+            },
+            maximoRegistros: {
               type: 'integer',
-              description: 'Total de páginas'
+              description: 'Número máximo de registros a retornar'
+            }
+          },
+          required: ['usuario', 'fechaInicio', 'fechaFin']
+        },
+        ResumenLibroMayor: {
+          type: 'object',
+          properties: {
+            totalCuentas: {
+              type: 'integer',
+              description: 'Total de cuentas contables'
+            },
+            totalCentrosCosto: {
+              type: 'integer',
+              description: 'Total de centros de costo'
+            },
+            totalAsientos: {
+              type: 'integer',
+              description: 'Total de asientos'
+            },
+            totalMovimientos: {
+              type: 'integer',
+              description: 'Total de movimientos'
+            },
+            saldoTotalDeudor: {
+              type: 'number',
+              format: 'double',
+              description: 'Saldo total deudor'
+            },
+            saldoTotalAcreedor: {
+              type: 'number',
+              format: 'double',
+              description: 'Saldo total acreedor'
+            },
+            saldoTotalDeudorDolar: {
+              type: 'number',
+              format: 'double',
+              description: 'Saldo total deudor en dólares'
+            },
+            saldoTotalAcreedorDolar: {
+              type: 'number',
+              format: 'double',
+              description: 'Saldo total acreedor en dólares'
+            },
+            totalDebito: {
+              type: 'number',
+              format: 'double',
+              description: 'Total de débitos'
+            },
+            totalCredito: {
+              type: 'number',
+              format: 'double',
+              description: 'Total de créditos'
+            },
+            totalDebitoDolar: {
+              type: 'number',
+              format: 'double',
+              description: 'Total de débitos en dólares'
+            },
+            totalCreditoDolar: {
+              type: 'number',
+              format: 'double',
+              description: 'Total de créditos en dólares'
+            },
+            periodoContableInicio: {
+              type: 'string',
+              description: 'Inicio del período contable'
+            },
+            periodoContableFin: {
+              type: 'string',
+              description: 'Fin del período contable'
+            },
+            fechaGeneracion: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Fecha de generación del reporte'
+            },
+            usuarioGeneracion: {
+              type: 'string',
+              description: 'Usuario que generó el reporte'
+            }
+          }
+        },
+        ReporteLibroMayorResponse: {
+          type: 'object',
+          properties: {
+            items: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/ReporteLibroMayorItem' },
+              description: 'Lista de items del reporte'
+            },
+            resumen: {
+              $ref: '#/components/schemas/ResumenLibroMayor',
+              description: 'Resumen del reporte'
+            },
+            filtrosAplicados: {
+              $ref: '#/components/schemas/FiltrosReporteLibroMayor',
+              description: 'Filtros aplicados al reporte'
+            },
+            metadata: {
+              type: 'object',
+              properties: {
+                totalRegistros: {
+                  type: 'integer',
+                  description: 'Total de registros'
+                },
+                tiempoProcesamiento: {
+                  type: 'integer',
+                  description: 'Tiempo de procesamiento en milisegundos'
+                },
+                fechaGeneracion: {
+                  type: 'string',
+                  format: 'date-time',
+                  description: 'Fecha de generación'
+                },
+                version: {
+                  type: 'string',
+                  description: 'Versión del reporte'
+                }
+              }
             }
           }
         }

@@ -1,35 +1,66 @@
 export interface LibroMayor {
-  cuentaContable: string;
-  centroCosto: string;
-  descripcion: string;
-  saldoNormal: string;
-  fecha: string;
-  fechaCreacion: string;
-  tipo: string;
-  debitoLocal: number;
-  creditoLocal: number;
-  saldoInicialLocal: number;
-  saldoFinalLocal: number;
+  // Campos principales del libro mayor
+  CUENTA_CONTABLE: string;
+  DESCRIPCION: string;
+  ASIENTO: string;
+  TIPO: string;
+  DOCUMENTO: string;
+  REFERENCIA: string;
+  
+  // Saldos y movimientos en moneda local
+  SALDO_DEUDOR: number;
+  SALDO_ACREEDOR: number;
+  DEBITO_LOCAL: number;
+  CREDITO_LOCAL: number;
+  
+  // Saldos y movimientos en dólares
+  SALDO_DEUDOR_DOLAR: number;
+  SALDO_ACREEDOR_DOLAR: number;
+  DEBITO_DOLAR: number;
+  CREDITO_DOLAR: number;
+  DEBITO_DOLAR_MAYOR: number;
+  CREDITO_DOLAR_MAYOR: number;
+  
+  // Información del centro de costo
+  CENTRO_COSTO: string;
+  
+  // Información del asiento
+  TIPO_ASIENTO: string;
+  FECHA: Date;
+  CONSECUTIVO: number;
+  CORRELATIVO_ASIENTO: string;
+  TIPO_LINEA: number;
+  
+  // Información del NIT
+  NIT: string;
+  NIT_NOMBRE: string;
+  
+  // Información adicional
+  FUENTE: string;
+  PERIODO_CONTABLE?: Date;
+  USUARIO?: string;
+  
+  // Campo de ordenamiento
+  ROW_ORDER_BY?: number;
 }
 
 export interface LibroMayorFiltros {
   conjunto: string;
   usuario: string;
-  fechaDesde: string;
-  fechaHasta: string;
-  cuentaContableDesde?: string;
-  cuentaContableHasta?: string;
-  saldoAntesCierre?: boolean;
-  page?: number;
+  fechaInicio: Date;
+  fechaFin: Date;
+  cuentaContable?: string;
+  centroCosto?: string;
+  nit?: string;
+  tipoAsiento?: string;
   limit?: number;
+  offset?: number;
 }
 
 export interface LibroMayorResponse {
-  success: boolean;
-  message: string;
   data: LibroMayor[];
   total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+  pagina: number;
+  porPagina: number;
+  totalPaginas: number;
 }
