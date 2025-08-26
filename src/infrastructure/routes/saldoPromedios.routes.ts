@@ -1,194 +1,23 @@
 import { Router } from 'express';
-import { SaldoPromediosController } from '../controllers/SaldoPromediosController';
 import { container } from '../container/container';
 import { TYPES } from '../container/types';
+import { SaldoPromediosController } from '../controllers/SaldoPromediosController';
 
 /**
- * @swagger
- * components:
- *   schemas:
- *     FiltroSaldoPromedios:
- *       type: object
- *       required:
- *         - fecha_desde
- *         - fecha_hasta
- *       properties:
- *         fecha_desde:
- *           type: string
- *           format: date
- *           description: Fecha de inicio del período
- *         fecha_hasta:
- *           type: string
- *           format: date
- *           description: Fecha de fin del período
- *         cuenta_contable_desde:
- *           type: string
- *           description: Cuenta contable desde (opcional)
- *         cuenta_contable_hasta:
- *           type: string
- *           description: Cuenta contable hasta (opcional)
- *         saldosAntesCierre:
- *           type: boolean
- *           description: Incluir saldos antes del cierre
- *         page:
- *           type: number
- *           description: Número de página (por defecto 1)
- *         limit:
- *           type: number
- *           description: Registros por página (por defecto 100)
- *     
- *     SaldoPromediosItem:
- *       type: object
- *       properties:
- *         centro_costo:
- *           type: string
- *           description: Centro de costo
- *         cuenta_contable:
- *           type: string
- *           description: Cuenta contable
- *         saldo_inicial_local:
- *           type: number
- *           description: Saldo inicial en moneda local
- *         saldo_inicial_dolar:
- *           type: number
- *           description: Saldo inicial en dólares
- *         saldo_inicial_corp_local:
- *           type: number
- *           description: Saldo inicial corporativo en moneda local
- *         saldo_inicial_corp_dolar:
- *           type: number
- *           description: Saldo inicial corporativo en dólares
- *         saldo_inicial_fisc_und:
- *           type: number
- *           description: Saldo inicial fiscal en unidades
- *         saldo_inicial_corp_und:
- *           type: number
- *           description: Saldo inicial corporativo en unidades
- *         debito_fisc_local:
- *           type: number
- *           description: Débito fiscal en moneda local
- *         credito_fisc_local:
- *           type: number
- *           description: Crédito fiscal en moneda local
- *         debito_fisc_dolar:
- *           type: number
- *           description: Débito fiscal en dólares
- *         credito_fisc_dolar:
- *           type: number
- *           description: Crédito fiscal en dólares
- *         debito_corp_local:
- *           type: number
- *           description: Débito corporativo en moneda local
- *         credito_corp_local:
- *           type: number
- *           description: Crédito corporativo en moneda local
- *         debito_corp_dolar:
- *           type: number
- *           description: Débito corporativo en dólares
- *         credito_corp_dolar:
- *           type: number
- *           description: Crédito corporativo en dólares
- *         debito_fisc_und:
- *           type: number
- *           description: Débito fiscal en unidades
- *         credito_fisc_und:
- *           type: number
- *           description: Crédito fiscal en unidades
- *         debito_corp_und:
- *           type: number
- *           description: Débito corporativo en unidades
- *         credito_corp_und:
- *           type: number
- *           description: Crédito corporativo en unidades
- *         saldo_final_local:
- *           type: number
- *           description: Saldo final en moneda local
- *         saldo_final_dolar:
- *           type: number
- *           description: Saldo final en dólares
- *         saldo_final_corp_local:
- *           type: number
- *           description: Saldo final corporativo en moneda local
- *         saldo_final_corp_dolar:
- *           type: number
- *           description: Saldo final corporativo en dólares
- *         saldo_final_fisc_und:
- *           type: number
- *           description: Saldo final fiscal en unidades
- *         saldo_final_corp_und:
- *           type: number
- *           description: Saldo final corporativo en unidades
- *         saldo_promedio_local:
- *           type: number
- *           description: Saldo promedio en moneda local
- *         saldo_promedio_dolar:
- *           type: number
- *           description: Saldo promedio en dólares
- *         saldo_promedio_corp_local:
- *           type: number
- *           description: Saldo promedio corporativo en moneda local
- *         saldo_promedio_corp_dolar:
- *           type: number
- *           description: Saldo promedio corporativo en dólares
- *         saldo_promedio_fisc_und:
- *           type: number
- *           description: Saldo promedio fiscal en unidades
- *         saldo_promedio_corp_und:
- *           type: number
- *           description: Saldo promedio corporativo en unidades
- *     
- *     CuentaContableOption:
- *       type: object
- *       properties:
- *         cuenta_contable:
- *           type: string
- *           description: Código de la cuenta contable
- *         descripcion:
- *           type: string
- *           description: Descripción de la cuenta
- *         descripcion_ifrs:
- *           type: string
- *           nullable: true
- *           description: Descripción IFRS de la cuenta
- *         Uso_restringido:
- *           type: string
- *           description: Indica si el uso está restringido
- *     
- *     PaginationInfo:
- *       type: object
- *       properties:
- *         page:
- *           type: number
- *           description: Página actual
- *         limit:
- *           type: number
- *           description: Registros por página
- *         total:
- *           type: number
- *           description: Total de registros disponibles
- *         totalPages:
- *           type: number
- *           description: Total de páginas
- *         hasNext:
- *           type: boolean
- *           description: Indica si hay página siguiente
- *         hasPrev:
- *           type: boolean
- *           description: Indica si hay página anterior
+ * Crea y configura las rutas para el módulo de Saldos Promedios
+ * @returns Router configurado con todas las rutas
  */
-
 export function createSaldoPromediosRoutes(): Router {
   const router = Router();
-  
-  // Obtener instancia del controlador desde el contenedor
-  const saldoPromediosController = container.get<SaldoPromediosController>('SaldoPromediosController');
+  const saldoPromediosController = container.get<SaldoPromediosController>(TYPES.SaldoPromediosController);
 
   /**
    * @swagger
    * /api/saldo-promedios/{conjunto}/cuentas-contables:
    *   get:
-   *     summary: Obtener cuentas contables para filtros
-   *     tags: [Saldo Promedios]
+   *     summary: Obtiene las cuentas contables disponibles para un conjunto
+   *     description: Retorna la lista de cuentas contables con sus descripciones para filtrar reportes
+   *     tags: [Saldos Promedios]
    *     parameters:
    *       - in: path
    *         name: conjunto
@@ -196,6 +25,7 @@ export function createSaldoPromediosRoutes(): Router {
    *         schema:
    *           type: string
    *         description: Código del conjunto contable
+   *         example: "ASFSAC"
    *     responses:
    *       200:
    *         description: Lista de cuentas contables obtenida exitosamente
@@ -206,14 +36,27 @@ export function createSaldoPromediosRoutes(): Router {
    *               properties:
    *                 success:
    *                   type: boolean
+   *                   example: true
    *                 data:
    *                   type: array
    *                   items:
-   *                     $ref: '#/components/schemas/CuentaContableOption'
-   *                 message:
-   *                   type: string
+   *                     type: object
+   *                     properties:
+   *                       cuenta_contable:
+   *                         type: string
+   *                         example: "01.0.0.0.000"
+   *                       descripcion:
+   *                         type: string
+   *                         example: "Clientes"
+   *                       descripcion_ifrs:
+   *                         type: string
+   *                         nullable: true
+   *                         example: "Clientes IFRS"
+   *                       Uso_restringido:
+   *                         type: string
+   *                         example: "N"
    *       400:
-   *         description: Parámetros inválidos
+   *         description: Error en los parámetros de la solicitud
    *       500:
    *         description: Error interno del servidor
    */
@@ -225,8 +68,9 @@ export function createSaldoPromediosRoutes(): Router {
    * @swagger
    * /api/saldo-promedios/{conjunto}/generar:
    *   post:
-   *     summary: Generar reporte de saldos promedios con paginación
-   *     tags: [Saldo Promedios]
+   *     summary: Genera reporte de saldos promedios con paginación
+   *     description: Genera un reporte detallado de saldos promedios para un conjunto específico con filtros y paginación
+   *     tags: [Saldos Promedios]
    *     parameters:
    *       - in: path
    *         name: conjunto
@@ -234,12 +78,42 @@ export function createSaldoPromediosRoutes(): Router {
    *         schema:
    *           type: string
    *         description: Código del conjunto contable
+   *         example: "ASFSAC"
    *     requestBody:
    *       required: true
    *       content:
    *         application/json:
    *           schema:
-   *             $ref: '#/components/schemas/FiltroSaldoPromedios'
+   *             type: object
+   *             required:
+   *               - fecha_desde
+   *               - fecha_hasta
+   *             properties:
+   *               fecha_desde:
+   *                 type: string
+   *                 format: date
+   *                 description: Fecha de inicio del período (YYYY-MM-DD)
+   *                 example: "2024-01-01"
+   *               fecha_hasta:
+   *                 type: string
+   *                 format: date
+   *                 description: Fecha de fin del período (YYYY-MM-DD)
+   *                 example: "2024-12-31"
+   *               saldosAntesCierre:
+   *                 type: boolean
+   *                 description: Indica si incluir saldos antes del cierre
+   *                 example: false
+   *               page:
+   *                 type: integer
+   *                 minimum: 1
+   *                 description: Número de página (empieza en 1)
+   *                 example: 1
+   *               limit:
+   *                 type: integer
+   *                 minimum: 1
+   *                 maximum: 1000
+   *                 description: Número de registros por página
+   *                 example: 25
    *     responses:
    *       200:
    *         description: Reporte generado exitosamente
@@ -250,16 +124,170 @@ export function createSaldoPromediosRoutes(): Router {
    *               properties:
    *                 success:
    *                   type: boolean
+   *                   example: true
    *                 data:
    *                   type: array
    *                   items:
-   *                     $ref: '#/components/schemas/SaldoPromediosItem'
+   *                     type: object
+   *                     properties:
+   *                       centro_costo:
+   *                         type: string
+   *                         example: "ADMIN"
+   *                       cuenta_contable:
+   *                         type: string
+   *                         example: "01.0.0.0.000"
+   *                       saldo_inicial_local:
+   *                         type: number
+   *                         format: float
+   *                         example: 1000.00
+   *                       saldo_inicial_dolar:
+   *                         type: number
+   *                         format: float
+   *                         example: 250.00
+   *                       saldo_inicial_corp_local:
+   *                         type: number
+   *                         format: float
+   *                         example: 1000.00
+   *                       saldo_inicial_corp_dolar:
+   *                         type: number
+   *                         format: float
+   *                         example: 250.00
+   *                       saldo_inicial_fisc_und:
+   *                         type: number
+   *                         format: float
+   *                         example: 0.00
+   *                       saldo_inicial_corp_und:
+   *                         type: number
+   *                         format: float
+   *                         example: 0.00
+   *                       debito_fisc_local:
+   *                         type: number
+   *                         format: float
+   *                         example: 500.00
+   *                       credito_fisc_local:
+   *                         type: number
+   *                         format: float
+   *                         example: 200.00
+   *                       debito_fisc_dolar:
+   *                         type: number
+   *                         format: float
+   *                         example: 125.00
+   *                       credito_fisc_dolar:
+   *                         type: number
+   *                         format: float
+   *                         example: 50.00
+   *                       debito_corp_local:
+   *                         type: number
+   *                         format: float
+   *                         example: 500.00
+   *                       credito_corp_local:
+   *                         type: number
+   *                         format: float
+   *                         example: 200.00
+   *                       debito_corp_dolar:
+   *                         type: number
+   *                         format: float
+   *                         example: 125.00
+   *                       credito_corp_dolar:
+   *                         type: number
+   *                         format: float
+   *                         example: 50.00
+   *                       debito_fisc_und:
+   *                         type: number
+   *                         format: float
+   *                         example: 0.00
+   *                       credito_fisc_und:
+   *                         type: number
+   *                         format: float
+   *                         example: 0.00
+   *                       debito_corp_und:
+   *                         type: number
+   *                         format: float
+   *                         example: 0.00
+   *                       credito_corp_und:
+   *                         type: number
+   *                         format: float
+   *                         example: 0.00
+   *                       saldo_final_local:
+   *                         type: number
+   *                         format: float
+   *                         example: 1300.00
+   *                       saldo_final_dolar:
+   *                         type: number
+   *                         format: float
+   *                         example: 325.00
+   *                       saldo_final_corp_local:
+   *                         type: number
+   *                         format: float
+   *                         example: 1300.00
+   *                       saldo_final_corp_dolar:
+   *                         type: number
+   *                         format: float
+   *                         example: 325.00
+   *                       saldo_final_fisc_und:
+   *                         type: number
+   *                         format: float
+   *                         example: 0.00
+   *                       saldo_final_corp_und:
+   *                         type: number
+   *                         format: float
+   *                         example: 0.00
+   *                       saldo_promedio_local:
+   *                         type: number
+   *                         format: float
+   *                         example: 1150.00
+   *                       saldo_promedio_dolar:
+   *                         type: number
+   *                         format: float
+   *                         example: 287.50
+   *                       saldo_promedio_corp_local:
+   *                         type: number
+   *                         format: float
+   *                         example: 1150.00
+   *                       saldo_promedio_corp_dolar:
+   *                         type: number
+   *                         format: float
+   *                         example: 287.50
+   *                       saldo_promedio_fisc_und:
+   *                         type: number
+   *                         format: float
+   *                         example: 0.00
+   *                       saldo_promedio_corp_und:
+   *                         type: number
+   *                         format: float
+   *                         example: 0.00
    *                 pagination:
-   *                   $ref: '#/components/schemas/PaginationInfo'
+   *                   type: object
+   *                   properties:
+   *                     page:
+   *                       type: integer
+   *                       description: Página actual
+   *                       example: 1
+   *                     limit:
+   *                       type: integer
+   *                       description: Registros por página
+   *                       example: 25
+   *                     total:
+   *                       type: integer
+   *                       description: Total de registros disponibles
+   *                       example: 1250
+   *                     totalPages:
+   *                       type: integer
+   *                       description: Total de páginas
+   *                       example: 50
+   *                     hasNext:
+   *                       type: boolean
+   *                       description: Indica si hay página siguiente
+   *                       example: true
+   *                     hasPrev:
+   *                       type: boolean
+   *                       description: Indica si hay página anterior
+   *                       example: false
    *                 message:
    *                   type: string
+   *                   example: "Reporte generado exitosamente"
    *       400:
-   *         description: Parámetros inválidos
+   *         description: Error en los parámetros de la solicitud
    *       500:
    *         description: Error interno del servidor
    */
