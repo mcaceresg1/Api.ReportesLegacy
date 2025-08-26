@@ -18,30 +18,41 @@ export class SaldoPromediosService implements ISaldoPromediosService {
     }
   }
 
-  async generarReporte(filtros: FiltroSaldoPromedios): Promise<SaldoPromediosItem[]> {
+  async generarReportePaginado(filtros: FiltroSaldoPromedios, page: number, limit: number): Promise<{
+    data: SaldoPromediosItem[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
     try {
-      return await this.saldoPromediosRepository.generarReporte(filtros);
+      console.log('📊 Service: Generando reporte paginado:', { page, limit });
+      
+      // Obtener datos paginados
+      const data = await this.saldoPromediosRepository.generarReportePaginado(filtros, page, limit);
+      
+      // Obtener total de registros
+      const total = await this.saldoPromediosRepository.obtenerTotalRegistros(filtros);
+      
+      const totalPages = Math.ceil(total / limit);
+      
+      console.log('📊 Service: Reporte generado exitosamente:', {
+        registrosEnPagina: data.length,
+        totalRegistros: total,
+        pagina: page,
+        totalPaginas: totalPages
+      });
+      
+      return {
+        data,
+        total,
+        page,
+        limit,
+        totalPages
+      };
     } catch (error) {
-      console.error('Error en servicio al generar reporte:', error);
+      console.error('Error en servicio al generar reporte paginado:', error);
       throw error;
-    }
-  }
-
-  async obtenerReporte(filtros: FiltroSaldoPromedios, pagina?: number, limite?: number): Promise<{ data: SaldoPromediosItem[], total: number }> {
-    try {
-      return await this.saldoPromediosRepository.obtenerReporte(filtros, pagina, limite);
-    } catch (error) {
-      console.error('Error en servicio al obtener reporte:', error);
-      throw error;
-    }
-  }
-
-  async limpiarDatos(): Promise<boolean> {
-    try {
-      return await this.saldoPromediosRepository.limpiarDatos();
-    } catch (error) {
-      console.error('Error en servicio al limpiar datos:', error);
-      return false;
     }
   }
 }

@@ -159,6 +159,17 @@ app.get('/api/reporte-libro-mayor-test', (req, res) => {
   });
 });
 
+// Endpoint de health check
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env['NODE_ENV'] || 'development',
+    version: '1.15.0'
+  });
+});
+
 // Rutas de menús (algunas públicas, otras protegidas)
 app.use('/api/menus', menuRoutes.getRouter());
 
@@ -797,13 +808,6 @@ app.post('/api/login', async (req, res) => {
  *                   type: string
  *                   format: date-time
  */
-app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    service: 'Globalis API'
-  });
-});
 
 // Middleware de manejo de errores
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -822,5 +826,7 @@ app.use('*', (req, res) => {
     message: 'Ruta no encontrada'
   });
 });
+
+// Endpoint original modificado para incluir paginación
 
 export default app; 

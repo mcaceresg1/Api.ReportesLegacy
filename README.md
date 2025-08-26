@@ -19,6 +19,25 @@ API REST desarrollada en TypeScript con arquitectura hexagonal (Ports and Adapte
 
 ## Cambios Recientes
 
+### v1.15.0 - Corrección de Endpoint de Saldos Promedios
+
+- **Corrección de Endpoint**: Solucionado el error 404 en el endpoint de saldos promedios
+- **Configuración de Red**: Servidor configurado para escuchar en todas las interfaces de red (0.0.0.0)
+- **Corrección de Rutas**: Alineadas las rutas del frontend y backend para saldos promedios
+- **Endpoints de Prueba**: Agregados endpoints de prueba para verificar la funcionalidad
+- **Correcciones implementadas**:
+  - Controlador `SaldoPromediosController` corregido para inyección de dependencias
+  - Servidor configurado para escuchar en todas las interfaces de red
+  - Rutas del frontend actualizadas para usar `/api/saldo-promedios`
+  - Endpoints de prueba agregados para debugging
+  - Environment del frontend actualizado para usar la IP correcta del servidor
+- **Beneficios**:
+  - Endpoint de saldos promedios funcionando correctamente
+  - Servidor accesible desde cualquier IP de la red
+  - Frontend y backend sincronizados en rutas
+  - Mejor debugging con endpoints de prueba
+  - Configuración de red más flexible
+
 ### v1.14.0 - Reporte de Saldo Promedios
 
 - **Reporte de Saldo Promedios**: Implementación completa del sistema de reportes de saldos promedios con filtros por cuenta contable y período
@@ -455,77 +474,4 @@ El endpoint `/api/movimientos-contables/pdf` acepta:
 |--------|----------|-------------|
 | `GET` | `/api/conjuntos` | Obtener todos los conjuntos |
 | `GET` | `/api/conjuntos/activos` | Obtener conjuntos activos |
-| `GET` | `/api/conjuntos/:codigo` | Obtener conjunto por código |
-
-### Datos EXACTUS (Públicos)
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| `GET` | `/api/exactus/:conjunto/centros-cuenta` | Centros de costo por conjunto |
-| `GET` | `/api/exactus/:conjunto/centros-cuenta/cuenta/:cuentaContable` | Centros de costo por cuenta contable |
-| `GET` | `/api/exactus/:conjunto/cuentas-contables` | Cuentas contables por conjunto |
-| `GET` | `/api/exactus/:conjunto/cuentas-contables/activas` | Cuentas contables activas |
-| `GET` | `/api/exactus/:conjunto/cuentas-contables/tipo/:tipo` | Cuentas contables por tipo |
-| `GET` | `/api/exactus/:conjunto/cuentas-contables/:codigo` | Cuenta contable por código |
-
-### Usuarios (Protegidos)
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| `GET` | `/api/usuarios` | Obtener todos los usuarios |
-| `GET` | `/api/usuarios/:id` | Obtener usuario por ID |
-| `POST` | `/api/usuarios` | Crear usuario |
-| `PUT` | `/api/usuarios/:id` | Actualizar usuario |
-| `DELETE` | `/api/usuarios/:id` | Eliminar usuario |
-| `PATCH` | `/api/usuarios/:id/activate` | Activar usuario |
-| `PATCH` | `/api/usuarios/:id/deactivate` | Desactivar usuario |
-| `PATCH` | `/api/usuarios/:id/cambiar-password` | Cambiar contraseña |
-
-### Roles (Protegidos)
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| `GET` | `/api/roles` | Obtener todos los roles |
-| `GET` | `/api/roles/:id` | Obtener rol por ID |
-| `POST` | `/api/roles` | Crear rol |
-| `PUT` | `/api/roles/:id` | Actualizar rol |
-| `DELETE` | `/api/roles/:id` | Eliminar rol |
-
-### Permisos (Protegidos)
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| `GET` | `/api/permisos/:rolId/:sistemaId` | Obtener permisos de un rol en un sistema |
-| `POST` | `/api/permisos` | Asignar permisos a un rol en un sistema |
-| `PUT` | `/api/permisos/:id` | Actualizar un permiso específico |
-
-### Sistemas (Protegidos)
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| `GET` | `/api/sistemas` | Obtener todos los sistemas |
-| `GET` | `/api/sistemas/:id` | Obtener sistema por ID |
-| `POST` | `/api/sistemas` | Crear sistema |
-| `PUT` | `/api/sistemas/:id` | Actualizar sistema |
-| `DELETE` | `/api/sistemas/:id` | Eliminar sistema |
-
-### Conexiones (Protegidos)
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| `GET` | `/api/conexiones` | Obtener todas las conexiones |
-| `GET` | `/api/conexiones/:id` | Obtener conexión por ID |
-| `POST` | `/api/conexiones` | Crear conexión |
-| `PUT` | `/api/conexiones/:id` | Actualizar conexión |
-| `DELETE` | `/api/conexiones/:id` | Eliminar conexión |
-
-## Autenticación
-
-La API utiliza JWT (JSON Web Tokens) para la autenticación. Los endpoints protegidos requieren el token en el header:
-
-```
-Authorization: Bearer <token>
-```
-
-### Endpoints Públicos
-- `/api/login` - Autenticación
-- `/api/usuarios/register` - Registro de usuarios
-- `/api/menus` - Lectura de menús
-- `/api/roles/activos` - Roles activos
-
-### Endpoints Protegidos
-Todos los demás endpoints requieren autenticación con token JWT válido. 
+| `GET`
