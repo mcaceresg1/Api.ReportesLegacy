@@ -27,6 +27,7 @@ import { createReporteMovimientosContablesRoutes } from './infrastructure/routes
 import { createReporteMovimientosContablesAgrupadosRoutes } from './infrastructure/routes/ReporteMovimientosContablesAgrupadosRoutes';
 import { createReporteCatalogoCuentasModificadasRoutes } from './infrastructure/routes/ReporteCatalogoCuentasModificadasRoutes';
 import libroMayorRoutes from './infrastructure/routes/libroMayor.routes';
+import { createLibroMayorAsientosRoutes } from './infrastructure/routes/libroMayorAsientos.routes';
 import { createDiarioContabilidadRoutes } from './infrastructure/routes/diarioContabilidad.routes';
 import { createPlanContableRoutes } from './infrastructure/routes/planContable.routes';
 import { createPeriodoContableRoutes } from './infrastructure/routes/periodoContable.routes';
@@ -195,6 +196,10 @@ app.use('/api/permisos', authMiddleware.verifyToken, permisoRoutes.getRouter());
   app.use('/api/reporte-movimientos-contables-agrupados', QueryOptimizationMiddleware.validateQueryParams, reporteMovimientosContablesAgrupadosRoutes);
   app.use('/api/reporte-catalogo-cuentas-modificadas', QueryOptimizationMiddleware.validateQueryParams, reporteCatalogoCuentasModificadasRoutes);
   app.use('/api/libro-mayor', QueryOptimizationMiddleware.validateQueryParams, libroMayorRoutes);
+
+// Libro Mayor Asientos Routes
+const libroMayorAsientosController = container.get('LibroMayorAsientosController') as any;
+app.use('/api/libro-mayor-asientos', QueryOptimizationMiddleware.validateQueryParams, createLibroMayorAsientosRoutes(libroMayorAsientosController));
   app.use('/api/diario-contabilidad', QueryOptimizationMiddleware.validateQueryParams, createDiarioContabilidadRoutes());
   app.use('/api/plan-contable', QueryOptimizationMiddleware.validateQueryParams, createPlanContableRoutes());
 app.use('/api/reporte-periodo-contable', QueryOptimizationMiddleware.validateQueryParams, createPeriodoContableRoutes());
