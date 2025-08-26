@@ -42,11 +42,11 @@ export class LibroMayorRepository implements ILibroMayorRepository {
 
       // Agregar filtros de cuenta contable solo si están presentes
       if (cuentaContableDesde) {
-        query += ` AND may.cuenta_contable >= @cuentaContableDesde`;
+        query += `\n            AND may.cuenta_contable >= @cuentaContableDesde`;
       }
       
       if (cuentaContableHasta) {
-        query += ` AND may.cuenta_contable <= @cuentaContableHasta`;
+        query += `\n            AND may.cuenta_contable <= @cuentaContableHasta`;
       }
 
       query += `
@@ -144,11 +144,11 @@ export class LibroMayorRepository implements ILibroMayorRepository {
             AND cta.tipo_detallado IN ('A','P','T','I','G','O')`;
 
       if (cuentaContableDesde) {
-        countQuery += ` AND may.cuenta_contable >= @cuentaContableDesde`;
+        countQuery += `\n            AND may.cuenta_contable >= @cuentaContableDesde`;
       }
       
       if (cuentaContableHasta) {
-        countQuery += ` AND may.cuenta_contable <= @cuentaContableHasta`;
+        countQuery += `\n            AND may.cuenta_contable <= @cuentaContableHasta`;
       }
 
       countQuery += `
