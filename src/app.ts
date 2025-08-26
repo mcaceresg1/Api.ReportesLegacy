@@ -198,8 +198,22 @@ app.use('/api/permisos', authMiddleware.verifyToken, permisoRoutes.getRouter());
   app.use('/api/libro-mayor', QueryOptimizationMiddleware.validateQueryParams, libroMayorRoutes);
 
 // Libro Mayor Asientos Routes
-const libroMayorAsientosController = container.get('LibroMayorAsientosController') as any;
-app.use('/api/libro-mayor-asientos', QueryOptimizationMiddleware.validateQueryParams, createLibroMayorAsientosRoutes(libroMayorAsientosController));
+try {
+  const libroMayorAsientosController = container.get('LibroMayorAsientosController') as any;
+  app.use('/api/libro-mayor-asientos', createLibroMayorAsientosRoutes(libroMayorAsientosController));
+  console.log('✅ Libro Mayor Asientos routes registradas correctamente');
+  
+  // Endpoint de prueba para verificar que funciona
+  app.get('/api/libro-mayor-asientos/test', (req, res) => {
+    res.json({ 
+      success: true, 
+      message: 'Libro Mayor Asientos endpoint funcionando correctamente',
+      timestamp: new Date().toISOString()
+    });
+  });
+} catch (error) {
+  console.error('❌ Error al registrar Libro Mayor Asientos routes:', error);
+}
   app.use('/api/diario-contabilidad', QueryOptimizationMiddleware.validateQueryParams, createDiarioContabilidadRoutes());
   app.use('/api/plan-contable', QueryOptimizationMiddleware.validateQueryParams, createPlanContableRoutes());
 app.use('/api/reporte-periodo-contable', QueryOptimizationMiddleware.validateQueryParams, createPeriodoContableRoutes());
