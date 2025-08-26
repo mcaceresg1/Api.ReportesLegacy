@@ -30,7 +30,7 @@ const sequelizeClipperLima = new Sequelize(
   );
   
   const sequelizeClipperTacna = new Sequelize(
-    process.env['CLIPPER_TACNA_DB_NAME'] || 'CLIPPER_PARQUE_TACNA',
+    process.env['CLIPPER_TACNA_DB_NAME'] || 'CLIPPER',
     process.env['CLIPPER_TACNA_DB_USER'] || '',
     process.env['CLIPPER_TACNA_DB_PASSWORD'] || '',
     {

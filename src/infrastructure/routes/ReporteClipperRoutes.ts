@@ -10,10 +10,12 @@ export function createReporteClipperRoutes(reporteClipperRepository: IReporteCli
 
   // GET /api/reporte-clipper/:ruta/contratos
    router.get('/:ruta/contratos', (req, res) => controller.obtenerContratos(req, res));
-  // router.get('/:ruta/contratos', (req, res) => {
-  //   console.log(`✅ Ruta activa: GET /${req.params.ruta}/contratos`);
-  //   controller.obtenerContratos(req, res);
-  // });
+ 
+    // GET /api/reporte-clipper/:ruta/contratos/:contrato/:control
+  router.get('/:ruta/contratos/:contrato/:control', (req, res) =>
+    controller.obtenerContratoPorId(req, res)
+  );
+
 
   return router;
 }
