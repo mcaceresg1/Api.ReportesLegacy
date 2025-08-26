@@ -1,15 +1,27 @@
 import { Router } from 'express';
-import { LibroMayorController } from '../controllers/LibroMayorController';
 import { container } from '../container/container';
+import { LibroMayorController } from '../controllers/LibroMayorController';
 
 const router = Router();
 const libroMayorController = container.get<LibroMayorController>('LibroMayorController');
 
 /**
  * @swagger
+ * /api/libro-mayor/health:
+ *   get:
+ *     summary: Verificar estado del servicio
+ *     tags: [Libro Mayor]
+ *     responses:
+ *       200:
+ *         description: Servicio funcionando correctamente
+ */
+router.get('/health', (req, res) => libroMayorController.health(req, res));
+
+/**
+ * @swagger
  * /api/libro-mayor/generar:
  *   post:
- *     summary: Generar reporte de Libro Mayor
+ *     summary: Generar reporte completo del libro mayor
  *     tags: [Libro Mayor]
  *     requestBody:
  *       required: true
@@ -26,35 +38,110 @@ const libroMayorController = container.get<LibroMayorController>('LibroMayorCont
  *               conjunto:
  *                 type: string
  *                 description: Código del conjunto contable
+ *                 example: "PRLTRA"
  *               usuario:
  *                 type: string
  *                 description: Usuario que solicita el reporte
+ *                 example: "ADMPQUES"
  *               fechaInicio:
  *                 type: string
  *                 format: date
  *                 description: Fecha de inicio del período
+ *                 example: "2023-01-01"
  *               fechaFin:
  *                 type: string
  *                 format: date
  *                 description: Fecha de fin del período
- *               cuentaContableDesde:
- *                 type: string
- *                 description: Cuenta contable desde (opcional)
- *               cuentaContableHasta:
- *                 type: string
- *                 description: Cuenta contable hasta (opcional)
- *               saldoAntesCierre:
- *                 type: boolean
- *                 description: Incluir saldos antes del cierre
- *               page:
- *                 type: integer
- *                 description: Número de página
- *               limit:
- *                 type: integer
- *                 description: Registros por página
+ *                 example: "2025-07-15"
  *     responses:
  *       200:
  *         description: Reporte generado exitosamente
+ *       400:
+ *         description: Parámetros inválidos
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.post('/generar', (req, res) => libroMayorController.generarReporte(req, res));
+
+/**
+ * @swagger
+ * /api/libro-mayor/obtener:
+ *   get:
+ *     summary: Obtener datos del libro mayor con filtros y paginación
+ *     tags: [Libro Mayor]
+ *     parameters:
+ *       - in: query
+ *         name: conjunto
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Código del conjunto contable
+ *         example: "PRLTRA"
+ *       - in: query
+ *         name: usuario
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Usuario que solicita los datos
+ *         example: "ADMPQUES"
+ *       - in: query
+ *         name: fechaInicio
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Fecha de inicio del período
+ *         example: "2023-01-01"
+ *       - in: query
+ *         name: fechaFin
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Fecha de fin del período
+ *         example: "2025-07-15"
+ *       - in: query
+ *         name: cuentaContable
+ *         schema:
+ *           type: string
+ *         description: Filtro por cuenta contable
+ *         example: "11"
+ *       - in: query
+ *         name: centroCosto
+ *         schema:
+ *           type: string
+ *         description: Filtro por centro de costo
+ *         example: "ADMIN"
+ *       - in: query
+ *         name: nit
+ *         schema:
+ *           type: string
+ *         description: Filtro por NIT
+ *         example: "12345678"
+ *       - in: query
+ *         name: tipoAsiento
+ *         schema:
+ *           type: string
+ *         description: Filtro por tipo de asiento
+ *         example: "FA"
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Número de página
+ *         example: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 100
+ *           maximum: 1000
+ *         description: Registros por página
+ *         example: 100
+ *     responses:
+ *       200:
+ *         description: Datos obtenidos exitosamente
  *         content:
  *           application/json:
  *             schema:
@@ -65,124 +152,32 @@ const libroMayorController = container.get<LibroMayorController>('LibroMayorCont
  *                 message:
  *                   type: string
  *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       cuentaContable:
- *                         type: string
- *                       centroCosto:
- *                         type: string
- *                       descripcion:
- *                         type: string
- *                       saldoNormal:
- *                         type: string
- *                       fecha:
- *                         type: string
- *                       fechaCreacion:
- *                         type: string
- *                       tipo:
- *                         type: string
- *                       debitoLocal:
- *                         type: number
- *                       creditoLocal:
- *                         type: number
- *                       saldoInicialLocal:
- *                         type: number
- *                       saldoFinalLocal:
- *                         type: number
- *                 total:
- *                   type: integer
- *                 page:
- *                   type: integer
- *                 limit:
- *                   type: integer
- *                 totalPages:
- *                   type: integer
+ *                   type: object
+ *                   properties:
+ *                     data:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/LibroMayor'
+ *                     total:
+ *                       type: integer
+ *                     pagina:
+ *                       type: integer
+ *                     porPagina:
+ *                       type: integer
+ *                     totalPaginas:
+ *                       type: integer
  *       400:
- *         description: Parámetros requeridos faltantes
+ *         description: Parámetros inválidos
  *       500:
  *         description: Error interno del servidor
  */
-router.post('/generar', libroMayorController.generarReporte.bind(libroMayorController));
-
-/**
- * @swagger
- * /api/libro-mayor/obtener:
- *   get:
- *     summary: Obtener datos del Libro Mayor
- *     tags: [Libro Mayor]
- *     parameters:
- *       - in: query
- *         name: conjunto
- *         required: true
- *         schema:
- *           type: string
- *         description: Código del conjunto contable
- *       - in: query
- *         name: usuario
- *         required: true
- *         schema:
- *           type: string
- *         description: Usuario que solicita el reporte
- *       - in: query
- *         name: fechaInicio
- *         required: true
- *         schema:
- *           type: string
- *           format: date
- *         description: Fecha de inicio del período
- *       - in: query
- *         name: fechaFin
- *         required: true
- *         schema:
- *           type: string
- *           format: date
- *         description: Fecha de fin del período
- *       - in: query
- *         name: cuentaContableDesde
- *         schema:
- *           type: string
- *         description: Cuenta contable desde (opcional)
- *       - in: query
- *         name: cuentaContableHasta
- *         schema:
- *           type: string
- *         description: Cuenta contable hasta (opcional)
- *       - in: query
- *         name: saldoAntesCierre
- *         schema:
- *           type: boolean
- *         description: Incluir saldos antes del cierre
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *         description: Número de página
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *         description: Registros por página
- *     responses:
- *       200:
- *         description: Datos obtenidos exitosamente
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/LibroMayorResponse'
- *       400:
- *         description: Parámetros requeridos faltantes
- *       500:
- *         description: Error interno del servidor
- */
-router.get('/obtener', libroMayorController.obtenerLibroMayor.bind(libroMayorController));
+router.get('/obtener', (req, res) => libroMayorController.obtenerLibroMayor(req, res));
 
 /**
  * @swagger
  * /api/libro-mayor/exportar-excel:
  *   get:
- *     summary: Exportar Libro Mayor a Excel
+ *     summary: Exportar libro mayor a Excel
  *     tags: [Libro Mayor]
  *     parameters:
  *       - in: query
@@ -191,12 +186,14 @@ router.get('/obtener', libroMayorController.obtenerLibroMayor.bind(libroMayorCon
  *         schema:
  *           type: string
  *         description: Código del conjunto contable
+ *         example: "PRLTRA"
  *       - in: query
  *         name: usuario
  *         required: true
  *         schema:
  *           type: string
- *         description: Usuario que solicita el reporte
+ *         description: Usuario que solicita la exportación
+ *         example: "ADMPQUES"
  *       - in: query
  *         name: fechaInicio
  *         required: true
@@ -204,6 +201,7 @@ router.get('/obtener', libroMayorController.obtenerLibroMayor.bind(libroMayorCon
  *           type: string
  *           format: date
  *         description: Fecha de inicio del período
+ *         example: "2023-01-01"
  *       - in: query
  *         name: fechaFin
  *         required: true
@@ -211,21 +209,15 @@ router.get('/obtener', libroMayorController.obtenerLibroMayor.bind(libroMayorCon
  *           type: string
  *           format: date
  *         description: Fecha de fin del período
+ *         example: "2025-07-15"
  *       - in: query
- *         name: cuentaContableDesde
+ *         name: limit
  *         schema:
- *           type: string
- *         description: Cuenta contable desde (opcional)
- *       - in: query
- *         name: cuentaContableHasta
- *         schema:
- *           type: string
- *         description: Cuenta contable hasta (opcional)
- *       - in: query
- *         name: saldoAntesCierre
- *         schema:
- *           type: boolean
- *         description: Incluir saldos antes del cierre
+ *           type: integer
+ *           default: 1000
+ *           maximum: 10000
+ *         description: Límite de registros a exportar
+ *         example: 1000
  *     responses:
  *       200:
  *         description: Archivo Excel generado exitosamente
@@ -235,73 +227,10 @@ router.get('/obtener', libroMayorController.obtenerLibroMayor.bind(libroMayorCon
  *               type: string
  *               format: binary
  *       400:
- *         description: Parámetros requeridos faltantes
+ *         description: Parámetros inválidos
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/exportar-excel', libroMayorController.exportarExcel.bind(libroMayorController));
-
-/**
- * @swagger
- * /api/libro-mayor/exportar-pdf:
- *   get:
- *     summary: Exportar Libro Mayor a PDF
- *     tags: [Libro Mayor]
- *     parameters:
- *       - in: query
- *         name: conjunto
- *         required: true
- *         schema:
- *           type: string
- *         description: Código del conjunto contable
- *       - in: query
- *         name: usuario
- *         required: true
- *         schema:
- *           type: string
- *         description: Usuario que solicita el reporte
- *       - in: query
- *         name: fechaInicio
- *         required: true
- *         schema:
- *           type: string
- *           format: date
- *         description: Fecha de inicio del período
- *       - in: query
- *         name: fechaFin
- *         required: true
- *         schema:
- *           type: string
- *           format: date
- *         description: Fecha de fin del período
- *       - in: query
- *         name: cuentaContableDesde
- *         schema:
- *           type: string
- *         description: Cuenta contable desde (opcional)
- *       - in: query
- *         name: cuentaContableHasta
- *         schema:
- *           type: string
- *         description: Cuenta contable hasta (opcional)
- *       - in: query
- *         name: saldoAntesCierre
- *         schema:
- *           type: boolean
- *         description: Incluir saldos antes del cierre
- *     responses:
- *       200:
- *         description: Archivo PDF generado exitosamente
- *         content:
- *           application/pdf:
- *             schema:
- *               type: string
- *               format: binary
- *       400:
- *         description: Parámetros requeridos faltantes
- *       500:
- *         description: Error interno del servidor
- */
-router.get('/exportar-pdf', libroMayorController.exportarPDF.bind(libroMayorController));
+router.get('/exportar-excel', (req, res) => libroMayorController.exportarExcel(req, res));
 
 export default router;

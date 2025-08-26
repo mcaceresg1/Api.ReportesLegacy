@@ -21,9 +21,8 @@ export const TYPES = {
     IReporteMovimientosContablesRepository: 'IReporteMovimientosContablesRepository',
     IReporteMovimientosContablesAgrupadosRepository: 'IReporteMovimientosContablesAgrupadosRepository',
     IReporteCatalogoCuentasModificadasRepository: 'IReporteCatalogoCuentasModificadasRepository',
-ILibroMayorRepository: 'ILibroMayorRepository',
-    
-IDiarioContabilidadRepository: 'IDiarioContabilidadRepository',
+    ILibroMayorRepository: 'ILibroMayorRepository',
+    IDiarioContabilidadRepository: 'IDiarioContabilidadRepository',
     IPlanContableRepository: 'IPlanContableRepository',
     IPeriodoContableRepository: 'IPeriodoContableRepository',
     IMovimientoContableAgrupadoRepository: 'IMovimientoContableAgrupadoRepository',
@@ -67,9 +66,8 @@ IDiarioContabilidadRepository: 'IDiarioContabilidadRepository',
     ReporteMovimientosContablesController: 'ReporteMovimientosContablesController',
     ReporteMovimientosContablesAgrupadosController: 'ReporteMovimientosContablesAgrupadosController',
     ReporteCatalogoCuentasModificadasController: 'ReporteCatalogoCuentasModificadasController',
-LibroMayorController: 'LibroMayorController',
-    
-DiarioContabilidadController: 'DiarioContabilidadController',
+    LibroMayorController: 'LibroMayorController',
+    DiarioContabilidadController: 'DiarioContabilidadController',
     PeriodoContableController: 'PeriodoContableController',
     MovimientoContableAgrupadoController: 'MovimientoContableAgrupadoController',
     SaldoPromediosController: 'SaldoPromediosController',
@@ -99,7 +97,9 @@ DiarioContabilidadController: 'DiarioContabilidadController',
     ObtenerReporteMovimientosContablesAgrupadosHandler: 'ObtenerReporteMovimientosContablesAgrupadosHandler',
 
     // Libro Mayor Handlers
-    
+    GenerarReporteLibroMayorHandler: 'GenerarReporteLibroMayorHandler',
+    ObtenerLibroMayorHandler: 'ObtenerLibroMayorHandler',
+    ExportarLibroMayorExcelHandler: 'ExportarLibroMayorExcelHandler',
 
     // Diario Contabilidad Handlers
     GenerarReporteDiarioContabilidadHandler: 'GenerarReporteDiarioContabilidadHandler',
