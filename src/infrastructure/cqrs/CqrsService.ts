@@ -20,9 +20,7 @@ import { DeleteRolHandler } from '../../application/handlers/rol/DeleteRolHandle
 import { GetAllRolesHandler } from '../../application/handlers/rol/GetAllRolesHandler';
 import { GetRolByIdHandler } from '../../application/handlers/rol/GetRolByIdHandler';
 // Libro Mayor handlers
-import { GenerarReporteLibroMayorHandler } from '../../application/handlers/libro-mayor/GenerarReporteLibroMayorHandler';
-import { ObtenerLibroMayorHandler } from '../../application/handlers/libro-mayor/ObtenerLibroMayorHandler';
-import { ExportarLibroMayorExcelHandler } from '../../application/handlers/libro-mayor/ExportarLibroMayorExcelHandler';
+
 
 // Diario Contabilidad handlers
 import { GenerarReporteDiarioContabilidadHandler } from '../../application/handlers/diario-contabilidad/GenerarReporteDiarioContabilidadHandler';
@@ -44,9 +42,7 @@ export class CqrsService {
     @inject('DeleteRolHandler') private deleteRolHandler: DeleteRolHandler,
     @inject('GetAllRolesHandler') private getAllRolesHandler: GetAllRolesHandler,
     @inject('GetRolByIdHandler') private getRolByIdHandler: GetRolByIdHandler,
-    @inject('GenerarReporteLibroMayorHandler') private generarReporteLibroMayorHandler: GenerarReporteLibroMayorHandler,
-    @inject('ObtenerLibroMayorHandler') private obtenerLibroMayorHandler: ObtenerLibroMayorHandler,
-    @inject('ExportarLibroMayorExcelHandler') private exportarLibroMayorExcelHandler: ExportarLibroMayorExcelHandler,
+    
     @inject('GenerarReporteDiarioContabilidadHandler') private generarReporteDiarioContabilidadHandler: GenerarReporteDiarioContabilidadHandler,
     @inject('ObtenerDiarioContabilidadHandler') private obtenerDiarioContabilidadHandler: ObtenerDiarioContabilidadHandler,
     @inject('ExportarDiarioContabilidadExcelHandler') private exportarDiarioContabilidadExcelHandler: ExportarDiarioContabilidadExcelHandler
@@ -77,12 +73,7 @@ export class CqrsService {
     this.queryBus.register('GetAllRolesQuery', this.getAllRolesHandler);
     this.queryBus.register('GetRolByIdQuery', this.getRolByIdHandler);
 
-    // Libro Mayor
-    console.log('📚 Registrando handlers de Libro Mayor...');
-    this.commandBus.register('GenerarReporteLibroMayorCommand', this.generarReporteLibroMayorHandler);
-    this.queryBus.register('ObtenerLibroMayorQuery', this.obtenerLibroMayorHandler);
-    this.queryBus.register('ExportarLibroMayorExcelQuery', this.exportarLibroMayorExcelHandler);
-    console.log('✅ Handler ObtenerLibroMayorQuery registrado');
+    
 
     // Diario Contabilidad
     console.log('📖 Registrando handlers de Diario Contabilidad...');

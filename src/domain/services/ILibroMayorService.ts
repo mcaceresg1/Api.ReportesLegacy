@@ -1,6 +1,6 @@
 import { LibroMayor, LibroMayorFiltros, LibroMayorResponse } from '../entities/LibroMayor';
 
-export interface ILibroMayorRepository {
+export interface ILibroMayorService {
   generarReporte(filtros: LibroMayorFiltros): Promise<LibroMayorResponse>;
   obtenerLibroMayor(filtros: LibroMayorFiltros): Promise<LibroMayorResponse>;
   exportarExcel(filtros: LibroMayorFiltros): Promise<Buffer>;

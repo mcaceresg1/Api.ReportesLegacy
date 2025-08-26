@@ -24,6 +24,7 @@ import { IReporteMovimientosContablesRepository } from '../../domain/repositorie
 import { IReporteMovimientosContablesAgrupadosRepository } from '../../domain/repositories/IReporteMovimientosContablesAgrupadosRepository';
 import { IReporteCatalogoCuentasModificadasRepository } from '../../domain/repositories/IReporteCatalogoCuentasModificadasRepository';
 import { ILibroMayorRepository } from '../../domain/repositories/ILibroMayorRepository';
+
 import { IDiarioContabilidadRepository } from '../../domain/repositories/IDiarioContabilidadRepository';
 import { IPlanContableRepository } from '../../domain/repositories/IPlanContableRepository';
 import { IPeriodoContableRepository } from '../../domain/repositories/IPeriodoContableRepository';
@@ -76,6 +77,7 @@ import { ReporteMovimientosContablesRepository } from '../repositories/ReporteMo
 import { ReporteMovimientosContablesAgrupadosRepository } from '../repositories/ReporteMovimientosContablesAgrupadosRepository';
 import { ReporteCatalogoCuentasModificadasRepository } from '../repositories/ReporteCatalogoCuentasModificadasRepository';
 import { LibroMayorRepository } from '../repositories/LibroMayorRepository';
+
 import { DiarioContabilidadRepository } from '../repositories/DiarioContabilidadRepository';
 import { PlanContableRepository } from '../repositories/PlanContableRepository';
 import { PeriodoContableRepository } from '../repositories/PeriodoContableRepository';
@@ -99,6 +101,7 @@ import { TipoAsientoService } from '../../application/services/TipoAsientoServic
 import { ReporteMovimientosContablesService } from '../../application/services/ReporteMovimientosContablesService';
 import { ReporteMovimientosContablesAgrupadosService } from '../../application/services/ReporteMovimientosContablesAgrupadosService';
 import { SaldoPromediosService } from '../../application/services/SaldoPromediosService';
+import { LibroMayorService } from '../../application/services/LibroMayorService';
 
 import { DatabaseService } from '../../application/services/DatabaseService';
 
@@ -122,6 +125,7 @@ import { ReporteMovimientosContablesController } from '../controllers/ReporteMov
 import { ReporteMovimientosContablesAgrupadosController } from '../controllers/ReporteMovimientosContablesAgrupadosController';
 import { ReporteCatalogoCuentasModificadasController } from '../controllers/ReporteCatalogoCuentasModificadasController';
 import { LibroMayorController } from '../controllers/LibroMayorController';
+
 import { DiarioContabilidadController } from '../controllers/DiarioContabilidadController';
 import { PeriodoContableController } from '../controllers/PeriodoContableController';
 import { MovimientoContableAgrupadoController } from '../controllers/MovimientoContableAgrupadoController';
@@ -150,9 +154,7 @@ import { GenerarReporteMovimientosContablesAgrupadosHandler } from '../../applic
 import { ObtenerReporteMovimientosContablesAgrupadosHandler } from '../../application/handlers/reporteMovimientosContablesAgrupados/ObtenerReporteMovimientosContablesAgrupadosHandler';
 
 // Reporte Libro Mayor Handlers
-import { GenerarReporteLibroMayorHandler } from '../../application/handlers/libro-mayor/GenerarReporteLibroMayorHandler';
-import { ObtenerLibroMayorHandler } from '../../application/handlers/libro-mayor/ObtenerLibroMayorHandler';
-import { ExportarLibroMayorExcelHandler } from '../../application/handlers/libro-mayor/ExportarLibroMayorExcelHandler';
+
 
 // Diario Contabilidad Handlers
 import { GenerarReporteDiarioContabilidadHandler } from '../../application/handlers/diario-contabilidad/GenerarReporteDiarioContabilidadHandler';
@@ -189,6 +191,7 @@ container.bind<IReporteMovimientosContablesRepository>('IReporteMovimientosConta
 container.bind<IReporteMovimientosContablesAgrupadosRepository>('IReporteMovimientosContablesAgrupadosRepository').to(ReporteMovimientosContablesAgrupadosRepository);
 container.bind<IReporteCatalogoCuentasModificadasRepository>('IReporteCatalogoCuentasModificadasRepository').to(ReporteCatalogoCuentasModificadasRepository);
 container.bind<ILibroMayorRepository>('ILibroMayorRepository').to(LibroMayorRepository);
+
 container.bind<IDiarioContabilidadRepository>('IDiarioContabilidadRepository').to(DiarioContabilidadRepository);
 container.bind<IPlanContableRepository>('IPlanContableRepository').to(PlanContableRepository);
 container.bind<IPeriodoContableRepository>('IPeriodoContableRepository').to(PeriodoContableRepository);
@@ -215,6 +218,7 @@ container.bind<ITipoAsientoService>('TipoAsientoService').to(TipoAsientoService)
 container.bind<IReporteMovimientosContablesService>('IReporteMovimientosContablesService').to(ReporteMovimientosContablesService);
 container.bind<IReporteMovimientosContablesAgrupadosService>('IReporteMovimientosContablesAgrupadosService').to(ReporteMovimientosContablesAgrupadosService);
 container.bind<ISaldoPromediosService>('ISaldoPromediosService').to(SaldoPromediosService);
+container.bind<LibroMayorService>('ILibroMayorService').to(LibroMayorService);
 
 container.bind<IDatabaseService>('IDatabaseService').to(DatabaseService);
 
@@ -238,6 +242,7 @@ container.bind<ReporteMovimientosContablesController>('ReporteMovimientosContabl
 container.bind<ReporteMovimientosContablesAgrupadosController>('ReporteMovimientosContablesAgrupadosController').to(ReporteMovimientosContablesAgrupadosController);
 container.bind<ReporteCatalogoCuentasModificadasController>('ReporteCatalogoCuentasModificadasController').to(ReporteCatalogoCuentasModificadasController);
 container.bind<LibroMayorController>('LibroMayorController').to(LibroMayorController);
+
 container.bind<DiarioContabilidadController>('DiarioContabilidadController').to(DiarioContabilidadController);
 container.bind<PeriodoContableController>('PeriodoContableController').to(PeriodoContableController);
 container.bind<MovimientoContableAgrupadoController>('MovimientoContableAgrupadoController').to(MovimientoContableAgrupadoController);
@@ -271,9 +276,7 @@ container.bind<GenerarReporteMovimientosContablesAgrupadosHandler>('GenerarRepor
 container.bind<ObtenerReporteMovimientosContablesAgrupadosHandler>('ObtenerReporteMovimientosContablesAgrupadosHandler').to(ObtenerReporteMovimientosContablesAgrupadosHandler);
 
 // Libro Mayor Handlers
-container.bind<GenerarReporteLibroMayorHandler>('GenerarReporteLibroMayorHandler').to(GenerarReporteLibroMayorHandler);
-container.bind<ObtenerLibroMayorHandler>('ObtenerLibroMayorHandler').to(ObtenerLibroMayorHandler);
-container.bind<ExportarLibroMayorExcelHandler>('ExportarLibroMayorExcelHandler').to(ExportarLibroMayorExcelHandler);
+
 
 // Diario Contabilidad Handlers
 container.bind<GenerarReporteDiarioContabilidadHandler>('GenerarReporteDiarioContabilidadHandler').to(GenerarReporteDiarioContabilidadHandler);
