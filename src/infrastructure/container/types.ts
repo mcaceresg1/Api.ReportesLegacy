@@ -22,6 +22,7 @@ export const TYPES = {
     IReporteMovimientosContablesAgrupadosRepository: 'IReporteMovimientosContablesAgrupadosRepository',
     IReporteCatalogoCuentasModificadasRepository: 'IReporteCatalogoCuentasModificadasRepository',
     ILibroMayorRepository: 'ILibroMayorRepository',
+    ILibroMayorAsientosRepository: 'ILibroMayorAsientosRepository',
     IDiarioContabilidadRepository: 'IDiarioContabilidadRepository',
     IPlanContableRepository: 'IPlanContableRepository',
     IPeriodoContableRepository: 'IPeriodoContableRepository',
@@ -46,6 +47,7 @@ export const TYPES = {
     IReporteMovimientosContablesService: 'IReporteMovimientosContablesService',
     IReporteMovimientosContablesAgrupadosService: 'IReporteMovimientosContablesAgrupadosService',
     ISaldoPromediosService: 'ISaldoPromediosService',
+    ILibroMayorAsientosService: 'ILibroMayorAsientosService',
     IDatabaseService: 'IDatabaseService',
 
     // Controllers
@@ -67,6 +69,7 @@ export const TYPES = {
     ReporteMovimientosContablesAgrupadosController: 'ReporteMovimientosContablesAgrupadosController',
     ReporteCatalogoCuentasModificadasController: 'ReporteCatalogoCuentasModificadasController',
     LibroMayorController: 'LibroMayorController',
+    LibroMayorAsientosController: 'LibroMayorAsientosController',
     DiarioContabilidadController: 'DiarioContabilidadController',
     PeriodoContableController: 'PeriodoContableController',
     MovimientoContableAgrupadoController: 'MovimientoContableAgrupadoController',
