@@ -16,6 +16,23 @@ export class LibroMayorRepository implements ILibroMayorRepository {
       
       console.log('📊 Parámetros extraídos:', { conjunto, usuario, fechaDesde, fechaHasta, cuentaContableDesde, cuentaContableHasta, saldoAntesCierre, page, limit });
       
+      // Construir la consulta dinámicamente basada en los filtros disponibles
+      let whereClause = `
+        WHERE may.fecha >= @fechaDesde 
+          AND may.fecha <= @fechaHasta
+          AND may.contabilidad IN ('F', 'A')
+      `;
+      
+      if (cuentaContableDesde) {
+        whereClause += ` AND may.cuenta_contable >= @cuentaContableDesde`;
+      }
+      
+      if (cuentaContableHasta) {
+        whereClause += ` AND may.cuenta_contable <= @cuentaContableHasta`;
+      }
+      
+      whereClause += ` AND cta.tipo_detallado IN ('A','P','T','I','G','O')`;
+      
       // Query principal basada en las queries SQL proporcionadas
       const query = `
         WITH LibroMayorData AS (
@@ -35,12 +52,7 @@ export class LibroMayorRepository implements ILibroMayorRepository {
           FROM ${conjunto}.mayor may
           JOIN ${conjunto}.asiento_mayorizado am ON may.ASIENTO = am.ASIENTO
           JOIN ${conjunto}.cuenta_contable cta ON may.cuenta_contable = cta.cuenta_contable
-          WHERE may.fecha >= @fechaDesde 
-            AND may.fecha <= @fechaHasta
-            AND may.contabilidad IN ('F', 'A')
-            ${cuentaContableDesde ? 'AND may.cuenta_contable >= @cuentaContableDesde' : ''}
-            ${cuentaContableHasta ? 'AND may.cuenta_contable <= @cuentaContableHasta' : ''}
-            AND cta.tipo_detallado IN ('A','P','T','I','G','O')
+          ${whereClause}
           GROUP BY may.centro_costo, cta.acepta_datos, cta.SALDO_NORMAL, 
                    CONVERT(VARCHAR(10), may.FECHA, 23), am.fecha_creacion, may.cuenta_contable
           
@@ -93,6 +105,7 @@ export class LibroMayorRepository implements ILibroMayorRepository {
 
       const offset = (page - 1) * limit;
       
+      // Construir replacements solo con los parámetros que se usan
       const replacements: any = {
         fechaDesde,
         fechaHasta,
@@ -100,8 +113,13 @@ export class LibroMayorRepository implements ILibroMayorRepository {
         limit
       };
 
-      if (cuentaContableDesde) replacements.cuentaContableDesde = cuentaContableDesde;
-      if (cuentaContableHasta) replacements.cuentaContableHasta = cuentaContableHasta;
+      if (cuentaContableDesde) {
+        replacements.cuentaContableDesde = cuentaContableDesde;
+      }
+      
+      if (cuentaContableHasta) {
+        replacements.cuentaContableHasta = cuentaContableHasta;
+      }
       
       console.log('🔧 Query SQL generado:', query);
       console.log('🔧 Replacements:', JSON.stringify(replacements, null, 2));
@@ -114,7 +132,23 @@ export class LibroMayorRepository implements ILibroMayorRepository {
       });
       console.log('✅ Query principal ejecutado exitosamente. Registros obtenidos:', data.length);
 
-      // Query para obtener el total
+      // Query para obtener el total - también construido dinámicamente
+      let countWhereClause = `
+        WHERE may.fecha >= @fechaDesde 
+          AND may.fecha <= @fechaHasta
+          AND may.contabilidad IN ('F', 'A')
+      `;
+      
+      if (cuentaContableDesde) {
+        countWhereClause += ` AND may.cuenta_contable >= @cuentaContableDesde`;
+      }
+      
+      if (cuentaContableHasta) {
+        countWhereClause += ` AND may.cuenta_contable <= @cuentaContableHasta`;
+      }
+      
+      countWhereClause += ` AND cta.tipo_detallado IN ('A','P','T','I','G','O')`;
+
       const countQuery = `
         SELECT COUNT(*) as total
         FROM (
@@ -123,12 +157,7 @@ export class LibroMayorRepository implements ILibroMayorRepository {
           FROM ${conjunto}.mayor may
           JOIN ${conjunto}.asiento_mayorizado am ON may.ASIENTO = am.ASIENTO
           JOIN ${conjunto}.cuenta_contable cta ON may.cuenta_contable = cta.cuenta_contable
-          WHERE may.fecha >= @fechaDesde 
-            AND may.fecha <= @fechaHasta
-            AND may.contabilidad IN ('F', 'A')
-            ${cuentaContableDesde ? 'AND may.cuenta_contable >= @cuentaContableDesde' : ''}
-            ${cuentaContableHasta ? 'AND may.cuenta_contable <= @cuentaContableHasta' : ''}
-            AND cta.tipo_detallado IN ('A','P','T','I','G','O')
+          ${countWhereClause}
           GROUP BY may.centro_costo, cta.acepta_datos, cta.SALDO_NORMAL, 
                    CONVERT(VARCHAR(10), may.FECHA, 23), am.fecha_creacion, may.cuenta_contable
           
@@ -156,12 +185,7 @@ export class LibroMayorRepository implements ILibroMayorRepository {
       console.log('📡 Ejecutando query de conteo...');
       const totalResult = await exactusSequelize.query(countQuery, {
         type: QueryTypes.SELECT,
-        replacements: {
-          fechaDesde,
-          fechaHasta,
-          cuentaContableDesde: cuentaContableDesde || '',
-          cuentaContableHasta: cuentaContableHasta || ''
-        }
+        replacements
       });
       console.log('✅ Query de conteo ejecutado exitosamente. Resultado:', totalResult);
 
