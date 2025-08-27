@@ -19,9 +19,9 @@ async function startServer() {
 
     // Iniciar servidor
     app.listen(PORT, () => {
-      console.log(`🚀 Servidor escuchando en http://${HOST}:${PORT}`);
-      console.log(`🔗 Swagger en http://${HOST}:${PORT}/api-docs`);
-      console.log(`🏥 Health check en http://${HOST}:${PORT}/health`);
+      console.log(`🚀 Servidor escuchando en http://localhost:${PORT}`);
+      console.log(`🔗 Swagger en http://localhost:${PORT}/api-docs`);
+      console.log(`🏥 Health check en http://localhost:${PORT}/health`);
     });
 
   } catch (error) {
