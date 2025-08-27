@@ -24,6 +24,7 @@ import { IReporteMovimientosContablesRepository } from '../../domain/repositorie
 import { IReporteMovimientosContablesAgrupadosRepository } from '../../domain/repositories/IReporteMovimientosContablesAgrupadosRepository';
 import { IReporteCatalogoCuentasModificadasRepository } from '../../domain/repositories/IReporteCatalogoCuentasModificadasRepository';
 import { ILibroMayorRepository } from '../../domain/repositories/ILibroMayorRepository';
+import { ILibroMayorAsientosRepository } from '../../domain/repositories/ILibroMayorAsientosRepository';
 import { IDiarioContabilidadRepository } from '../../domain/repositories/IDiarioContabilidadRepository';
 import { IPlanContableRepository } from '../../domain/repositories/IPlanContableRepository';
 import { IPeriodoContableRepository } from '../../domain/repositories/IPeriodoContableRepository';
@@ -47,6 +48,7 @@ import { ITipoAsientoService } from '../../domain/services/ITipoAsientoService';
 import { IReporteMovimientosContablesService } from '../../domain/services/IReporteMovimientosContablesService';
 import { IReporteMovimientosContablesAgrupadosService } from '../../domain/services/IReporteMovimientosContablesAgrupadosService';
 import { ISaldoPromediosService } from '../../domain/services/ISaldoPromediosService';
+import { ILibroMayorAsientosService } from '../../domain/services/ILibroMayorAsientosService';
 
 import { IDatabaseService } from '../../domain/services/IDatabaseService';
 
@@ -76,6 +78,7 @@ import { ReporteMovimientosContablesRepository } from '../repositories/ReporteMo
 import { ReporteMovimientosContablesAgrupadosRepository } from '../repositories/ReporteMovimientosContablesAgrupadosRepository';
 import { ReporteCatalogoCuentasModificadasRepository } from '../repositories/ReporteCatalogoCuentasModificadasRepository';
 import { LibroMayorRepository } from '../repositories/LibroMayorRepository';
+import { LibroMayorAsientosRepository } from '../repositories/LibroMayorAsientosRepository';
 import { DiarioContabilidadRepository } from '../repositories/DiarioContabilidadRepository';
 import { PlanContableRepository } from '../repositories/PlanContableRepository';
 import { PeriodoContableRepository } from '../repositories/PeriodoContableRepository';
@@ -83,6 +86,8 @@ import { MovimientoContableAgrupadoRepository } from '../repositories/Movimiento
 import { SaldoPromediosRepository } from '../repositories/SaldoPromediosRepository';
 
 import { CuentaContableRepository } from '../repositories/CuentaContableRepository';
+import { LibroMayorAsientosService } from '../../application/services/LibroMayorAsientosService';
+import { LibroMayorAsientosController } from '../controllers/LibroMayorAsientosController';
 import { UsuarioService } from '../../application/services/UsuarioService';
 import { AuthService } from '../../application/services/AuthService';
 import { MenuService } from '../../application/services/MenuService';
@@ -194,6 +199,7 @@ container.bind<IReporteMovimientosContablesRepository>('IReporteMovimientosConta
 container.bind<IReporteMovimientosContablesAgrupadosRepository>('IReporteMovimientosContablesAgrupadosRepository').to(ReporteMovimientosContablesAgrupadosRepository);
 container.bind<IReporteCatalogoCuentasModificadasRepository>('IReporteCatalogoCuentasModificadasRepository').to(ReporteCatalogoCuentasModificadasRepository);
 container.bind<ILibroMayorRepository>('ILibroMayorRepository').to(LibroMayorRepository);
+container.bind<ILibroMayorAsientosRepository>('ILibroMayorAsientosRepository').to(LibroMayorAsientosRepository);
 container.bind<IDiarioContabilidadRepository>('IDiarioContabilidadRepository').to(DiarioContabilidadRepository);
 container.bind<IPlanContableRepository>('IPlanContableRepository').to(PlanContableRepository);
 container.bind<IPeriodoContableRepository>('IPeriodoContableRepository').to(PeriodoContableRepository);
@@ -220,6 +226,7 @@ container.bind<ITipoAsientoService>('TipoAsientoService').to(TipoAsientoService)
 container.bind<IReporteMovimientosContablesService>('IReporteMovimientosContablesService').to(ReporteMovimientosContablesService);
 container.bind<IReporteMovimientosContablesAgrupadosService>('IReporteMovimientosContablesAgrupadosService').to(ReporteMovimientosContablesAgrupadosService);
 container.bind<ISaldoPromediosService>('ISaldoPromediosService').to(SaldoPromediosService);
+container.bind<ILibroMayorAsientosService>('ILibroMayorAsientosService').to(LibroMayorAsientosService);
 
 container.bind<IDatabaseService>('IDatabaseService').to(DatabaseService);
 container.bind<IReporteClipperService>('IReporteClipperService').to(ReporteClipperService);
@@ -244,6 +251,7 @@ container.bind<ReporteMovimientosContablesController>('ReporteMovimientosContabl
 container.bind<ReporteMovimientosContablesAgrupadosController>('ReporteMovimientosContablesAgrupadosController').to(ReporteMovimientosContablesAgrupadosController);
 container.bind<ReporteCatalogoCuentasModificadasController>('ReporteCatalogoCuentasModificadasController').to(ReporteCatalogoCuentasModificadasController);
 container.bind<LibroMayorController>('LibroMayorController').to(LibroMayorController);
+container.bind<LibroMayorAsientosController>('LibroMayorAsientosController').to(LibroMayorAsientosController);
 container.bind<DiarioContabilidadController>('DiarioContabilidadController').to(DiarioContabilidadController);
 container.bind<PeriodoContableController>('PeriodoContableController').to(PeriodoContableController);
 container.bind<MovimientoContableAgrupadoController>('MovimientoContableAgrupadoController').to(MovimientoContableAgrupadoController);
