@@ -1,8 +1,10 @@
 // src/application/services/ReporteClipperService.ts
 import { inject, injectable } from 'inversify';
-import { ClipperContrato, ClipperContratoDetalle } from '../../domain/entities/ClipperContrato';
+import { ClipperContrato} from '../../domain/entities/ClipperContrato';
 import { IReporteClipperRepository } from '../../domain/repositories/IReporteClipperRepository';
 import { IReporteClipperService } from '../../domain/services/IReporteClipperService';
+import { ClipperContratoResultado } from '../../infrastructure/repositories/ReporteClipperRepository';
+
 
 @injectable()
 export class ReporteClipperService implements IReporteClipperService {
@@ -15,11 +17,8 @@ export class ReporteClipperService implements IReporteClipperService {
     return await this.clipperRepo.obtenerContratos(ruta);
   }
   
-  async obtenerContratoPorId(
-    ruta: string,
-    contrato: string,
-    control: string
-  ): Promise<ClipperContratoDetalle | null> {
+  async obtenerContratoPorId(ruta: string, contrato: string, control: string): Promise<ClipperContratoResultado | null> {
     return await this.clipperRepo.obtenerContratoPorId(ruta, contrato, control);
+  
   }
 }

@@ -326,13 +326,15 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
                   '' AS concepto,
                   T2.DESITM AS proced,
                   '' AS agenciaFuneraria,
-                  '' AS consejero,
+                  CASE WHEN CODAGE <> '' THEN (SELECT TT.NOMFUN FROM PDRVE5 TT WHERE T0.CODVEN = TT.CODFU1)
+                    ELSE  (SELECT TQ.NOMVEN FROM PDRVE0 TQ WHERE T0.CODVEN = TQ.CODVEN)
+                  END AS consejero,
                   '' AS supervisor,
                   T0.FCHPAG AS fechaPago,
                   T4.DESITM AS formaPago,
                   T5.DESITM AS tipoAfect,
-                  T0.MONPAG AS estipFunerario,
-                  T0.MONINI AS aporteInicial,
+                  CAST(T0.MONPAG AS FLOAT) AS estipFunerario,
+                  CAST(T0.MONINI AS FLOAT) AS aporteInicial,
                   CAST(T0.MONPAG AS FLOAT) - CAST(T0.MONINI AS FLOAT) AS estipMensual,
                   T6.DESITM AS estado
               FROM dbo.PDRCO1 T0
