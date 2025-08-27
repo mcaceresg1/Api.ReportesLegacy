@@ -1,3 +1,4 @@
+import { ClipperContratoResultado } from '../../infrastructure/repositories/ReporteClipperRepository';
 import { ClipperContrato, ClipperContratoDetalle } from '../entities/ClipperContrato';
 
 export interface IReporteClipperRepository {
@@ -16,5 +17,5 @@ export interface IReporteClipperRepository {
     ruta: string,
     contrato: string,
     control: string
-  ): Promise<ClipperContratoDetalle | null>;
+  ): Promise<ClipperContratoResultado  | null>;
 }
