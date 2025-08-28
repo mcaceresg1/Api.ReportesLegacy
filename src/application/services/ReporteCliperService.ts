@@ -17,7 +17,9 @@ export class ReporteClipperService implements IReporteClipperService {
     return await this.clipperRepo.obtenerContratos(ruta);
   }
   
-  async obtenerContratoPorId(ruta: string, contrato: string, control: string): Promise<ClipperContratoResultado | null> {
+  async obtenerContratoPorId(ruta: string,
+    contrato: string | null,
+    control: string | null): Promise<ClipperContratoResultado | null> {
     return await this.clipperRepo.obtenerContratoPorId(ruta, contrato, control);
   
   }
