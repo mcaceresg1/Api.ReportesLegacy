@@ -124,7 +124,7 @@ export class ClipperController {
  *         description: Número de contrato
  *       - in: path
  *         name: control
- *         required: true
+ *         required: false
  *         schema:
  *           type: string
  *         description: Número de control
@@ -413,54 +413,57 @@ export class ClipperController {
  */
 
  
-  async obtenerContratoPorId(req: Request, res: Response): Promise<void> {
-    try {
-      const { ruta, contrato, control } = req.params;
-  
-      if (!ruta || !['clipper-lurin', 'clipper-tacna', 'clipper-lima'].includes(ruta)) {
-        res.status(400).json({
-          success: false,
-          message: 'Ruta no válida',
-          data: null,
-        });
-        return;
-      }
-  
-      if (!contrato || !control) {
-        res.status(400).json({
-          success: false,
-          message: 'Parámetros "contrato" y "control" son requeridos',
-          data: null,
-        });
-        return;
-      }
-  
-      const data = await this.clipperService.obtenerContratoPorId(ruta, contrato, control);
-  
-      if (!data) {
-        res.status(404).json({
-          success: false,
-          message: 'Contrato no encontrado',
-          data: null,
-        });
-        return;
-      }
-  
-      res.json({
-        success: true,
-        message: 'Consulta exitosa',
-        data,
-      });
-    } catch (error) {
-      console.error('❌ Error en ClipperController.obtenerContratoPorId:', error);
-      res.status(500).json({
+async obtenerContratoPorId(req: Request, res: Response): Promise<void> {
+  try {
+    const ruta = req.params['ruta'];
+    const contrato = req.params['contrato'];
+    const control: string | null = req.params['control'] ?? null;
+    
+    if (!ruta || !['clipper-lurin', 'clipper-tacna', 'clipper-lima'].includes(ruta)) {
+      res.status(400).json({
         success: false,
-        message: 'Error interno',
-        error: error instanceof Error ? error.message : 'Error desconocido',
+        message: 'Ruta no válida',
         data: null,
       });
+      return;
     }
+
+    if (!contrato) {
+      res.status(400).json({
+        success: false,
+        message: 'Parámetro "contrato" es requerido',
+        data: null,
+      });
+      return;
+    }
+
+    const data = await this.clipperService.obtenerContratoPorId(ruta, contrato, control);
+
+    if (!data) {
+      res.status(404).json({
+        success: false,
+        message: 'Contrato no encontrado',
+        data: null,
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      message: 'Consulta exitosa',
+      data,
+    });
+  } catch (error) {
+    console.error('❌ Error en ClipperController.obtenerContratoPorId:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno',
+      error: error instanceof Error ? error.message : 'Error desconocido',
+      data: null,
+    });
   }
+}
+
   
 
 

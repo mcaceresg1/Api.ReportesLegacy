@@ -46,8 +46,8 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
           `;
           break;
 
-          case 'clipper-tacna':
-            query = `   
+        case 'clipper-tacna':
+          query = `   
                 SELECT T0.CODCNT + '/' + T0.CODCTL AS contratoControl,		
                 DESPLA AS sectorEspacio,        
                 T0.CODSEC AS codigoTumba,       
@@ -57,8 +57,8 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
                  FROM PDRCO0 T0        
                  LEFT JOIN  mplt01 T1 ON T1.TIPPLA = T0.CODPLA;
             `;
-            break;
-          
+          break;
+
 
         case 'clipper-lima':
           // Reemplaza con el query para Lima cuando lo tengas
@@ -75,7 +75,7 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
               ON T1.CODITM = T0.TIPLOT 
               AND T1.CODTAB = '13';
       `;
-      break;
+          break;
       }
 
       // Ejecutar el query en la conexión correcta
@@ -92,8 +92,8 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
 
   async obtenerContratoPorId(
     ruta: string,
-    contrato: string,
-    control: string
+    contrato: string | null,
+    control: string | null
   ): Promise<ClipperContratoResultado | null> {
     try {
       if (!['clipper-lurin', 'clipper-tacna', 'clipper-lima'].includes(ruta)) {
@@ -133,7 +133,7 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
             INNER JOIN Tt000000 T3 ON T0.TIPO = T3.TT00_CODI AND T3.TT00_TIPO = '001'
             WHERE T0.NO_CONT = :contrato AND T0.CONTROL = :control;
           `;
-        
+
           // ============================ DETALLE ARTÍCULO ============================
           const detalleArticuloQuery = `
             SELECT DISTINCT
@@ -150,7 +150,7 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
             INNER JOIN DETALLE T3 ON T0.NO_CONT = T3.CONTRATO
             WHERE T0.NO_CONT = :contrato AND T0.CONTROL = :control;
           `;
-        
+
           // ============================ CUENTA CORRIENTE ============================
           const cuentaCorrienteQuery = `
             SELECT
@@ -170,7 +170,7 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
             WHERE T4.NO_CONT = :contrato AND T4.CONTROL = :control
             ORDER BY T4.ESTADO DESC;
           `;
-        
+
           // ============================ NOTAS CONTABLES ============================
           const notasContablesQuery = `
             SELECT
@@ -185,7 +185,7 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
             INNER JOIN Tt000000 T6 ON T6.TT00_CODI = T5.TIPO AND T6.TT00_TIPO = '009'
             WHERE T5.CONTRATO = :contrato AND T5.CONTROL = :control;
           `;
-        
+
           // ============================ PAGOS ============================
           const pagosQuery = `
             SELECT
@@ -200,7 +200,7 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
             INNER JOIN Tt000000 T11 ON T11.TT00_CODI = T10.TIPO_DOC AND T11.TT00_TIPO = '019'
             WHERE T10.NO_CONT = :contrato AND T10.CONTROL = :control;
           `;
-        
+
           // ============================ COMISIONES ============================
           const comisionesQuery = `
             SELECT
@@ -216,7 +216,7 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
             INNER JOIN Tt000000 T8 ON T6.ESTADO = T8.TT00_CODI AND T8.TT00_TIPO = '003'
             WHERE T6.NO_CONT = :contrato AND T6.CONTROL = :control;
           `;
-        
+
           // ============================ FACTURA / BOLETAS ============================
           const factbolQuery = `
             SELECT
@@ -234,7 +234,7 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
             INNER JOIN Tt000000 T9 ON T8.TIPO = T9.TT00_CODI AND T9.TT00_TIPO = '022'
             WHERE T8.CONTROL = :control;
           `;
-        
+
           // ============================ SEPELIOS ============================
           const sepeliosQuery = `
             SELECT
@@ -247,7 +247,7 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
             FROM Occisos T9
             WHERE T9.CONTRATO = :contrato AND T9.CONTROL = :control;
           `;
-        
+
           // ============================ EJECUCIÓN ============================
           const [cabecera] = await sequelizeInstance.query(cabeceraQuery, { type: QueryTypes.SELECT, replacements: { contrato, control } });
           const detalleArticulo = await sequelizeInstance.query(detalleArticuloQuery, { type: QueryTypes.SELECT, replacements: { contrato, control } });
@@ -257,7 +257,7 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
           const comisiones = await sequelizeInstance.query(comisionesQuery, { type: QueryTypes.SELECT, replacements: { contrato, control } });
           const factbol = await sequelizeInstance.query(factbolQuery, { type: QueryTypes.SELECT, replacements: { contrato, control } });
           const sepelios = await sequelizeInstance.query(sepeliosQuery, { type: QueryTypes.SELECT, replacements: { contrato, control } });
-        
+
           return {
             cabecera: cabecera as CabeceraContrato,
             detalleArticulo: detalleArticulo as DetalleArticulo[],
@@ -269,9 +269,9 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
             sepelios: sepelios as Sepelio[],
           };
 
-           case 'clipper-lima':
-             // ============================ CABECERA ============================
-             const cabeceraQueryLima = `
+        case 'clipper-lima':
+          // ============================ CABECERA ============================
+          const cabeceraQueryLima = `
              SELECT     
                T0.APPCLI + ' ' + T0.APMCLI + ' ' + T0.NOMCLI AS cliente,
                T0.DIRCLI AS direccion,
@@ -308,7 +308,7 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
              LEFT JOIN PDRLC0 T8 ON T0.CODCNT = T8.CODCNT
              WHERE T0.CODCNT = :contrato AND T0.CODCTL = :control;
            `;
-           const queryDetalleEspacios = `
+          const queryDetalleEspacios = `
                 SELECT     
                   T1.DESITM AS tipoEspacio,     
                   T2.DESITM AS sector,     
@@ -320,8 +320,8 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
                 LEFT JOIN TPDR01 T2 ON T0.CODPLA = T2.CODITM AND T2.CODTAB = '13'
                 WHERE T0.CODCNT = :contrato;
               `;
-              ///*****************************DETALLE ASISTENCIA */
-            const queryDetalle = `
+          ///*****************************DETALLE ASISTENCIA */
+          const queryDetalle = `
               SELECT
                   '' AS concepto,
                   T2.DESITM AS proced,
@@ -345,7 +345,7 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
               WHERE T0.CODCNT = :contrato;
               `;
 
-            const querySubDetalle = `
+          const querySubDetalle = `
             SELECT
                 '' AS aceptante,
                 T0.CODLET AS codigoLetra,
@@ -443,33 +443,215 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
               ORDER BY T0.FCHENT ASC;
               `;
 
-                  // ============================ EJECUCIÓN ============================
-                  const [cabeceraLima] = await sequelizeInstance.query(cabeceraQueryLima, { type: QueryTypes.SELECT, replacements: { contrato, control } });
-                   const detalleEspacio = await sequelizeInstance.query(queryDetalleEspacios, { type: QueryTypes.SELECT, replacements: { contrato, control } });
-                   const [detalle, subDetalle, comprobantes, pagosCaja] = await Promise.all([
-                    sequelizeInstance.query(queryDetalle, { type: QueryTypes.SELECT, replacements: { contrato } }),
-                    sequelizeInstance.query(querySubDetalle, { type: QueryTypes.SELECT, replacements: { contrato } }),
-                    sequelizeInstance.query(queryComprobantes, { type: QueryTypes.SELECT, replacements: { contrato } }),
-                    sequelizeInstance.query(queryPagosCaja, { type: QueryTypes.SELECT, replacements: { contrato } }),
-                  ]);
-                  const detalleAsistencia: DetalleAsistencia = {
-                    ...detalle[0],        // Datos principales del detalle
-                    subDetalle: subDetalle as SubDetalleAsistencia[],   // Array de subdetalle
-                    comprobantes: comprobantes as ComprobantesEmitidos[], // Array de comprobantes
-                    pagosCaja: pagosCaja as PagosCaja[],                // Array de pagosCaja
-                  };
-                  const beneficiarios = await sequelizeInstance.query(queryBeneficiarioContrato, {type: QueryTypes.SELECT,replacements: { contrato },});
-                  
-                  // Ejecutar query de fallecidos
-                  const fallecidos = await sequelizeInstance.query(queryFallecido, {type: QueryTypes.SELECT,replacements: { contrato }, });
-                  return {
-                    cabecera: cabeceraLima as CabeceraContrato,
-                    detalleEspacio: detalleEspacio as DetalleEspacio[],
-                    detalleAsistencia,
-                    beneficiarios: beneficiarios as BeneficiarioContrato[],
-                    fallecidos: fallecidos as Fallecido[],
-                  };
+          // ============================ EJECUCIÓN ============================
+          const [cabeceraLima] = await sequelizeInstance.query(cabeceraQueryLima, { type: QueryTypes.SELECT, replacements: { contrato, control } });
+          const detalleEspacio = await sequelizeInstance.query(queryDetalleEspacios, { type: QueryTypes.SELECT, replacements: { contrato, control } });
+          const [detalle, subDetalle, comprobantes, pagosCaja] = await Promise.all([
+            sequelizeInstance.query(queryDetalle, { type: QueryTypes.SELECT, replacements: { contrato } }),
+            sequelizeInstance.query(querySubDetalle, { type: QueryTypes.SELECT, replacements: { contrato } }),
+            sequelizeInstance.query(queryComprobantes, { type: QueryTypes.SELECT, replacements: { contrato } }),
+            sequelizeInstance.query(queryPagosCaja, { type: QueryTypes.SELECT, replacements: { contrato } }),
+          ]);
+          const detalleAsistencia: DetalleAsistencia = {
+            ...detalle[0],        // Datos principales del detalle
+            subDetalle: subDetalle as SubDetalleAsistencia[],   // Array de subdetalle
+            comprobantes: comprobantes as ComprobantesEmitidos[], // Array de comprobantes
+            pagosCaja: pagosCaja as PagosCaja[],                // Array de pagosCaja
+          };
+          const beneficiarios = await sequelizeInstance.query(queryBeneficiarioContrato, { type: QueryTypes.SELECT, replacements: { contrato }, });
+
+          // Ejecutar query de fallecidos
+          const fallecidos = await sequelizeInstance.query(queryFallecido, { type: QueryTypes.SELECT, replacements: { contrato }, });
+          return {
+            cabecera: cabeceraLima as CabeceraContrato,
+            detalleEspacio: detalleEspacio as DetalleEspacio[],
+            detalleAsistencia,
+            beneficiarios: beneficiarios as BeneficiarioContrato[],
+            fallecidos: fallecidos as Fallecido[],
+          };
           break;
+        case 'clipper-tacna':
+          // ============================ CABECERA ============================
+          const cabeceraQueryTacna = `
+            SELECT                   T0.APPCLI + ' ' + T0.APMCLI + ' ' + T0.NOMCLI AS cliente, 
+                         T0.DIRCLI AS direccion,              '' AS nombreEmpresa,            
+
+                           T0.DIROFI AS direccionOficina,              '' AS estadoCivil,        
+                                 CASE WHEN T0.SEXCLI = '0' THEN  'Masculino'				   
+                                 WHEN T0.SEXCLI = '1' THEN 'Femenino'				  
+                                  ELSE null END AS sexo,              
+                                  T0.ELECLI AS dni,             
+                                   T0.PASCLI AS pasaporteCliente,          
+                                   T0.RUCCLI AS rucCliente,       
+                                   '' AS codigoPostal,          
+                                    T0.TE1CLI AS telfCliente,       
+                                   '' AS telfOpcional,  
+                                     T0.TE2CLI AS telOficina,  
+                                     T0.FCHPRC AS fechaRecepcion,     
+                                     T0.CODSECORI AS sector,       
+                                     T0.CODSEC AS codigoSector,      
+                                     '' AS tipoEspacioOrig,        
+                                       '' AS emailPersonal,     
+                                       T6.APPACE + ' ' + T6.APMACE + ' ' + T6.NOMACE AS aceptante,  
+                                       T6.DIRACE AS direccionAceptante,             
+                                        '' AS distritoAceptante,              
+                                        T6.TELACE AS telAceptante,              
+                                        T8.APPGAR + ' ' + T8.APMGAR + ' ' + T8.NOMGAR AS garante,              
+                                        T8.DIRGAR AS direcGarante           
+                                       FROM PDRCO0 T0            
+                                       LEFT JOIN PDRLC0 T6 ON T0.CODCNT = T6.CODCNT            
+                                       LEFT JOIN PDRLC0 T8 ON T0.CODCNT = T8.CODCNT
+            WHERE 
+            (:contrato IS NULL OR T0.CODCNT = :contrato) AND
+            (:control IS NULL OR T0.CODCTL = :control);
+            ;
+          `;
+          const queryDetalleEspaciosTacna = `
+              SELECT
+               '' AS tipoEspacio,     
+                 '' AS sector,     
+                 T0.CODSEC AS codigoSector,     
+                 T0.FCHESC AS fechaEspacio,     
+                 T0.NUMNIV AS numroNivel
+               FROM dbo.PDRCO9 T0    
+                   WHERE 
+            (:contrato IS NULL OR T0.CODCNT = :contrato);
+             `;
+          ///*****************************DETALLE ASISTENCIA */
+          const queryDetalleTacna = `
+             SELECT
+                  '' AS concepto,
+                  '' AS proced,
+                  '' AS agenciaFuneraria,
+                  CASE WHEN CODAGE <> '' THEN (SELECT TT.NOMFUN FROM PDRVE5 TT WHERE T0.CODVEN = TT.CODFU1)
+                  ELSE  (SELECT TQ.NOMVEN FROM PDRVE0 TQ WHERE T0.CODVEN = TQ.CODVEN)
+                  END AS consejero,
+                  '' AS supervisor,
+                  T0.FCHPAG AS fechaPago,
+                  '' AS formaPago,
+                  '' AS tipoAfect,
+                  CAST(T0.MONPAG AS FLOAT) AS estipFunerario,
+                  CAST(T0.MONINI AS FLOAT) AS aporteInicial,
+                  CAST(T0.MONPAG AS FLOAT) - CAST(T0.MONINI AS FLOAT) AS estipMensual,
+                  '' AS estado
+                  FROM dbo.PDRCO1 T0
+                 WHERE 
+            (:contrato IS NULL OR T0.CODCNT = :contrato);
+             `;
+
+          const querySubDetalletacna = `
+           SELECT
+                '' AS aceptante,
+                T0.CODLET AS codigoLetra,
+                T0.CODBAN AS banco,
+                T0.FCHVEN AS fechaVencimiento,
+                T0.MONLET AS importePagado,
+                T0.FCHCAN AS fechaCancelacion,
+                '' AS estadoLetra,
+                T0.MONPAG AS montoPagado,
+                CAST(T0.MONLET AS FLOAT) - CAST(T0.MONPAG AS FLOAT) AS saldo,
+                '' AS ubicacion,
+                SUM(CAST(T0.MONLET AS FLOAT)) AS estipendoMensual,
+                SUM(CAST(T0.MONPAG AS FLOAT)) AS totalAbonoEfectivo,
+                0 AS totalAbonado,
+                0 AS totalDescuento
+            FROM dbo.PDRLC1 T0
+                WHERE 
+            (:contrato IS NULL OR T0.CODCNT = :contrato) 
+            GROUP BY
+                T0.CODLET,
+                T0.CODBAN,
+                T0.FCHVEN,
+                T0.MONLET,
+                T0.FCHCAN,
+                T0.MONPAG
+            ORDER BY T0.CODLET ASC;
+           `;
+
+          const queryComprobantesTacna = `
+         SELECT
+            '' AS documento,
+            T0.CODCMP + '-' + T0.NROCMP AS numero,
+            CONVERT(VARCHAR(10), T0.FCHCMP, 103) AS fecha,
+            'US$.' AS moneda,
+            CAST(T0.MONCMP AS FLOAT) AS monto,
+            CAST(T0.CAMCMP AS FLOAT) AS tipoCambio,
+            ROUND(CAST(T0.MONCMP AS FLOAT) * CAST(T0.CAMCMP AS FLOAT), 2) AS enSoles,
+            '' AS concepto,
+            '' AS estado
+            FROM PDRLC5 T0
+                WHERE 
+            (:contrato IS NULL OR T0.CODCNT = :contrato) ;
+         `;
+
+          const queryPagosCajaTacna = `
+                SELECT
+                    T0.FCHREG AS fechaRegistro,
+                    '' AS condicionVenta,
+                    '' AS tipoPago,
+                    T0.IMPTOT AS importeTotal
+                FROM dbo.PDRNC2 T0
+                    WHERE 
+            (:contrato IS NULL OR T0.CODCNT = :contrato) ;
+         `;
+          const queryBeneficiarioContratoTacna = `
+              SELECT
+                  T0.APPBEN + ' ' + T0.APMBEN + ' ' + T0.NOMBEN AS beneficiario,
+                  T0.FCHNAC AS fechaNacimientoBeneficiario,
+                  T0.DOCIDE AS dniBeneficiario,
+                  T0.TELBEN AS telefBeneficiario,
+                  '' AS estadoCivilBeneficiario,
+                  '' AS sexoBeneficiario
+              FROM dbo.PDRCO5 T0
+                  WHERE 
+            (:contrato IS NULL OR T0.CODCNT = :contrato) ;
+           `;
+
+          const queryFallecidoTacna = `
+                      SELECT                 T0.APPFAL + ' ' + T0.APMFAL + ' ' + T0.NOMFAL AS nomFallecido,               
+                      T0.FCHENT AS fechaEntierro,                
+                      '' AS estadoCivilFallecido,                 
+                      '' AS sexoFallecido,                
+                      '' AS plataformaFallecido,                 
+                      T0.CODSEC AS sectorFallecido,                 
+                      '' AS tipoEspacioFallecido,                
+                      '' AS nivelFallecido,                 
+                      '' AS medidaFallecido,                
+                      T0.AGEENT AS agenciaFallecido            
+                      FROM dbo.PDRPL1 T0                     
+                          WHERE 
+                      (:contrato IS NULL OR T0.CODCNT = :contrato)       
+                      ORDER BY T0.FCHENT ASC;
+             `;
+
+          // ============================ EJECUCIÓN ============================
+          const [cabeceraTacna] = await sequelizeInstance.query(cabeceraQueryTacna, { type: QueryTypes.SELECT, replacements: { contrato, control } });
+          const detalleEspacioTacna = await sequelizeInstance.query(queryDetalleEspaciosTacna, { type: QueryTypes.SELECT, replacements: { contrato, control } });
+          const [detalleTacna, subDetalleTacna, comprobantesTacna, pagosCajaTacna] = await Promise.all([
+            sequelizeInstance.query(queryDetalleTacna, { type: QueryTypes.SELECT, replacements: { contrato } }),
+            sequelizeInstance.query(querySubDetalletacna, { type: QueryTypes.SELECT, replacements: { contrato } }),
+            sequelizeInstance.query(queryComprobantesTacna, { type: QueryTypes.SELECT, replacements: { contrato } }),
+            sequelizeInstance.query(queryPagosCajaTacna, { type: QueryTypes.SELECT, replacements: { contrato } }),
+          ]);
+          const detalleAsistenciaTacna: DetalleAsistencia = {
+            ...detalleTacna[0],        // Datos principales del detalle
+            subDetalle: subDetalleTacna as SubDetalleAsistencia[],   // Array de subdetalle
+            comprobantes: comprobantesTacna as ComprobantesEmitidos[], // Array de comprobantes
+            pagosCaja: pagosCajaTacna as PagosCaja[],                // Array de pagosCaja
+          };
+          const beneficiariosTacna = await sequelizeInstance.query(queryBeneficiarioContratoTacna, { type: QueryTypes.SELECT, replacements: { contrato }, });
+
+          // Ejecutar query de fallecidos
+          const fallecidosTacna = await sequelizeInstance.query(queryFallecidoTacna, { type: QueryTypes.SELECT, replacements: { contrato }, });
+          return {
+            cabecera: cabeceraTacna as CabeceraContrato,
+            detalleEspacio: detalleEspacioTacna as DetalleEspacio[],
+            detalleAsistencia: detalleAsistenciaTacna,
+            beneficiarios: beneficiariosTacna as BeneficiarioContrato[],
+            fallecidos: fallecidosTacna as Fallecido[],
+          };
+          break;
+
       }
 
       const results = await sequelizeInstance.query(query, {

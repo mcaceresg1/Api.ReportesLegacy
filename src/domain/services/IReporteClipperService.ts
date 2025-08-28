@@ -16,7 +16,7 @@ export interface IReporteClipperService {
    */
   obtenerContratoPorId(
     ruta: string,
-    contrato: string,
-    control: string
+    contrato: string | null,
+    control: string | null
   ): Promise<ClipperContratoResultado | null>;
 }

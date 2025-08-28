@@ -12,7 +12,7 @@ export function createReporteClipperRoutes(reporteClipperRepository: IReporteCli
    router.get('/:ruta/contratos', (req, res) => controller.obtenerContratos(req, res));
  
     // GET /api/reporte-clipper/:ruta/contratos/:contrato/:control
-  router.get('/:ruta/contratos/:contrato/:control', (req, res) =>
+  router.get('/:ruta/contratos/:contrato?/:control?', (req, res) =>
     controller.obtenerContratoPorId(req, res)
   );
 
