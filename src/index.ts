@@ -24,6 +24,7 @@ async function startServer() {
       console.log(`🔗 Swagger en http://${HOST}:${PORT}/api-docs`);
       console.log(`🏥 Health check en http://${HOST}:${PORT}/health`);
     });
+
   } catch (error) {
     console.error('❌ Error al iniciar el servidor:', error);
     process.exit(1);
