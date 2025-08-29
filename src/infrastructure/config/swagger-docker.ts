@@ -14,8 +14,8 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: 'http://localhost:3000',
-        description: 'Servidor Docker'
+        url: process.env['PROD_SWAGGER_URL'] || 'http://192.168.90.73:3000',
+        description: 'Servidor de producción'
       }
     ],
     components: {
@@ -40,4 +40,4 @@ const swaggerOptions = {
   ]
 };
 
-export const specs = swaggerJsdoc(swaggerOptions); 
+export const specs = swaggerJsdoc(swaggerOptions);
