@@ -96,6 +96,8 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
     control: string | null
   ): Promise<ClipperContratoResultado | null> {
     try {
+      console.log(`🔍 [ReporteClipperRepository] Buscando contrato - Ruta: ${ruta}, Contrato: ${contrato}, Control: ${control}`);
+      
       if (!['clipper-lurin', 'clipper-tacna', 'clipper-lima'].includes(ruta)) {
         throw new Error('Ruta no válida');
       }
@@ -106,6 +108,10 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
       if (!sequelizeInstance) {
         throw new Error(`No se encontró conexión para la ruta: ${ruta}`);
       }
+
+      console.log(`🔍 [ReporteClipperRepository] Conexión encontrada para ruta: ${ruta}`);
+
+      console.log(`🔍 [ReporteClipperRepository] Conexión encontrada para ruta: ${ruta}`);
 
       let query = '';
 
@@ -643,6 +649,24 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
 
           // Ejecutar query de fallecidos
           const fallecidosTacna = await sequelizeInstance.query(queryFallecidoTacna, { type: QueryTypes.SELECT, replacements: { contrato }, });
+          
+          console.log(`🔍 [ReporteClipperRepository] Resultados obtenidos para Tacna:`);
+          console.log(`   - Cabecera:`, cabeceraTacna);
+          console.log(`   - Detalle Espacio:`, detalleEspacioTacna?.length || 0, 'registros');
+          console.log(`   - Detalle:`, detalleTacna?.length || 0, 'registros');
+          console.log(`   - SubDetalle:`, subDetalleTacna?.length || 0, 'registros');
+          console.log(`   - Comprobantes:`, comprobantesTacna?.length || 0, 'registros');
+          console.log(`   - Pagos Caja:`, pagosCajaTacna?.length || 0, 'registros');
+          console.log(`   - Beneficiarios:`, beneficiariosTacna?.length || 0, 'registros');
+          console.log(`   - Fallecidos:`, fallecidosTacna?.length || 0, 'registros');
+          
+          // Verificar si tenemos datos válidos
+          if (!cabeceraTacna) {
+            console.log(`❌ [ReporteClipperRepository] No se encontró cabecera para contrato ${contrato}/${control}`);
+            return null;
+          }
+          
+          console.log(`✅ [ReporteClipperRepository] Contrato encontrado exitosamente`);
           return {
             cabecera: cabeceraTacna as CabeceraContrato,
             detalleEspacio: detalleEspacioTacna as DetalleEspacio[],
