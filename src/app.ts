@@ -49,6 +49,9 @@ import { IReporteCuentaContableRepository } from './domain/repositories/IReporte
 import { IReporteCentroCostoRepository } from './domain/repositories/IReporteCentroCostoRepository';
 import { ICuentaContableRepository } from './domain/repositories/ICuentaContableRepository';
 import { CqrsService } from './infrastructure/cqrs/CqrsService';
+import { createReporteClipperRoutes } from './infrastructure/routes/ReporteClipperRoutes';
+import { IReporteClipperRepository } from './domain/repositories/IReporteClipperRepository';
+
 
 const app = express();
 
@@ -80,7 +83,7 @@ const menuService = container.get<IMenuService>('IMenuService');
   const reporteCuentaContableRepository = container.get<IReporteCuentaContableRepository>('IReporteCuentaContableRepository');
   const reporteCentroCostoRepository = container.get<IReporteCentroCostoRepository>('IReporteCentroCostoRepository');
   const cuentaContableRepository = container.get<ICuentaContableRepository>('ICuentaContableRepository');
-
+ const reporteClipperRepository = container.get<IReporteClipperRepository>('IReporteClipperRepository');
 // Inicializar CQRS
 console.log('🚀 Inicializando CQRS Service...');
 const cqrsService = container.get<CqrsService>('CqrsService');
@@ -135,7 +138,7 @@ const permisoRoutes = new PermisoRoutes();
   const reporteMovimientosContablesRoutes = createReporteMovimientosContablesRoutes();
   const reporteMovimientosContablesAgrupadosRoutes = createReporteMovimientosContablesAgrupadosRoutes();
   const reporteCatalogoCuentasModificadasRoutes = createReporteCatalogoCuentasModificadasRoutes();
-  
+  const reporteClipperRoutes = createReporteClipperRoutes(reporteClipperRepository);
 
 // Endpoint de prueba
 app.get('/api/test', (req, res) => {
@@ -197,13 +200,6 @@ app.use('/api/permisos', authMiddleware.verifyToken, permisoRoutes.getRouter());
   app.use('/api/reporte-catalogo-cuentas-modificadas', QueryOptimizationMiddleware.validateQueryParams, reporteCatalogoCuentasModificadasRoutes);
   app.use('/api/libro-mayor', QueryOptimizationMiddleware.validateQueryParams, libroMayorRoutes);
 
-
-  app.use('/api/diario-contabilidad', QueryOptimizationMiddleware.validateQueryParams, createDiarioContabilidadRoutes());
-  app.use('/api/plan-contable', QueryOptimizationMiddleware.validateQueryParams, createPlanContableRoutes());
-app.use('/api/reporte-periodo-contable', QueryOptimizationMiddleware.validateQueryParams, createPeriodoContableRoutes());
-app.use('/api/movimiento-contable-agrupado', QueryOptimizationMiddleware.validateQueryParams, createMovimientoContableAgrupadoRoutes());
-app.use('/api/saldo-promedios', QueryOptimizationMiddleware.validateQueryParams, createSaldoPromediosRoutes());
-
 // Libro Mayor Asientos Routes
 try {
   const libroMayorAsientosController = container.get('LibroMayorAsientosController') as any;
@@ -221,6 +217,12 @@ try {
 } catch (error) {
   console.error('❌ Error al registrar Libro Mayor Asientos routes:', error);
 }
+  app.use('/api/diario-contabilidad', QueryOptimizationMiddleware.validateQueryParams, createDiarioContabilidadRoutes());
+  app.use('/api/plan-contable', QueryOptimizationMiddleware.validateQueryParams, createPlanContableRoutes());
+app.use('/api/reporte-periodo-contable', QueryOptimizationMiddleware.validateQueryParams, createPeriodoContableRoutes());
+app.use('/api/movimiento-contable-agrupado', QueryOptimizationMiddleware.validateQueryParams, createMovimientoContableAgrupadoRoutes());
+app.use('/api/saldo-promedios', QueryOptimizationMiddleware.validateQueryParams, createSaldoPromediosRoutes());
+app.use('/api/reporte-clipper', QueryOptimizationMiddleware.validateQueryParams,reporteClipperRoutes);
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================
 
@@ -836,7 +838,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
-// Middleware para rutas no encontradas (debe ir al final)
+// Middleware para rutas no encontradas
 app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
