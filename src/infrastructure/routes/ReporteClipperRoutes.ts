@@ -8,18 +8,14 @@ export function createReporteClipperRoutes(reporteClipperRepository: IReporteCli
   const router = Router();
   const controller = container.get<ClipperController>('ClipperController');
 
-  // GET /api/reporte-clipper/:ruta/contratos/:contrato/:control (MÁS ESPECÍFICA PRIMERO)
-  router.get('/:ruta/contratos/:contrato/:control', (req, res) =>
+  // GET /api/reporte-clipper/:ruta/contratos
+   router.get('/:ruta/contratos', (req, res) => controller.obtenerContratos(req, res));
+ 
+    // GET /api/reporte-clipper/:ruta/contratos/:contrato/:control
+  router.get('/:ruta/contratos/:contrato?/:control?', (req, res) =>
     controller.obtenerContratoPorId(req, res)
   );
 
-  // GET /api/reporte-clipper/:ruta/contratos/:contrato (SOLO CONTRATO)
-  router.get('/:ruta/contratos/:contrato', (req, res) =>
-    controller.obtenerContratoPorId(req, res)
-  );
-
-  // GET /api/reporte-clipper/:ruta/contratos (LISTA DE CONTRATOS - MÁS GENERAL AL FINAL)
-  router.get('/:ruta/contratos', (req, res) => controller.obtenerContratos(req, res));
 
   return router;
 }
