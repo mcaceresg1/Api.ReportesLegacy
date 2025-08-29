@@ -5,8 +5,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node --max-old-space-size=8192 dist/index.js",
-    "start:dev": "NODE_ENV=development tsx src/index.ts",
-    "start:prod": "NODE_ENV=production node --max-old-space-size=8192 dist/index.js",
+    "start:dev": "set NODE_ENV=development && tsx src/index.ts",
+    "start:prod": "set NODE_ENV=production && node --max-old-space-size=8192 dist/index.js",
     "dev": "tsx src/index.ts",
     "dev:watch": "nodemon --exec tsx src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
