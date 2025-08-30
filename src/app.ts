@@ -51,6 +51,8 @@ import { ICuentaContableRepository } from './domain/repositories/ICuentaContable
 import { CqrsService } from './infrastructure/cqrs/CqrsService';
 import { createReporteClipperRoutes } from './infrastructure/routes/ReporteClipperRoutes';
 import { IReporteClipperRepository } from './domain/repositories/IReporteClipperRepository';
+import { createReporteHmisRoutes } from './infrastructure/routes/ReporteHmisRoutes';
+import { IReporteHmisRepository } from './domain/repositories/IReporteHmisRepository';
 
 
 const app = express();
@@ -84,6 +86,8 @@ const menuService = container.get<IMenuService>('IMenuService');
   const reporteCentroCostoRepository = container.get<IReporteCentroCostoRepository>('IReporteCentroCostoRepository');
   const cuentaContableRepository = container.get<ICuentaContableRepository>('ICuentaContableRepository');
  const reporteClipperRepository = container.get<IReporteClipperRepository>('IReporteClipperRepository');
+ const reporteHmisRepository = container.get<IReporteHmisRepository>('IReporteHmisRepository');
+
 // Inicializar CQRS
 console.log('🚀 Inicializando CQRS Service...');
 const cqrsService = container.get<CqrsService>('CqrsService');
@@ -139,7 +143,7 @@ const permisoRoutes = new PermisoRoutes();
   const reporteMovimientosContablesAgrupadosRoutes = createReporteMovimientosContablesAgrupadosRoutes();
   const reporteCatalogoCuentasModificadasRoutes = createReporteCatalogoCuentasModificadasRoutes();
   const reporteClipperRoutes = createReporteClipperRoutes(reporteClipperRepository);
-
+  const reporteHmisRoutes = createReporteHmisRoutes(reporteHmisRepository);
 // Endpoint de prueba
 app.get('/api/test', (req, res) => {
   res.json({ 
@@ -223,7 +227,7 @@ app.use('/api/reporte-periodo-contable', QueryOptimizationMiddleware.validateQue
 app.use('/api/movimiento-contable-agrupado', QueryOptimizationMiddleware.validateQueryParams, createMovimientoContableAgrupadoRoutes());
 app.use('/api/saldo-promedios', QueryOptimizationMiddleware.validateQueryParams, createSaldoPromediosRoutes());
 app.use('/api/reporte-clipper', QueryOptimizationMiddleware.validateQueryParams,reporteClipperRoutes);
-
+app.use('/api/reporte-hmis', QueryOptimizationMiddleware.validateQueryParams,reporteHmisRoutes);
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================
 
 // Endpoints de usuarios adicionales

@@ -5,8 +5,8 @@ import { sequelize } from './infrastructure/database/config/database';
 import './infrastructure/database/models'; // Importar modelos para establecer asociaciones
 import './infrastructure/container/container'; // Importar contenedor para inicializar DI
 
-const PORT = process.env['PORT'] || 3000;
-const HOST = process.env['HOST'] || '0.0.0.0';
+const PORT = process.env['PORT'] || 3001;
+const HOST = process.env['HOST'] || 'localhost';
 
 async function startServer() {
   try {

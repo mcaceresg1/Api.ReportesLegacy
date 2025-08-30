@@ -174,6 +174,11 @@ import { ReporteClipperRepository } from '../repositories/ReporteClipperReposito
 import { ClipperController } from '../controllers/ClipperController';
 import { IReporteClipperService } from '../../domain/services/IReporteClipperService';
 import { ReporteClipperService } from '../../application/services/ReporteCliperService';
+import { IReporteHmisRepository } from '../../domain/repositories/IReporteHmisRepository';
+import { ReporteHmisRepository } from '../repositories/ReporteHmisRepository';
+import { IReporteHmisService } from '../../domain/services/IReporteHmisService';
+import { ReporteHmisService } from '../../application/services/ReporteHmisService';
+import { HmisController } from '../controllers/HmisController';
 
 const container = new Container();
 
@@ -208,6 +213,7 @@ container.bind<ISaldoPromediosRepository>('ISaldoPromediosRepository').to(SaldoP
 
 container.bind<ICuentaContableRepository>('ICuentaContableRepository').to(CuentaContableRepository);
 container.bind<IReporteClipperRepository>('IReporteClipperRepository').to(ReporteClipperRepository);
+container.bind<IReporteHmisRepository>('IReporteHmisRepository').to(ReporteHmisRepository);
 
 // Services
 container.bind<IUsuarioService>('IUsuarioService').to(UsuarioService);
@@ -230,6 +236,7 @@ container.bind<ILibroMayorAsientosService>('ILibroMayorAsientosService').to(Libr
 
 container.bind<IDatabaseService>('IDatabaseService').to(DatabaseService);
 container.bind<IReporteClipperService>('IReporteClipperService').to(ReporteClipperService);
+container.bind<IReporteHmisService>('IReporteHmisService').to(ReporteHmisService);
 
 
 // Controllers
@@ -257,7 +264,7 @@ container.bind<PeriodoContableController>('PeriodoContableController').to(Period
 container.bind<MovimientoContableAgrupadoController>('MovimientoContableAgrupadoController').to(MovimientoContableAgrupadoController);
 container.bind<SaldoPromediosController>('SaldoPromediosController').to(SaldoPromediosController);
 container.bind<ClipperController>('ClipperController').to(ClipperController);
-
+container.bind<HmisController>('HmisController').to(HmisController);
 
 // CQRS Buses
 container.bind<ICommandBus>('ICommandBus').to(CommandBus);
