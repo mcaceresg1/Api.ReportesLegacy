@@ -1,6 +1,6 @@
 export interface HmisReporte {
-    CabeceraContratoHmis?: CabeceraContratoHmis;
-   // HmisContrato?: HmisContrato[];
+    CabeceraContratoHmis: CabeceraContratoHmis | undefined;
+    HmisContrato?: HmisContrato[];
 
   }
 
@@ -66,15 +66,6 @@ export interface HmisReporte {
     Received_Dt?: string | null;
     Last_Update_Dt?: string;
     Update_User_ID?: string;
-    Sales_Finance_Id?: number;
-    Numbered_Doc_Type_Cd?: string;
-    System_Generated?: number;
-    Verified?: number;
-    Numbered_Doc_Id?: number;
-    Numbered_Doc_Descr?: string;
-    Sales_Claims_Id?: number;
-    Numbered_Doc_Status_Cd?: string;
-    Descr?: string;
   }
   
   export interface ComentarioLink {
@@ -203,7 +194,6 @@ export interface HmisReporte {
   }
   
   export interface AbonoContrato {
-    contrato?: string;
     sales_contract_nbr?: number;
     cash_receipt_nbr?: string;
     cash_receipt_id?: number;
@@ -228,7 +218,6 @@ export interface HmisReporte {
   }
   
   export interface TransaccionContrato {
-    contrato?: string;
     txn_dt: string;                 // Fecha de la transacción
     gl_amt_type_cd: string;        // Tipo de monto contable (S, E, R, etc.)
     gl_distrib_evnt_cd: string;    // Código del evento contable
