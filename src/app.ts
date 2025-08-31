@@ -33,6 +33,7 @@ import { createPlanContableRoutes } from './infrastructure/routes/planContable.r
 import { createPeriodoContableRoutes } from './infrastructure/routes/periodoContable.routes';
 import { createMovimientoContableAgrupadoRoutes } from './infrastructure/routes/movimientoContableAgrupado.routes';
 import { createSaldoPromediosRoutes } from './infrastructure/routes/saldoPromedios.routes';
+import { LibroMayorContabilidadRoutes } from './infrastructure/routes/libroMayorContabilidad.routes';
 
 import { AuthMiddleware } from './infrastructure/middleware/AuthMiddleware';
 import { QueryOptimizationMiddleware } from './infrastructure/middleware/QueryOptimizationMiddleware';
@@ -222,6 +223,7 @@ try {
 app.use('/api/reporte-periodo-contable', QueryOptimizationMiddleware.validateQueryParams, createPeriodoContableRoutes());
 app.use('/api/movimiento-contable-agrupado', QueryOptimizationMiddleware.validateQueryParams, createMovimientoContableAgrupadoRoutes());
 app.use('/api/saldo-promedios', QueryOptimizationMiddleware.validateQueryParams, createSaldoPromediosRoutes());
+app.use('/api/libro-mayor-contabilidad', QueryOptimizationMiddleware.validateQueryParams, new LibroMayorContabilidadRoutes().getRouter());
 app.use('/api/reporte-clipper', QueryOptimizationMiddleware.validateQueryParams,reporteClipperRoutes);
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================

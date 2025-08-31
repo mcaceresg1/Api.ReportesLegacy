@@ -30,6 +30,7 @@ import { IPlanContableRepository } from '../../domain/repositories/IPlanContable
 import { IPeriodoContableRepository } from '../../domain/repositories/IPeriodoContableRepository';
 import { IMovimientoContableAgrupadoRepository } from '../../domain/repositories/IMovimientoContableAgrupadoRepository';
 import { ISaldoPromediosRepository } from '../../domain/repositories/ISaldoPromediosRepository';
+import { ILibroMayorContabilidadRepository } from '../../domain/repositories/ILibroMayorContabilidadRepository';
 
 import { ICuentaContableRepository } from '../../domain/repositories/ICuentaContableRepository';
 import { IUsuarioService } from '../../domain/services/IUsuarioService';
@@ -49,6 +50,7 @@ import { IReporteMovimientosContablesService } from '../../domain/services/IRepo
 import { IReporteMovimientosContablesAgrupadosService } from '../../domain/services/IReporteMovimientosContablesAgrupadosService';
 import { ISaldoPromediosService } from '../../domain/services/ISaldoPromediosService';
 import { ILibroMayorAsientosService } from '../../domain/services/ILibroMayorAsientosService';
+import { ILibroMayorContabilidadService } from '../../domain/services/ILibroMayorContabilidadService';
 
 import { IDatabaseService } from '../../domain/services/IDatabaseService';
 
@@ -84,10 +86,13 @@ import { PlanContableRepository } from '../repositories/PlanContableRepository';
 import { PeriodoContableRepository } from '../repositories/PeriodoContableRepository';
 import { MovimientoContableAgrupadoRepository } from '../repositories/MovimientoContableAgrupadoRepository';
 import { SaldoPromediosRepository } from '../repositories/SaldoPromediosRepository';
+import { LibroMayorContabilidadRepository } from '../repositories/LibroMayorContabilidadRepository';
 
 import { CuentaContableRepository } from '../repositories/CuentaContableRepository';
 import { LibroMayorAsientosService } from '../../application/services/LibroMayorAsientosService';
 import { LibroMayorAsientosController } from '../controllers/LibroMayorAsientosController';
+import { LibroMayorContabilidadService } from '../../application/services/LibroMayorContabilidadService';
+import { LibroMayorContabilidadController } from '../controllers/LibroMayorContabilidadController';
 import { UsuarioService } from '../../application/services/UsuarioService';
 import { AuthService } from '../../application/services/AuthService';
 import { MenuService } from '../../application/services/MenuService';
@@ -164,6 +169,11 @@ import { GenerarReporteDiarioContabilidadHandler } from '../../application/handl
 import { ObtenerDiarioContabilidadHandler } from '../../application/handlers/diario-contabilidad/ObtenerDiarioContabilidadHandler';
 import { ExportarDiarioContabilidadExcelHandler } from '../../application/handlers/diario-contabilidad/ExportarDiarioContabilidadExcelHandler';
 
+// Libro Mayor Contabilidad Handlers
+import { GenerarReporteLibroMayorHandler } from '../../application/handlers/libroMayorContabilidad/GenerarReporteLibroMayorHandler';
+import { LimpiarReporteLibroMayorHandler } from '../../application/handlers/libroMayorContabilidad/LimpiarReporteLibroMayorHandler';
+import { GetLibroMayorContabilidadQueryHandler } from '../../application/handlers/libroMayorContabilidad/GetLibroMayorContabilidadQueryHandler';
+
 // CQRS Service
 import { CqrsService } from '../cqrs/CqrsService';
 
@@ -205,6 +215,7 @@ container.bind<IPlanContableRepository>('IPlanContableRepository').to(PlanContab
 container.bind<IPeriodoContableRepository>('IPeriodoContableRepository').to(PeriodoContableRepository);
 container.bind<IMovimientoContableAgrupadoRepository>('IMovimientoContableAgrupadoRepository').to(MovimientoContableAgrupadoRepository);
 container.bind<ISaldoPromediosRepository>('ISaldoPromediosRepository').to(SaldoPromediosRepository);
+container.bind<ILibroMayorContabilidadRepository>('ILibroMayorContabilidadRepository').to(LibroMayorContabilidadRepository);
 
 container.bind<ICuentaContableRepository>('ICuentaContableRepository').to(CuentaContableRepository);
 container.bind<IReporteClipperRepository>('IReporteClipperRepository').to(ReporteClipperRepository);
@@ -227,6 +238,7 @@ container.bind<IReporteMovimientosContablesService>('IReporteMovimientosContable
 container.bind<IReporteMovimientosContablesAgrupadosService>('IReporteMovimientosContablesAgrupadosService').to(ReporteMovimientosContablesAgrupadosService);
 container.bind<ISaldoPromediosService>('ISaldoPromediosService').to(SaldoPromediosService);
 container.bind<ILibroMayorAsientosService>('ILibroMayorAsientosService').to(LibroMayorAsientosService);
+container.bind<ILibroMayorContabilidadService>('ILibroMayorContabilidadService').to(LibroMayorContabilidadService);
 
 container.bind<IDatabaseService>('IDatabaseService').to(DatabaseService);
 container.bind<IReporteClipperService>('IReporteClipperService').to(ReporteClipperService);
@@ -256,6 +268,7 @@ container.bind<DiarioContabilidadController>('DiarioContabilidadController').to(
 container.bind<PeriodoContableController>('PeriodoContableController').to(PeriodoContableController);
 container.bind<MovimientoContableAgrupadoController>('MovimientoContableAgrupadoController').to(MovimientoContableAgrupadoController);
 container.bind<SaldoPromediosController>('SaldoPromediosController').to(SaldoPromediosController);
+container.bind<LibroMayorContabilidadController>('LibroMayorContabilidadController').to(LibroMayorContabilidadController);
 container.bind<ClipperController>('ClipperController').to(ClipperController);
 
 
@@ -294,6 +307,11 @@ container.bind<ExportarLibroMayorExcelHandler>('ExportarLibroMayorExcelHandler')
 container.bind<GenerarReporteDiarioContabilidadHandler>('GenerarReporteDiarioContabilidadHandler').to(GenerarReporteDiarioContabilidadHandler);
 container.bind<ObtenerDiarioContabilidadHandler>('ObtenerDiarioContabilidadHandler').to(ObtenerDiarioContabilidadHandler);
 container.bind<ExportarDiarioContabilidadExcelHandler>('ExportarDiarioContabilidadExcelHandler').to(ExportarDiarioContabilidadExcelHandler);
+
+// Libro Mayor Contabilidad Handlers
+container.bind<GenerarReporteLibroMayorHandler>('GenerarReporteLibroMayorHandler').to(GenerarReporteLibroMayorHandler);
+container.bind<LimpiarReporteLibroMayorHandler>('LimpiarReporteLibroMayorHandler').to(LimpiarReporteLibroMayorHandler);
+container.bind<GetLibroMayorContabilidadQueryHandler>('GetLibroMayorContabilidadQueryHandler').to(GetLibroMayorContabilidadQueryHandler);
 
 // CQRS Service
 container.bind<CqrsService>('CqrsService').to(CqrsService);

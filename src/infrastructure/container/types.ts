@@ -116,5 +116,13 @@ export const TYPES = {
     AuthMiddleware: 'AuthMiddleware',
 
     // Infrastructure
-    Sequelize: 'Sequelize'
+    Sequelize: 'Sequelize',
+
+    // Libro Mayor Contabilidad
+    ILibroMayorContabilidadRepository: 'ILibroMayorContabilidadRepository',
+    ILibroMayorContabilidadService: 'ILibroMayorContabilidadService',
+    LibroMayorContabilidadController: 'LibroMayorContabilidadController',
+    GenerarReporteLibroMayorHandler: 'GenerarReporteLibroMayorHandler',
+    LimpiarReporteLibroMayorHandler: 'LimpiarReporteLibroMayorHandler',
+    GetLibroMayorContabilidadQueryHandler: 'GetLibroMayorContabilidadQueryHandler'
 };
