@@ -456,4 +456,10 @@ export interface HmisReporte {
     auto_cancel_dt: string | null;
     Days_Finance_Charges_Forgiven: number;
   }
+
+  export interface HmisContratoLista{
+    Sales_Contract_Nbr?: number;  
+    Primary_Full_Name?: string; 
+    Sale_Dt?: string;
+  }
   

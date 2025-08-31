@@ -1,0 +1,85 @@
+import { injectable } from "inversify";
+import { QueryTypes } from "sequelize";
+import { exactusSequelize } from "../../infrastructure/database/config/exactus-database";
+import { IReporteDocumentosProveedorRepository } from "../../domain/repositories/IReporteDocumentosProveedorRepository";
+import { ProveedorFiltro, ReporteProveedor } from "../../domain/entities/ReporteDocumentosProveedor";
+
+@injectable()
+export class ReporteDocumentosProveedorRepository implements IReporteDocumentosProveedorRepository {
+  /**
+   * Obtiene la lista de proveedores filtrados por un valor específico.
+   * @param conjunto Nombre del esquema/base de datos
+   */
+  async obtenerProveedor(conjunto: string): Promise<ProveedorFiltro[]> {
+    try {
+      const query = `
+        SELECT 
+          proveedor, 
+          nombre, 
+          alias, 
+          activo, 
+          moneda, 
+          saldo
+        FROM ${conjunto}.proveedor;
+      `;
+
+      const result = await exactusSequelize.query<ProveedorFiltro>(query, {
+        type: QueryTypes.SELECT,
+      });
+
+      return result;
+    } catch (error) {
+      console.error("Error al obtener proveedor:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Obtiene los documentos asociados a un proveedor entre un rango de fechas.
+   *
+   * @param conjunto Nombre del esquema/base de datos
+   * @param proveedor Código del proveedor
+   * @param fechaInicio Fecha inicial del rango
+   * @param fechaFin Fecha final del rango
+   */
+  async obtenerReporteDocumentosPorProveedor(
+    conjunto: string,
+    proveedor: string,
+    fechaInicio: string,
+    fechaFin: string
+  ): Promise<ReporteProveedor[]> {
+    try {
+      const query = `
+        SELECT 
+          dcp.proveedor,pro.nombre,dcp.fecha_vence,dcp.tipo,dcp.documento,dcp.aplicacion,dcp.moneda,dcp.monto
+        FROM ${conjunto}.documentos_cp dcp
+        INNER JOIN ${conjunto}.subtipo_doc_cp sdc 
+          ON dcp.tipo = sdc.tipo AND dcp.subtipo = sdc.subtipo
+        INNER JOIN ${conjunto}.proveedor pro 
+          ON pro.proveedor = dcp.proveedor
+        INNER JOIN ${conjunto}.condicion_pago cop 
+          ON dcp.condicion_pago = cop.condicion_pago
+        WHERE 
+        dcp.proveedor >= :proveedor  AND dcp.proveedor <= :proveedor  
+          AND pro.contribuyente LIKE :rucLike
+          AND dcp.fecha_documento BETWEEN :fechaInicio AND :fechaFin
+        ORDER BY dcp.proveedor ASC
+      `;
+
+      const result = await exactusSequelize.query<ReporteProveedor>(query, {
+        replacements: {
+          proveedor,
+          rucLike: `${proveedor}%`,
+          fechaInicio,
+          fechaFin,
+        },
+        type: QueryTypes.SELECT,
+      });
+
+      return result;
+    } catch (error) {
+      console.error("Error al obtener reporte de documentos por proveedor:", error);
+      return [];
+    }
+  }
+}

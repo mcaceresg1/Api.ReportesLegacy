@@ -1,5 +1,5 @@
 import { hmisDatabases } from "../../infrastructure/database/config/hmis-database";
-import { HmisReporte } from "../entities/HmisReporte";
+import { HmisContratoLista, HmisReporte } from "../entities/HmisReporte";
 
 export interface IReporteHmisService {
   /**
@@ -7,8 +7,16 @@ export interface IReporteHmisService {
    * @param dbAlias - Alias de la base de datos (ej: "bdhmis", "bdhmis1").
    * @param contrato - El contrato (ej. "12345").
    */
-  obtenerContratos(
+  obtenerContratosId(
     dbAlias: keyof typeof hmisDatabases,
     contrato: string
   ): Promise<HmisReporte[]>;
+
+   /**
+   * Obtiene todos los contratos
+   * @param dbAlias Alias de la base de datos (ej: 'bdhmis', 'bdhmis1')
+   */
+   obtenerListaContratos(
+    dbAlias: keyof typeof hmisDatabases
+  ): Promise<HmisContratoLista[]>;
 }

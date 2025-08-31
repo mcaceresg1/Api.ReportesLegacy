@@ -10,12 +10,13 @@ export function createReporteHmisRoutes(reporteHmisRepository: IReporteHmisRepos
 
   // 📌 GET /api/reporte-hmis/:dbAlias/contratos/:contrato
   router.get("/:dbAlias/contratos/:contrato", (req, res) => {
-    console.log("📥 Petición recibida en /api/reporte-hmis");
     controller.obtenerContratoPorId(req, res);
   });
   
   
-  
+  router.get("/contratos/:dbAlias", (req, res) =>
+    controller.obtenerListaContratos(req, res)
+  );
   
   return router;
 }

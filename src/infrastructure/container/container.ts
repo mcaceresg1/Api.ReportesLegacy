@@ -179,6 +179,11 @@ import { ReporteHmisRepository } from '../repositories/ReporteHmisRepository';
 import { IReporteHmisService } from '../../domain/services/IReporteHmisService';
 import { ReporteHmisService } from '../../application/services/ReporteHmisService';
 import { HmisController } from '../controllers/HmisController';
+import { IReporteDocumentosProveedorRepository } from '../../domain/repositories/IReporteDocumentosProveedorRepository';
+import { ReporteDocumentosProveedorRepository } from '../repositories/ReporteDocumentosProveedorRepository';
+import { IReporteDocumentosProveedorService } from '../../domain/services/IReporteDocumentosProveedorService';
+import { ReporteDocumentosProveedorService } from '../../application/services/ReporteDocumentosProveedorService';
+import { ReporteDocumentosProveedorController } from '../controllers/ReporteDocumentosProveedorController';
 
 const container = new Container();
 
@@ -214,6 +219,9 @@ container.bind<ISaldoPromediosRepository>('ISaldoPromediosRepository').to(SaldoP
 container.bind<ICuentaContableRepository>('ICuentaContableRepository').to(CuentaContableRepository);
 container.bind<IReporteClipperRepository>('IReporteClipperRepository').to(ReporteClipperRepository);
 container.bind<IReporteHmisRepository>('IReporteHmisRepository').to(ReporteHmisRepository);
+container.bind<IReporteDocumentosProveedorRepository>("IReporteDocumentosProveedorRepository")
+  .to(ReporteDocumentosProveedorRepository)
+  .inSingletonScope();
 
 // Services
 container.bind<IUsuarioService>('IUsuarioService').to(UsuarioService);
@@ -237,8 +245,11 @@ container.bind<ILibroMayorAsientosService>('ILibroMayorAsientosService').to(Libr
 container.bind<IDatabaseService>('IDatabaseService').to(DatabaseService);
 container.bind<IReporteClipperService>('IReporteClipperService').to(ReporteClipperService);
 container.bind<IReporteHmisService>('IReporteHmisService').to(ReporteHmisService);
+container.bind<IReporteDocumentosProveedorService>("IReporteDocumentosProveedorService")
+  .to(ReporteDocumentosProveedorService)
+  .inSingletonScope();
 
-
+  
 // Controllers
 container.bind<UsuarioController>('UsuarioController').to(UsuarioController);
 container.bind<MenuController>('MenuController').to(MenuController);
@@ -265,6 +276,9 @@ container.bind<MovimientoContableAgrupadoController>('MovimientoContableAgrupado
 container.bind<SaldoPromediosController>('SaldoPromediosController').to(SaldoPromediosController);
 container.bind<ClipperController>('ClipperController').to(ClipperController);
 container.bind<HmisController>('HmisController').to(HmisController);
+container.bind<ReporteDocumentosProveedorController>("ReporteDocumentosProveedorController")
+  .to(ReporteDocumentosProveedorController)
+  .inSingletonScope();
 
 // CQRS Buses
 container.bind<ICommandBus>('ICommandBus').to(CommandBus);

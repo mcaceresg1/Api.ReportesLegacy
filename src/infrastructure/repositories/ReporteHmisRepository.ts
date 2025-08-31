@@ -14,14 +14,16 @@ import {
   TransaccionContrato,
   ItemContrato,
   FacilidadesContrato,
-  InformacionFinancieraContrato
+  InformacionFinancieraContrato,
+  HmisContratoLista
 } from "../../domain/entities/HmisReporte";
 import { hmisDatabases } from "../database/config/hmis-database";
 import { QueryTypes, Sequelize } from "sequelize";
 
 @injectable()
 export class ReporteHmisRepository implements IReporteHmisRepository {
-  async obtenerContratos(
+
+  async obtenerContratosId(
     dbAlias: keyof typeof hmisDatabases = "bdhmis",
     contrato: string,
   ): Promise<HmisReporte[]> {
@@ -831,4 +833,46 @@ export class ReporteHmisRepository implements IReporteHmisRepository {
       );
     }
   }
+
+  async obtenerListaContratos(
+    dbAlias: keyof typeof hmisDatabases = "bdhmis",
+    limit: number = 100,
+    offset: number = 0
+  ): Promise<HmisContratoLista[]> {
+    const sequelizeInstance: Sequelize | undefined = hmisDatabases[dbAlias];
+    if (!sequelizeInstance) {
+      throw new Error(`No existe configuración para la BD alias: ${dbAlias}`);
+    }
+  
+    try {
+      const reporte = await sequelizeInstance.query<HmisContratoLista>(
+        `
+        SELECT
+          s.Sales_Contract_Nbr,
+          r.Primary_Full_Name,
+          s.Sale_Dt
+        FROM Sales s
+        LEFT JOIN Name r ON s.Purchaser_Name_ID = r.Name_ID
+        ORDER BY s.Sales_Contract_Nbr
+        OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
+        `,
+        {
+          replacements: { limit, offset },
+          type: QueryTypes.SELECT,
+        }
+      );
+  
+      return reporte;
+    } catch (error) {
+      console.error("Error obteniendo lista de contratos:", error);
+      throw new Error(
+        `Error al obtener lista contratos: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    }
+  }
+  
+  
+  
 }

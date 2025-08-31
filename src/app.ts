@@ -53,6 +53,8 @@ import { createReporteClipperRoutes } from './infrastructure/routes/ReporteClipp
 import { IReporteClipperRepository } from './domain/repositories/IReporteClipperRepository';
 import { createReporteHmisRoutes } from './infrastructure/routes/ReporteHmisRoutes';
 import { IReporteHmisRepository } from './domain/repositories/IReporteHmisRepository';
+import { IReporteDocumentosProveedorRepository } from './domain/repositories/IReporteDocumentosProveedorRepository';
+import { createReporteDocumentosProveedorRoutes } from './infrastructure/routes/ReporteDocumentosProveedorRoutes';
 
 
 const app = express();
@@ -87,6 +89,7 @@ const menuService = container.get<IMenuService>('IMenuService');
   const cuentaContableRepository = container.get<ICuentaContableRepository>('ICuentaContableRepository');
  const reporteClipperRepository = container.get<IReporteClipperRepository>('IReporteClipperRepository');
  const reporteHmisRepository = container.get<IReporteHmisRepository>('IReporteHmisRepository');
+const reporteDocumentosProveedorRepository = container.get<IReporteDocumentosProveedorRepository>('IReporteDocumentosProveedorRepository');
 
 // Inicializar CQRS
 console.log('🚀 Inicializando CQRS Service...');
@@ -144,6 +147,8 @@ const permisoRoutes = new PermisoRoutes();
   const reporteCatalogoCuentasModificadasRoutes = createReporteCatalogoCuentasModificadasRoutes();
   const reporteClipperRoutes = createReporteClipperRoutes(reporteClipperRepository);
   const reporteHmisRoutes = createReporteHmisRoutes(reporteHmisRepository);
+  const reporteDocumentosProveedorRoutes = createReporteDocumentosProveedorRoutes(reporteDocumentosProveedorRepository);
+
 // Endpoint de prueba
 app.get('/api/test', (req, res) => {
   res.json({ 
@@ -203,7 +208,7 @@ app.use('/api/permisos', authMiddleware.verifyToken, permisoRoutes.getRouter());
   app.use('/api/reporte-movimientos-contables-agrupados', QueryOptimizationMiddleware.validateQueryParams, reporteMovimientosContablesAgrupadosRoutes);
   app.use('/api/reporte-catalogo-cuentas-modificadas', QueryOptimizationMiddleware.validateQueryParams, reporteCatalogoCuentasModificadasRoutes);
   app.use('/api/libro-mayor', QueryOptimizationMiddleware.validateQueryParams, libroMayorRoutes);
-
+  app.use('/api/documentos-proveedor', QueryOptimizationMiddleware.validateQueryParams, reporteDocumentosProveedorRoutes);
 // Libro Mayor Asientos Routes
 try {
   const libroMayorAsientosController = container.get('LibroMayorAsientosController') as any;

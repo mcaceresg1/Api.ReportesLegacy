@@ -261,7 +261,7 @@ export class HmisController {
         return;
       }
 
-      const data = await this.hmisService.obtenerContratos(
+      const data = await this.hmisService.obtenerContratosId(
   
         dbAlias as keyof typeof hmisDatabases,contrato
       );
@@ -282,4 +282,104 @@ export class HmisController {
       });
     }
   }
+
+
+//   /**
+//  * @swagger
+//  * /api/reporte-hmis/contratos/{dbAlias}:
+//  *   get:
+//  *     tags:
+//  *       - HMIS - Lista de Contratos
+//  *     summary: Obtener lista de contratos
+//  *     description: >
+//  *       Devuelve una lista de contratos con número, nombre completo del comprador y fecha de venta,
+//  *       filtrados según el alias de base de datos HMIS especificado.
+//  *     parameters:
+//  *       - in: path
+//  *         name: dbAlias
+//  *         required: true
+//  *         schema:
+//  *           type: string
+//  *           enum:
+//  *             - bdhmis
+//  *             - bdhmis1
+//  *         description: Alias de la base de datos HMIS
+//  *     responses:
+//  *       200:
+//  *         description: Lista de contratos obtenida exitosamente
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: array
+//  *               items:
+//  *                 $ref: '#/components/schemas/HmisContratoLista'
+//  *       400:
+//  *         description: Alias de base de datos inválido
+//  *       500:
+//  *         description: Error interno del servidor
+//  *
+//  * components:
+//  *   schemas:
+//  *     HmisContratoLista:
+//  *       type: object
+//  *       properties:
+//  *         Sales_Contract_Nbr:
+//  *           type: number
+//  *           description: Número del contrato
+//  *           example: 300165148
+//  *         Primary_Full_Name:
+//  *           type: string
+//  *           description: Nombre completo del comprador
+//  *           example: Juan Pérez
+//  *         Sale_Dt:
+//  *           type: string
+//  *           format: date
+//  *           description: Fecha de venta
+//  *           example: 2023-08-25
+//  */
+
+
+  async obtenerListaContratos(req: Request, res: Response): Promise<void> {
+    try {
+      const dbAlias = req.params["dbAlias"];
+      
+      if (!dbAlias || !(dbAlias in hmisDatabases)) {
+        res.status(400).json({
+          success: false,
+          message: "dbAlias no válida",
+          data: null,
+        });
+        return;
+      }
+  
+      const data = await this.hmisService.obtenerListaContratos(
+        dbAlias as keyof typeof hmisDatabases
+      );
+  
+      if (!data || data.length === 0) {
+        res.status(404).json({
+          success: false,
+          message: "No se encontraron contratos",
+          data: null,
+        });
+        return;
+      }
+  
+      res.json({
+        success: true,
+        message: "Consulta exitosa",
+        data,
+      });
+  
+    } catch (error) {
+      console.error("❌ Error en HmisController.obtenerListaContratos:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error interno",
+        error: error instanceof Error ? error.message : "Error desconocido",
+        data: null,
+      });
+    }
+  }
+  
 }
