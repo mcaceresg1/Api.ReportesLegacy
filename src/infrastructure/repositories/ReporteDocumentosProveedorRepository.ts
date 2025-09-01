@@ -2,7 +2,7 @@ import { injectable } from "inversify";
 import { QueryTypes } from "sequelize";
 import { exactusSequelize } from "../../infrastructure/database/config/exactus-database";
 import { IReporteDocumentosProveedorRepository } from "../../domain/repositories/IReporteDocumentosProveedorRepository";
-import { ProveedorFiltro, ReporteProveedor } from "../../domain/entities/ReporteDocumentosProveedor";
+import { DocumentosPorPagar, ProveedorFiltro, ReporteProveedor } from "../../domain/entities/ReporteDocumentosProveedor";
 
 @injectable()
 export class ReporteDocumentosProveedorRepository implements IReporteDocumentosProveedorRepository {
@@ -82,4 +82,105 @@ export class ReporteDocumentosProveedorRepository implements IReporteDocumentosP
       return [];
     }
   }
+
+  async obtenerReporteDocumentosPorPagar(
+    conjunto: string,
+    proveedor: string,
+    fechaInicio: string,
+    fechaFin: string
+  ): Promise<DocumentosPorPagar[]> {
+    try {
+      const query = ` 
+        SELECT
+          P.CONTRIBUYENTE,
+          P.NOMBRE,
+          DCP.FECHA_DOCUMENTO,
+          DCP.DOCUMENTO,
+          DCP.TIPO,
+          DCP.APLICACION,
+          AD.FECHA,
+          DCP.ASIENTO,
+          CASE 
+            WHEN DCP.TIPO IN ('CHQ', 'TEF', 'RET', 'N/C', 'O/C', 'CNJ') THEN DCP.MONTO_LOCAL
+            ELSE 0 
+          END AS DEBE_LOC,
+          CASE 
+            WHEN DCP.TIPO IN ('FAC', 'B/V', 'L/C', 'RHP', 'INT', 'N/D', 'O/D') THEN DCP.MONTO_LOCAL
+            ELSE 0 
+          END AS HABER_LOC,
+          CASE 
+            WHEN DCP.TIPO IN ('CHQ', 'TEF', 'RET', 'N/C', 'O/C', 'CNJ') THEN DCP.MONTO_DOLAR
+            ELSE 0 
+          END AS DEBE_DOL,
+          CASE 
+            WHEN DCP.TIPO IN ('FAC', 'B/V', 'L/C', 'RHP', 'INT', 'N/D', 'O/D') THEN DCP.MONTO_DOLAR
+            ELSE 0 
+          END AS HABER_DOL,
+          DCP.MONEDA
+        FROM ${conjunto}.PROVEEDOR P
+        INNER JOIN ${conjunto}.DOCUMENTOS_CP DCP ON DCP.PROVEEDOR = P.PROVEEDOR
+        INNER JOIN ${conjunto}.SUBTIPO_DOC_CP SDC ON SDC.TIPO = DCP.TIPO AND SDC.SUBTIPO = DCP.SUBTIPO
+        INNER JOIN ${conjunto}.ASIENTO_DE_DIARIO AD ON DCP.ASIENTO = AD.ASIENTO
+        WHERE 
+          DCP.TIPO IN ('B/V', 'CHQ', 'CNJ', 'DCC', 'DEP')
+          AND (:proveedor = '' OR P.PROVEEDOR = :proveedor)
+          AND (:fechaInicio IS NULL OR AD.FECHA >= :fechaInicio)
+          AND (:fechaFin IS NULL OR AD.FECHA <= :fechaFin)
+  
+        UNION ALL
+  
+        SELECT
+          P.CONTRIBUYENTE,
+          P.NOMBRE,
+          DCP.FECHA_DOCUMENTO,
+          DCP.DOCUMENTO,
+          DCP.TIPO,
+          DCP.APLICACION,
+          AM.FECHA,
+          DCP.ASIENTO,
+          CASE 
+            WHEN DCP.TIPO IN ('CHQ', 'TEF', 'RET', 'N/C', 'O/C', 'CNJ') THEN DCP.MONTO_LOCAL
+            ELSE 0 
+          END AS DEBE_LOC,
+          CASE 
+            WHEN DCP.TIPO IN ('FAC', 'B/V', 'L/C', 'RHP', 'INT', 'N/D', 'O/D') THEN DCP.MONTO_LOCAL
+            ELSE 0 
+          END AS HABER_LOC,
+          CASE 
+            WHEN DCP.TIPO IN ('CHQ', 'TEF', 'RET', 'N/C', 'O/C', 'CNJ') THEN DCP.MONTO_DOLAR
+            ELSE 0 
+          END AS DEBE_DOL,
+          CASE 
+            WHEN DCP.TIPO IN ('FAC', 'B/V', 'L/C', 'RHP', 'INT', 'N/D', 'O/D') THEN DCP.MONTO_DOLAR
+            ELSE 0 
+          END AS HABER_DOL,
+          DCP.MONEDA
+        FROM ${conjunto}.PROVEEDOR P
+        INNER JOIN ${conjunto}.DOCUMENTOS_CP DCP ON DCP.PROVEEDOR = P.PROVEEDOR
+        INNER JOIN ${conjunto}.SUBTIPO_DOC_CP SDC ON SDC.TIPO = DCP.TIPO AND SDC.SUBTIPO = DCP.SUBTIPO
+        INNER JOIN ${conjunto}.ASIENTO_MAYORIZADO AM ON DCP.ASIENTO = AM.ASIENTO
+        WHERE 
+          DCP.TIPO IN ('B/V', 'CHQ', 'CNJ', 'DCC', 'DEP')
+          AND (:proveedor = '' OR P.PROVEEDOR = :proveedor)
+          AND (:fechaInicio IS NULL OR AM.FECHA >= :fechaInicio)
+          AND (:fechaFin IS NULL OR AM.FECHA <= :fechaFin)
+      `;
+  
+      const result = await exactusSequelize.query<DocumentosPorPagar>(query, {
+        replacements: {
+          proveedor,
+          fechaInicio,
+          fechaFin,
+        },
+        type: QueryTypes.SELECT,
+      });
+  
+      return result;
+    } catch (error) {
+      console.error("Error al obtener reporte de documentos por proveedor:", error);
+      return [];
+    }
+  }
+  
+
 }

@@ -1,4 +1,4 @@
-import { ProveedorFiltro, ReporteProveedor } from "../entities/ReporteDocumentosProveedor";
+import { DocumentosPorPagar, ProveedorFiltro, ReporteProveedor } from "../entities/ReporteDocumentosProveedor";
 
 export interface IReporteDocumentosProveedorService {
   /**
@@ -22,4 +22,12 @@ export interface IReporteDocumentosProveedorService {
     fechaInicio: string,
     fechaFin: string
   ): Promise<ReporteProveedor[]>;
+
+  obtenerReporteDocumentosPorPagar(
+    conjunto: string,
+    proveedor: string,
+    fechaInicio: string,
+    fechaFin: string
+  ): Promise<DocumentosPorPagar[]>;
+
 }

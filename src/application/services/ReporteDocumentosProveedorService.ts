@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { IReporteDocumentosProveedorRepository } from "../../domain/repositories/IReporteDocumentosProveedorRepository";
 import { IReporteDocumentosProveedorService } from "../../domain/services/IReporteDocumentosProveedorService";
-import { ProveedorFiltro, ReporteProveedor } from "../../domain/entities/ReporteDocumentosProveedor";
+import { DocumentosPorPagar, ProveedorFiltro, ReporteProveedor } from "../../domain/entities/ReporteDocumentosProveedor";
 
 @injectable()
 export class ReporteDocumentosProveedorService implements IReporteDocumentosProveedorService {
@@ -37,4 +37,20 @@ export class ReporteDocumentosProveedorService implements IReporteDocumentosProv
       fechaFin
     );
   }
+
+  async obtenerReporteDocumentosPorPagar(
+    conjunto: string,
+    proveedor: string,
+    fechaInicio: string,
+    fechaFin: string
+  ): Promise<DocumentosPorPagar[]> {
+    return await this.proveedorRepo.obtenerReporteDocumentosPorPagar(
+      conjunto,
+      proveedor,
+      fechaInicio,
+      fechaFin
+    );
+  }
+
+
 }

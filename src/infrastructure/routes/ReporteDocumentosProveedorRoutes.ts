@@ -20,6 +20,8 @@ export function createReporteDocumentosProveedorRoutes(
   // Ruta para obtener el reporte de documentos por proveedor con parámetros en query
   router.get("/reporte", (req, res) => controller.obtenerReporteDocumentosPorProveedor(req, res));
 
+  
+  router.get("/documentosPorPagar", (req, res) => controller.obtenerReporteDocumentosPorPagar(req, res));
 
   return router;
 }

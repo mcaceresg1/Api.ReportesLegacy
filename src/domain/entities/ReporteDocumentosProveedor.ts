@@ -46,4 +46,19 @@ export interface ProveedorFiltro {
     documento_fiscal: string;
   }
   
+  export interface DocumentosPorPagar {
+    contribuyente: string;
+    nombre: string;
+    fechaDocumento: string;  // o Date si lo quieres tipar así
+    documento: string;
+    tipo: string;
+    aplicacion: string;
+    fecha: string;           // o Date
+    asiento: string;
+    debeLoc: number;
+    haberLoc: number;
+    debeDol: number;
+    haberDol: number;
+    moneda: string;
+  }
   
