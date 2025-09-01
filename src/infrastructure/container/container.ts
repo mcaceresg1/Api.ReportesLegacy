@@ -50,6 +50,8 @@ import { IReporteMovimientosContablesAgrupadosService } from "../../domain/servi
 import { ISaldoPromediosService } from "../../domain/services/ISaldoPromediosService";
 import { IBalanceComprobacionService } from "../../domain/services/IBalanceComprobacionService";
 import { IReporteGenericoSaldosService } from "../../domain/services/IReporteGenericoSaldosService";
+import { ILibroMayorAsientosService } from "../../domain/services/ILibroMayorAsientosService";
+import { ILibroMayorAsientosRepository } from "../../domain/repositories/ILibroMayorAsientosRepository";
 
 import { IDatabaseService } from "../../domain/services/IDatabaseService";
 
@@ -85,6 +87,7 @@ import { MovimientoContableAgrupadoRepository } from "../repositories/Movimiento
 import { SaldoPromediosRepository } from "../repositories/SaldoPromediosRepository";
 import { BalanceComprobacionRepository } from "../repositories/BalanceComprobacionRepository";
 import { ReporteGenericoSaldosRepository } from "../repositories/ReporteGenericoSaldosRepository";
+import { LibroMayorAsientosRepository } from "../repositories/LibroMayorAsientosRepository";
 
 import { CuentaContableRepository } from "../repositories/CuentaContableRepository";
 import { UsuarioService } from "../../application/services/UsuarioService";
@@ -105,6 +108,7 @@ import { ReporteMovimientosContablesAgrupadosService } from "../../application/s
 import { SaldoPromediosService } from "../../application/services/SaldoPromediosService";
 import { BalanceComprobacionService } from "../../application/services/BalanceComprobacionService";
 import { ReporteGenericoSaldosService } from "../../application/services/ReporteGenericoSaldosService";
+import { LibroMayorAsientosService } from "../../application/services/LibroMayorAsientosService";
 
 import { DatabaseService } from "../../application/services/DatabaseService";
 
@@ -134,6 +138,7 @@ import { BalanceComprobacionController } from "../controllers/BalanceComprobacio
 import { BalanceComprobacionRoutes } from "../routes/BalanceComprobacionRoutes";
 import { ReporteGenericoSaldosController } from "../controllers/ReporteGenericoSaldosController";
 import { ReporteGenericoSaldosRoutes } from "../routes/ReporteGenericoSaldosRoutes";
+import { LibroMayorAsientosController } from "../controllers/LibroMayorAsientosController";
 
 // CQRS implementations
 import { CommandBus } from "../cqrs/CommandBus";
@@ -279,6 +284,9 @@ container
   .bind<ICuentaContableRepository>("ICuentaContableRepository")
   .to(CuentaContableRepository);
 container
+  .bind<ILibroMayorAsientosRepository>("ILibroMayorAsientosRepository")
+  .to(LibroMayorAsientosRepository);
+container
   .bind<IReporteClipperRepository>("IReporteClipperRepository")
   .to(ReporteClipperRepository);
 
@@ -327,6 +335,9 @@ container
 container
   .bind<IReporteGenericoSaldosService>("IReporteGenericoSaldosService")
   .to(ReporteGenericoSaldosService);
+container
+  .bind<ILibroMayorAsientosService>("ILibroMayorAsientosService")
+  .to(LibroMayorAsientosService);
 
 container.bind<IDatabaseService>("IDatabaseService").to(DatabaseService);
 container
@@ -397,6 +408,9 @@ container
 container
   .bind<SaldoPromediosController>("SaldoPromediosController")
   .to(SaldoPromediosController);
+container
+  .bind<LibroMayorAsientosController>("LibroMayorAsientosController")
+  .to(LibroMayorAsientosController);
 container
   .bind<BalanceComprobacionController>("BalanceComprobacionController")
   .to(BalanceComprobacionController);

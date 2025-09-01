@@ -33,6 +33,7 @@ import { createMovimientoContableAgrupadoRoutes } from "./infrastructure/routes/
 import { createSaldoPromediosRoutes } from "./infrastructure/routes/saldoPromedios.routes";
 import { BalanceComprobacionRoutes } from "./infrastructure/routes/BalanceComprobacionRoutes";
 import { ReporteGenericoSaldosRoutes } from "./infrastructure/routes/ReporteGenericoSaldosRoutes";
+import libroMayorAsientosRoutes from "./infrastructure/routes/libro-mayor-asientos.routes";
 import { AuthMiddleware } from "./infrastructure/middleware/AuthMiddleware";
 import { QueryOptimizationMiddleware } from "./infrastructure/middleware/QueryOptimizationMiddleware";
 import { IUsuarioService } from "./domain/services/IUsuarioService";
@@ -320,27 +321,12 @@ app.use(
 );
 
 // Libro Mayor Asientos Routes
-// try {
-//   const libroMayorAsientosController = container.get(
-//     "LibroMayorAsientosController"
-//   ) as any;
-//   app.use(
-//     "/api/libro-mayor-asientos",
-//     createLibroMayorAsientosRoutes(libroMayorAsientosController)
-//   );
-//   console.log("✅ Libro Mayor Asientos routes registradas correctamente");
-//
-//   // Endpoint de prueba para verificar que funciona
-//   app.get("/api/libro-mayor-asientos/test", (req, res) => {
-//     res.json({
-//       success: true,
-//       message: "Libro Mayor Asientos endpoint funcionando correctamente",
-//       timestamp: new Date().toISOString(),
-//     });
-//   });
-// } catch (error) {
-//   console.error("❌ Error al registrar Libro Mayor Asientos routes:", error);
-// }
+app.use(
+  "/api/libro-mayor-asientos",
+  QueryOptimizationMiddleware.validateQueryParams,
+  libroMayorAsientosRoutes
+);
+console.log("✅ Libro Mayor Asientos routes registradas correctamente");
 app.use(
   "/api/diario-contabilidad",
   QueryOptimizationMiddleware.validateQueryParams,
