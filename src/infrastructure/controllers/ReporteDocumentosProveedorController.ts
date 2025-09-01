@@ -15,7 +15,7 @@ export class ReporteDocumentosProveedorController {
  *   get:
  *     summary: Obtiene la lista de proveedores de un conjunto específico
  *     tags:
- *       - Documentos Proveedor
+ *       - Tesoreria y Caja: Documentos Proveedor
  *     parameters:
  *       - in: path
  *         name: conjunto
@@ -120,7 +120,7 @@ export class ReporteDocumentosProveedorController {
    *   get:
    *     summary: Obtiene el reporte de documentos de un proveedor entre un rango de fechas
    *     tags:
-   *       - Documentos Proveedor
+   *       - Tesorecia y Caja: Documentos Proveedor
    *     parameters:
    *       - in: query
    *         name: conjunto
