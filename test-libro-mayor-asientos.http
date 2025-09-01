@@ -1,25 +1,31 @@
 ### Test Libro Mayor Asientos API
 
+### Health Check
+GET http://localhost:3000/api/libro-mayor-asientos/health
+
 ### Obtener filtros disponibles
 GET http://localhost:3000/api/libro-mayor-asientos/001/filtros
-Content-Type: application/json
 
-### Generar reporte con filtros básicos
-GET http://localhost:3000/api/libro-mayor-asientos/001/generar?fecha_desde=2024-01-01&fecha_hasta=2024-12-31&page=1&limit=10
-Content-Type: application/json
+### Generar reporte completo
+GET http://localhost:3000/api/libro-mayor-asientos/001/generar
 
-### Generar reporte con filtros completos
-GET http://localhost:3000/api/libro-mayor-asientos/001/generar?asiento=1&tipo_asiento=A&fecha_desde=2024-01-01&fecha_hasta=2024-12-31&contabilidad=F&mayorizacion=N&exportados=S&clases_asiento=N,A&origen=01,02&page=1&limit=20
-Content-Type: application/json
+### Generar reporte con filtros
+GET http://localhost:3000/api/libro-mayor-asientos/001/generar?fechaInicio=2024-01-01&fechaFin=2024-12-31&contabilidad=F
+
+### Obtener datos paginados
+GET http://localhost:3000/api/libro-mayor-asientos/001/obtener?page=1&limit=10
+
+### Obtener datos con filtros
+GET http://localhost:3000/api/libro-mayor-asientos/001/obtener?fechaInicio=2024-01-01&fechaFin=2024-12-31&page=1&limit=25
 
 ### Exportar a Excel
-GET http://localhost:3000/api/libro-mayor-asientos/001/excel?fecha_desde=2024-01-01&fecha_hasta=2024-12-31&contabilidad=F
-Content-Type: application/json
+GET http://localhost:3000/api/libro-mayor-asientos/001/excel
+
+### Exportar a Excel con filtros
+GET http://localhost:3000/api/libro-mayor-asientos/001/excel?fechaInicio=2024-01-01&fechaFin=2024-12-31&limit=1000
 
 ### Exportar a PDF
-GET http://localhost:3000/api/libro-mayor-asientos/001/pdf?fecha_desde=2024-01-01&fecha_hasta=2024-12-31&contabilidad=F
-Content-Type: application/json
+GET http://localhost:3000/api/libro-mayor-asientos/001/pdf
 
-### Obtener asientos (alias para generar reporte)
-GET http://localhost:3000/api/libro-mayor-asientos/001/obtener?fecha_desde=2024-01-01&fecha_hasta=2024-12-31&page=1&limit=5
-Content-Type: application/json
+### Exportar a PDF con filtros
+GET http://localhost:3000/api/libro-mayor-asientos/001/pdf?fechaInicio=2024-01-01&fechaFin=2024-12-31&limit=1000

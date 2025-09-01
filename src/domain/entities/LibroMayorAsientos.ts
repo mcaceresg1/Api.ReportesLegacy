@@ -1,6 +1,9 @@
+/**
+ * Entidad para el Libro Mayor Asientos
+ * Representa los datos del reporte de Libro Mayor Asientos basado en la tabla asiento_mayorizado
+ */
 export interface LibroMayorAsientos {
   asiento: string;
-  fuente: string;
   contabilidad: string;
   tipo_asiento: string;
   fecha: Date;
@@ -13,21 +16,29 @@ export interface LibroMayorAsientos {
   tipo_ingreso_mayor: string;
 }
 
-export interface FiltrosLibroMayorAsientos {
+/**
+ * Filtros para el reporte de Libro Mayor Asientos
+ */
+export interface LibroMayorAsientosFiltros {
+  conjunto: string;
   asiento?: string;
-  tipo_asiento?: string;
-  fecha_desde?: string;
-  fecha_hasta?: string;
+  referencia?: string;
+  fechaInicio?: Date;
+  fechaFin?: Date;
   contabilidad?: string;
+  tipoAsiento?: string;
+  origen?: string;
+  exportado?: string;
   mayorizacion?: string;
-  exportados?: string;
-  documento_global?: string;
-  clases_asiento?: string[];
-  origen?: string[];
+  documentoGlobal?: string;
   page?: number;
   limit?: number;
+  offset?: number;
 }
 
+/**
+ * Respuesta paginada del Libro Mayor Asientos
+ */
 export interface LibroMayorAsientosResponse {
   success: boolean;
   data: LibroMayorAsientos[];
@@ -42,12 +53,37 @@ export interface LibroMayorAsientosResponse {
   message: string;
 }
 
-export interface FiltroAsientosResponse {
-  success: boolean;
-  data: {
-    asientos: string[];
-    tipos_asiento: string[];
-    origenes: string[];
-  };
-  message: string;
+/**
+ * Parámetros para generar el reporte
+ */
+export interface GenerarLibroMayorAsientosParams {
+  conjunto: string;
+  asiento?: string;
+  referencia?: string;
+  fechaInicio?: Date;
+  fechaFin?: Date;
+  contabilidad?: string;
+  tipoAsiento?: string;
+  origen?: string;
+  exportado?: string;
+  mayorizacion?: string;
+  documentoGlobal?: string;
+}
+
+/**
+ * Parámetros para exportar a Excel
+ */
+export interface ExportarLibroMayorAsientosExcelParams {
+  conjunto: string;
+  asiento?: string;
+  referencia?: string;
+  fechaInicio?: Date;
+  fechaFin?: Date;
+  contabilidad?: string;
+  tipoAsiento?: string;
+  origen?: string;
+  exportado?: string;
+  mayorizacion?: string;
+  documentoGlobal?: string;
+  limit?: number;
 }
