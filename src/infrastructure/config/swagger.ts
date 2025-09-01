@@ -14,15 +14,11 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url:
-          process.env["NODE_ENV"] === "production"
-            ? process.env["PROD_SWAGGER_URL"] || "http://192.168.90.73:3000"
-            : process.env["DEV_SWAGGER_URL"] || "http://localhost:3000",
-        description:
-          process.env["NODE_ENV"] === "production"
-            ? "Servidor de producción"
-            : "Servidor de desarrollo",
-      },
+        url: process.env['NODE_ENV'] === 'production' 
+          ? process.env['PROD_SWAGGER_URL'] || 'http://192.168.90.73:3000'
+          : process.env['DEV_SWAGGER_URL'] || 'http://localhost:3001',
+        description: process.env['NODE_ENV'] === 'production' ? 'Servidor de producción' : 'Servidor de desarrollo'
+      }
     ],
     components: {
       securitySchemes: {
