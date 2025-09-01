@@ -367,24 +367,7 @@ app.use(
   QueryOptimizationMiddleware.validateQueryParams,
   reporteGenericoSaldosRoutes.getRouter()
 );
-<<<<<<< HEAD
-app.use(
-  "/api/reporte-hmis",
-  QueryOptimizationMiddleware.validateQueryParams,
-  reporteHmisRoutes
-);
-app.use(
-  "/api/reporte-hmis",
-  QueryOptimizationMiddleware.validateQueryParams,
-  reporteHmisRoutes
-);
-app.use(
-  "/api/documentos-proveedor",
-  QueryOptimizationMiddleware.validateQueryParams,
-  reporteDocumentosProveedorRoutes
-);
-=======
->>>>>>> 9f7da46f43f3362e0bb245d404bc8d19f1867dab
+
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================
 
