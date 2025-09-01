@@ -1,1 +1,2 @@
-export * from './LibroMayorContabilidad';
+// Barrel de entidades
+// (exports removidos de LibroMayorContabilidad)
