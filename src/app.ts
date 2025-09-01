@@ -33,7 +33,6 @@ import { createMovimientoContableAgrupadoRoutes } from "./infrastructure/routes/
 import { createSaldoPromediosRoutes } from "./infrastructure/routes/saldoPromedios.routes";
 import { BalanceComprobacionRoutes } from "./infrastructure/routes/BalanceComprobacionRoutes";
 import { ReporteGenericoSaldosRoutes } from "./infrastructure/routes/ReporteGenericoSaldosRoutes";
-import libroMayorAsientosRoutes from "./infrastructure/routes/libro-mayor-asientos.routes";
 import { AuthMiddleware } from "./infrastructure/middleware/AuthMiddleware";
 import { QueryOptimizationMiddleware } from "./infrastructure/middleware/QueryOptimizationMiddleware";
 import { IUsuarioService } from "./domain/services/IUsuarioService";
@@ -51,10 +50,7 @@ import { ICuentaContableRepository } from "./domain/repositories/ICuentaContable
 import { CqrsService } from "./infrastructure/cqrs/CqrsService";
 import { createReporteClipperRoutes } from "./infrastructure/routes/ReporteClipperRoutes";
 import { IReporteClipperRepository } from "./domain/repositories/IReporteClipperRepository";
-import { IReporteHmisRepository } from "./domain/repositories/IReporteHmisRepository";
-import { IReporteDocumentosProveedorRepository } from "./domain/repositories/IReporteDocumentosProveedorRepository";
-import { createReporteHmisRoutes } from "./infrastructure/routes/ReporteHmisRoutes";
-import { createReporteDocumentosProveedorRoutes } from "./infrastructure/routes/ReporteDocumentosProveedorRoutes";
+import libroMayorAsientosRoutes from "./infrastructure/routes/libro-mayor-asientos.routes";
 
 const app = express();
 
@@ -101,13 +97,6 @@ const cuentaContableRepository = container.get<ICuentaContableRepository>(
 const reporteClipperRepository = container.get<IReporteClipperRepository>(
   "IReporteClipperRepository"
 );
-const reporteHmisRepository = container.get<IReporteHmisRepository>(
-  "IReporteHmisRepository"
-);
-const reporteDocumentosProveedorRepository =
-  container.get<IReporteDocumentosProveedorRepository>(
-    "IReporteDocumentosProveedorRepository"
-  );
 // Inicializar CQRS
 console.log("🚀 Inicializando CQRS Service...");
 const cqrsService = container.get<CqrsService>("CqrsService");
@@ -207,10 +196,6 @@ const reporteCatalogoCuentasModificadasRoutes =
   createReporteCatalogoCuentasModificadasRoutes();
 const reporteClipperRoutes = createReporteClipperRoutes(
   reporteClipperRepository
-);
-const reporteHmisRoutes = createReporteHmisRoutes(reporteHmisRepository);
-const reporteDocumentosProveedorRoutes = createReporteDocumentosProveedorRoutes(
-  reporteDocumentosProveedorRepository
 );
 
 // Balance Comprobación Routes
@@ -381,21 +366,6 @@ app.use(
   "/api/reporte-generico-saldos",
   QueryOptimizationMiddleware.validateQueryParams,
   reporteGenericoSaldosRoutes.getRouter()
-);
-app.use(
-  "/api/reporte-hmis",
-  QueryOptimizationMiddleware.validateQueryParams,
-  reporteHmisRoutes
-);
-app.use(
-  "/api/reporte-hmis",
-  QueryOptimizationMiddleware.validateQueryParams,
-  reporteHmisRoutes
-);
-app.use(
-  "/api/reporte-documentos-proveedor",
-  QueryOptimizationMiddleware.validateQueryParams,
-  reporteDocumentosProveedorRoutes
 );
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================

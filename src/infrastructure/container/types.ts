@@ -34,7 +34,6 @@ export const TYPES = {
     "IMovimientoContableAgrupadoRepository",
   ISaldoPromediosRepository: "ISaldoPromediosRepository",
   ICuentaContableRepository: "ICuentaContableRepository",
-  ILibroMayorAsientosRepository: "ILibroMayorAsientosRepository",
 
   // Services
   IUsuarioService: "IUsuarioService",
@@ -55,7 +54,6 @@ export const TYPES = {
     "IReporteMovimientosContablesAgrupadosService",
   ISaldoPromediosService: "ISaldoPromediosService",
   IDatabaseService: "IDatabaseService",
-  ILibroMayorAsientosService: "ILibroMayorAsientosService",
 
   // Controllers
   UsuarioController: "UsuarioController",
@@ -83,7 +81,6 @@ export const TYPES = {
   PeriodoContableController: "PeriodoContableController",
   MovimientoContableAgrupadoController: "MovimientoContableAgrupadoController",
   SaldoPromediosController: "SaldoPromediosController",
-  LibroMayorAsientosController: "LibroMayorAsientosController",
 
   // CQRS
   ICommandBus: "ICommandBus",

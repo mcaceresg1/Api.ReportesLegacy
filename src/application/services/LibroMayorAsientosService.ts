@@ -1,119 +1,204 @@
-import { injectable, inject } from 'inversify';
-import { ILibroMayorAsientosService } from '../../domain/services/ILibroMayorAsientosService';
-import { ILibroMayorAsientosRepository } from '../../domain/repositories/ILibroMayorAsientosRepository';
-import { FiltrosLibroMayorAsientos, LibroMayorAsientos, FiltroAsientosResponse } from '../../domain/entities/LibroMayorAsientos';
+import { injectable, inject } from "inversify";
+import { ILibroMayorAsientosService } from "../../domain/services/ILibroMayorAsientosService";
+import { LibroMayorAsientosRepository } from "../../infrastructure/repositories/LibroMayorAsientosRepository";
+import {
+  LibroMayorAsientosFiltros,
+  LibroMayorAsientosResponse,
+  GenerarLibroMayorAsientosParams,
+  ExportarLibroMayorAsientosExcelParams,
+} from "../../domain/entities/LibroMayorAsientos";
+import * as ExcelJS from "exceljs";
 
 @injectable()
 export class LibroMayorAsientosService implements ILibroMayorAsientosService {
   constructor(
-    @inject('ILibroMayorAsientosRepository')
-    private readonly libroMayorAsientosRepository: ILibroMayorAsientosRepository
+    @inject("LibroMayorAsientosRepository")
+    private libroMayorAsientosRepository: LibroMayorAsientosRepository
   ) {}
 
-  async obtener(conjunto: string, filtros: FiltrosLibroMayorAsientos): Promise<LibroMayorAsientos[]> {
-    return this.obtenerReporteLibroMayorAsientos(conjunto, filtros);
+  /**
+   * Obtiene los filtros disponibles (asientos y referencias)
+   */
+  async obtenerFiltros(conjunto: string): Promise<{ asiento: string; referencia: string }[]> {
+    try {
+      console.log(`Obteniendo filtros para conjunto: ${conjunto}`);
+      const filtros = await this.libroMayorAsientosRepository.obtenerFiltros(conjunto);
+      console.log(`Filtros obtenidos: ${filtros.length} registros`);
+      return filtros;
+    } catch (error) {
+      console.error("Error al obtener filtros:", error);
+      throw new Error(`Error al obtener filtros: ${error instanceof Error ? error.message : "Error desconocido"}`);
+    }
   }
 
-  async obtenerReporteLibroMayorAsientos(conjunto: string, filtros: FiltrosLibroMayorAsientos): Promise<LibroMayorAsientos[]> {
+  /**
+   * Genera el reporte de Libro Mayor Asientos
+   */
+  async generarReporte(
+    conjunto: string,
+    filtros: GenerarLibroMayorAsientosParams
+  ): Promise<LibroMayorAsientosResponse> {
     try {
-      // Validar parámetros obligatorios
-      if (!conjunto || conjunto.trim() === '') {
-        throw new Error('El parámetro conjunto es obligatorio');
-      }
+      console.log(`Generando reporte para conjunto: ${conjunto}`, filtros);
+      
+      const filtrosCompletos: LibroMayorAsientosFiltros = {
+        ...filtros,
+        conjunto,
+        page: 1,
+        limit: 1000, // Límite alto para el reporte completo
+      };
 
-      // Validar fechas si están presentes
-      if (filtros.fecha_desde && filtros.fecha_hasta) {
-        const fechaDesde = new Date(filtros.fecha_desde);
-        const fechaHasta = new Date(filtros.fecha_hasta);
+      const resultado = await this.libroMayorAsientosRepository.obtenerAsientos(
+        conjunto,
+        filtrosCompletos
+      );
+
+      console.log(`Reporte generado: ${resultado.data.length} registros`);
+      return resultado;
+    } catch (error) {
+      console.error("Error al generar reporte:", error);
+      throw new Error(`Error al generar reporte: ${error instanceof Error ? error.message : "Error desconocido"}`);
+    }
+  }
+
+  /**
+   * Obtiene los datos paginados del reporte
+   */
+  async obtenerAsientos(
+    conjunto: string,
+    filtros: LibroMayorAsientosFiltros
+  ): Promise<LibroMayorAsientosResponse> {
+    try {
+      console.log(`Obteniendo asientos para conjunto: ${conjunto}`, filtros);
+      
+      const resultado = await this.libroMayorAsientosRepository.obtenerAsientos(
+        conjunto,
+        filtros
+      );
+
+      console.log(`Asientos obtenidos: ${resultado.data.length} registros`);
+      return resultado;
+    } catch (error) {
+      console.error("Error al obtener asientos:", error);
+      throw new Error(`Error al obtener asientos: ${error instanceof Error ? error.message : "Error desconocido"}`);
+    }
+  }
+
+  /**
+   * Exporta el reporte a Excel
+   */
+  async exportarExcel(
+    conjunto: string,
+    filtros: ExportarLibroMayorAsientosExcelParams
+  ): Promise<Buffer> {
+    try {
+      console.log(`Exportando a Excel para conjunto: ${conjunto}`, filtros);
+      
+      const datos = await this.libroMayorAsientosRepository.exportarExcel(conjunto, filtros);
+      
+      // Crear workbook
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Libro Mayor Asientos");
+
+      // Configurar columnas
+      worksheet.columns = [
+        { header: "Asiento", key: "asiento", width: 15 },
+        { header: "Contabilidad", key: "contabilidad", width: 15 },
+        { header: "Tipo Asiento", key: "tipo_asiento", width: 15 },
+        { header: "Fecha", key: "fecha", width: 12 },
+        { header: "Origen", key: "origen", width: 15 },
+        { header: "Documento Global", key: "documento_global", width: 20 },
+        { header: "Monto Total Local", key: "monto_total_local", width: 18 },
+        { header: "Monto Total Dólar", key: "monto_total_dolar", width: 18 },
+        { header: "Mayor Auditoría", key: "mayor_auditoria", width: 15 },
+        { header: "Exportado", key: "exportado", width: 12 },
+        { header: "Tipo Ingreso Mayor", key: "tipo_ingreso_mayor", width: 18 },
+      ];
+
+      // Estilo para el encabezado
+      worksheet.getRow(1).font = { bold: true };
+      worksheet.getRow(1).fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFE0E0E0" },
+      };
+
+      // Agregar datos
+      datos.forEach((asiento) => {
+        worksheet.addRow({
+          asiento: asiento.asiento,
+          contabilidad: asiento.contabilidad,
+          tipo_asiento: asiento.tipo_asiento,
+          fecha: asiento.fecha,
+          origen: asiento.origen,
+          documento_global: asiento.documento_global,
+          monto_total_local: asiento.monto_total_local,
+          monto_total_dolar: asiento.monto_total_dolar,
+          mayor_auditoria: asiento.mayor_auditoria,
+          exportado: asiento.exportado,
+          tipo_ingreso_mayor: asiento.tipo_ingreso_mayor,
+        });
+      });
+
+      // Aplicar bordes a todas las celdas
+      worksheet.eachRow((row, rowNumber) => {
+        row.eachCell((cell) => {
+          cell.border = {
+            top: { style: "thin" },
+            left: { style: "thin" },
+            bottom: { style: "thin" },
+            right: { style: "thin" },
+          };
+        });
+      });
+
+      // Generar buffer
+      const buffer = await workbook.xlsx.writeBuffer();
+      const bufferResult = Buffer.from(buffer);
+      console.log(`Excel generado: ${bufferResult.length} bytes`);
+      
+      return bufferResult;
+    } catch (error) {
+      console.error("Error al exportar a Excel:", error);
+      throw new Error(`Error al exportar a Excel: ${error instanceof Error ? error.message : "Error desconocido"}`);
+    }
+  }
+
+  /**
+   * Exporta el reporte a PDF
+   */
+  async exportarPDF(
+    conjunto: string,
+    filtros: ExportarLibroMayorAsientosExcelParams
+  ): Promise<Buffer> {
+    try {
+      console.log(`Exportando a PDF para conjunto: ${conjunto}`, filtros);
+      
+      // Por ahora, generar un PDF simple con los datos
+      // En una implementación real, usarías una librería como PDFKit o jsPDF
+      const datos = await this.libroMayorAsientosRepository.exportarExcel(conjunto, filtros);
+      
+      // Crear contenido PDF simple (esto es un placeholder)
+      const pdfContent = `
+        Libro Mayor Asientos - Conjunto: ${conjunto}
+        Fecha de generación: ${new Date().toLocaleString()}
         
-        if (fechaDesde > fechaHasta) {
-          throw new Error('La fecha de inicio no puede ser mayor que la fecha de fin');
-        }
-      }
+        Total de registros: ${datos.length}
+        
+        Datos:
+        ${datos.map((asiento, index) => 
+          `${index + 1}. Asiento: ${asiento.asiento}, Fecha: ${asiento.fecha}, Origen: ${asiento.origen}`
+        ).join('\n')}
+      `;
 
-      // Validar y limpiar filtros de asientos
-      if (filtros.asiento && filtros.asiento.trim() === '') {
-        delete filtros.asiento;
-      }
-
-      if (filtros.tipo_asiento && filtros.tipo_asiento.trim() === '') {
-        delete filtros.tipo_asiento;
-      }
-
-      if (filtros.documento_global && filtros.documento_global.trim() === '') {
-        delete filtros.documento_global;
-      }
-
-      // Validar arrays
-      if (filtros.clases_asiento && filtros.clases_asiento.length === 0) {
-        delete filtros.clases_asiento;
-      }
-
-      if (filtros.origen && filtros.origen.length === 0) {
-        delete filtros.origen;
-      }
-
-      // Validar límite de registros
-      if (filtros.limit) {
-        if (filtros.limit < 1 || filtros.limit > 100000) {
-          filtros.limit = 1000; // Valor por defecto
-        }
-      }
-
-      console.log('Filtros validados:', filtros);
-
-      // Obtener el reporte del repositorio
-      const resultados = await this.libroMayorAsientosRepository.obtener(conjunto, filtros);
-
-      console.log(`Reporte generado exitosamente. Total de registros: ${resultados.length}`);
-
-      return resultados;
-    } catch (error) {
-      console.error('Error en LibroMayorAsientosService:', error);
-      throw error;
-    }
-  }
-
-  async obtenerFiltros(conjunto: string): Promise<FiltroAsientosResponse> {
-    try {
-      if (!conjunto || conjunto.trim() === '') {
-        throw new Error('El parámetro conjunto es obligatorio');
-      }
-
-      return await this.libroMayorAsientosRepository.obtenerFiltros(conjunto);
-    } catch (error) {
-      console.error('Error en LibroMayorAsientosService.obtenerFiltros:', error);
-      throw error;
-    }
-  }
-
-  async exportarExcel(conjunto: string, filtros: FiltrosLibroMayorAsientos): Promise<Buffer> {
-    try {
-      // Obtener los datos del reporte
-      const datos = await this.obtenerReporteLibroMayorAsientos(conjunto, filtros);
+      // Convertir a buffer (esto es un placeholder)
+      const buffer = Buffer.from(pdfContent, 'utf8');
+      console.log(`PDF generado: ${buffer.length} bytes`);
       
-      // Generar Excel usando el repositorio
-      const excelBuffer = await this.libroMayorAsientosRepository.exportarExcel(conjunto, filtros);
-      
-      return excelBuffer;
+      return buffer;
     } catch (error) {
-      console.error('Error en LibroMayorAsientosService.exportarExcel:', error);
-      throw error;
-    }
-  }
-
-  async exportarPDF(conjunto: string, filtros: FiltrosLibroMayorAsientos): Promise<Buffer> {
-    try {
-      // Obtener los datos del reporte
-      const datos = await this.obtenerReporteLibroMayorAsientos(conjunto, filtros);
-      
-      // Generar PDF usando el repositorio
-      const pdfBuffer = await this.libroMayorAsientosRepository.exportarPDF(conjunto, filtros);
-      
-      return pdfBuffer;
-    } catch (error) {
-      console.error('Error en LibroMayorAsientosService.exportarPDF:', error);
-      throw error;
+      console.error("Error al exportar a PDF:", error);
+      throw new Error(`Error al exportar a PDF: ${error instanceof Error ? error.message : "Error desconocido"}`);
     }
   }
 }

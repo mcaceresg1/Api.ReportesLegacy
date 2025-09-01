@@ -1,305 +1,362 @@
-import { injectable } from 'inversify';
-import { ILibroMayorAsientosRepository } from '../../domain/repositories/ILibroMayorAsientosRepository';
-import { LibroMayorAsientos, FiltrosLibroMayorAsientos, FiltroAsientosResponse } from '../../domain/entities/LibroMayorAsientos';
-import { exactusSequelize } from '../database/config/exactus-database';
-import { QueryTypes } from 'sequelize';
-import * as XLSX from 'xlsx';
+import { injectable, inject } from "inversify";
+import { IDatabaseService } from "../../domain/services/IDatabaseService";
+import {
+  LibroMayorAsientos,
+  LibroMayorAsientosFiltros,
+  LibroMayorAsientosResponse,
+  GenerarLibroMayorAsientosParams,
+  ExportarLibroMayorAsientosExcelParams,
+} from "../../domain/entities/LibroMayorAsientos";
 
 @injectable()
-export class LibroMayorAsientosRepository implements ILibroMayorAsientosRepository {
-  async obtener(conjunto: string, filtros: FiltrosLibroMayorAsientos): Promise<LibroMayorAsientos[]> {
-    const { 
+export class LibroMayorAsientosRepository {
+  constructor(
+    @inject("IDatabaseService")
+    private databaseService: IDatabaseService
+  ) {}
+
+  /**
+   * Obtiene los filtros disponibles (asientos y referencias)
+   */
+  async obtenerFiltros(conjunto: string): Promise<{ asiento: string; referencia: string }[]> {
+    const query = `
+      SELECT DISTINCT 
       asiento,
-      tipo_asiento,
-      fecha_desde,
-      fecha_hasta,
-      contabilidad,
-      mayorizacion,
-      exportados,
-      documento_global,
-      clases_asiento,
-      origen,
-      page = 1,
-      limit = 1000
-    } = filtros;
+        documento_global as referencia
+      FROM ${conjunto}.asiento_mayorizado (NOLOCK)
+      WHERE asiento IS NOT NULL 
+        AND documento_global IS NOT NULL
+      ORDER BY asiento, documento_global
+    `;
 
-    // Construir condiciones WHERE dinámicamente
-    let whereConditions = '1=1';
+    const result = await this.databaseService.ejecutarQuery(query);
+    return result.map((row: any) => ({
+      asiento: row.asiento,
+      referencia: row.referencia,
+    }));
+  }
 
-    // Filtro por asiento
-    if (asiento) {
-      whereConditions += ` AND A.ASIENTO = '${asiento}'`;
+  /**
+   * Genera el reporte de Libro Mayor Asientos
+   */
+  async generarReporte(
+    conjunto: string,
+    filtros: GenerarLibroMayorAsientosParams
+  ): Promise<LibroMayorAsientos[]> {
+    let whereClause = "WHERE 1=1";
+    const params: any[] = [];
+
+    // Aplicar filtros
+    if (filtros.asiento) {
+      whereClause += " AND asiento = ?";
+      params.push(filtros.asiento);
     }
 
-    // Filtro por tipo de asiento
-    if (tipo_asiento) {
-      whereConditions += ` AND A.TIPO_ASIENTO = '${tipo_asiento}'`;
+    if (filtros.referencia) {
+      whereClause += " AND documento_global = ?";
+      params.push(filtros.referencia);
     }
 
-    // Filtro por fechas
-    if (fecha_desde && fecha_hasta) {
-      const fechaDesdeStr = new Date(fecha_desde).toISOString().slice(0, 19).replace('T', ' ');
-      const fechaHastaStr = new Date(fecha_hasta).toISOString().slice(0, 19).replace('T', ' ');
-      whereConditions += ` AND A.FECHA BETWEEN '${fechaDesdeStr}' AND '${fechaHastaStr}'`;
+    if (filtros.fechaInicio) {
+      whereClause += " AND fecha >= ?";
+      params.push(filtros.fechaInicio);
     }
 
-    // Filtro por contabilidad
-    if (contabilidad) {
-      whereConditions += ` AND A.CONTABILIDAD = '${contabilidad}'`;
+    if (filtros.fechaFin) {
+      whereClause += " AND fecha <= ?";
+      params.push(filtros.fechaFin);
     }
 
-    // Filtro por mayorización
-    if (mayorizacion) {
-      whereConditions += ` AND A.MAYOR_AUDITORIA = '${mayorizacion}'`;
+    if (filtros.contabilidad) {
+      whereClause += " AND contabilidad = ?";
+      params.push(filtros.contabilidad);
     }
 
-    // Filtro por exportados
-    if (exportados) {
-      whereConditions += ` AND A.EXPORTADO = '${exportados}'`;
+    if (filtros.tipoAsiento) {
+      whereClause += " AND tipo_asiento = ?";
+      params.push(filtros.tipoAsiento);
     }
 
-    // Filtro por documento global
-    if (documento_global) {
-      whereConditions += ` AND A.DOCUMENTO_GLOBAL = '${documento_global}'`;
+    if (filtros.origen) {
+      whereClause += " AND origen = ?";
+      params.push(filtros.origen);
     }
 
-    // Filtro por clases de asiento
-    if (clases_asiento && clases_asiento.length > 0) {
-      const clasesStr = clases_asiento.map(c => `'${c}'`).join(',');
-      whereConditions += ` AND A.TIPO_INGRESO_MAYOR IN (${clasesStr})`;
+    if (filtros.exportado) {
+      whereClause += " AND exportado = ?";
+      params.push(filtros.exportado);
     }
 
-    // Filtro por origen
-    if (origen && origen.length > 0) {
-      const origenStr = origen.map(o => `'${o}'`).join(',');
-      whereConditions += ` AND A.ORIGEN IN (${origenStr})`;
+    if (filtros.mayorizacion) {
+      whereClause += " AND mayor_auditoria = ?";
+      params.push(filtros.mayorizacion);
     }
 
-    // Query principal basado en el query proporcionado
+    if (filtros.documentoGlobal) {
+      whereClause += " AND documento_global = ?";
+      params.push(filtros.documentoGlobal);
+    }
+
     const query = `
       SELECT 
-        A.ASIENTO as asiento,
-        '' as fuente,
+        asiento,
         '' as contabilidad,
-        A.TIPO_ASIENTO as tipo_asiento,
-        A.FECHA as fecha,
-        A.ORIGEN as origen,
-        A.DOCUMENTO_GLOBAL as documento_global,
+        '' as tipo_asiento,
+        fecha,
+        origen,
+        documento_global,
         0 as monto_total_local,
         0 as monto_total_dolar,
-        A.MONTO_TOTAL_LOCAL as monto_total_local,
+        mayor_auditoria,
+        exportado,
+        tipo_ingreso_mayor
+      FROM ${conjunto}.asiento_mayorizado (NOLOCK)
+      ${whereClause}
+      ORDER BY asiento ASC
+    `;
+
+    const result = await this.databaseService.ejecutarQuery(query, params);
+    return result.map((row: any) => ({
+      asiento: row.asiento,
+      contabilidad: row.contabilidad,
+      tipo_asiento: row.tipo_asiento,
+      fecha: new Date(row.fecha),
+      origen: row.origen,
+      documento_global: row.documento_global,
+      monto_total_local: row.monto_total_local,
+      monto_total_dolar: row.monto_total_dolar,
+      mayor_auditoria: row.mayor_auditoria,
+      exportado: row.exportado,
+      tipo_ingreso_mayor: row.tipo_ingreso_mayor,
+    }));
+  }
+
+  /**
+   * Obtiene los datos paginados del reporte
+   */
+  async obtenerAsientos(
+    conjunto: string,
+    filtros: LibroMayorAsientosFiltros
+  ): Promise<LibroMayorAsientosResponse> {
+    let whereClause = "WHERE 1=1";
+    const params: any[] = [];
+
+    // Aplicar filtros
+    if (filtros.asiento) {
+      whereClause += " AND asiento = ?";
+      params.push(filtros.asiento);
+    }
+
+    if (filtros.referencia) {
+      whereClause += " AND documento_global = ?";
+      params.push(filtros.referencia);
+    }
+
+    if (filtros.fechaInicio) {
+      whereClause += " AND fecha >= ?";
+      params.push(filtros.fechaInicio);
+    }
+
+    if (filtros.fechaFin) {
+      whereClause += " AND fecha <= ?";
+      params.push(filtros.fechaFin);
+    }
+
+    if (filtros.contabilidad) {
+      whereClause += " AND contabilidad = ?";
+      params.push(filtros.contabilidad);
+    }
+
+    if (filtros.tipoAsiento) {
+      whereClause += " AND tipo_asiento = ?";
+      params.push(filtros.tipoAsiento);
+    }
+
+    if (filtros.origen) {
+      whereClause += " AND origen = ?";
+      params.push(filtros.origen);
+    }
+
+    if (filtros.exportado) {
+      whereClause += " AND exportado = ?";
+      params.push(filtros.exportado);
+    }
+
+    if (filtros.mayorizacion) {
+      whereClause += " AND mayor_auditoria = ?";
+      params.push(filtros.mayorizacion);
+    }
+
+    if (filtros.documentoGlobal) {
+      whereClause += " AND documento_global = ?";
+      params.push(filtros.documentoGlobal);
+    }
+
+    // Obtener total de registros
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM ${conjunto}.asiento_mayorizado (NOLOCK)
+      ${whereClause}
+    `;
+
+    const countResult = await this.databaseService.ejecutarQuery(countQuery, params);
+    const total = countResult[0].total;
+
+    // Aplicar paginación
+    const page = filtros.page || 1;
+    const limit = filtros.limit || 25;
+    const offset = (page - 1) * limit;
+
+    const dataQuery = `
+      SELECT 
+        asiento,
+        '' as contabilidad,
+        '' as tipo_asiento,
+        fecha,
+        origen,
+        documento_global,
+        0 as monto_total_local,
         0 as monto_total_dolar,
-        0 as monto_total_dolar,
-        A.MONTO_TOTAL_DOLAR as monto_total_dolar,
-        A.MAYOR_AUDITORIA as mayor_auditoria,
-        A.EXPORTADO as exportado,
-        A.TIPO_INGRESO_MAYOR as tipo_ingreso_mayor
-      FROM FIDPLAN.ASIENTO_MAYORIZADO A(NOLOCK)
-      WHERE ${whereConditions}
-      ORDER BY A.ASIENTO ASC
-      OFFSET ${(page - 1) * limit} ROWS
+        mayor_auditoria,
+        exportado,
+        tipo_ingreso_mayor
+      FROM ${conjunto}.asiento_mayorizado (NOLOCK)
+      ${whereClause}
+      ORDER BY asiento ASC
+      OFFSET ${offset} ROWS
       FETCH NEXT ${limit} ROWS ONLY
     `;
 
-    console.log('Query ejecutado:', query);
+    const data = await this.databaseService.ejecutarQuery(dataQuery, params);
+    const asientos = data.map((row: any) => ({
+      asiento: row.asiento,
+      contabilidad: row.contabilidad,
+      tipo_asiento: row.tipo_asiento,
+      fecha: new Date(row.fecha),
+      origen: row.origen,
+      documento_global: row.documento_global,
+      monto_total_local: row.monto_total_local,
+      monto_total_dolar: row.monto_total_dolar,
+      mayor_auditoria: row.mayor_auditoria,
+      exportado: row.exportado,
+      tipo_ingreso_mayor: row.tipo_ingreso_mayor,
+    }));
 
-    try {
-      const resultados = await exactusSequelize.query(query, {
-        type: QueryTypes.SELECT,
-        replacements: { conjunto }
-      });
-
-      return resultados as LibroMayorAsientos[];
-    } catch (error) {
-      console.error('Error ejecutando query:', error);
-      throw new Error(`Error al obtener datos del reporte: ${error instanceof Error ? error.message : 'Error desconocido'}`);
-    }
-  }
-
-  async obtenerFiltros(conjunto: string): Promise<FiltroAsientosResponse> {
-    try {
-      // Query para obtener asientos únicos
-      const asientosQuery = `
-        SELECT DISTINCT ASIENTO 
-        FROM FIDPLAN.ASIENTO_MAYORIZADO A(NOLOCK)
-        WHERE ASIENTO IS NOT NULL AND ASIENTO != ''
-        ORDER BY ASIENTO
-      `;
-
-      // Query para obtener tipos de asiento únicos
-      const tiposAsientoQuery = `
-        SELECT DISTINCT TIPO_ASIENTO 
-        FROM FIDPLAN.ASIENTO_MAYORIZADO A(NOLOCK)
-        WHERE TIPO_ASIENTO IS NOT NULL AND TIPO_ASIENTO != ''
-        ORDER BY TIPO_ASIENTO
-      `;
-
-      // Query para obtener orígenes únicos
-      const origenesQuery = `
-        SELECT DISTINCT ORIGEN 
-        FROM FIDPLAN.ASIENTO_MAYORIZADO A(NOLOCK)
-        WHERE ORIGEN IS NOT NULL AND ORIGEN != ''
-        ORDER BY ORIGEN
-      `;
-
-      const [asientosResult, tiposAsientoResult, origenesResult] = await Promise.all([
-        exactusSequelize.query(asientosQuery, { type: QueryTypes.SELECT }),
-        exactusSequelize.query(tiposAsientoQuery, { type: QueryTypes.SELECT }),
-        exactusSequelize.query(origenesQuery, { type: QueryTypes.SELECT })
-      ]);
+    const totalPages = Math.ceil(total / limit);
 
       return {
         success: true,
-        data: {
-          asientos: asientosResult.map((item: any) => item.ASIENTO),
-          tipos_asiento: tiposAsientoResult.map((item: any) => item.TIPO_ASIENTO),
-          origenes: origenesResult.map((item: any) => item.ORIGEN)
-        },
-        message: 'Filtros obtenidos exitosamente'
-      };
-    } catch (error) {
-      console.error('Error obteniendo filtros:', error);
-      return {
-        success: false,
-        data: {
-          asientos: [],
-          tipos_asiento: [],
-          origenes: []
-        },
-        message: `Error al obtener filtros: ${error instanceof Error ? error.message : 'Error desconocido'}`
-      };
-    }
+      data: asientos,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+      message: "Datos obtenidos exitosamente",
+    };
   }
 
-  async exportarExcel(conjunto: string, filtros: FiltrosLibroMayorAsientos): Promise<Buffer> {
-    try {
-      // Obtener todos los datos sin paginación para exportar
-      const datos = await this.obtener(conjunto, { ...filtros, page: 1, limit: 100000 });
+  /**
+   * Exporta el reporte a Excel
+   */
+  async exportarExcel(
+    conjunto: string,
+    filtros: ExportarLibroMayorAsientosExcelParams
+  ): Promise<LibroMayorAsientos[]> {
+    let whereClause = "WHERE 1=1";
+    const params: any[] = [];
 
-      // Crear workbook
-      const workbook = XLSX.utils.book_new();
-
-      // Preparar datos para Excel
-      const excelData = datos.map(item => ({
-        'Asiento': item.asiento,
-        'Fuente': item.fuente,
-        'Contabilidad': item.contabilidad,
-        'Tipo Asiento': item.tipo_asiento,
-        'Fecha': item.fecha,
-        'Origen': item.origen,
-        'Documento Global': item.documento_global,
-        'Monto Total Local': item.monto_total_local,
-        'Monto Total Dólar': item.monto_total_dolar,
-        'Mayor Auditoría': item.mayor_auditoria,
-        'Exportado': item.exportado,
-        'Tipo Ingreso Mayor': item.tipo_ingreso_mayor
-      }));
-
-      // Crear worksheet
-      const worksheet = XLSX.utils.json_to_sheet(excelData);
-
-      // Ajustar ancho de columnas
-      const columnWidths = [
-        { wch: 12 }, // Asiento
-        { wch: 10 }, // Fuente
-        { wch: 12 }, // Contabilidad
-        { wch: 15 }, // Tipo Asiento
-        { wch: 12 }, // Fecha
-        { wch: 10 }, // Origen
-        { wch: 15 }, // Documento Global
-        { wch: 18 }, // Monto Total Local
-        { wch: 18 }, // Monto Total Dólar
-        { wch: 15 }, // Mayor Auditoría
-        { wch: 10 }, // Exportado
-        { wch: 18 }  // Tipo Ingreso Mayor
-      ];
-      worksheet['!cols'] = columnWidths;
-
-      // Agregar worksheet al workbook
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Libro Mayor Asientos');
-
-      // Generar buffer
-      const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
-
-      return excelBuffer;
-    } catch (error) {
-      console.error('Error exportando a Excel:', error);
-      throw new Error(`Error al exportar a Excel: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    // Aplicar filtros
+    if (filtros.asiento) {
+      whereClause += " AND asiento = ?";
+      params.push(filtros.asiento);
     }
-  }
 
-  async exportarPDF(conjunto: string, filtros: FiltrosLibroMayorAsientos): Promise<Buffer> {
-    try {
-      // Obtener datos
-      const datos = await this.obtener(conjunto, { ...filtros, page: 1, limit: 100000 });
-
-      // Por ahora, generar un PDF simple usando el generador existente
-      // En el futuro se puede implementar un generador más sofisticado
-      const pdfContent = this.generarContenidoPDF(datos);
-      
-      // Convertir a buffer (implementación básica)
-      const pdfBuffer = Buffer.from(pdfContent, 'utf-8');
-      
-      return pdfBuffer;
-    } catch (error) {
-      console.error('Error exportando a PDF:', error);
-      throw new Error(`Error al exportar a PDF: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    if (filtros.referencia) {
+      whereClause += " AND documento_global = ?";
+      params.push(filtros.referencia);
     }
-  }
 
-  private generarContenidoPDF(datos: LibroMayorAsientos[]): string {
-    let contenido = `
-      <html>
-        <head>
-          <title>Reporte Libro Mayor Asientos</title>
-          <style>
-            body { font-family: Arial, sans-serif; font-size: 12px; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-            th { background-color: #f2f2f2; }
-          </style>
-        </head>
-        <body>
-          <h1>Reporte Libro Mayor Asientos</h1>
-          <table>
-            <thead>
-              <tr>
-                <th>Asiento</th>
-                <th>Tipo Asiento</th>
-                <th>Fecha</th>
-                <th>Origen</th>
-                <th>Documento Global</th>
-                <th>Monto Total Local</th>
-                <th>Monto Total Dólar</th>
-                <th>Exportado</th>
-              </tr>
-            </thead>
-            <tbody>
+    if (filtros.fechaInicio) {
+      whereClause += " AND fecha >= ?";
+      params.push(filtros.fechaInicio);
+    }
+
+    if (filtros.fechaFin) {
+      whereClause += " AND fecha <= ?";
+      params.push(filtros.fechaFin);
+    }
+
+    if (filtros.contabilidad) {
+      whereClause += " AND contabilidad = ?";
+      params.push(filtros.contabilidad);
+    }
+
+    if (filtros.tipoAsiento) {
+      whereClause += " AND tipo_asiento = ?";
+      params.push(filtros.tipoAsiento);
+    }
+
+    if (filtros.origen) {
+      whereClause += " AND origen = ?";
+      params.push(filtros.origen);
+    }
+
+    if (filtros.exportado) {
+      whereClause += " AND exportado = ?";
+      params.push(filtros.exportado);
+    }
+
+    if (filtros.mayorizacion) {
+      whereClause += " AND mayor_auditoria = ?";
+      params.push(filtros.mayorizacion);
+    }
+
+    if (filtros.documentoGlobal) {
+      whereClause += " AND documento_global = ?";
+      params.push(filtros.documentoGlobal);
+    }
+
+    // Aplicar límite si se especifica
+    let limitClause = "";
+    if (filtros.limit) {
+      limitClause = `TOP ${filtros.limit}`;
+    }
+
+    const query = `
+      SELECT ${limitClause}
+        asiento,
+        '' as contabilidad,
+        '' as tipo_asiento,
+        fecha,
+        origen,
+        documento_global,
+        0 as monto_total_local,
+        0 as monto_total_dolar,
+        mayor_auditoria,
+        exportado,
+        tipo_ingreso_mayor
+      FROM ${conjunto}.asiento_mayorizado (NOLOCK)
+      ${whereClause}
+      ORDER BY asiento ASC
     `;
 
-    datos.forEach(item => {
-      contenido += `
-        <tr>
-          <td>${item.asiento}</td>
-          <td>${item.tipo_asiento}</td>
-          <td>${new Date(item.fecha).toLocaleDateString()}</td>
-          <td>${item.origen}</td>
-          <td>${item.documento_global}</td>
-          <td>${item.monto_total_local}</td>
-          <td>${item.monto_total_dolar}</td>
-          <td>${item.exportado}</td>
-        </tr>
-      `;
-    });
-
-    contenido += `
-            </tbody>
-          </table>
-          <p>Total de registros: ${datos.length}</p>
-        </body>
-      </html>
-    `;
-
-    return contenido;
+    const result = await this.databaseService.ejecutarQuery(query, params);
+    return result.map((row: any) => ({
+      asiento: row.asiento,
+      contabilidad: row.contabilidad,
+      tipo_asiento: row.tipo_asiento,
+      fecha: new Date(row.fecha),
+      origen: row.origen,
+      documento_global: row.documento_global,
+      monto_total_local: row.monto_total_local,
+      monto_total_dolar: row.monto_total_dolar,
+      mayor_auditoria: row.mayor_auditoria,
+      exportado: row.exportado,
+      tipo_ingreso_mayor: row.tipo_ingreso_mayor,
+    }));
   }
 }
