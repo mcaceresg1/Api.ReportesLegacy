@@ -1,59 +1,59 @@
-import express from 'express';
-import cors from 'cors';
-import swaggerUi from 'swagger-ui-express';
-import { specs } from './infrastructure/config/swagger';
-import { specs as specsDocker } from './infrastructure/config/swagger-docker';
-import { container } from './infrastructure/container/container';
-import { UsuarioRoutes } from './infrastructure/routes/UsuarioRoutes';
-import { MenuRoutes } from './infrastructure/routes/MenuRoutes';
-import { RolRoutes } from './infrastructure/routes/RolRoutes';
-import { SistemaRoutes } from './infrastructure/routes/SistemaRoutes';
-import { ConexionRoutes } from './infrastructure/routes/ConexionRoutes';
-import { RolMenuRoutes } from './infrastructure/routes/RolMenuRoutes';
-import { RolSistemaMenuRoutes } from './infrastructure/routes/RolSistemaMenuRoutes';
-import { PermisoRoutes } from './infrastructure/routes/PermisoRoutes';
-import { createConjuntoRoutes } from './infrastructure/routes/ConjuntoRoutes';
-import { createExactusRoutes } from './infrastructure/routes/ExactusRoutes';
-import { createMovimientoContableRoutes } from './infrastructure/routes/MovimientoContableRoutes';
-import { createReporteCuentaContableRoutes } from './infrastructure/routes/ReporteCuentaContableRoutes';
-import { createCuentaContableRoutes } from './infrastructure/routes/cuentaContable.routes';
-import { createReporteCentroCostoRoutes } from './infrastructure/routes/ReporteCentroCostoRoutes';
-import { createTipoAsientoRoutes } from './infrastructure/routes/TipoAsientoRoutes';
-import { createReporteGastosDestinoRoutes } from './infrastructure/routes/ReporteGastosDestinoRoutes';
-import ReporteAsientosSinDimensionRoutes from './infrastructure/routes/ReporteAsientosSinDimensionRoutes';
-import { createResumenAsientosRoutes } from './infrastructure/routes/resumenAsientos.routes';
-import { createReporteMensualCuentaCentroRoutes } from './infrastructure/routes/ReporteMensualCuentaCentroRoutes';
-import { createReporteMovimientosContablesRoutes } from './infrastructure/routes/ReporteMovimientosContablesRoutes';
-import { createReporteMovimientosContablesAgrupadosRoutes } from './infrastructure/routes/ReporteMovimientosContablesAgrupadosRoutes';
-import { createReporteCatalogoCuentasModificadasRoutes } from './infrastructure/routes/ReporteCatalogoCuentasModificadasRoutes';
-import { createDiarioContabilidadRoutes } from './infrastructure/routes/diarioContabilidad.routes';
-import { createPlanContableRoutes } from './infrastructure/routes/planContable.routes';
-import { createPeriodoContableRoutes } from './infrastructure/routes/periodoContable.routes';
-import { createMovimientoContableAgrupadoRoutes } from './infrastructure/routes/movimientoContableAgrupado.routes';
-import { createSaldoPromediosRoutes } from './infrastructure/routes/saldoPromedios.routes';
-
-import { AuthMiddleware } from './infrastructure/middleware/AuthMiddleware';
-import { QueryOptimizationMiddleware } from './infrastructure/middleware/QueryOptimizationMiddleware';
-import { IUsuarioService } from './domain/services/IUsuarioService';
-import { IAuthService } from './domain/services/IAuthService';
-import { IRolService } from './domain/services/IRolService';
-import { IRolSistemaMenuService } from './domain/services/IRolSistemaMenuService';
-import { ISistemaService } from './domain/services/ISistemaService';
-import { IMenuService } from './domain/services/IMenuService';
-import { IConjuntoService } from './domain/services/IConjuntoService';
-import { ICentroCostoRepository } from './domain/repositories/ICentroCostoRepository';
-import { IMovimientoContableRepository } from './domain/repositories/IMovimientoContableRepository';
-import { IReporteCuentaContableRepository } from './domain/repositories/IReporteCuentaContableRepository';
-import { IReporteCentroCostoRepository } from './domain/repositories/IReporteCentroCostoRepository';
-import { ICuentaContableRepository } from './domain/repositories/ICuentaContableRepository';
-import { CqrsService } from './infrastructure/cqrs/CqrsService';
-import { createReporteClipperRoutes } from './infrastructure/routes/ReporteClipperRoutes';
-import { IReporteClipperRepository } from './domain/repositories/IReporteClipperRepository';
-import { createReporteHmisRoutes } from './infrastructure/routes/ReporteHmisRoutes';
-import { IReporteHmisRepository } from './domain/repositories/IReporteHmisRepository';
-import { IReporteDocumentosProveedorRepository } from './domain/repositories/IReporteDocumentosProveedorRepository';
-import { createReporteDocumentosProveedorRoutes } from './infrastructure/routes/ReporteDocumentosProveedorRoutes';
-
+import express from "express";
+import cors from "cors";
+import swaggerUi from "swagger-ui-express";
+import { specs } from "./infrastructure/config/swagger";
+import { specs as specsDocker } from "./infrastructure/config/swagger-docker";
+import { container } from "./infrastructure/container/container";
+import { UsuarioRoutes } from "./infrastructure/routes/UsuarioRoutes";
+import { MenuRoutes } from "./infrastructure/routes/MenuRoutes";
+import { RolRoutes } from "./infrastructure/routes/RolRoutes";
+import { SistemaRoutes } from "./infrastructure/routes/SistemaRoutes";
+import { ConexionRoutes } from "./infrastructure/routes/ConexionRoutes";
+import { RolMenuRoutes } from "./infrastructure/routes/RolMenuRoutes";
+import { RolSistemaMenuRoutes } from "./infrastructure/routes/RolSistemaMenuRoutes";
+import { PermisoRoutes } from "./infrastructure/routes/PermisoRoutes";
+import { createConjuntoRoutes } from "./infrastructure/routes/ConjuntoRoutes";
+import { createExactusRoutes } from "./infrastructure/routes/ExactusRoutes";
+import { createMovimientoContableRoutes } from "./infrastructure/routes/MovimientoContableRoutes";
+import { createReporteCuentaContableRoutes } from "./infrastructure/routes/ReporteCuentaContableRoutes";
+import { createCuentaContableRoutes } from "./infrastructure/routes/cuentaContable.routes";
+import { createReporteCentroCostoRoutes } from "./infrastructure/routes/ReporteCentroCostoRoutes";
+import { createTipoAsientoRoutes } from "./infrastructure/routes/TipoAsientoRoutes";
+import ReporteAsientosSinDimensionRoutes from "./infrastructure/routes/ReporteAsientosSinDimensionRoutes";
+import { createResumenAsientosRoutes } from "./infrastructure/routes/resumenAsientos.routes";
+import { createReporteMensualCuentaCentroRoutes } from "./infrastructure/routes/ReporteMensualCuentaCentroRoutes";
+import { createReporteMovimientosContablesRoutes } from "./infrastructure/routes/ReporteMovimientosContablesRoutes";
+import { createReporteMovimientosContablesAgrupadosRoutes } from "./infrastructure/routes/ReporteMovimientosContablesAgrupadosRoutes";
+import { createReporteCatalogoCuentasModificadasRoutes } from "./infrastructure/routes/ReporteCatalogoCuentasModificadasRoutes";
+import { createReporteGastosDestinoRoutes } from "./infrastructure/routes/ReporteGastosDestinoRoutes";
+import { createDiarioContabilidadRoutes } from "./infrastructure/routes/diarioContabilidad.routes";
+import { createPlanContableRoutes } from "./infrastructure/routes/planContable.routes";
+import { createPeriodoContableRoutes } from "./infrastructure/routes/periodoContable.routes";
+import { createMovimientoContableAgrupadoRoutes } from "./infrastructure/routes/movimientoContableAgrupado.routes";
+import { createSaldoPromediosRoutes } from "./infrastructure/routes/saldoPromedios.routes";
+import { BalanceComprobacionRoutes } from "./infrastructure/routes/BalanceComprobacionRoutes";
+import { ReporteGenericoSaldosRoutes } from "./infrastructure/routes/ReporteGenericoSaldosRoutes";
+import { AuthMiddleware } from "./infrastructure/middleware/AuthMiddleware";
+import { QueryOptimizationMiddleware } from "./infrastructure/middleware/QueryOptimizationMiddleware";
+import { IUsuarioService } from "./domain/services/IUsuarioService";
+import { IAuthService } from "./domain/services/IAuthService";
+import { IRolService } from "./domain/services/IRolService";
+import { IRolSistemaMenuService } from "./domain/services/IRolSistemaMenuService";
+import { ISistemaService } from "./domain/services/ISistemaService";
+import { IMenuService } from "./domain/services/IMenuService";
+import { IConjuntoService } from "./domain/services/IConjuntoService";
+import { ICentroCostoRepository } from "./domain/repositories/ICentroCostoRepository";
+import { IMovimientoContableRepository } from "./domain/repositories/IMovimientoContableRepository";
+import { IReporteCuentaContableRepository } from "./domain/repositories/IReporteCuentaContableRepository";
+import { IReporteCentroCostoRepository } from "./domain/repositories/IReporteCentroCostoRepository";
+import { ICuentaContableRepository } from "./domain/repositories/ICuentaContableRepository";
+import { CqrsService } from "./infrastructure/cqrs/CqrsService";
+import { createReporteClipperRoutes } from "./infrastructure/routes/ReporteClipperRoutes";
+import { IReporteClipperRepository } from "./domain/repositories/IReporteClipperRepository";
+import { IReporteHmisRepository } from "./domain/repositories/IReporteHmisRepository";
+import { IReporteDocumentosProveedorRepository } from "./domain/repositories/IReporteDocumentosProveedorRepository";
+import { createReporteHmisRoutes } from "./infrastructure/routes/ReporteHmisRoutes";
+import { createReporteDocumentosProveedorRoutes } from "./infrastructure/routes/ReporteDocumentosProveedorRoutes";
 
 const app = express();
 
@@ -73,23 +73,40 @@ const swaggerSpecs =
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
 // Obtener servicios del contenedor
-const usuarioService = container.get<IUsuarioService>('IUsuarioService');
-const authService = container.get<IAuthService>('IAuthService');
-const rolService = container.get<IRolService>('IRolService');
-const rolSistemaMenuService = container.get<IRolSistemaMenuService>('IRolSistemaMenuService');
-const authMiddleware = container.get<AuthMiddleware>('AuthMiddleware');
-const sistemaService = container.get<ISistemaService>('ISistemaService');
-const menuService = container.get<IMenuService>('IMenuService');
-  const conjuntoService = container.get<IConjuntoService>('IConjuntoService');
-  const centroCostoRepository = container.get<ICentroCostoRepository>('ICentroCostoRepository');
-  const movimientoContableRepository = container.get<IMovimientoContableRepository>('IMovimientoContableRepository');
-  const reporteCuentaContableRepository = container.get<IReporteCuentaContableRepository>('IReporteCuentaContableRepository');
-  const reporteCentroCostoRepository = container.get<IReporteCentroCostoRepository>('IReporteCentroCostoRepository');
-  const cuentaContableRepository = container.get<ICuentaContableRepository>('ICuentaContableRepository');
- const reporteClipperRepository = container.get<IReporteClipperRepository>('IReporteClipperRepository');
- const reporteHmisRepository = container.get<IReporteHmisRepository>('IReporteHmisRepository');
-const reporteDocumentosProveedorRepository = container.get<IReporteDocumentosProveedorRepository>('IReporteDocumentosProveedorRepository');
-
+const usuarioService = container.get<IUsuarioService>("IUsuarioService");
+const authService = container.get<IAuthService>("IAuthService");
+const rolService = container.get<IRolService>("IRolService");
+const rolSistemaMenuService = container.get<IRolSistemaMenuService>(
+  "IRolSistemaMenuService"
+);
+const authMiddleware = container.get<AuthMiddleware>("AuthMiddleware");
+const sistemaService = container.get<ISistemaService>("ISistemaService");
+const menuService = container.get<IMenuService>("IMenuService");
+const conjuntoService = container.get<IConjuntoService>("IConjuntoService");
+const centroCostoRepository = container.get<ICentroCostoRepository>(
+  "ICentroCostoRepository"
+);
+const movimientoContableRepository =
+  container.get<IMovimientoContableRepository>("IMovimientoContableRepository");
+const reporteCuentaContableRepository =
+  container.get<IReporteCuentaContableRepository>(
+    "IReporteCuentaContableRepository"
+  );
+const reporteCentroCostoRepository =
+  container.get<IReporteCentroCostoRepository>("IReporteCentroCostoRepository");
+const cuentaContableRepository = container.get<ICuentaContableRepository>(
+  "ICuentaContableRepository"
+);
+const reporteClipperRepository = container.get<IReporteClipperRepository>(
+  "IReporteClipperRepository"
+);
+const reporteHmisRepository = container.get<IReporteHmisRepository>(
+  "IReporteHmisRepository"
+);
+const reporteDocumentosProveedorRepository =
+  container.get<IReporteDocumentosProveedorRepository>(
+    "IReporteDocumentosProveedorRepository"
+  );
 // Inicializar CQRS
 console.log("🚀 Inicializando CQRS Service...");
 const cqrsService = container.get<CqrsService>("CqrsService");
@@ -161,22 +178,49 @@ const rolSistemaMenuRoutes = new RolSistemaMenuRoutes();
 const permisoRoutes = new PermisoRoutes();
 
 // Rutas de EXACTUS
-  const conjuntoRoutes = createConjuntoRoutes(conjuntoService);
-  const exactusRoutes = createExactusRoutes(centroCostoRepository, cuentaContableRepository);
-  const movimientoContableRoutes = createMovimientoContableRoutes(movimientoContableRepository);
-  const reporteCuentaContableRoutes = createReporteCuentaContableRoutes(reporteCuentaContableRepository);
-  const reporteCentroCostoRoutes = createReporteCentroCostoRoutes(reporteCentroCostoRepository);
-  const reporteGastosDestinoRoutes = createReporteGastosDestinoRoutes();
-  const tipoAsientoRoutes = createTipoAsientoRoutes();
-  const reporteAsientosSinDimensionRoutes = ReporteAsientosSinDimensionRoutes;
-  const resumenAsientosRoutes = createResumenAsientosRoutes();
-  const reporteMensualCuentaCentroRoutes = createReporteMensualCuentaCentroRoutes();
-  const reporteMovimientosContablesRoutes = createReporteMovimientosContablesRoutes();
-  const reporteMovimientosContablesAgrupadosRoutes = createReporteMovimientosContablesAgrupadosRoutes();
-  const reporteCatalogoCuentasModificadasRoutes = createReporteCatalogoCuentasModificadasRoutes();
-  const reporteClipperRoutes = createReporteClipperRoutes(reporteClipperRepository);
-  const reporteHmisRoutes = createReporteHmisRoutes(reporteHmisRepository);
-  const reporteDocumentosProveedorRoutes = createReporteDocumentosProveedorRoutes(reporteDocumentosProveedorRepository);
+const conjuntoRoutes = createConjuntoRoutes(conjuntoService);
+const exactusRoutes = createExactusRoutes(
+  centroCostoRepository,
+  cuentaContableRepository
+);
+const movimientoContableRoutes = createMovimientoContableRoutes(
+  movimientoContableRepository
+);
+const reporteCuentaContableRoutes = createReporteCuentaContableRoutes(
+  reporteCuentaContableRepository
+);
+const reporteCentroCostoRoutes = createReporteCentroCostoRoutes(
+  reporteCentroCostoRepository
+);
+const reporteGastosDestinoRoutes = createReporteGastosDestinoRoutes();
+const tipoAsientoRoutes = createTipoAsientoRoutes();
+const reporteAsientosSinDimensionRoutes = ReporteAsientosSinDimensionRoutes;
+const resumenAsientosRoutes = createResumenAsientosRoutes();
+const reporteMensualCuentaCentroRoutes =
+  createReporteMensualCuentaCentroRoutes();
+const reporteMovimientosContablesRoutes =
+  createReporteMovimientosContablesRoutes();
+const reporteMovimientosContablesAgrupadosRoutes =
+  createReporteMovimientosContablesAgrupadosRoutes();
+const reporteCatalogoCuentasModificadasRoutes =
+  createReporteCatalogoCuentasModificadasRoutes();
+const reporteClipperRoutes = createReporteClipperRoutes(
+  reporteClipperRepository
+);
+const reporteHmisRoutes = createReporteHmisRoutes(reporteHmisRepository);
+const reporteDocumentosProveedorRoutes = createReporteDocumentosProveedorRoutes(
+  reporteDocumentosProveedorRepository
+);
+
+// Balance Comprobación Routes
+const balanceComprobacionRoutes = container.get<BalanceComprobacionRoutes>(
+  "BalanceComprobacionRoutes"
+);
+
+// Reporte Generico Saldos Routes
+const reporteGenericoSaldosRoutes = container.get<ReporteGenericoSaldosRoutes>(
+  "ReporteGenericoSaldosRoutes"
+);
 
 // Endpoint de prueba
 app.get("/api/test", (req, res) => {
@@ -219,46 +263,155 @@ app.use(
 app.use("/api/permisos", authMiddleware.verifyToken, permisoRoutes.getRouter());
 
 // Rutas de EXACTUS (solo lectura, sin autenticación)
-  app.use('/api/conjuntos', QueryOptimizationMiddleware.validateQueryParams, conjuntoRoutes);
-  app.use('/api/exactus', QueryOptimizationMiddleware.validateQueryParams, exactusRoutes);
-  app.use('/api/cuentas-contables', QueryOptimizationMiddleware.validateQueryParams, createCuentaContableRoutes());
-  app.use('/api/movimientos', QueryOptimizationMiddleware.validateQueryParams, movimientoContableRoutes);
-  app.use('/api/reporte-cuenta-contable', QueryOptimizationMiddleware.validateQueryParams, reporteCuentaContableRoutes);
-  app.use('/api/reporte-centro-costo', QueryOptimizationMiddleware.validateQueryParams, reporteCentroCostoRoutes);
-  app.use('/api/tipos-asiento', QueryOptimizationMiddleware.validateQueryParams, tipoAsientoRoutes);
-  app.use('/api/reporte-gastos-destino', QueryOptimizationMiddleware.validateQueryParams, reporteGastosDestinoRoutes);
-  app.use('/api/reporte-asientos-sin-dimension', QueryOptimizationMiddleware.validateQueryParams, reporteAsientosSinDimensionRoutes);
-  app.use('/api/resumen-asientos', QueryOptimizationMiddleware.validateQueryParams, resumenAsientosRoutes);
-  app.use('/api/reporte-mensual-cuenta-centro', QueryOptimizationMiddleware.validateQueryParams, reporteMensualCuentaCentroRoutes);
-  app.use('/api/reporte-movimientos-contables', QueryOptimizationMiddleware.validateQueryParams, reporteMovimientosContablesRoutes);
-  app.use('/api/reporte-movimientos-contables-agrupados', QueryOptimizationMiddleware.validateQueryParams, reporteMovimientosContablesAgrupadosRoutes);
-  app.use('/api/reporte-catalogo-cuentas-modificadas', QueryOptimizationMiddleware.validateQueryParams, reporteCatalogoCuentasModificadasRoutes);
-  // app.use('/api/libro-mayor', QueryOptimizationMiddleware.validateQueryParams, libroMayorRoutes);
-  app.use('/api/documentos-proveedor', QueryOptimizationMiddleware.validateQueryParams, reporteDocumentosProveedorRoutes);
+app.use(
+  "/api/conjuntos",
+  QueryOptimizationMiddleware.validateQueryParams,
+  conjuntoRoutes
+);
+app.use(
+  "/api/exactus",
+  QueryOptimizationMiddleware.validateQueryParams,
+  exactusRoutes
+);
+app.use(
+  "/api/cuentas-contables",
+  QueryOptimizationMiddleware.validateQueryParams,
+  createCuentaContableRoutes()
+);
+app.use(
+  "/api/movimientos",
+  QueryOptimizationMiddleware.validateQueryParams,
+  movimientoContableRoutes
+);
+app.use(
+  "/api/reporte-cuenta-contable",
+  QueryOptimizationMiddleware.validateQueryParams,
+  reporteCuentaContableRoutes
+);
+app.use(
+  "/api/reporte-centro-costo",
+  QueryOptimizationMiddleware.validateQueryParams,
+  reporteCentroCostoRoutes
+);
+app.use(
+  "/api/tipos-asiento",
+  QueryOptimizationMiddleware.validateQueryParams,
+  tipoAsientoRoutes
+);
+app.use(
+  "/api/reporte-gastos-destino",
+  QueryOptimizationMiddleware.validateQueryParams,
+  reporteGastosDestinoRoutes
+);
+app.use(
+  "/api/reporte-asientos-sin-dimension",
+  QueryOptimizationMiddleware.validateQueryParams,
+  reporteAsientosSinDimensionRoutes
+);
+app.use(
+  "/api/resumen-asientos",
+  QueryOptimizationMiddleware.validateQueryParams,
+  resumenAsientosRoutes
+);
+app.use(
+  "/api/reporte-mensual-cuenta-centro",
+  QueryOptimizationMiddleware.validateQueryParams,
+  reporteMensualCuentaCentroRoutes
+);
+app.use(
+  "/api/reporte-movimientos-contables",
+  QueryOptimizationMiddleware.validateQueryParams,
+  reporteMovimientosContablesRoutes
+);
+app.use(
+  "/api/reporte-movimientos-contables-agrupados",
+  QueryOptimizationMiddleware.validateQueryParams,
+  reporteMovimientosContablesAgrupadosRoutes
+);
+app.use(
+  "/api/reporte-catalogo-cuentas-modificadas",
+  QueryOptimizationMiddleware.validateQueryParams,
+  reporteCatalogoCuentasModificadasRoutes
+);
+
 // Libro Mayor Asientos Routes
-try {
-  const libroMayorAsientosController = container.get('LibroMayorAsientosController') as any;
-  // app.use('/api/libro-mayor-asientos', createLibroMayorAsientosRoutes(libroMayorAsientosController));
-  console.log('✅ Libro Mayor Asientos routes registradas correctamente');
-  
-  // Endpoint de prueba para verificar que funciona
-  app.get('/api/libro-mayor-asientos/test', (req, res) => {
-    res.json({ 
-      success: true, 
-      message: 'Libro Mayor Asientos endpoint funcionando correctamente',
-      timestamp: new Date().toISOString()
-    });
-  });
-} catch (error) {
-  console.error('❌ Error al registrar Libro Mayor Asientos routes:', error);
-}
-  app.use('/api/diario-contabilidad', QueryOptimizationMiddleware.validateQueryParams, createDiarioContabilidadRoutes());
-  app.use('/api/plan-contable', QueryOptimizationMiddleware.validateQueryParams, createPlanContableRoutes());
-app.use('/api/reporte-periodo-contable', QueryOptimizationMiddleware.validateQueryParams, createPeriodoContableRoutes());
-app.use('/api/movimiento-contable-agrupado', QueryOptimizationMiddleware.validateQueryParams, createMovimientoContableAgrupadoRoutes());
-app.use('/api/saldo-promedios', QueryOptimizationMiddleware.validateQueryParams, createSaldoPromediosRoutes());
-app.use('/api/reporte-clipper', QueryOptimizationMiddleware.validateQueryParams,reporteClipperRoutes);
-app.use('/api/reporte-hmis', QueryOptimizationMiddleware.validateQueryParams,reporteHmisRoutes);
+// try {
+//   const libroMayorAsientosController = container.get(
+//     "LibroMayorAsientosController"
+//   ) as any;
+//   app.use(
+//     "/api/libro-mayor-asientos",
+//     createLibroMayorAsientosRoutes(libroMayorAsientosController)
+//   );
+//   console.log("✅ Libro Mayor Asientos routes registradas correctamente");
+//
+//   // Endpoint de prueba para verificar que funciona
+//   app.get("/api/libro-mayor-asientos/test", (req, res) => {
+//     res.json({
+//       success: true,
+//       message: "Libro Mayor Asientos endpoint funcionando correctamente",
+//       timestamp: new Date().toISOString(),
+//     });
+//   });
+// } catch (error) {
+//   console.error("❌ Error al registrar Libro Mayor Asientos routes:", error);
+// }
+app.use(
+  "/api/diario-contabilidad",
+  QueryOptimizationMiddleware.validateQueryParams,
+  createDiarioContabilidadRoutes()
+);
+app.use(
+  "/api/plan-contable",
+  QueryOptimizationMiddleware.validateQueryParams,
+  createPlanContableRoutes()
+);
+app.use(
+  "/api/reporte-periodo-contable",
+  QueryOptimizationMiddleware.validateQueryParams,
+  createPeriodoContableRoutes()
+);
+app.use(
+  "/api/movimiento-contable-agrupado",
+  QueryOptimizationMiddleware.validateQueryParams,
+  createMovimientoContableAgrupadoRoutes()
+);
+app.use(
+  "/api/saldo-promedios",
+  QueryOptimizationMiddleware.validateQueryParams,
+  createSaldoPromediosRoutes()
+);
+app.use(
+  "/api/reporte-clipper",
+  QueryOptimizationMiddleware.validateQueryParams,
+  reporteClipperRoutes
+);
+app.use(
+  "/api/balance-comprobacion",
+  QueryOptimizationMiddleware.validateQueryParams,
+  balanceComprobacionRoutes.getRouter()
+);
+app.use(
+  "/api/reporte-generico-saldos",
+  QueryOptimizationMiddleware.validateQueryParams,
+  reporteGenericoSaldosRoutes.getRouter()
+);
+app.use(
+  "/api/reporte-hmis",
+  QueryOptimizationMiddleware.validateQueryParams,
+  reporteHmisRoutes
+);
+app.use(
+  "/api/reporte-hmis",
+  QueryOptimizationMiddleware.validateQueryParams,
+  reporteHmisRoutes
+);
+app.use(
+  "/api/reporte-documentos-proveedor",
+  QueryOptimizationMiddleware.validateQueryParams,
+  reporteDocumentosProveedorRoutes
+);
+
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================
 
 // Endpoints de usuarios adicionales

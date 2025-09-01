@@ -1,12 +1,12 @@
 import { injectable } from "inversify";
 import { IReporteHmisRepository } from "../../domain/repositories/IReporteHmisRepository";
-import { 
-  HmisReporte, 
-  CabeceraContratoHmis, 
-  InformacionContrato, 
-  Comisionista, 
-  Claims, 
-  ComentarioLink, 
+import {
+  HmisReporte,
+  CabeceraContratoHmis,
+  InformacionContrato,
+  Comisionista,
+  Claims,
+  ComentarioLink,
   NombreContrato,
   PropietarioContratante,
   ActividadContrato,
@@ -15,17 +15,16 @@ import {
   ItemContrato,
   FacilidadesContrato,
   InformacionFinancieraContrato,
-  HmisContratoLista
+  HmisContratoLista,
 } from "../../domain/entities/HmisReporte";
 import { hmisDatabases } from "../database/config/hmis-database";
 import { QueryTypes, Sequelize } from "sequelize";
 
 @injectable()
 export class ReporteHmisRepository implements IReporteHmisRepository {
-
   async obtenerContratosId(
     dbAlias: keyof typeof hmisDatabases = "bdhmis",
-    contrato: string,
+    contrato: string
   ): Promise<HmisReporte[]> {
     const sequelizeInstance: Sequelize | undefined = hmisDatabases[dbAlias];
     if (!sequelizeInstance) {
@@ -63,8 +62,9 @@ export class ReporteHmisRepository implements IReporteHmisRepository {
       );
 
       // 2️⃣ Informacion contrato
-      const informacionContrato = await sequelizeInstance.query<InformacionContrato>(
-        `
+      const informacionContrato =
+        await sequelizeInstance.query<InformacionContrato>(
+          `
         DECLARE @Sales_Contract VARCHAR(20) = :contrato;
         DECLARE @sales_id BIGINT;
 
@@ -97,8 +97,8 @@ export class ReporteHmisRepository implements IReporteHmisRepository {
         LEFT JOIN Currency t4 ON s.Currency_Cd = t4.Currency_Cd
         WHERE LTRIM(RTRIM(s.Sales_Contract_Nbr)) = @Sales_Contract
         `,
-        { replacements: { contrato }, type: QueryTypes.SELECT }
-      );
+          { replacements: { contrato }, type: QueryTypes.SELECT }
+        );
 
       // 3️⃣ Comisionistas
       const comisionistas = await sequelizeInstance.query<Comisionista>(
@@ -248,9 +248,10 @@ export class ReporteHmisRepository implements IReporteHmisRepository {
           type: QueryTypes.SELECT,
         }
       );
-      
-      const nombreContrato: NombreContrato[]  = await sequelizeInstance.query<NombreContrato>(
-        `
+
+      const nombreContrato: NombreContrato[] =
+        await sequelizeInstance.query<NombreContrato>(
+          `
         DECLARE @Sales_Contract VARCHAR(20) = :contrato;
         DECLARE @sales_id BIGINT;
         DECLARE @pi_sObjectTypeCd VARCHAR(20) = 'Sales';  -- Puedes ajustar este valor si es dinámico
@@ -329,14 +330,15 @@ export class ReporteHmisRepository implements IReporteHmisRepository {
         LEFT JOIN Name N ON CNT.Name_Id = N.Name_Id
         ORDER BY CNT.Display_Sequence;
         `,
-        {
-          replacements: { contrato }, // Asegúrate de que `contrato` es string
-          type: QueryTypes.SELECT,
-        }
-      );
-      
-      const propietarioContratante: PropietarioContratante[] = await sequelizeInstance.query<PropietarioContratante>(
-        `
+          {
+            replacements: { contrato }, // Asegúrate de que `contrato` es string
+            type: QueryTypes.SELECT,
+          }
+        );
+
+      const propietarioContratante: PropietarioContratante[] =
+        await sequelizeInstance.query<PropietarioContratante>(
+          `
         DECLARE @Sales_Contract VARCHAR(20) = :contrato;
         DECLARE @sales_id BIGINT;
         DECLARE @pi_sObjectTypeCd VARCHAR(20) = 'Sales'; 
@@ -412,14 +414,15 @@ export class ReporteHmisRepository implements IReporteHmisRepository {
         LEFT JOIN Name N ON CNT.Name_Id = N.Name_Id
         ORDER BY CNT.Display_Sequence;
         `,
-        {
-          replacements: { contrato }, // Asegúrate de que `contrato` es string
-          type: QueryTypes.SELECT,
-        }
-      );
+          {
+            replacements: { contrato }, // Asegúrate de que `contrato` es string
+            type: QueryTypes.SELECT,
+          }
+        );
 
-      const actividadContrato: ActividadContrato[] = await sequelizeInstance.query<ActividadContrato>(
-        `
+      const actividadContrato: ActividadContrato[] =
+        await sequelizeInstance.query<ActividadContrato>(
+          `
         DECLARE @Sales_Contract VARCHAR(20) = :contrato;
         DECLARE @sales_id BIGINT;
         DECLARE  @Primary_Name_Sort VARCHAR(200);
@@ -605,13 +608,15 @@ export class ReporteHmisRepository implements IReporteHmisRepository {
           AND st.posted = 1
           AND s.sales_id = @sales_id;
         `,
-        {
-          replacements: { contrato },
-          type: QueryTypes.SELECT
-        }
-      );
-      
-      const abonoContrato: AbonoContrato[] = await sequelizeInstance.query<AbonoContrato>(`
+          {
+            replacements: { contrato },
+            type: QueryTypes.SELECT,
+          }
+        );
+
+      const abonoContrato: AbonoContrato[] =
+        await sequelizeInstance.query<AbonoContrato>(
+          `
         DECLARE @Sales_Contract VARCHAR(20) = :contrato;
         DECLARE @sales_id INT;
         DECLARE @Primary_Name_Sort VARCHAR(15);
@@ -629,13 +634,17 @@ export class ReporteHmisRepository implements IReporteHmisRepository {
           @pi_iSalesId = @sales_id, 
           @pi_sUserId = 'dba', 
           @pi_sPurchaserName = @Primary_Name_Sort;
-      `, {
-        replacements: { contrato }, // variable que viene del frontend
-        type: QueryTypes.SELECT,
-        raw: true
-      });
-      
-      const transaccionContrato: TransaccionContrato[] = await sequelizeInstance.query<TransaccionContrato>(`
+      `,
+          {
+            replacements: { contrato }, // variable que viene del frontend
+            type: QueryTypes.SELECT,
+            raw: true,
+          }
+        );
+
+      const transaccionContrato: TransaccionContrato[] =
+        await sequelizeInstance.query<TransaccionContrato>(
+          `
         DECLARE @Sales_Contract VARCHAR(20) = :contrato;
         DECLARE @sales_id INT;
       
@@ -646,13 +655,17 @@ export class ReporteHmisRepository implements IReporteHmisRepository {
         EXEC dbo.Con_SalesTransactionDetails_Sales_View_SP 
           @pi_iSalesId = @sales_id,
           @pi_sUserId = 'dba';
-      `, {
-        replacements: { contrato }, // Valor dinámico desde la interfaz
-        type: QueryTypes.SELECT,
-        raw: true
-      });
-      
-      const itemContrato: ItemContrato[] = await sequelizeInstance.query<ItemContrato>(`
+      `,
+          {
+            replacements: { contrato }, // Valor dinámico desde la interfaz
+            type: QueryTypes.SELECT,
+            raw: true,
+          }
+        );
+
+      const itemContrato: ItemContrato[] =
+        await sequelizeInstance.query<ItemContrato>(
+          `
         DECLARE @Sales_Contract VARCHAR(20) = :contrato;
         DECLARE @sales_id INT;
       
@@ -678,13 +691,17 @@ export class ReporteHmisRepository implements IReporteHmisRepository {
         EXEC dbo.Con_LineItemInformation_View_SP 
           @pi_iSalesId = @sales_id,
           @pi_sUpdateUserId = 'dba';
-      `, {
-        replacements: { contrato }, // dinámico, viene desde el request
-        type: QueryTypes.SELECT,
-        raw: true
-      });
+      `,
+          {
+            replacements: { contrato }, // dinámico, viene desde el request
+            type: QueryTypes.SELECT,
+            raw: true,
+          }
+        );
 
-      const facilidadesContrato: FacilidadesContrato[] = await sequelizeInstance.query<FacilidadesContrato>(`
+      const facilidadesContrato: FacilidadesContrato[] =
+        await sequelizeInstance.query<FacilidadesContrato>(
+          `
         DECLARE @Sales_Contract VARCHAR(20) = :contrato;
         DECLARE @sales_id INT;
       
@@ -777,13 +794,17 @@ export class ReporteHmisRepository implements IReporteHmisRepository {
           Sales.Location_Cd = Location.Location_Cd AND
           Sales_Finance.Sales_Id = @sales_id
         ORDER BY sales_finance_id;
-      `, {
-        replacements: { contrato }, // <- este viene desde tu frontend o ruta
-        type: QueryTypes.SELECT,
-        raw: true
-      });
-      
-      const informacionFinancieraContrato: InformacionFinancieraContrato[] = await sequelizeInstance.query<InformacionFinancieraContrato>(`
+      `,
+          {
+            replacements: { contrato }, // <- este viene desde tu frontend o ruta
+            type: QueryTypes.SELECT,
+            raw: true,
+          }
+        );
+
+      const informacionFinancieraContrato: InformacionFinancieraContrato[] =
+        await sequelizeInstance.query<InformacionFinancieraContrato>(
+          `
         DECLARE @Sales_Contract VARCHAR(20) = :contrato;
         DECLARE @sales_id INT;
       
@@ -794,12 +815,14 @@ export class ReporteHmisRepository implements IReporteHmisRepository {
         EXEC dbo.CON_CollectionDetails_View_SP 
           @pi_iSalesId = @sales_id,
           @pi_sUpdateUserId = 'dba';
-      `, {
-        replacements: { contrato }, // <- tu variable dinámica
-        type: QueryTypes.SELECT,
-        raw: true
-      });
-   
+      `,
+          {
+            replacements: { contrato }, // <- tu variable dinámica
+            type: QueryTypes.SELECT,
+            raw: true,
+          }
+        );
+
       const reporte: HmisReporte = {
         CabeceraContratoHmis: cabecera[0],
         HmisContrato: [
@@ -817,11 +840,10 @@ export class ReporteHmisRepository implements IReporteHmisRepository {
             TransaccionContrato: transaccionContrato ?? [],
             ItemContrato: itemContrato ?? [],
             FacilidadesContrato: facilidadesContrato ?? [],
-            InformacionFinancieraContrato: informacionFinancieraContrato ?? []
+            InformacionFinancieraContrato: informacionFinancieraContrato ?? [],
           },
         ],
       };
-      
 
       return [reporte];
     } catch (error) {
@@ -843,7 +865,7 @@ export class ReporteHmisRepository implements IReporteHmisRepository {
     if (!sequelizeInstance) {
       throw new Error(`No existe configuración para la BD alias: ${dbAlias}`);
     }
-  
+
     try {
       const reporte = await sequelizeInstance.query<HmisContratoLista>(
         `
@@ -852,7 +874,7 @@ export class ReporteHmisRepository implements IReporteHmisRepository {
           r.Primary_Full_Name,
           s.Sale_Dt
         FROM Sales s
-        LEFT JOIN Name r ON s.Purchaser_Name_ID = r.Name_ID
+        INNER JOIN Name r ON s.Purchaser_Name_ID = r.Name_ID
         ORDER BY s.Sales_Contract_Nbr
         OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
         `,
@@ -861,7 +883,7 @@ export class ReporteHmisRepository implements IReporteHmisRepository {
           type: QueryTypes.SELECT,
         }
       );
-  
+
       return reporte;
     } catch (error) {
       console.error("Error obteniendo lista de contratos:", error);
@@ -872,7 +894,4 @@ export class ReporteHmisRepository implements IReporteHmisRepository {
       );
     }
   }
-  
-  
-  
 }
