@@ -26,8 +26,6 @@ import { createReporteMensualCuentaCentroRoutes } from './infrastructure/routes/
 import { createReporteMovimientosContablesRoutes } from './infrastructure/routes/ReporteMovimientosContablesRoutes';
 import { createReporteMovimientosContablesAgrupadosRoutes } from './infrastructure/routes/ReporteMovimientosContablesAgrupadosRoutes';
 import { createReporteCatalogoCuentasModificadasRoutes } from './infrastructure/routes/ReporteCatalogoCuentasModificadasRoutes';
-import libroMayorRoutes from './infrastructure/routes/libroMayor.routes';
-import { createLibroMayorAsientosRoutes } from './infrastructure/routes/libroMayorAsientos.routes';
 import { createDiarioContabilidadRoutes } from './infrastructure/routes/diarioContabilidad.routes';
 import { createPlanContableRoutes } from './infrastructure/routes/planContable.routes';
 import { createPeriodoContableRoutes } from './infrastructure/routes/periodoContable.routes';
@@ -70,8 +68,9 @@ app.use(QueryOptimizationMiddleware.basicRateLimit);
 app.use(QueryOptimizationMiddleware.addCacheHeaders);
 
 // Swagger configuration
-const swaggerSpecs = process.env['NODE_ENV'] === 'production' ? specsDocker : specs;
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
+const swaggerSpecs =
+  process.env["NODE_ENV"] === "production" ? specsDocker : specs;
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
 // Obtener servicios del contenedor
 const usuarioService = container.get<IUsuarioService>('IUsuarioService');
@@ -92,34 +91,64 @@ const menuService = container.get<IMenuService>('IMenuService');
 const reporteDocumentosProveedorRepository = container.get<IReporteDocumentosProveedorRepository>('IReporteDocumentosProveedorRepository');
 
 // Inicializar CQRS
-console.log('🚀 Inicializando CQRS Service...');
-const cqrsService = container.get<CqrsService>('CqrsService');
+console.log("🚀 Inicializando CQRS Service...");
+const cqrsService = container.get<CqrsService>("CqrsService");
 
 // Registrar handlers manualmente como fallback
-console.log('🔧 Registrando handlers manualmente...');
+console.log("🔧 Registrando handlers manualmente...");
 const commandBus = cqrsService.getCommandBus();
 const queryBus = cqrsService.getQueryBus();
 
-// Libro Mayor Handlers
-const generarReporteLibroMayorHandler = container.get('GenerarReporteLibroMayorHandler') as any;
-const obtenerLibroMayorHandler = container.get('ObtenerLibroMayorHandler') as any;
-const exportarLibroMayorExcelHandler = container.get('ExportarLibroMayorExcelHandler') as any;
-
-commandBus.register('GenerarReporteLibroMayorCommand', generarReporteLibroMayorHandler);
-queryBus.register('ObtenerLibroMayorQuery', obtenerLibroMayorHandler);
-queryBus.register('ExportarLibroMayorExcelQuery', exportarLibroMayorExcelHandler);
-
 // Diario Contabilidad Handlers
-const generarReporteDiarioContabilidadHandler = container.get('GenerarReporteDiarioContabilidadHandler') as any;
-const obtenerDiarioContabilidadHandler = container.get('ObtenerDiarioContabilidadHandler') as any;
-const exportarDiarioContabilidadExcelHandler = container.get('ExportarDiarioContabilidadExcelHandler') as any;
+const generarReporteDiarioContabilidadHandler = container.get(
+  "GenerarReporteDiarioContabilidadHandler"
+) as any;
+const obtenerDiarioContabilidadHandler = container.get(
+  "ObtenerDiarioContabilidadHandler"
+) as any;
+const exportarDiarioContabilidadExcelHandler = container.get(
+  "ExportarDiarioContabilidadExcelHandler"
+) as any;
 
-commandBus.register('GenerarReporteDiarioContabilidadCommand', generarReporteDiarioContabilidadHandler);
-queryBus.register('ObtenerDiarioContabilidadQuery', obtenerDiarioContabilidadHandler);
-queryBus.register('ExportarDiarioContabilidadExcelQuery', exportarDiarioContabilidadExcelHandler);
+commandBus.register(
+  "GenerarReporteDiarioContabilidadCommand",
+  generarReporteDiarioContabilidadHandler
+);
+queryBus.register(
+  "ObtenerDiarioContabilidadQuery",
+  obtenerDiarioContabilidadHandler
+);
+queryBus.register(
+  "ExportarDiarioContabilidadExcelQuery",
+  exportarDiarioContabilidadExcelHandler
+);
 
-console.log('✅ Handlers registrados manualmente');
-console.log('✅ CQRS Service inicializado');
+// Balance Comprobación Handlers
+const generarReporteBalanceComprobacionHandler = container.get(
+  "GenerarReporteBalanceComprobacionHandler"
+) as any;
+const obtenerBalanceComprobacionHandler = container.get(
+  "ObtenerBalanceComprobacionHandler"
+) as any;
+const exportarBalanceComprobacionExcelHandler = container.get(
+  "ExportarBalanceComprobacionExcelHandler"
+) as any;
+
+commandBus.register(
+  "GenerarReporteBalanceComprobacionCommand",
+  generarReporteBalanceComprobacionHandler
+);
+queryBus.register(
+  "ObtenerBalanceComprobacionQuery",
+  obtenerBalanceComprobacionHandler
+);
+queryBus.register(
+  "ExportarBalanceComprobacionExcelQuery",
+  exportarBalanceComprobacionExcelHandler
+);
+
+console.log("✅ Handlers registrados manualmente");
+console.log("✅ CQRS Service inicializado");
 
 // Rutas
 const usuarioRoutes = new UsuarioRoutes();
@@ -150,47 +179,44 @@ const permisoRoutes = new PermisoRoutes();
   const reporteDocumentosProveedorRoutes = createReporteDocumentosProveedorRoutes(reporteDocumentosProveedorRepository);
 
 // Endpoint de prueba
-app.get('/api/test', (req, res) => {
-  res.json({ 
-    message: 'Backend funcionando correctamente',
+app.get("/api/test", (req, res) => {
+  res.json({
+    message: "Backend funcionando correctamente",
     timestamp: new Date().toISOString(),
-    status: 'OK'
-  });
-});
-
-// Endpoint de prueba para libro mayor
-app.get('/api/reporte-libro-mayor-test', (req, res) => {
-  res.json({ 
-    message: 'Endpoint de libro mayor funcionando',
-    timestamp: new Date().toISOString(),
-    status: 'OK',
-    params: req.params,
-    query: req.query
+    status: "OK",
   });
 });
 
 // Endpoint de health check
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'OK',
+app.get("/health", (req, res) => {
+  res.json({
+    status: "OK",
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    environment: process.env['NODE_ENV'] || 'development',
-    version: '1.15.0'
+    environment: process.env["NODE_ENV"] || "development",
+    version: "1.15.0",
   });
 });
 
 // Rutas de menús (algunas públicas, otras protegidas)
-app.use('/api/menus', menuRoutes.getRouter());
+app.use("/api/menus", menuRoutes.getRouter());
 
 // Aplicar middleware de autenticación a rutas protegidas
-app.use('/api/usuarios', authMiddleware.verifyToken, usuarioRoutes.getRouter());
-app.use('/api/roles', authMiddleware.verifyToken, rolRoutes.getRouter());
-app.use('/api/sistemas', authMiddleware.verifyToken, sistemaRoutes.getRouter());
-app.use('/api/conexiones', authMiddleware.verifyToken, conexionRoutes.getRouter());
-app.use('/api/rol-menu', authMiddleware.verifyToken, rolMenuRoutes.getRouter());
-app.use('/api/rol-sistema-menu', authMiddleware.verifyToken, rolSistemaMenuRoutes.getRouter());
-app.use('/api/permisos', authMiddleware.verifyToken, permisoRoutes.getRouter());
+app.use("/api/usuarios", authMiddleware.verifyToken, usuarioRoutes.getRouter());
+app.use("/api/roles", authMiddleware.verifyToken, rolRoutes.getRouter());
+app.use("/api/sistemas", authMiddleware.verifyToken, sistemaRoutes.getRouter());
+app.use(
+  "/api/conexiones",
+  authMiddleware.verifyToken,
+  conexionRoutes.getRouter()
+);
+app.use("/api/rol-menu", authMiddleware.verifyToken, rolMenuRoutes.getRouter());
+app.use(
+  "/api/rol-sistema-menu",
+  authMiddleware.verifyToken,
+  rolSistemaMenuRoutes.getRouter()
+);
+app.use("/api/permisos", authMiddleware.verifyToken, permisoRoutes.getRouter());
 
 // Rutas de EXACTUS (solo lectura, sin autenticación)
   app.use('/api/conjuntos', QueryOptimizationMiddleware.validateQueryParams, conjuntoRoutes);
@@ -207,12 +233,12 @@ app.use('/api/permisos', authMiddleware.verifyToken, permisoRoutes.getRouter());
   app.use('/api/reporte-movimientos-contables', QueryOptimizationMiddleware.validateQueryParams, reporteMovimientosContablesRoutes);
   app.use('/api/reporte-movimientos-contables-agrupados', QueryOptimizationMiddleware.validateQueryParams, reporteMovimientosContablesAgrupadosRoutes);
   app.use('/api/reporte-catalogo-cuentas-modificadas', QueryOptimizationMiddleware.validateQueryParams, reporteCatalogoCuentasModificadasRoutes);
-  app.use('/api/libro-mayor', QueryOptimizationMiddleware.validateQueryParams, libroMayorRoutes);
+  // app.use('/api/libro-mayor', QueryOptimizationMiddleware.validateQueryParams, libroMayorRoutes);
   app.use('/api/documentos-proveedor', QueryOptimizationMiddleware.validateQueryParams, reporteDocumentosProveedorRoutes);
 // Libro Mayor Asientos Routes
 try {
   const libroMayorAsientosController = container.get('LibroMayorAsientosController') as any;
-  app.use('/api/libro-mayor-asientos', createLibroMayorAsientosRoutes(libroMayorAsientosController));
+  // app.use('/api/libro-mayor-asientos', createLibroMayorAsientosRoutes(libroMayorAsientosController));
   console.log('✅ Libro Mayor Asientos routes registradas correctamente');
   
   // Endpoint de prueba para verificar que funciona
@@ -236,29 +262,37 @@ app.use('/api/reporte-hmis', QueryOptimizationMiddleware.validateQueryParams,rep
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================
 
 // Endpoints de usuarios adicionales
-app.get('/api/usuarios/con-roles', async (req, res) => {
+app.get("/api/usuarios/con-roles", async (req, res) => {
   try {
     // TODO: Implementar lógica para obtener usuarios con roles
-    res.json({ message: 'Endpoint usuarios con roles - pendiente de implementar' });
+    res.json({
+      message: "Endpoint usuarios con roles - pendiente de implementar",
+    });
   } catch (error) {
-    res.status(500).json({ 
-      message: 'Error al obtener usuarios con roles',
-      error: error instanceof Error ? error.message : 'Error desconocido'
+    res.status(500).json({
+      message: "Error al obtener usuarios con roles",
+      error: error instanceof Error ? error.message : "Error desconocido",
     });
   }
 });
 
-app.get('/api/usuarios/con-empresa', authMiddleware.verifyToken, async (req, res) => {
-  try {
-    // TODO: Implementar lógica para obtener usuarios con empresa
-    res.json({ message: 'Endpoint usuarios con empresa - pendiente de implementar' });
-  } catch (error) {
-    res.status(500).json({ 
-      message: 'Error al obtener usuarios con empresa',
-      error: error instanceof Error ? error.message : 'Error desconocido'
-    });
+app.get(
+  "/api/usuarios/con-empresa",
+  authMiddleware.verifyToken,
+  async (req, res) => {
+    try {
+      // TODO: Implementar lógica para obtener usuarios con empresa
+      res.json({
+        message: "Endpoint usuarios con empresa - pendiente de implementar",
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Error al obtener usuarios con empresa",
+        error: error instanceof Error ? error.message : "Error desconocido",
+      });
+    }
   }
-});
+);
 
 /**
  * @swagger
@@ -289,58 +323,62 @@ app.get('/api/usuarios/con-empresa', authMiddleware.verifyToken, async (req, res
  *       500:
  *         description: Error interno del servidor
  */
-app.post('/api/usuarios/register', async (req, res) => {
+app.post("/api/usuarios/register", async (req, res) => {
   try {
     const usuarioData = req.body;
     const usuario = await usuarioService.createUsuario(usuarioData);
     res.status(201).json({
       success: true,
-      data: usuario
+      data: usuario,
     });
   } catch (error) {
     res.status(400).json({
       success: false,
-      message: 'Error al registrar usuario',
-      error: error instanceof Error ? error.message : 'Error desconocido'
+      message: "Error al registrar usuario",
+      error: error instanceof Error ? error.message : "Error desconocido",
     });
   }
 });
 
-app.patch('/api/usuarios/estado', authMiddleware.verifyToken, async (req, res) => {
-  try {
-    const { id, estado } = req.body;
-    if (!id || estado === undefined) {
-      res.status(400).json({
-        success: false,
-        message: 'ID y estado son requeridos'
+app.patch(
+  "/api/usuarios/estado",
+  authMiddleware.verifyToken,
+  async (req, res) => {
+    try {
+      const { id, estado } = req.body;
+      if (!id || estado === undefined) {
+        res.status(400).json({
+          success: false,
+          message: "ID y estado son requeridos",
+        });
+        return;
+      }
+
+      const success = estado
+        ? await usuarioService.activateUsuario(id)
+        : await usuarioService.deactivateUsuario(id);
+
+      if (!success) {
+        res.status(404).json({
+          success: false,
+          message: "Usuario no encontrado",
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        message: `Usuario ${estado ? "activado" : "desactivado"} correctamente`,
       });
-      return;
-    }
-    
-    const success = estado ? 
-      await usuarioService.activateUsuario(id) : 
-      await usuarioService.deactivateUsuario(id);
-    
-    if (!success) {
-      res.status(404).json({
+    } catch (error) {
+      res.status(500).json({
         success: false,
-        message: 'Usuario no encontrado'
+        message: "Error al cambiar estado del usuario",
+        error: error instanceof Error ? error.message : "Error desconocido",
       });
-      return;
     }
-    
-    res.json({
-      success: true,
-      message: `Usuario ${estado ? 'activado' : 'desactivado'} correctamente`
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error al cambiar estado del usuario',
-      error: error instanceof Error ? error.message : 'Error desconocido'
-    });
   }
-});
+);
 
 /**
  * @swagger
@@ -361,52 +399,59 @@ app.patch('/api/usuarios/estado', authMiddleware.verifyToken, async (req, res) =
  *         description: Error interno del servidor
  */
 // Endpoints de roles adicionales
-app.get('/api/roles/activos', async (req, res) => {
+app.get("/api/roles/activos", async (req, res) => {
   try {
     const roles = await rolService.getAllRoles();
-    const rolesActivos = roles.filter(rol => rol.estado);
+    const rolesActivos = roles.filter((rol) => rol.estado);
     res.json(rolesActivos);
   } catch (error) {
     res.status(500).json({
-      message: 'Error al obtener roles activos',
-      error: error instanceof Error ? error.message : 'Error desconocido'
+      message: "Error al obtener roles activos",
+      error: error instanceof Error ? error.message : "Error desconocido",
     });
   }
 });
 
-app.get('/api/roles/:id/permisos', authMiddleware.verifyToken, async (req, res) => {
-  try {
-    const id = req.params['id'];
-    if (!id) {
-      res.status(400).json({
-        success: false,
-        message: 'ID de rol requerido'
-      });
-      return;
-    }
-    
-    const rolId = parseInt(id);
-    if (isNaN(rolId)) {
-      res.status(400).json({
-        success: false,
-        message: 'ID de rol inválido'
-      });
-      return;
-    }
+app.get(
+  "/api/roles/:id/permisos",
+  authMiddleware.verifyToken,
+  async (req, res) => {
+    try {
+      const id = req.params["id"];
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          message: "ID de rol requerido",
+        });
+        return;
+      }
 
-    // Obtener todos los menús asignados al rol (sin filtrar por sistema por ahora)
-    const menus = await rolSistemaMenuService.getMenusByRolAndSistema(rolId, 1); // Sistema por defecto
-    
-    res.json(menus);
-  } catch (error) {
-    console.error('Error al obtener permisos del rol:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error al obtener permisos del rol',
-      error: error instanceof Error ? error.message : 'Error desconocido'
-    });
+      const rolId = parseInt(id);
+      if (isNaN(rolId)) {
+        res.status(400).json({
+          success: false,
+          message: "ID de rol inválido",
+        });
+        return;
+      }
+
+      // Obtener todos los menús asignados al rol (sin filtrar por sistema por ahora)
+      const menus = await rolSistemaMenuService.getMenusByRolAndSistema(
+        rolId,
+        1
+      ); // Sistema por defecto
+
+      res.json(menus);
+    } catch (error) {
+      console.error("Error al obtener permisos del rol:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error al obtener permisos del rol",
+        error: error instanceof Error ? error.message : "Error desconocido",
+      });
+    }
   }
-});
+);
 
 /**
  * @swagger
@@ -437,39 +482,43 @@ app.get('/api/roles/:id/permisos', authMiddleware.verifyToken, async (req, res) 
  *       500:
  *         description: Error interno del servidor
  */
-app.get('/api/rol/:rolId/permisos', authMiddleware.verifyToken, async (req, res) => {
-  try {
-    const { rolId } = req.params;
-    if (!rolId) {
-      res.status(400).json({
-        success: false,
-        message: 'ID de rol requerido'
-      });
-      return;
-    }
-    
-    const rolIdNum = parseInt(rolId);
-    if (isNaN(rolIdNum)) {
-      res.status(400).json({
-        success: false,
-        message: 'ID de rol inválido'
-      });
-      return;
-    }
+app.get(
+  "/api/rol/:rolId/permisos",
+  authMiddleware.verifyToken,
+  async (req, res) => {
+    try {
+      const { rolId } = req.params;
+      if (!rolId) {
+        res.status(400).json({
+          success: false,
+          message: "ID de rol requerido",
+        });
+        return;
+      }
 
-    // Obtener todos los permisos asignados al rol
-    const permisos = await rolSistemaMenuService.getPermisosByRol(rolIdNum);
-    
-    res.json(permisos);
-  } catch (error) {
-    console.error('Error al obtener permisos del rol:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error al obtener permisos del rol',
-      error: error instanceof Error ? error.message : 'Error desconocido'
-    });
+      const rolIdNum = parseInt(rolId);
+      if (isNaN(rolIdNum)) {
+        res.status(400).json({
+          success: false,
+          message: "ID de rol inválido",
+        });
+        return;
+      }
+
+      // Obtener todos los permisos asignados al rol
+      const permisos = await rolSistemaMenuService.getPermisosByRol(rolIdNum);
+
+      res.json(permisos);
+    } catch (error) {
+      console.error("Error al obtener permisos del rol:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error al obtener permisos del rol",
+        error: error instanceof Error ? error.message : "Error desconocido",
+      });
+    }
   }
-});
+);
 
 /**
  * @swagger
@@ -511,212 +560,229 @@ app.get('/api/rol/:rolId/permisos', authMiddleware.verifyToken, async (req, res)
  *       500:
  *         description: Error interno del servidor
  */
-app.get('/api/rol/:rolId/permisos-disponibles', authMiddleware.verifyToken, async (req, res) => {
-  try {
-    const { rolId } = req.params;
-    if (!rolId) {
-      res.status(400).json({
+app.get(
+  "/api/rol/:rolId/permisos-disponibles",
+  authMiddleware.verifyToken,
+  async (req, res) => {
+    try {
+      const { rolId } = req.params;
+      if (!rolId) {
+        res.status(400).json({
+          success: false,
+          message: "ID de rol requerido",
+        });
+        return;
+      }
+
+      const rolIdNum = parseInt(rolId);
+      if (isNaN(rolIdNum)) {
+        res.status(400).json({
+          success: false,
+          message: "ID de rol inválido",
+        });
+        return;
+      }
+
+      // Obtener todos los permisos disponibles con marcado de activos para el rol
+      const permisosDisponibles =
+        await rolSistemaMenuService.getPermisosDisponiblesConMarcado(rolIdNum);
+
+      res.json(permisosDisponibles);
+    } catch (error) {
+      console.error("Error al obtener permisos disponibles del rol:", error);
+      res.status(500).json({
         success: false,
-        message: 'ID de rol requerido'
+        message: "Error al obtener permisos disponibles del rol",
+        error: error instanceof Error ? error.message : "Error desconocido",
       });
-      return;
     }
-    
-    const rolIdNum = parseInt(rolId);
-    if (isNaN(rolIdNum)) {
-      res.status(400).json({
-        success: false,
-        message: 'ID de rol inválido'
+  }
+);
+
+app.get(
+  "/api/roles/:id/menus",
+  authMiddleware.verifyToken,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      // TODO: Implementar lógica para obtener menús de un rol
+      res.json({ message: "Endpoint menús de rol - pendiente de implementar" });
+    } catch (error) {
+      res.status(500).json({
+        message: "Error al obtener menús del rol",
+        error: error instanceof Error ? error.message : "Error desconocido",
       });
-      return;
     }
-
-    // Obtener todos los permisos disponibles con marcado de activos para el rol
-    const permisosDisponibles = await rolSistemaMenuService.getPermisosDisponiblesConMarcado(rolIdNum);
-    
-    res.json(permisosDisponibles);
-  } catch (error) {
-    console.error('Error al obtener permisos disponibles del rol:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error al obtener permisos disponibles del rol',
-      error: error instanceof Error ? error.message : 'Error desconocido'
-    });
   }
-});
-
-app.get('/api/roles/:id/menus', authMiddleware.verifyToken, async (req, res) => {
-  try {
-    const { id } = req.params;
-    // TODO: Implementar lógica para obtener menús de un rol
-    res.json({ message: 'Endpoint menús de rol - pendiente de implementar' });
-  } catch (error) {
-    res.status(500).json({
-      message: 'Error al obtener menús del rol',
-      error: error instanceof Error ? error.message : 'Error desconocido'
-    });
-  }
-});
-
-
+);
 
 // Endpoints de debug/test
-app.get('/api/test/usuarios', async (req, res) => {
+app.get("/api/test/usuarios", async (req, res) => {
   try {
     const usuarios = await usuarioService.getAllUsuarios();
     res.json({
-      message: 'Prueba de usuarios completada',
+      message: "Prueba de usuarios completada",
       totalUsuarios: usuarios.length,
-      usuarios: usuarios.slice(0, 3) // Solo mostrar los primeros 3
+      usuarios: usuarios.slice(0, 3), // Solo mostrar los primeros 3
     });
   } catch (error) {
     res.status(500).json({
-      message: 'Error en prueba de usuarios',
-      error: error instanceof Error ? error.message : 'Error desconocido'
+      message: "Error en prueba de usuarios",
+      error: error instanceof Error ? error.message : "Error desconocido",
     });
   }
 });
 
-app.get('/api/debug/usuarios-empresa', async (req, res) => {
+app.get("/api/debug/usuarios-empresa", async (req, res) => {
   try {
     // TODO: Implementar lógica de debug para usuarios con empresa
-    res.json({ message: 'Debug usuarios empresa - pendiente de implementar' });
+    res.json({ message: "Debug usuarios empresa - pendiente de implementar" });
   } catch (error) {
     res.status(500).json({
-      message: 'Error en debug usuarios empresa',
-      error: error instanceof Error ? error.message : 'Error desconocido'
+      message: "Error en debug usuarios empresa",
+      error: error instanceof Error ? error.message : "Error desconocido",
     });
   }
 });
 
 // Endpoint adicional para usuarios con empresa (coincide con proyecto JS)
-app.get('/api/usuarios-con-empresa', authMiddleware.verifyToken, async (req, res) => {
-  try {
-    const usuarios = await usuarioService.getUsuariosConEmpresa();
-    res.json(usuarios);
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error al obtener usuarios con empresa',
-      error: error instanceof Error ? error.message : 'Error desconocido'
-    });
+app.get(
+  "/api/usuarios-con-empresa",
+  authMiddleware.verifyToken,
+  async (req, res) => {
+    try {
+      const usuarios = await usuarioService.getUsuariosConEmpresa();
+      res.json(usuarios);
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Error al obtener usuarios con empresa",
+        error: error instanceof Error ? error.message : "Error desconocido",
+      });
+    }
   }
-});
+);
 
 // Endpoint público para usuarios con empresa (sin autenticación)
-app.get('/api/usuarios-con-empresa-public', async (req, res) => {
+app.get("/api/usuarios-con-empresa-public", async (req, res) => {
   try {
     const usuarios = await usuarioService.getUsuariosConEmpresa();
     res.json(usuarios);
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error al obtener usuarios con empresa',
-      error: error instanceof Error ? error.message : 'Error desconocido'
+      message: "Error al obtener usuarios con empresa",
+      error: error instanceof Error ? error.message : "Error desconocido",
     });
   }
 });
 
 // Endpoint público para sistemas (sin autenticación)
-app.get('/api/sistemas-public', async (req, res) => {
+app.get("/api/sistemas-public", async (req, res) => {
   try {
     const sistemas = await sistemaService.getAllSistemas();
     res.json(sistemas);
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error al obtener sistemas',
-      error: error instanceof Error ? error.message : 'Error desconocido'
+      message: "Error al obtener sistemas",
+      error: error instanceof Error ? error.message : "Error desconocido",
     });
   }
 });
 
 // Endpoint público para menús (sin autenticación)
-app.get('/api/menus-public', async (req, res) => {
+app.get("/api/menus-public", async (req, res) => {
   try {
     const menus = await menuService.getAllMenus();
     res.json(menus);
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error al obtener menús',
-      error: error instanceof Error ? error.message : 'Error desconocido'
+      message: "Error al obtener menús",
+      error: error instanceof Error ? error.message : "Error desconocido",
     });
   }
 });
 
 // Endpoint público para roles activos (sin autenticación)
-app.get('/api/roles-activos-public', async (req, res) => {
+app.get("/api/roles-activos-public", async (req, res) => {
   try {
     const roles = await rolService.getAllRoles();
     res.json(roles);
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error al obtener roles activos',
-      error: error instanceof Error ? error.message : 'Error desconocido'
+      message: "Error al obtener roles activos",
+      error: error instanceof Error ? error.message : "Error desconocido",
     });
   }
 });
 
 // Endpoints públicos para funcionalidades de sistemas
-app.get('/api/sistemas/:sistemaId/usuarios-public', async (req, res) => {
+app.get("/api/sistemas/:sistemaId/usuarios-public", async (req, res) => {
   try {
     const { sistemaId } = req.params;
-    const usuarios = await sistemaService.getUsuariosPorSistema(parseInt(sistemaId));
+    const usuarios = await sistemaService.getUsuariosPorSistema(
+      parseInt(sistemaId)
+    );
     res.json(usuarios);
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error al obtener usuarios del sistema',
-      error: error instanceof Error ? error.message : 'Error desconocido'
+      message: "Error al obtener usuarios del sistema",
+      error: error instanceof Error ? error.message : "Error desconocido",
     });
   }
 });
 
-app.get('/api/sistemas/:sistemaId/permisos-public', async (req, res) => {
+app.get("/api/sistemas/:sistemaId/permisos-public", async (req, res) => {
   try {
     const { sistemaId } = req.params;
-    const permisos = await sistemaService.getPermisosSistema(parseInt(sistemaId));
+    const permisos = await sistemaService.getPermisosSistema(
+      parseInt(sistemaId)
+    );
     res.json(permisos);
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error al obtener permisos del sistema',
-      error: error instanceof Error ? error.message : 'Error desconocido'
+      message: "Error al obtener permisos del sistema",
+      error: error instanceof Error ? error.message : "Error desconocido",
     });
   }
 });
 
-app.get('/api/sistemas/:sistemaId/estadisticas-public', async (req, res) => {
+app.get("/api/sistemas/:sistemaId/estadisticas-public", async (req, res) => {
   try {
     const { sistemaId } = req.params;
-    const estadisticas = await sistemaService.getEstadisticasSistema(parseInt(sistemaId));
+    const estadisticas = await sistemaService.getEstadisticasSistema(
+      parseInt(sistemaId)
+    );
     res.json(estadisticas);
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error al obtener estadísticas del sistema',
-      error: error instanceof Error ? error.message : 'Error desconocido'
+      message: "Error al obtener estadísticas del sistema",
+      error: error instanceof Error ? error.message : "Error desconocido",
     });
   }
 });
 
 // Ruta de bienvenida
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
   res.json({
-    message: 'API Reportes Legacy - TypeScript',
-    version: '1.0.0',
-    docs: '/api-docs',
+    message: "API Reportes Legacy - TypeScript",
+    version: "1.0.0",
+    docs: "/api-docs",
     endpoints: {
-      auth: '/api/login',
-      usuarios: '/api/usuarios',
-      menus: '/api/menus',
-      roles: '/api/roles',
-      sistemas: '/api/sistemas',
-      conexiones: '/api/conexiones',
-      permisos: '/api/permisos'
-    }
+      auth: "/api/login",
+      usuarios: "/api/usuarios",
+      menus: "/api/menus",
+      roles: "/api/roles",
+      sistemas: "/api/sistemas",
+      conexiones: "/api/conexiones",
+      permisos: "/api/permisos",
+    },
   });
 });
 
@@ -749,31 +815,32 @@ app.get('/', (req, res) => {
  *             token:
  *               type: string
  */
-app.post('/api/login', async (req, res) => {
+app.post("/api/login", async (req, res) => {
   try {
     const { username, password } = req.body;
-    
+
     if (!username || !password) {
       res.status(400).json({
         success: false,
-        message: 'Username y password son requeridos'
+        message: "Username y password son requeridos",
       });
       return;
     }
-    
+
     const result = await authService.login({ username, password });
     res.json({
       success: true,
       data: {
         token: result.token,
-        usuario: result.usuario
-      }
+        usuario: result.usuario,
+      },
     });
   } catch (error) {
-    console.error('Error en login:', error);
+    console.error("Error en login:", error);
     res.status(401).json({
       success: false,
-      message: error instanceof Error ? error.message : 'Error de autenticación'
+      message:
+        error instanceof Error ? error.message : "Error de autenticación",
     });
   }
 });
@@ -838,23 +905,33 @@ app.post('/api/login', async (req, res) => {
  */
 
 // Middleware de manejo de errores
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error(err.stack);
-  res.status(500).json({
-    success: false,
-    message: 'Error interno del servidor',
-    error: process.env['NODE_ENV'] === 'development' ? err.message : 'Error interno'
-  });
-});
+app.use(
+  (
+    err: any,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    console.error(err.stack);
+    res.status(500).json({
+      success: false,
+      message: "Error interno del servidor",
+      error:
+        process.env["NODE_ENV"] === "development"
+          ? err.message
+          : "Error interno",
+    });
+  }
+);
 
 // Middleware para rutas no encontradas
-app.use('*', (req, res) => {
+app.use("*", (req, res) => {
   res.status(404).json({
     success: false,
-    message: 'Ruta no encontrada'
+    message: "Ruta no encontrada",
   });
 });
 
 // Endpoint original modificado para incluir paginación
 
-export default app; 
+export default app;

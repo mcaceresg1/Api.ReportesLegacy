@@ -1,0 +1,179 @@
+### Test Reporte Genérico de Saldos API
+
+### Variables
+@baseUrl = http://localhost:3000
+@token = YOUR_JWT_TOKEN_HERE
+@conjunto = ASFSAC
+
+### 1. Generar Reporte Genérico de Saldos
+POST {{baseUrl}}/api/reporte-generico-saldos/generar
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "conjunto": "{{conjunto}}",
+  "usuario": "ADMIN",
+  "fechaInicio": "2020-01-01",
+  "fechaFin": "2023-12-31",
+  "contabilidad": "F,A",
+  "tipoAsiento": "06",
+  "claseAsiento": "C"
+}
+
+### 2. Obtener Datos del Reporte (Básico)
+GET {{baseUrl}}/api/reporte-generico-saldos/obtener?conjunto={{conjunto}}&page=1&limit=10
+Authorization: Bearer {{token}}
+
+### 3. Obtener Datos del Reporte con Filtros
+GET {{baseUrl}}/api/reporte-generico-saldos/obtener?conjunto={{conjunto}}&page=1&limit=25&cuentaContable=1105&nit=12345678
+Authorization: Bearer {{token}}
+
+### 4. Obtener Datos del Reporte con Filtros de Saldo
+GET {{baseUrl}}/api/reporte-generico-saldos/obtener?conjunto={{conjunto}}&page=1&limit=25&saldoLocalMin=100&saldoLocalMax=10000
+Authorization: Bearer {{token}}
+
+### 5. Obtener Datos del Reporte con Filtros de Fecha
+GET {{baseUrl}}/api/reporte-generico-saldos/obtener?conjunto={{conjunto}}&page=1&limit=25&fechaInicio=2023-01-01&fechaFin=2023-12-31
+Authorization: Bearer {{token}}
+
+### 6. Obtener Datos del Reporte con Filtros de Tipo de Documento
+GET {{baseUrl}}/api/reporte-generico-saldos/obtener?conjunto={{conjunto}}&page=1&limit=25&codTipoDoc=01&tipoDocSunat=DNI
+Authorization: Bearer {{token}}
+
+### 7. Obtener Datos del Reporte con Filtros de Asiento
+GET {{baseUrl}}/api/reporte-generico-saldos/obtener?conjunto={{conjunto}}&page=1&limit=25&asiento=000001&consecutivo=1
+Authorization: Bearer {{token}}
+
+### 8. Obtener Datos del Reporte con Filtros de Razón Social
+GET {{baseUrl}}/api/reporte-generico-saldos/obtener?conjunto={{conjunto}}&page=1&limit=25&razonSocial=Empresa
+Authorization: Bearer {{token}}
+
+### 9. Exportar Reporte a Excel
+POST {{baseUrl}}/api/reporte-generico-saldos/exportar-excel
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "conjunto": "{{conjunto}}",
+  "usuario": "ADMIN",
+  "fechaInicio": "2023-01-01",
+  "fechaFin": "2023-12-31",
+  "contabilidad": "F,A",
+  "tipoAsiento": "06",
+  "claseAsiento": "C",
+  "limit": 10000
+}
+
+### 10. Obtener Estadísticas del Reporte
+GET {{baseUrl}}/api/reporte-generico-saldos/estadisticas?conjunto={{conjunto}}
+Authorization: Bearer {{token}}
+
+### 11. Obtener Estadísticas del Reporte con Filtros de Fecha
+GET {{baseUrl}}/api/reporte-generico-saldos/estadisticas?conjunto={{conjunto}}&fechaInicio=2023-01-01&fechaFin=2023-12-31
+Authorization: Bearer {{token}}
+
+### 12. Obtener Estadísticas del Reporte con Usuario
+GET {{baseUrl}}/api/reporte-generico-saldos/estadisticas?conjunto={{conjunto}}&usuario=ADMIN
+Authorization: Bearer {{token}}
+
+### 13. Test de Error - Conjunto No Válido
+GET {{baseUrl}}/api/reporte-generico-saldos/obtener?conjunto=INVALIDO&page=1&limit=10
+Authorization: Bearer {{token}}
+
+### 14. Test de Error - Parámetros Faltantes
+POST {{baseUrl}}/api/reporte-generico-saldos/generar
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "conjunto": "{{conjunto}}"
+}
+
+### 15. Test de Error - Fechas Inválidas
+POST {{baseUrl}}/api/reporte-generico-saldos/generar
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "conjunto": "{{conjunto}}",
+  "usuario": "ADMIN",
+  "fechaInicio": "2023-12-31",
+  "fechaFin": "2023-01-01"
+}
+
+### 16. Test de Paginación - Página 2
+GET {{baseUrl}}/api/reporte-generico-saldos/obtener?conjunto={{conjunto}}&page=2&limit=10
+Authorization: Bearer {{token}}
+
+### 17. Test de Paginación - Límite Alto
+GET {{baseUrl}}/api/reporte-generico-saldos/obtener?conjunto={{conjunto}}&page=1&limit=100
+Authorization: Bearer {{token}}
+
+### 18. Test de Filtros Combinados
+GET {{baseUrl}}/api/reporte-generico-saldos/obtener?conjunto={{conjunto}}&page=1&limit=25&cuentaContable=1105&nit=12345678&saldoLocalMin=100&saldoLocalMax=5000&fechaInicio=2023-01-01&fechaFin=2023-12-31
+Authorization: Bearer {{token}}
+
+### 19. Test de Exportación con Límite Bajo
+POST {{baseUrl}}/api/reporte-generico-saldos/exportar-excel
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "conjunto": "{{conjunto}}",
+  "usuario": "ADMIN",
+  "fechaInicio": "2023-01-01",
+  "fechaFin": "2023-12-31",
+  "limit": 100
+}
+
+### 20. Test de Estadísticas con Filtros Complejos
+GET {{baseUrl}}/api/reporte-generico-saldos/estadisticas?conjunto={{conjunto}}&usuario=ADMIN&fechaInicio=2023-01-01&fechaFin=2023-12-31&contabilidad=F,A&tipoAsiento=06&claseAsiento=C
+Authorization: Bearer {{token}}
+
+### 21. Test de Health Check
+GET {{baseUrl}}/health
+
+### 22. Test de Endpoint de Prueba
+GET {{baseUrl}}/api/test
+
+### 23. Test de Autenticación - Sin Token
+GET {{baseUrl}}/api/reporte-generico-saldos/obtener?conjunto={{conjunto}}&page=1&limit=10
+
+### 24. Test de Autenticación - Token Inválido
+GET {{baseUrl}}/api/reporte-generico-saldos/obtener?conjunto={{conjunto}}&page=1&limit=10
+Authorization: Bearer invalid_token
+
+### 25. Test de Validación de Parámetros - Página Negativa
+GET {{baseUrl}}/api/reporte-generico-saldos/obtener?conjunto={{conjunto}}&page=-1&limit=10
+Authorization: Bearer {{token}}
+
+### 26. Test de Validación de Parámetros - Límite Cero
+GET {{baseUrl}}/api/reporte-generico-saldos/obtener?conjunto={{conjunto}}&page=1&limit=0
+Authorization: Bearer {{token}}
+
+### 27. Test de Validación de Parámetros - Límite Muy Alto
+GET {{baseUrl}}/api/reporte-generico-saldos/obtener?conjunto={{conjunto}}&page=1&limit=10000
+Authorization: Bearer {{token}}
+
+### 28. Test de Filtros de Saldo Dólar
+GET {{baseUrl}}/api/reporte-generico-saldos/obtener?conjunto={{conjunto}}&page=1&limit=25&saldoDolarMin=50&saldoDolarMax=1000
+Authorization: Bearer {{token}}
+
+### 29. Test de Filtros de Saldo Combinados
+GET {{baseUrl}}/api/reporte-generico-saldos/obtener?conjunto={{conjunto}}&page=1&limit=25&saldoLocalMin=100&saldoLocalMax=5000&saldoDolarMin=50&saldoDolarMax=1000
+Authorization: Bearer {{token}}
+
+### 30. Test de Generación con Parámetros Personalizados
+POST {{baseUrl}}/api/reporte-generico-saldos/generar
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "conjunto": "{{conjunto}}",
+  "usuario": "ADMIN",
+  "fechaInicio": "2023-06-01",
+  "fechaFin": "2023-06-30",
+  "contabilidad": "F",
+  "tipoAsiento": "01",
+  "claseAsiento": "A"
+}

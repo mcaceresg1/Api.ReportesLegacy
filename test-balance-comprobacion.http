@@ -1,0 +1,123 @@
+### Test Balance de Comprobación API
+### Variables
+@baseUrl = http://localhost:3000
+@token = YOUR_JWT_TOKEN_HERE
+@conjunto = 001
+@usuario = ADMIN
+@fechaInicio = 2024-01-01
+@fechaFin = 2024-12-31
+
+### 1. Health Check
+GET {{baseUrl}}/api/balance-comprobacion/health
+Content-Type: application/json
+
+### 2. Generar Reporte de Balance de Comprobación
+POST {{baseUrl}}/api/balance-comprobacion/generar
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "conjunto": "{{conjunto}}",
+  "usuario": "{{usuario}}",
+  "fechaInicio": "{{fechaInicio}}",
+  "fechaFin": "{{fechaFin}}",
+  "contabilidad": "F",
+  "tipoReporte": "Preliminar"
+}
+
+### 3. Generar Reporte con Contabilidad Ambas
+POST {{baseUrl}}/api/balance-comprobacion/generar
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "conjunto": "{{conjunto}}",
+  "usuario": "{{usuario}}",
+  "fechaInicio": "{{fechaInicio}}",
+  "fechaFin": "{{fechaFin}}",
+  "contabilidad": "F,A",
+  "tipoReporte": "Oficial"
+}
+
+### 4. Obtener Datos del Reporte - Primera Página
+GET {{baseUrl}}/api/balance-comprobacion/obtener?conjunto={{conjunto}}&usuario={{usuario}}&fechaInicio={{fechaInicio}}&fechaFin={{fechaFin}}&page=1&limit=25
+Authorization: Bearer {{token}}
+
+### 5. Obtener Datos del Reporte - Segunda Página
+GET {{baseUrl}}/api/balance-comprobacion/obtener?conjunto={{conjunto}}&usuario={{usuario}}&fechaInicio={{fechaInicio}}&fechaFin={{fechaFin}}&page=2&limit=25
+Authorization: Bearer {{token}}
+
+### 6. Obtener Datos con Filtro por Cuenta Contable
+GET {{baseUrl}}/api/balance-comprobacion/obtener?conjunto={{conjunto}}&usuario={{usuario}}&fechaInicio={{fechaInicio}}&fechaFin={{fechaFin}}&cuentaContable=1105&page=1&limit=25
+Authorization: Bearer {{token}}
+
+### 7. Obtener Datos con Filtro por Centro de Costo
+GET {{baseUrl}}/api/balance-comprobacion/obtener?conjunto={{conjunto}}&usuario={{usuario}}&fechaInicio={{fechaInicio}}&fechaFin={{fechaFin}}&centroCosto=001&page=1&limit=25
+Authorization: Bearer {{token}}
+
+### 8. Obtener Datos con Filtro por Tipo
+GET {{baseUrl}}/api/balance-comprobacion/obtener?conjunto={{conjunto}}&usuario={{usuario}}&fechaInicio={{fechaInicio}}&fechaFin={{fechaFin}}&tipo=ACTIVO&page=1&limit=25
+Authorization: Bearer {{token}}
+
+### 9. Obtener Datos con Filtro por Tipo Detallado
+GET {{baseUrl}}/api/balance-comprobacion/obtener?conjunto={{conjunto}}&usuario={{usuario}}&fechaInicio={{fechaInicio}}&fechaFin={{fechaFin}}&tipoDetallado=ACTIVO_CORRIENTE&page=1&limit=25
+Authorization: Bearer {{token}}
+
+### 10. Exportar a Excel - Límite Pequeño
+GET {{baseUrl}}/api/balance-comprobacion/exportar-excel?conjunto={{conjunto}}&usuario={{usuario}}&fechaInicio={{fechaInicio}}&fechaFin={{fechaFin}}&limit=1000
+Authorization: Bearer {{token}}
+
+### 11. Exportar a Excel - Límite Grande
+GET {{baseUrl}}/api/balance-comprobacion/exportar-excel?conjunto={{conjunto}}&usuario={{usuario}}&fechaInicio={{fechaInicio}}&fechaFin={{fechaFin}}&limit=10000
+Authorization: Bearer {{token}}
+
+### 12. Exportar a Excel con Contabilidad Específica
+GET {{baseUrl}}/api/balance-comprobacion/exportar-excel?conjunto={{conjunto}}&usuario={{usuario}}&fechaInicio={{fechaInicio}}&fechaFin={{fechaFin}}&contabilidad=F&tipoReporte=Preliminar&limit=5000
+Authorization: Bearer {{token}}
+
+### 13. Test de Validación - Fechas Inválidas
+POST {{baseUrl}}/api/balance-comprobacion/generar
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "conjunto": "{{conjunto}}",
+  "usuario": "{{usuario}}",
+  "fechaInicio": "2024-12-31",
+  "fechaFin": "2024-01-01",
+  "contabilidad": "F",
+  "tipoReporte": "Preliminar"
+}
+
+### 14. Test de Validación - Parámetros Faltantes
+POST {{baseUrl}}/api/balance-comprobacion/generar
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "conjunto": "{{conjunto}}",
+  "usuario": "{{usuario}}"
+}
+
+### 15. Test de Validación - Paginación Inválida
+GET {{baseUrl}}/api/balance-comprobacion/obtener?conjunto={{conjunto}}&usuario={{usuario}}&fechaInicio={{fechaInicio}}&fechaFin={{fechaFin}}&page=0&limit=2000
+Authorization: Bearer {{token}}
+
+### 16. Test de Validación - Límite de Exportación Excedido
+GET {{baseUrl}}/api/balance-comprobacion/exportar-excel?conjunto={{conjunto}}&usuario={{usuario}}&fechaInicio={{fechaInicio}}&fechaFin={{fechaFin}}&limit=100000
+Authorization: Bearer {{token}}
+
+### 17. Test sin Autenticación - Debe fallar
+GET {{baseUrl}}/api/balance-comprobacion/health
+
+### 18. Test con Token Inválido - Debe fallar
+GET {{baseUrl}}/api/balance-comprobacion/health
+Authorization: Bearer invalid_token
+
+### 19. Obtener Datos con Múltiples Filtros
+GET {{baseUrl}}/api/balance-comprobacion/obtener?conjunto={{conjunto}}&usuario={{usuario}}&fechaInicio={{fechaInicio}}&fechaFin={{fechaFin}}&cuentaContable=11&tipo=ACTIVO&page=1&limit=10
+Authorization: Bearer {{token}}
+
+### 20. Test de Performance - Página Grande
+GET {{baseUrl}}/api/balance-comprobacion/obtener?conjunto={{conjunto}}&usuario={{usuario}}&fechaInicio={{fechaInicio}}&fechaFin={{fechaFin}}&page=1&limit=100
+Authorization: Bearer {{token}}
