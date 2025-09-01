@@ -407,7 +407,7 @@ app.use(
   reporteHmisRoutes
 );
 app.use(
-  "/api/reporte-documentos-proveedor",
+  "/api/documentos-proveedor",
   QueryOptimizationMiddleware.validateQueryParams,
   reporteDocumentosProveedorRoutes
 );

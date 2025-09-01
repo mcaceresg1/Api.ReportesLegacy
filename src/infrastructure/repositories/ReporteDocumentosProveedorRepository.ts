@@ -90,7 +90,7 @@ export class ReporteDocumentosProveedorRepository implements IReporteDocumentosP
     fechaFin: string
   ): Promise<DocumentosPorPagar[]> {
     try {
-      const query = ` 
+      const query = `
         SELECT
           P.CONTRIBUYENTE,
           P.NOMBRE,
@@ -100,28 +100,28 @@ export class ReporteDocumentosProveedorRepository implements IReporteDocumentosP
           DCP.APLICACION,
           AD.FECHA,
           DCP.ASIENTO,
-          CASE 
+          CASE
             WHEN DCP.TIPO IN ('CHQ', 'TEF', 'RET', 'N/C', 'O/C', 'CNJ') THEN DCP.MONTO_LOCAL
-            ELSE 0 
+            ELSE 0
           END AS DEBE_LOC,
-          CASE 
+          CASE
             WHEN DCP.TIPO IN ('FAC', 'B/V', 'L/C', 'RHP', 'INT', 'N/D', 'O/D') THEN DCP.MONTO_LOCAL
-            ELSE 0 
+            ELSE 0
           END AS HABER_LOC,
-          CASE 
+          CASE
             WHEN DCP.TIPO IN ('CHQ', 'TEF', 'RET', 'N/C', 'O/C', 'CNJ') THEN DCP.MONTO_DOLAR
-            ELSE 0 
+            ELSE 0
           END AS DEBE_DOL,
-          CASE 
+          CASE
             WHEN DCP.TIPO IN ('FAC', 'B/V', 'L/C', 'RHP', 'INT', 'N/D', 'O/D') THEN DCP.MONTO_DOLAR
-            ELSE 0 
+            ELSE 0
           END AS HABER_DOL,
           DCP.MONEDA
         FROM ${conjunto}.PROVEEDOR P
         INNER JOIN ${conjunto}.DOCUMENTOS_CP DCP ON DCP.PROVEEDOR = P.PROVEEDOR
         INNER JOIN ${conjunto}.SUBTIPO_DOC_CP SDC ON SDC.TIPO = DCP.TIPO AND SDC.SUBTIPO = DCP.SUBTIPO
         INNER JOIN ${conjunto}.ASIENTO_DE_DIARIO AD ON DCP.ASIENTO = AD.ASIENTO
-        WHERE 
+        WHERE
           DCP.TIPO IN ('B/V', 'CHQ', 'CNJ', 'DCC', 'DEP')
           AND (:proveedor = '' OR P.PROVEEDOR = :proveedor)
           AND (:fechaInicio IS NULL OR AD.FECHA >= :fechaInicio)
@@ -138,39 +138,43 @@ export class ReporteDocumentosProveedorRepository implements IReporteDocumentosP
           DCP.APLICACION,
           AM.FECHA,
           DCP.ASIENTO,
-          CASE 
+          CASE
             WHEN DCP.TIPO IN ('CHQ', 'TEF', 'RET', 'N/C', 'O/C', 'CNJ') THEN DCP.MONTO_LOCAL
-            ELSE 0 
+            ELSE 0
           END AS DEBE_LOC,
-          CASE 
+          CASE
             WHEN DCP.TIPO IN ('FAC', 'B/V', 'L/C', 'RHP', 'INT', 'N/D', 'O/D') THEN DCP.MONTO_LOCAL
-            ELSE 0 
+            ELSE 0
           END AS HABER_LOC,
-          CASE 
+          CASE
             WHEN DCP.TIPO IN ('CHQ', 'TEF', 'RET', 'N/C', 'O/C', 'CNJ') THEN DCP.MONTO_DOLAR
-            ELSE 0 
+            ELSE 0
           END AS DEBE_DOL,
-          CASE 
+          CASE
             WHEN DCP.TIPO IN ('FAC', 'B/V', 'L/C', 'RHP', 'INT', 'N/D', 'O/D') THEN DCP.MONTO_DOLAR
-            ELSE 0 
+            ELSE 0
           END AS HABER_DOL,
           DCP.MONEDA
         FROM ${conjunto}.PROVEEDOR P
         INNER JOIN ${conjunto}.DOCUMENTOS_CP DCP ON DCP.PROVEEDOR = P.PROVEEDOR
         INNER JOIN ${conjunto}.SUBTIPO_DOC_CP SDC ON SDC.TIPO = DCP.TIPO AND SDC.SUBTIPO = DCP.SUBTIPO
         INNER JOIN ${conjunto}.ASIENTO_MAYORIZADO AM ON DCP.ASIENTO = AM.ASIENTO
-        WHERE 
+        WHERE
           DCP.TIPO IN ('B/V', 'CHQ', 'CNJ', 'DCC', 'DEP')
           AND (:proveedor = '' OR P.PROVEEDOR = :proveedor)
           AND (:fechaInicio IS NULL OR AM.FECHA >= :fechaInicio)
           AND (:fechaFin IS NULL OR AM.FECHA <= :fechaFin)
       `;
   
+      // Asegúrate que las fechas estén en formato ISO antes de pasarlas
+      const fechaInicioISO = fechaInicio ? new Date(fechaInicio).toISOString().split('T')[0] : null;
+      const fechaFinISO = fechaFin ? new Date(fechaFin).toISOString().split('T')[0] : null;
+  
       const result = await exactusSequelize.query<DocumentosPorPagar>(query, {
         replacements: {
           proveedor,
-          fechaInicio,
-          fechaFin,
+          fechaInicio: fechaInicioISO,
+          fechaFin: fechaFinISO,
         },
         type: QueryTypes.SELECT,
       });
@@ -181,6 +185,8 @@ export class ReporteDocumentosProveedorRepository implements IReporteDocumentosP
       return [];
     }
   }
+  
+  
   
 
 }

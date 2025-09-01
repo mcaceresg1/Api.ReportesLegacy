@@ -26,31 +26,32 @@ export class ReporteDocumentosProveedorService implements IReporteDocumentosProv
    */
   async obtenerReporteDocumentosPorProveedor(
     conjunto: string,
-    proveedor: string,
-    fechaInicio: string,
-    fechaFin: string
+    proveedor?: string | null,
+    fechaInicio?: string | null,
+    fechaFin?: string | null
   ): Promise<ReporteProveedor[]> {
     return await this.proveedorRepo.obtenerReporteDocumentosPorProveedor(
       conjunto,
-      proveedor,
-      fechaInicio,
-      fechaFin
+      proveedor ?? null,
+      fechaInicio ?? null,
+      fechaFin ?? null
     );
   }
-
+  
   async obtenerReporteDocumentosPorPagar(
     conjunto: string,
-    proveedor: string,
-    fechaInicio: string,
-    fechaFin: string
+    proveedor?: string | null,
+    fechaInicio?: string | null,
+    fechaFin?: string | null
   ): Promise<DocumentosPorPagar[]> {
     return await this.proveedorRepo.obtenerReporteDocumentosPorPagar(
       conjunto,
-      proveedor,
-      fechaInicio,
-      fechaFin
+      proveedor ?? null,
+      fechaInicio ?? null,
+      fechaFin ?? null
     );
   }
+  
 
 
 }

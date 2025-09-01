@@ -97,21 +97,21 @@ export class ReporteDocumentosProveedorController {
  *         name: proveedor
  *         schema:
  *           type: string
- *         required: true
+ *         required: false
  *         description: "Código del proveedor"
  *       - in: query
  *         name: fechaInicio
  *         schema:
  *           type: string
  *           format: date
- *         required: true
+ *         required: false
  *         description: "Fecha inicial (YYYY-MM-DD)"
  *       - in: query
  *         name: fechaFin
  *         schema:
  *           type: string
  *           format: date
- *         required: true
+ *         required: false
  *         description: "Fecha final (YYYY-MM-DD)"
  *     responses:
  *       200:
@@ -205,21 +205,21 @@ export class ReporteDocumentosProveedorController {
  *         name: proveedor
  *         schema:
  *           type: string
- *         required: true
+ *         required: false
  *         description: "Código del proveedor"
  *       - in: query
  *         name: fechaInicio
  *         schema:
  *           type: string
  *           format: date
- *         required: true
+ *         required: false
  *         description: "Fecha inicial (YYYY-MM-DD)"
  *       - in: query
  *         name: fechaFin
  *         schema:
  *           type: string
  *           format: date
- *         required: true
+ *         required: false
  *         description: "Fecha final (YYYY-MM-DD)"
  *     responses:
  *       200:

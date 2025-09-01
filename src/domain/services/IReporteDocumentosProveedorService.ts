@@ -18,16 +18,16 @@ export interface IReporteDocumentosProveedorService {
    */
   obtenerReporteDocumentosPorProveedor(
     conjunto: string,
-    proveedor: string,
-    fechaInicio: string,
-    fechaFin: string
+    proveedor?: string | null,
+    fechaInicio?: string | null,
+    fechaFin?: string | null
   ): Promise<ReporteProveedor[]>;
 
   obtenerReporteDocumentosPorPagar(
     conjunto: string,
-    proveedor: string,
-    fechaInicio: string,
-    fechaFin: string
+    proveedor?: string | null,
+    fechaInicio?: string | null,
+    fechaFin?: string | null
   ): Promise<DocumentosPorPagar[]>;
 
 }

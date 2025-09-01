@@ -1,64 +1,63 @@
 export interface ProveedorFiltro {
-    proveedor: string;
-    nombre: string;
-    alias: string;
-    activo: string;
-    moneda: string;
-    saldo: number;
-  }
+  proveedor: string | null;
+  nombre: string | null;
+  alias: string | null;
+  activo: string | null;
+  moneda: string | null;
+  saldo: number | null;
+}
 
-  export interface ReporteProveedor {
-    proveedor: string;
-    nombre: string;
-    fecha_documento: string; // ISO date (ej. "2025-06-25T00:00:00Z")
-    fecha: string;
-    fecha_vence: string;
-    tipo: string;
-    documento: string;
-    aplicacion: string;
-    moneda: string;
-    monto: number;
-    saldo: number;
-    condicion_pago: string;
-    cheque_cuenta: string;
-    asiento: string;
-    contrarecibo: string;
-    aprobado: string;
-    descripcion: string;
-    documento_embarque: string;
-    liquidac_compra: string;
-    monto_retencion: number;
-    saldo_retencion: number;
-    usuario_ult_mod: string;
-    fecha_ult_mod: string;
-    clase_documento: string;
-    dependiente: string;
-    cheque_impreso: string;
-    asiento_pendiente: string;
-    congelado: string;
-    tipo_embarque: string;
-    embarque_aprobado: string;
-    usuario_aprobacion: string;
-    fecha_aprobacion: string;
-    saldo_local: number;
-    saldo_dolar: number;
-    estado_envio: string;
-    documento_fiscal: string;
-  }
-  
-  export interface DocumentosPorPagar {
-    contribuyente: string;
-    nombre: string;
-    fechaDocumento: string;  // o Date si lo quieres tipar así
-    documento: string;
-    tipo: string;
-    aplicacion: string;
-    fecha: string;           // o Date
-    asiento: string;
-    debeLoc: number;
-    haberLoc: number;
-    debeDol: number;
-    haberDol: number;
-    moneda: string;
-  }
-  
+export interface ReporteProveedor {
+  proveedor: string | null;
+  nombre: string | null;
+  fecha_documento: string | null; // ISO date (ej. "2025-06-25T00:00:00Z")
+  fecha: string | null;
+  fecha_vence: string | null;
+  tipo: string | null;
+  documento: string | null;
+  aplicacion: string | null;
+  moneda: string | null;
+  monto: number | null;
+  saldo: number | null;
+  condicion_pago: string | null;
+  cheque_cuenta: string | null;
+  asiento: string | null;
+  contrarecibo: string | null;
+  aprobado: string | null;
+  descripcion: string | null;
+  documento_embarque: string | null;
+  liquidac_compra: string | null;
+  monto_retencion: number | null;
+  saldo_retencion: number | null;
+  usuario_ult_mod: string | null;
+  fecha_ult_mod: string | null;
+  clase_documento: string | null;
+  dependiente: string | null;
+  cheque_impreso: string | null;
+  asiento_pendiente: string | null;
+  congelado: string | null;
+  tipo_embarque: string | null;
+  embarque_aprobado: string | null;
+  usuario_aprobacion: string | null;
+  fecha_aprobacion: string | null;
+  saldo_local: number | null;
+  saldo_dolar: number | null;
+  estado_envio: string | null;
+  documento_fiscal: string | null;
+}
+
+export interface DocumentosPorPagar {
+  contribuyente: string | null;
+  nombre: string | null;
+  fechaDocumento: string | null; // o Date | null si quieres tipar así
+  documento: string | null;
+  tipo: string | null;
+  aplicacion: string | null;
+  fecha: string | null;           // o Date | null
+  asiento: string | null;
+  debeLoc: number | null;
+  haberLoc: number | null;
+  debeDol: number | null;
+  haberDol: number | null;
+  moneda: string | null;
+}
