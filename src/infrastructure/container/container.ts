@@ -28,6 +28,8 @@ import { IPlanContableRepository } from "../../domain/repositories/IPlanContable
 import { IPeriodoContableRepository } from "../../domain/repositories/IPeriodoContableRepository";
 import { IMovimientoContableAgrupadoRepository } from "../../domain/repositories/IMovimientoContableAgrupadoRepository";
 import { ISaldoPromediosRepository } from "../../domain/repositories/ISaldoPromediosRepository";
+import { IBalanceComprobacionRepository } from "../../domain/repositories/IBalanceComprobacionRepository";
+import { IReporteGenericoSaldosRepository } from "../../domain/repositories/IReporteGenericoSaldosRepository";
 
 import { ICuentaContableRepository } from "../../domain/repositories/ICuentaContableRepository";
 import { IUsuarioService } from "../../domain/services/IUsuarioService";
@@ -46,6 +48,8 @@ import { ITipoAsientoService } from "../../domain/services/ITipoAsientoService";
 import { IReporteMovimientosContablesService } from "../../domain/services/IReporteMovimientosContablesService";
 import { IReporteMovimientosContablesAgrupadosService } from "../../domain/services/IReporteMovimientosContablesAgrupadosService";
 import { ISaldoPromediosService } from "../../domain/services/ISaldoPromediosService";
+import { IBalanceComprobacionService } from "../../domain/services/IBalanceComprobacionService";
+import { IReporteGenericoSaldosService } from "../../domain/services/IReporteGenericoSaldosService";
 
 import { IDatabaseService } from "../../domain/services/IDatabaseService";
 
@@ -79,6 +83,8 @@ import { PlanContableRepository } from "../repositories/PlanContableRepository";
 import { PeriodoContableRepository } from "../repositories/PeriodoContableRepository";
 import { MovimientoContableAgrupadoRepository } from "../repositories/MovimientoContableAgrupadoRepository";
 import { SaldoPromediosRepository } from "../repositories/SaldoPromediosRepository";
+import { BalanceComprobacionRepository } from "../repositories/BalanceComprobacionRepository";
+import { ReporteGenericoSaldosRepository } from "../repositories/ReporteGenericoSaldosRepository";
 
 import { CuentaContableRepository } from "../repositories/CuentaContableRepository";
 import { UsuarioService } from "../../application/services/UsuarioService";
@@ -97,6 +103,8 @@ import { TipoAsientoService } from "../../application/services/TipoAsientoServic
 import { ReporteMovimientosContablesService } from "../../application/services/ReporteMovimientosContablesService";
 import { ReporteMovimientosContablesAgrupadosService } from "../../application/services/ReporteMovimientosContablesAgrupadosService";
 import { SaldoPromediosService } from "../../application/services/SaldoPromediosService";
+import { BalanceComprobacionService } from "../../application/services/BalanceComprobacionService";
+import { ReporteGenericoSaldosService } from "../../application/services/ReporteGenericoSaldosService";
 
 import { DatabaseService } from "../../application/services/DatabaseService";
 
@@ -122,6 +130,10 @@ import { DiarioContabilidadController } from "../controllers/DiarioContabilidadC
 import { PeriodoContableController } from "../controllers/PeriodoContableController";
 import { MovimientoContableAgrupadoController } from "../controllers/MovimientoContableAgrupadoController";
 import { SaldoPromediosController } from "../controllers/SaldoPromediosController";
+import { BalanceComprobacionController } from "../controllers/BalanceComprobacionController";
+import { BalanceComprobacionRoutes } from "../routes/BalanceComprobacionRoutes";
+import { ReporteGenericoSaldosController } from "../controllers/ReporteGenericoSaldosController";
+import { ReporteGenericoSaldosRoutes } from "../routes/ReporteGenericoSaldosRoutes";
 
 // CQRS implementations
 import { CommandBus } from "../cqrs/CommandBus";
@@ -149,6 +161,17 @@ import { ObtenerReporteMovimientosContablesAgrupadosHandler } from "../../applic
 import { GenerarReporteDiarioContabilidadHandler } from "../../application/handlers/diario-contabilidad/GenerarReporteDiarioContabilidadHandler";
 import { ObtenerDiarioContabilidadHandler } from "../../application/handlers/diario-contabilidad/ObtenerDiarioContabilidadHandler";
 import { ExportarDiarioContabilidadExcelHandler } from "../../application/handlers/diario-contabilidad/ExportarDiarioContabilidadExcelHandler";
+
+// Balance Comprobación Handlers
+import { GenerarReporteBalanceComprobacionHandler } from "../../application/handlers/balance-comprobacion/GenerarReporteBalanceComprobacionHandler";
+import { ObtenerBalanceComprobacionHandler } from "../../application/handlers/balance-comprobacion/ObtenerBalanceComprobacionHandler";
+import { ExportarBalanceComprobacionExcelHandler } from "../../application/handlers/balance-comprobacion/ExportarBalanceComprobacionExcelHandler";
+
+// Reporte Generico Saldos Handlers
+import { GenerarReporteGenericoSaldosHandler } from "../../application/handlers/reporte-generico-saldos/GenerarReporteGenericoSaldosHandler";
+import { ObtenerReporteGenericoSaldosHandler } from "../../application/handlers/reporte-generico-saldos/ObtenerReporteGenericoSaldosHandler";
+import { ExportarReporteGenericoSaldosExcelHandler } from "../../application/handlers/reporte-generico-saldos/ExportarReporteGenericoSaldosExcelHandler";
+import { ObtenerEstadisticasReporteGenericoSaldosHandler } from "../../application/handlers/reporte-generico-saldos/ObtenerEstadisticasReporteGenericoSaldosHandler";
 
 // CQRS Service
 import { CqrsService } from "../cqrs/CqrsService";
@@ -245,6 +268,12 @@ container
 container
   .bind<ISaldoPromediosRepository>("ISaldoPromediosRepository")
   .to(SaldoPromediosRepository);
+container
+  .bind<IBalanceComprobacionRepository>("IBalanceComprobacionRepository")
+  .to(BalanceComprobacionRepository);
+container
+  .bind<IReporteGenericoSaldosRepository>("IReporteGenericoSaldosRepository")
+  .to(ReporteGenericoSaldosRepository);
 
 container
   .bind<ICuentaContableRepository>("ICuentaContableRepository")
@@ -292,6 +321,12 @@ container
 container
   .bind<ISaldoPromediosService>("ISaldoPromediosService")
   .to(SaldoPromediosService);
+container
+  .bind<IBalanceComprobacionService>("IBalanceComprobacionService")
+  .to(BalanceComprobacionService);
+container
+  .bind<IReporteGenericoSaldosService>("IReporteGenericoSaldosService")
+  .to(ReporteGenericoSaldosService);
 
 container.bind<IDatabaseService>("IDatabaseService").to(DatabaseService);
 container
@@ -362,6 +397,18 @@ container
 container
   .bind<SaldoPromediosController>("SaldoPromediosController")
   .to(SaldoPromediosController);
+container
+  .bind<BalanceComprobacionController>("BalanceComprobacionController")
+  .to(BalanceComprobacionController);
+container
+  .bind<BalanceComprobacionRoutes>("BalanceComprobacionRoutes")
+  .to(BalanceComprobacionRoutes);
+container
+  .bind<ReporteGenericoSaldosController>("ReporteGenericoSaldosController")
+  .to(ReporteGenericoSaldosController);
+container
+  .bind<ReporteGenericoSaldosRoutes>("ReporteGenericoSaldosRoutes")
+  .to(ReporteGenericoSaldosRoutes);
 container.bind<ClipperController>("ClipperController").to(ClipperController);
 
 // CQRS Buses
@@ -422,6 +469,43 @@ container
     "ExportarDiarioContabilidadExcelHandler"
   )
   .to(ExportarDiarioContabilidadExcelHandler);
+
+// Balance Comprobación Handlers
+container
+  .bind<GenerarReporteBalanceComprobacionHandler>(
+    "GenerarReporteBalanceComprobacionHandler"
+  )
+  .to(GenerarReporteBalanceComprobacionHandler);
+container
+  .bind<ObtenerBalanceComprobacionHandler>("ObtenerBalanceComprobacionHandler")
+  .to(ObtenerBalanceComprobacionHandler);
+container
+  .bind<ExportarBalanceComprobacionExcelHandler>(
+    "ExportarBalanceComprobacionExcelHandler"
+  )
+  .to(ExportarBalanceComprobacionExcelHandler);
+
+// Reporte Generico Saldos Handlers
+container
+  .bind<GenerarReporteGenericoSaldosHandler>(
+    "GenerarReporteGenericoSaldosHandler"
+  )
+  .to(GenerarReporteGenericoSaldosHandler);
+container
+  .bind<ObtenerReporteGenericoSaldosHandler>(
+    "ObtenerReporteGenericoSaldosHandler"
+  )
+  .to(ObtenerReporteGenericoSaldosHandler);
+container
+  .bind<ExportarReporteGenericoSaldosExcelHandler>(
+    "ExportarReporteGenericoSaldosExcelHandler"
+  )
+  .to(ExportarReporteGenericoSaldosExcelHandler);
+container
+  .bind<ObtenerEstadisticasReporteGenericoSaldosHandler>(
+    "ObtenerEstadisticasReporteGenericoSaldosHandler"
+  )
+  .to(ObtenerEstadisticasReporteGenericoSaldosHandler);
 
 // CQRS Service
 container.bind<CqrsService>("CqrsService").to(CqrsService);

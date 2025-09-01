@@ -31,6 +31,8 @@ import { createPlanContableRoutes } from "./infrastructure/routes/planContable.r
 import { createPeriodoContableRoutes } from "./infrastructure/routes/periodoContable.routes";
 import { createMovimientoContableAgrupadoRoutes } from "./infrastructure/routes/movimientoContableAgrupado.routes";
 import { createSaldoPromediosRoutes } from "./infrastructure/routes/saldoPromedios.routes";
+import { BalanceComprobacionRoutes } from "./infrastructure/routes/BalanceComprobacionRoutes";
+import { ReporteGenericoSaldosRoutes } from "./infrastructure/routes/ReporteGenericoSaldosRoutes";
 import { AuthMiddleware } from "./infrastructure/middleware/AuthMiddleware";
 import { QueryOptimizationMiddleware } from "./infrastructure/middleware/QueryOptimizationMiddleware";
 import { IUsuarioService } from "./domain/services/IUsuarioService";
@@ -127,6 +129,30 @@ queryBus.register(
   exportarDiarioContabilidadExcelHandler
 );
 
+// Balance Comprobación Handlers
+const generarReporteBalanceComprobacionHandler = container.get(
+  "GenerarReporteBalanceComprobacionHandler"
+) as any;
+const obtenerBalanceComprobacionHandler = container.get(
+  "ObtenerBalanceComprobacionHandler"
+) as any;
+const exportarBalanceComprobacionExcelHandler = container.get(
+  "ExportarBalanceComprobacionExcelHandler"
+) as any;
+
+commandBus.register(
+  "GenerarReporteBalanceComprobacionCommand",
+  generarReporteBalanceComprobacionHandler
+);
+queryBus.register(
+  "ObtenerBalanceComprobacionQuery",
+  obtenerBalanceComprobacionHandler
+);
+queryBus.register(
+  "ExportarBalanceComprobacionExcelQuery",
+  exportarBalanceComprobacionExcelHandler
+);
+
 console.log("✅ Handlers registrados manualmente");
 console.log("✅ CQRS Service inicializado");
 
@@ -169,6 +195,16 @@ const reporteCatalogoCuentasModificadasRoutes =
   createReporteCatalogoCuentasModificadasRoutes();
 const reporteClipperRoutes = createReporteClipperRoutes(
   reporteClipperRepository
+);
+
+// Balance Comprobación Routes
+const balanceComprobacionRoutes = container.get<BalanceComprobacionRoutes>(
+  "BalanceComprobacionRoutes"
+);
+
+// Reporte Generico Saldos Routes
+const reporteGenericoSaldosRoutes = container.get<ReporteGenericoSaldosRoutes>(
+  "ReporteGenericoSaldosRoutes"
 );
 
 // Endpoint de prueba
@@ -334,6 +370,16 @@ app.use(
   "/api/reporte-clipper",
   QueryOptimizationMiddleware.validateQueryParams,
   reporteClipperRoutes
+);
+app.use(
+  "/api/balance-comprobacion",
+  QueryOptimizationMiddleware.validateQueryParams,
+  balanceComprobacionRoutes.getRouter()
+);
+app.use(
+  "/api/reporte-generico-saldos",
+  QueryOptimizationMiddleware.validateQueryParams,
+  reporteGenericoSaldosRoutes.getRouter()
 );
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================
