@@ -13,47 +13,59 @@ export class ReporteDocumentosProveedorController {
    * @swagger
    * /api/documentos-proveedor/proveedores/{conjunto}:
    *   get:
-   *     summary: Obtiene la lista de proveedores de un conjunto específico
+   *     summary: Obtiene una lista de proveedores de un conjunto específico, filtrando por nombre o código de proveedor.
    *     tags:
-   *       - Tesoreria y Caja - Lista Proveedor
+   *       - Tesorería y Caja - Lista Proveedor
    *     parameters:
    *       - in: path
    *         name: conjunto
+   *         required: true
    *         schema:
    *           type: string
-   *         required: true
    *         description: "Nombre del esquema o base de datos (por ejemplo: ASFSAC)"
+   *       - in: query
+   *         name: filtro
+   *         required: false
+   *         schema:
+   *           type: string
+   *         description: "Texto de búsqueda para filtrar proveedores por nombre o código"
    *     responses:
    *       200:
-   *         description: Lista de proveedores obtenida correctamente
+   *         description: "Lista de proveedores obtenida correctamente"
    *         content:
    *           application/json:
    *             schema:
-   *               type: array
-   *               items:
-   *                 type: object
-   *                 properties:
-   *                   proveedor:
-   *                     type: string
-   *                   nombre:
-   *                     type: string
-   *                   alias:
-   *                     type: string
-   *                   activo:
-   *                     type: boolean
-   *                   moneda:
-   *                     type: string
-   *                   saldo:
-   *                     type: number
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     type: object
+   *                     properties:
+   *                       proveedor:
+   *                         type: string
+   *                       nombre:
+   *                         type: string
+   *                       alias:
+   *                         type: string
+   *                       activo:
+   *                         type: boolean
+   *                       moneda:
+   *                         type: string
+   *                       saldo:
+   *                         type: number
    *       400:
-   *         description: Parámetro conjunto requerido
+   *         description: "Parámetro 'conjunto' requerido"
    *       500:
-   *         description: Error interno del servidor
+   *         description: "Error interno del servidor"
    */
 
   async obtenerProveedor(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto } = req.params;
+      const { filtro = "" } = req.query;
 
       if (!conjunto) {
         res.status(400).json({
@@ -63,7 +75,10 @@ export class ReporteDocumentosProveedorController {
         return;
       }
 
-      const proveedores = await this.reporteService.obtenerProveedor(conjunto);
+      const proveedores = await this.reporteService.obtenerProveedor(
+        conjunto,
+        filtro.toString()
+      );
 
       res.json({
         success: true,

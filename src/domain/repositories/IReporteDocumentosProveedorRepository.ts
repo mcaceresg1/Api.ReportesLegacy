@@ -1,10 +1,19 @@
-import { DocumentosPorPagar, ProveedorFiltro, ReporteProveedor } from "../entities/ReporteDocumentosProveedor";
+import {
+  DocumentosPorPagar,
+  ProveedorFiltro,
+  ReporteProveedor,
+} from "../entities/ReporteDocumentosProveedor";
 
 export interface IReporteDocumentosProveedorRepository {
   /**
-   * Obtiene todos los proveedores registrados.
+   * Obtiene la lista de proveedores filtrados por un valor específico.
+   * @param conjunto Nombre del esquema/base de datos
+   * @param filtro Filtro de búsqueda para nombre o código de proveedor
    */
-  obtenerProveedor(conjunto: string): Promise<ProveedorFiltro[]>;
+  obtenerProveedor(
+    conjunto: string,
+    filtro: string
+  ): Promise<ProveedorFiltro[]>;
 
   /**
    * Obtiene el reporte de documentos del proveedor en un rango de fechas.
@@ -25,5 +34,4 @@ export interface IReporteDocumentosProveedorRepository {
     fechaInicio?: string | null,
     fechaFin?: string | null
   ): Promise<DocumentosPorPagar[]>;
-
 }

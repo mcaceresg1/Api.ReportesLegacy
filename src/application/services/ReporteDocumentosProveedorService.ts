@@ -1,20 +1,29 @@
 import { inject, injectable } from "inversify";
 import { IReporteDocumentosProveedorRepository } from "../../domain/repositories/IReporteDocumentosProveedorRepository";
 import { IReporteDocumentosProveedorService } from "../../domain/services/IReporteDocumentosProveedorService";
-import { DocumentosPorPagar, ProveedorFiltro, ReporteProveedor } from "../../domain/entities/ReporteDocumentosProveedor";
+import {
+  DocumentosPorPagar,
+  ProveedorFiltro,
+  ReporteProveedor,
+} from "../../domain/entities/ReporteDocumentosProveedor";
 
 @injectable()
-export class ReporteDocumentosProveedorService implements IReporteDocumentosProveedorService {
+export class ReporteDocumentosProveedorService
+  implements IReporteDocumentosProveedorService
+{
   constructor(
     @inject("IReporteDocumentosProveedorRepository")
     private readonly proveedorRepo: IReporteDocumentosProveedorRepository
   ) {}
 
   /**
-   * Obtiene todos los proveedores disponibles.
+   * Obtiene la lista de proveedores filtrados por un valor específico.
    */
-  async obtenerProveedor(conjunto: string): Promise<ProveedorFiltro[]> {
-    return await this.proveedorRepo.obtenerProveedor(conjunto);
+  async obtenerProveedor(
+    conjunto: string,
+    filtro: string
+  ): Promise<ProveedorFiltro[]> {
+    return await this.proveedorRepo.obtenerProveedor(conjunto, filtro);
   }
 
   /**
@@ -37,7 +46,7 @@ export class ReporteDocumentosProveedorService implements IReporteDocumentosProv
       fechaFin ?? null
     );
   }
-  
+
   async obtenerReporteDocumentosPorPagar(
     conjunto: string,
     proveedor?: string | null,
@@ -51,7 +60,4 @@ export class ReporteDocumentosProveedorService implements IReporteDocumentosProv
       fechaFin ?? null
     );
   }
-  
-
-
 }

@@ -16,26 +16,35 @@ export class ReporteDocumentosProveedorRepository
    * Obtiene la lista de proveedores filtrados por un valor específico.
    * @param conjunto Nombre del esquema/base de datos
    */
-  async obtenerProveedor(conjunto: string): Promise<ProveedorFiltro[]> {
+
+  async obtenerProveedor(
+    conjunto: string,
+    filtro: string
+  ): Promise<ProveedorFiltro[]> {
     try {
       const query = `
-        SELECT 
-          proveedor, 
-          nombre, 
-          alias, 
-          activo, 
-          moneda, 
+        SELECT TOP 50
+          proveedor,
+          nombre,
+          alias,
+          activo,
+          moneda,
           saldo
-        FROM ${conjunto}.proveedor;
+        FROM ${conjunto}.proveedor
+        WHERE nombre LIKE :filtro OR proveedor LIKE :filtro
+        ORDER BY nombre ASC
       `;
 
       const result = await exactusSequelize.query<ProveedorFiltro>(query, {
+        replacements: {
+          filtro: `%${filtro}%`,
+        },
         type: QueryTypes.SELECT,
       });
 
       return result;
     } catch (error) {
-      console.error("Error al obtener proveedor:", error);
+      console.error("Error al buscar proveedores:", error);
       return [];
     }
   }
