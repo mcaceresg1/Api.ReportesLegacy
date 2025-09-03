@@ -2,10 +2,16 @@ import { injectable } from "inversify";
 import { QueryTypes } from "sequelize";
 import { exactusSequelize } from "../../infrastructure/database/config/exactus-database";
 import { IReporteDocumentosProveedorRepository } from "../../domain/repositories/IReporteDocumentosProveedorRepository";
-import { DocumentosPorPagar, ProveedorFiltro, ReporteProveedor } from "../../domain/entities/ReporteDocumentosProveedor";
+import {
+  DocumentosPorPagar,
+  ProveedorFiltro,
+  ReporteProveedor,
+} from "../../domain/entities/ReporteDocumentosProveedor";
 
 @injectable()
-export class ReporteDocumentosProveedorRepository implements IReporteDocumentosProveedorRepository {
+export class ReporteDocumentosProveedorRepository
+  implements IReporteDocumentosProveedorRepository
+{
   /**
    * Obtiene la lista de proveedores filtrados por un valor específico.
    * @param conjunto Nombre del esquema/base de datos
@@ -78,7 +84,10 @@ export class ReporteDocumentosProveedorRepository implements IReporteDocumentosP
 
       return result;
     } catch (error) {
-      console.error("Error al obtener reporte de documentos por proveedor:", error);
+      console.error(
+        "Error al obtener reporte de documentos por proveedor:",
+        error
+      );
       return [];
     }
   }
@@ -165,28 +174,33 @@ export class ReporteDocumentosProveedorRepository implements IReporteDocumentosP
           AND (:fechaInicio IS NULL OR AM.FECHA >= :fechaInicio)
           AND (:fechaFin IS NULL OR AM.FECHA <= :fechaFin)
       `;
-  
+
       // Asegúrate que las fechas estén en formato ISO antes de pasarlas
-      const fechaInicioISO = fechaInicio ? new Date(fechaInicio).toISOString().split('T')[0] : null;
-      const fechaFinISO = fechaFin ? new Date(fechaFin).toISOString().split('T')[0] : null;
-  
+      const fechaInicioISO = fechaInicio
+        ? new Date(fechaInicio).toISOString().split("T")[0]
+        : null;
+      const fechaFinISO = fechaFin
+        ? new Date(fechaFin).toISOString().split("T")[0]
+        : null;
+
+      const proveedorFinal = proveedor ?? "";
+
       const result = await exactusSequelize.query<DocumentosPorPagar>(query, {
         replacements: {
-          proveedor,
+          proveedor: proveedorFinal,
           fechaInicio: fechaInicioISO,
           fechaFin: fechaFinISO,
         },
         type: QueryTypes.SELECT,
       });
-  
+
       return result;
     } catch (error) {
-      console.error("Error al obtener reporte de documentos por proveedor:", error);
+      console.error(
+        "Error al obtener reporte de documentos por proveedor:",
+        error
+      );
       return [];
     }
   }
-  
-  
-  
-
 }

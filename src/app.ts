@@ -52,6 +52,10 @@ import { createReporteClipperRoutes } from "./infrastructure/routes/ReporteClipp
 import { IReporteClipperRepository } from "./domain/repositories/IReporteClipperRepository";
 import libroMayorAsientosRoutes from "./infrastructure/routes/libro-mayor-asientos.routes";
 import { createReporteGNRoutes } from "./infrastructure/routes/ReporteGNRoutes";
+import { IReporteHmisRepository } from "./domain/repositories/IReporteHmisRepository";
+import { createReporteHmisRoutes } from "./infrastructure/routes/ReporteHmisRoutes";
+import { IReporteDocumentosProveedorRepository } from "./domain/repositories/IReporteDocumentosProveedorRepository";
+import { createReporteDocumentosProveedorRoutes } from "./infrastructure/routes/ReporteDocumentosProveedorRoutes";
 
 const reporteGNRoutes = createReporteGNRoutes();
 
@@ -100,6 +104,14 @@ const cuentaContableRepository = container.get<ICuentaContableRepository>(
 const reporteClipperRepository = container.get<IReporteClipperRepository>(
   "IReporteClipperRepository"
 );
+const reporteHmisRepository = container.get<IReporteHmisRepository>(
+  "IReporteHmisRepository"
+);
+const reporteDocumentosProveedorRepository =
+  container.get<IReporteDocumentosProveedorRepository>(
+    "IReporteDocumentosProveedorRepository"
+  );
+
 // Inicializar CQRS
 console.log("🚀 Inicializando CQRS Service...");
 const cqrsService = container.get<CqrsService>("CqrsService");
@@ -200,6 +212,7 @@ const reporteCatalogoCuentasModificadasRoutes =
 const reporteClipperRoutes = createReporteClipperRoutes(
   reporteClipperRepository
 );
+const reporteHmisRoutes = createReporteHmisRoutes(reporteHmisRepository);
 
 // Balance Comprobación Routes
 const balanceComprobacionRoutes = container.get<BalanceComprobacionRoutes>(
@@ -209,6 +222,10 @@ const balanceComprobacionRoutes = container.get<BalanceComprobacionRoutes>(
 // Reporte Generico Saldos Routes
 const reporteGenericoSaldosRoutes = container.get<ReporteGenericoSaldosRoutes>(
   "ReporteGenericoSaldosRoutes"
+);
+
+const reporteDocumentosProveedorRoutes = createReporteDocumentosProveedorRoutes(
+  reporteDocumentosProveedorRepository
 );
 
 // Endpoint de prueba
@@ -370,7 +387,17 @@ app.use(
   QueryOptimizationMiddleware.validateQueryParams,
   reporteGenericoSaldosRoutes.getRouter()
 );
-
+app.use(
+  "/api/reporte-hmis",
+  QueryOptimizationMiddleware.validateQueryParams,
+  reporteHmisRoutes
+);
+app.use(
+  "/api/documentos-proveedor",
+  QueryOptimizationMiddleware.validateQueryParams,
+  reporteDocumentosProveedorRoutes
+);
+console.log("✅ REPORTE DOCUMENTOS PROVEEDOR routes registradas correctamente");
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================
 
