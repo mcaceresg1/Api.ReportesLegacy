@@ -51,6 +51,9 @@ import { CqrsService } from "./infrastructure/cqrs/CqrsService";
 import { createReporteClipperRoutes } from "./infrastructure/routes/ReporteClipperRoutes";
 import { IReporteClipperRepository } from "./domain/repositories/IReporteClipperRepository";
 import libroMayorAsientosRoutes from "./infrastructure/routes/libro-mayor-asientos.routes";
+import { createReporteGNRoutes } from "./infrastructure/routes/ReporteGNRoutes";
+
+const reporteGNRoutes = createReporteGNRoutes();
 
 const app = express();
 
