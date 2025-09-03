@@ -15,13 +15,15 @@ const swaggerOptions = {
     servers: [
       {
         url:
-          process.env["NODE_ENV"] === "production"
-            ? process.env["PROD_SWAGGER_URL"] || "http://192.168.90.73:3000"
-            : process.env["DEV_SWAGGER_URL"] || "http://localhost:3000",
+          process.env["SWAGGER_SERVER_URL"] ||
+          (process.env["NODE_ENV"] === "production"
+            ? "http://192.168.90.73:3000"
+            : "http://192.168.90.73:3000"),
         description:
-          process.env["NODE_ENV"] === "production"
+          process.env["SWAGGER_SERVER_DESCRIPTION"] ||
+          (process.env["NODE_ENV"] === "production"
             ? "Servidor de producción"
-            : "Servidor de desarrollo",
+            : "Servidor de desarrollo"),
       },
     ],
     components: {
