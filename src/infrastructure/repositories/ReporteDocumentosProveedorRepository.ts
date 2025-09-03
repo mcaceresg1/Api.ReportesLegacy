@@ -22,8 +22,34 @@ export class ReporteDocumentosProveedorRepository
     filtro: string
   ): Promise<ProveedorFiltro[]> {
     try {
+      // Si no hay filtro, retornar los primeros 50 proveedores activos
+      if (!filtro || filtro.trim() === "") {
+        const querySinFiltro = `
+          SELECT TOP 50
+            proveedor,
+            nombre,
+            alias,
+            activo,
+            moneda,
+            saldo
+          FROM ${conjunto}.proveedor
+          WHERE activo = 'S'
+          ORDER BY nombre ASC
+        `;
+
+        const result = await exactusSequelize.query<ProveedorFiltro>(
+          querySinFiltro,
+          {
+            type: QueryTypes.SELECT,
+          }
+        );
+
+        return result;
+      }
+
+      // Búsqueda con filtro optimizada
       const query = `
-        SELECT TOP 50
+        SELECT TOP 100
           proveedor,
           nombre,
           alias,
@@ -31,13 +57,23 @@ export class ReporteDocumentosProveedorRepository
           moneda,
           saldo
         FROM ${conjunto}.proveedor
-        WHERE nombre LIKE :filtro OR proveedor LIKE :filtro
-        ORDER BY nombre ASC
+        WHERE (nombre LIKE :filtro OR proveedor LIKE :filtro)
+          AND activo = 'S'
+        ORDER BY 
+          CASE 
+            WHEN proveedor LIKE :filtroExacto THEN 1
+            WHEN nombre LIKE :filtroExacto THEN 2
+            WHEN proveedor LIKE :filtro THEN 3
+            ELSE 4
+          END,
+          nombre ASC
       `;
 
+      const filtroLimpio = filtro.trim();
       const result = await exactusSequelize.query<ProveedorFiltro>(query, {
         replacements: {
-          filtro: `%${filtro}%`,
+          filtro: `%${filtroLimpio}%`,
+          filtroExacto: `${filtroLimpio}%`,
         },
         type: QueryTypes.SELECT,
       });

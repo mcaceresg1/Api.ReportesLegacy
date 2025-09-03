@@ -13,7 +13,8 @@ export class ReporteDocumentosProveedorController {
    * @swagger
    * /api/documentos-proveedor/proveedores/{conjunto}:
    *   get:
-   *     summary: Obtiene una lista de proveedores de un conjunto específico, filtrando por nombre o código de proveedor.
+   *     summary: Obtiene una lista de proveedores de un conjunto específico con búsqueda dinámica optimizada.
+   *     description: Este endpoint permite buscar proveedores de manera dinámica. Sin filtro retorna los primeros 50 proveedores activos. Con filtro busca hasta 100 proveedores que coincidan con el texto de búsqueda. La búsqueda se realiza tanto en el código como en el nombre del proveedor y los resultados se ordenan por relevancia.
    *     tags:
    *       - Tesorería y Caja - Lista Proveedor
    *     parameters:
@@ -28,7 +29,8 @@ export class ReporteDocumentosProveedorController {
    *         required: false
    *         schema:
    *           type: string
-   *         description: "Texto de búsqueda para filtrar proveedores por nombre o código"
+   *         description: "Texto de búsqueda para filtrar proveedores por nombre o código. Dejar vacío para obtener los primeros 50 proveedores activos."
+   *         example: "PROV001"
    *     responses:
    *       200:
    *         description: "Lista de proveedores obtenida correctamente"
@@ -51,7 +53,7 @@ export class ReporteDocumentosProveedorController {
    *                       alias:
    *                         type: string
    *                       activo:
-   *                         type: boolean
+   *                         type: string
    *                       moneda:
    *                         type: string
    *                       saldo:
