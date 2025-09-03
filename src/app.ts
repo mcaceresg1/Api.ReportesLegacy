@@ -709,6 +709,12 @@ app.get(
   }
 );
 
+app.use(
+  "/api/reporte-gn",
+  QueryOptimizationMiddleware.validateQueryParams,
+  reporteGNRoutes
+);
+
 app.get(
   "/api/roles/:id/menus",
   authMiddleware.verifyToken,
