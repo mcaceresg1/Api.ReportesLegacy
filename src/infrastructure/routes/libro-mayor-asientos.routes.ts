@@ -3,7 +3,8 @@ import { container } from "../container/container";
 import { LibroMayorAsientosController } from "../controllers/LibroMayorAsientosController";
 
 const router = Router();
-const libroMayorAsientosController = container.get<LibroMayorAsientosController>(LibroMayorAsientosController);
+const libroMayorAsientosController =
+  container.get<LibroMayorAsientosController>("LibroMayorAsientosController");
 
 /**
  * @swagger
@@ -60,21 +61,41 @@ const libroMayorAsientosController = container.get<LibroMayorAsientosController>
  */
 
 // Health check
-router.get("/health", libroMayorAsientosController.health.bind(libroMayorAsientosController));
+router.get(
+  "/health",
+  libroMayorAsientosController.health.bind(libroMayorAsientosController)
+);
 
 // Obtener filtros disponibles
-router.get("/:conjunto/filtros", libroMayorAsientosController.obtenerFiltros.bind(libroMayorAsientosController));
+router.get(
+  "/:conjunto/filtros",
+  libroMayorAsientosController.obtenerFiltros.bind(libroMayorAsientosController)
+);
 
 // Generar reporte
-router.get("/:conjunto/generar", libroMayorAsientosController.generarReporte.bind(libroMayorAsientosController));
+router.get(
+  "/:conjunto/generar",
+  libroMayorAsientosController.generarReporte.bind(libroMayorAsientosController)
+);
 
 // Obtener datos paginados
-router.get("/:conjunto/obtener", libroMayorAsientosController.obtenerAsientos.bind(libroMayorAsientosController));
+router.get(
+  "/:conjunto/obtener",
+  libroMayorAsientosController.obtenerAsientos.bind(
+    libroMayorAsientosController
+  )
+);
 
 // Exportar a Excel
-router.get("/:conjunto/excel", libroMayorAsientosController.exportarExcel.bind(libroMayorAsientosController));
+router.get(
+  "/:conjunto/excel",
+  libroMayorAsientosController.exportarExcel.bind(libroMayorAsientosController)
+);
 
 // Exportar a PDF
-router.get("/:conjunto/pdf", libroMayorAsientosController.exportarPDF.bind(libroMayorAsientosController));
+router.get(
+  "/:conjunto/pdf",
+  libroMayorAsientosController.exportarPDF.bind(libroMayorAsientosController)
+);
 
 export default router;

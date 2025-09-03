@@ -30,7 +30,13 @@ import { IMovimientoContableAgrupadoRepository } from "../../domain/repositories
 import { ISaldoPromediosRepository } from "../../domain/repositories/ISaldoPromediosRepository";
 import { IBalanceComprobacionRepository } from "../../domain/repositories/IBalanceComprobacionRepository";
 import { IReporteGenericoSaldosRepository } from "../../domain/repositories/IReporteGenericoSaldosRepository";
+import { IReporteDocumentosProveedorRepository } from "../../domain/repositories/IReporteDocumentosProveedorRepository";
+import { IReporteGNRepository } from "../../domain/repositories/IReporteGNRepository";
+import { IReporteHmisRepository } from "../../domain/repositories/IReporteHmisRepository";
 import { ILibroMayorAsientosService } from "../../domain/services/ILibroMayorAsientosService";
+import { IReporteGNService } from "../../domain/services/IReporteGNService";
+import { IReporteDocumentosProveedorService } from "../../domain/services/IReporteDocumentosProveedorService";
+import { IReporteHmisService } from "../../domain/services/IReporteHmisService";
 
 import { ICuentaContableRepository } from "../../domain/repositories/ICuentaContableRepository";
 import { IUsuarioService } from "../../domain/services/IUsuarioService";
@@ -87,6 +93,9 @@ import { SaldoPromediosRepository } from "../repositories/SaldoPromediosReposito
 import { BalanceComprobacionRepository } from "../repositories/BalanceComprobacionRepository";
 import { ReporteGenericoSaldosRepository } from "../repositories/ReporteGenericoSaldosRepository";
 import { LibroMayorAsientosRepository } from "../repositories/LibroMayorAsientosRepository";
+import { ReporteDocumentosProveedorRepository } from "../repositories/ReporteDocumentosProveedorRepository";
+import { ReporteGNRepository } from "../repositories/ReporteGNRepository";
+import { ReporteHmisRepository } from "../repositories/ReporteHmisRepository";
 
 import { CuentaContableRepository } from "../repositories/CuentaContableRepository";
 import { UsuarioService } from "../../application/services/UsuarioService";
@@ -108,6 +117,9 @@ import { SaldoPromediosService } from "../../application/services/SaldoPromedios
 import { BalanceComprobacionService } from "../../application/services/BalanceComprobacionService";
 import { ReporteGenericoSaldosService } from "../../application/services/ReporteGenericoSaldosService";
 import { LibroMayorAsientosService } from "../../application/services/LibroMayorAsientosService";
+import { ReporteGNService } from "../../application/services/ReporteGNService";
+import { ReporteDocumentosProveedorService } from "../../application/services/ReporteDocumentosProveedorService";
+import { ReporteHmisService } from "../../application/services/ReporteHmisService";
 
 import { DatabaseService } from "../../application/services/DatabaseService";
 
@@ -138,6 +150,9 @@ import { BalanceComprobacionRoutes } from "../routes/BalanceComprobacionRoutes";
 import { ReporteGenericoSaldosController } from "../controllers/ReporteGenericoSaldosController";
 import { ReporteGenericoSaldosRoutes } from "../routes/ReporteGenericoSaldosRoutes";
 import { LibroMayorAsientosController } from "../controllers/LibroMayorAsientosController";
+import { ReporteGNController } from "../controllers/ReporteGNController";
+import { ReporteDocumentosProveedorController } from "../controllers/ReporteDocumentosProveedorController";
+import { HmisController } from "../controllers/HmisController";
 
 // CQRS implementations
 import { CommandBus } from "../cqrs/CommandBus";
@@ -287,6 +302,17 @@ container
 container
   .bind<LibroMayorAsientosRepository>("LibroMayorAsientosRepository")
   .to(LibroMayorAsientosRepository);
+container
+  .bind<IReporteDocumentosProveedorRepository>(
+    "IReporteDocumentosProveedorRepository"
+  )
+  .to(ReporteDocumentosProveedorRepository);
+container
+  .bind<IReporteGNRepository>("IReporteGNRepository")
+  .to(ReporteGNRepository);
+container
+  .bind<IReporteHmisRepository>("IReporteHmisRepository")
+  .to(ReporteHmisRepository);
 
 container
   .bind<ICuentaContableRepository>("ICuentaContableRepository")
@@ -343,6 +369,15 @@ container
 container
   .bind<ILibroMayorAsientosService>("ILibroMayorAsientosService")
   .to(LibroMayorAsientosService);
+container.bind<IReporteGNService>("IReporteGNService").to(ReporteGNService);
+container
+  .bind<IReporteDocumentosProveedorService>(
+    "IReporteDocumentosProveedorService"
+  )
+  .to(ReporteDocumentosProveedorService);
+container
+  .bind<IReporteHmisService>("IReporteHmisService")
+  .to(ReporteHmisService);
 
 container.bind<IDatabaseService>("IDatabaseService").to(DatabaseService);
 container
@@ -426,7 +461,18 @@ container
   .bind<ReporteGenericoSaldosRoutes>("ReporteGenericoSaldosRoutes")
   .to(ReporteGenericoSaldosRoutes);
 container.bind<ClipperController>("ClipperController").to(ClipperController);
-container.bind<LibroMayorAsientosController>("LibroMayorAsientosController").to(LibroMayorAsientosController);
+container
+  .bind<LibroMayorAsientosController>("LibroMayorAsientosController")
+  .to(LibroMayorAsientosController);
+container
+  .bind<ReporteGNController>("ReporteGNController")
+  .to(ReporteGNController);
+container
+  .bind<ReporteDocumentosProveedorController>(
+    "ReporteDocumentosProveedorController"
+  )
+  .to(ReporteDocumentosProveedorController);
+container.bind<HmisController>("HmisController").to(HmisController);
 
 // CQRS Buses
 container.bind<ICommandBus>("ICommandBus").to(CommandBus);
@@ -532,10 +578,14 @@ container
   .bind<GenerarLibroMayorAsientosHandler>("GenerarLibroMayorAsientosHandler")
   .to(GenerarLibroMayorAsientosHandler);
 container
-  .bind<ExportarLibroMayorAsientosExcelHandler>("ExportarLibroMayorAsientosExcelHandler")
+  .bind<ExportarLibroMayorAsientosExcelHandler>(
+    "ExportarLibroMayorAsientosExcelHandler"
+  )
   .to(ExportarLibroMayorAsientosExcelHandler);
 container
-  .bind<ObtenerFiltrosLibroMayorAsientosHandler>("ObtenerFiltrosLibroMayorAsientosHandler")
+  .bind<ObtenerFiltrosLibroMayorAsientosHandler>(
+    "ObtenerFiltrosLibroMayorAsientosHandler"
+  )
   .to(ObtenerFiltrosLibroMayorAsientosHandler);
 
 // CQRS Service
