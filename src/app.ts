@@ -51,6 +51,11 @@ import { CqrsService } from "./infrastructure/cqrs/CqrsService";
 import { createReporteClipperRoutes } from "./infrastructure/routes/ReporteClipperRoutes";
 import { IReporteClipperRepository } from "./domain/repositories/IReporteClipperRepository";
 import libroMayorAsientosRoutes from "./infrastructure/routes/libro-mayor-asientos.routes";
+import { createReporteHmisRoutes } from "./infrastructure/routes/ReporteHmisRoutes";
+import { IReporteHmisRepository } from "./domain/repositories/IReporteHmisRepository";
+import { IReporteDocumentosProveedorRepository } from "./domain/repositories/IReporteDocumentosProveedorRepository";
+import { createReporteDocumentosProveedorRoutes } from "./infrastructure/routes/ReporteDocumentosProveedorRoutes";
+import { get } from "http";
 
 const app = express();
 
@@ -97,6 +102,8 @@ const cuentaContableRepository = container.get<ICuentaContableRepository>(
 const reporteClipperRepository = container.get<IReporteClipperRepository>(
   "IReporteClipperRepository"
 );
+const ReporteHmisRepository = container.get<IReporteHmisRepository>("IReporteHmisRespository");
+const ReporteDocumentosProveedorRepository = container.get<IReporteDocumentosProveedorRepository>("ReporteDocumentosProveedorRepository");
 // Inicializar CQRS
 console.log("🚀 Inicializando CQRS Service...");
 const cqrsService = container.get<CqrsService>("CqrsService");
@@ -197,6 +204,8 @@ const reporteCatalogoCuentasModificadasRoutes =
 const reporteClipperRoutes = createReporteClipperRoutes(
   reporteClipperRepository
 );
+const reporteHmisRoutes = createReporteHmisRoutes(ReporteHmisRepository);
+const ReporteDocumentosProveedorRoutes = createReporteDocumentosProveedorRoutes(ReporteDocumentosProveedorRepository);
 
 // Balance Comprobación Routes
 const balanceComprobacionRoutes = container.get<BalanceComprobacionRoutes>(
@@ -207,6 +216,8 @@ const balanceComprobacionRoutes = container.get<BalanceComprobacionRoutes>(
 const reporteGenericoSaldosRoutes = container.get<ReporteGenericoSaldosRoutes>(
   "ReporteGenericoSaldosRoutes"
 );
+
+
 
 // Endpoint de prueba
 app.get("/api/test", (req, res) => {
@@ -367,8 +378,8 @@ app.use(
   QueryOptimizationMiddleware.validateQueryParams,
   reporteGenericoSaldosRoutes.getRouter()
 );
-
-
+app.use("/api/reporte-hmis",QueryOptimizationMiddleware.validateQueryParams,reporteHmisRoutes);
+app.use("/api/documentos-proveedor",ReporteDocumentosProveedorRoutes);
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================
 
 // Endpoints de usuarios adicionales

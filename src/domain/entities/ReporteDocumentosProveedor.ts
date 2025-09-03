@@ -47,17 +47,17 @@ export interface ReporteProveedor {
 }
 
 export interface DocumentosPorPagar {
-  contribuyente: string | null;
-  nombre: string | null;
-  fechaDocumento: string | null; // o Date | null si quieres tipar así
-  documento: string | null;
-  tipo: string | null;
-  aplicacion: string | null;
-  fecha: string | null;           // o Date | null
-  asiento: string | null;
-  debeLoc: number | null;
-  haberLoc: number | null;
-  debeDol: number | null;
-  haberDol: number | null;
-  moneda: string | null;
+  contribuyente: string | null;//nit
+  nombre: string | null; //nombre
+  fechaDocumento: string | null; //fecha
+  documento: string | null; //numero
+  tipo: string | null; //tipo
+  aplicacion: string | null; //glosa
+  fecha: string | null;           // fecha contable
+  asiento: string | null;   //asiento
+  debeLoc: number | null;  //debe sol
+  haberLoc: number | null; //haber sol
+  debeDol: number | null; //debe dol
+  haberDol: number | null; // haber dol
+  moneda: string | null; // moneda
 }

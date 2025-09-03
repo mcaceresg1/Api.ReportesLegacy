@@ -13,7 +13,7 @@ export class ReporteDocumentosProveedorRepository implements IReporteDocumentosP
   async obtenerProveedor(conjunto: string): Promise<ProveedorFiltro[]> {
     try {
       const query = `
-        SELECT 
+        SELECT top 201
           proveedor, 
           nombre, 
           alias, 

@@ -193,6 +193,16 @@ import { ReporteClipperRepository } from "../repositories/ReporteClipperReposito
 import { ClipperController } from "../controllers/ClipperController";
 import { IReporteClipperService } from "../../domain/services/IReporteClipperService";
 import { ReporteClipperService } from "../../application/services/ReporteCliperService";
+import { IReporteDocumentosProveedorRepository } from "../../domain/repositories/IReporteDocumentosProveedorRepository";
+import { IReporteHmisRepository } from "../../domain/repositories/IReporteHmisRepository";
+import { ReporteHmisRepository } from "../repositories/ReporteHmisRepository";
+import { ReporteDocumentosProveedorRepository } from "../repositories/ReporteDocumentosProveedorRepository";
+import { IReporteHmisService } from "../../domain/services/IReporteHmisService";
+import { ReporteHmisService } from "../../application/services/ReporteHmisService";
+import { IReporteDocumentosProveedorService } from "../../domain/services/IReporteDocumentosProveedorService";
+import { ReporteDocumentosProveedorService } from "../../application/services/ReporteDocumentosProveedorService";
+import { HmisController } from "../controllers/HmisController";
+import { ReporteDocumentosProveedorController } from "../controllers/ReporteDocumentosProveedorController";
 
 const container = new Container();
 
@@ -294,6 +304,9 @@ container
 container
   .bind<IReporteClipperRepository>("IReporteClipperRepository")
   .to(ReporteClipperRepository);
+  container.bind<IReporteHmisRepository>("ReporteHmisRepository").to(ReporteHmisRepository)
+  container.bind<IReporteDocumentosProveedorRepository>("ReporteDocumentosProveedorRepository").to(ReporteDocumentosProveedorRepository);
+
 
 // Services
 container.bind<IUsuarioService>("IUsuarioService").to(UsuarioService);
@@ -348,6 +361,8 @@ container.bind<IDatabaseService>("IDatabaseService").to(DatabaseService);
 container
   .bind<IReporteClipperService>("IReporteClipperService")
   .to(ReporteClipperService);
+container.bind<IReporteHmisService>("IReporteHmisService").to(ReporteHmisService);
+container.bind<IReporteDocumentosProveedorService>("IReporteDocumentosProveedorService").to(ReporteDocumentosProveedorService);
 
 // Controllers
 container.bind<UsuarioController>("UsuarioController").to(UsuarioController);
@@ -426,8 +441,14 @@ container
   .bind<ReporteGenericoSaldosRoutes>("ReporteGenericoSaldosRoutes")
   .to(ReporteGenericoSaldosRoutes);
 container.bind<ClipperController>("ClipperController").to(ClipperController);
-container.bind<LibroMayorAsientosController>("LibroMayorAsientosController").to(LibroMayorAsientosController);
 
+
+// binding:
+container.bind<LibroMayorAsientosController>(TYPES.LibroMayorAsientosController).to(LibroMayorAsientosController);
+
+
+container.bind<HmisController>("HmisController").to(HmisController);
+container.bind<ReporteDocumentosProveedorController>("ReporteDocumentosProveedorController").to(ReporteDocumentosProveedorController);
 // CQRS Buses
 container.bind<ICommandBus>("ICommandBus").to(CommandBus);
 container.bind<IQueryBus>("IQueryBus").to(QueryBus);
