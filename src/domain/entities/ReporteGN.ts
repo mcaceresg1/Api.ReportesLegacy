@@ -88,16 +88,103 @@ export interface GNPrestamoCuentaCorriente {
   esquema_origen: string;
 }
 
+export interface GNPrestamo {
+  ESQUEMA: string
+DNI: string
+APELLIDOS_NOMBRES: string
+FECHA_INGRESO_EMPLEADO: string
+PUESTO: string
+SEDE: string
+CENTRO_COSTO: string
+DESCRIPCION_CC: string
+NUM_MOVIMIENTO: number
+COD_TIPO_MOVIMIENTO: string
+TIPO_MOVIMIENTO: string
+MONEDA: string
+NUMERO_NOMINA: number
+NOMINA_MES: string
+NUMERO_CUOTA_DESCONTADA: number
+MONTO_CUOTA_DESCONTADA: number
+MONTO_CUOTA_DESCONTADA_DOLAR: number
+ESTADO_CUOTA_DESCONTADA: string
+MONTO_LOCAL: number
+MONTO_ABONADO_CUOTA: number
+SALDO_CUOTA: number
+MONTO_ABONADO: number
+FECHA_INGRESO: string
+NUM_CUOTAS: number
+SALDO_LOCAL: number
+CODIGO_ESTADO_PRESTAMO: string
+ESTADO_PRESTAMO: string
+DIFERENCIA: number
+ESTADO_SALDO: string
+FECHA_CREACION_SISTEMA: string
+ESTADO_EMPLEADO: string
+FECHA_SALIDA: string
+}
+
+
+
+
 export interface FiltrosReporteRolDeVacaciones {
   fecha_inicio: string;
   fecha_fin: string;
-  id_usuario: string;
+  cod_empleado: string;
   pagina: number;
   registrosPorPagina: number;
 }
 
 export interface FiltrosReportePrestamoCtaCte {
-  cta_cte: string;
+  cod_empleado: string;
+  naturaleza: string
+}
+
+export interface FiltrosReporteAnualizado {
+  cod_empleado: string;
+  filtro: "N" | "P";
+  codigo_nomina: number;
+  periodo: number;
+  centro_costo: string
+  area: string
+  activo: number
+
+}
+
+export interface FiltrosReporteAccionesDePersonal {
+  fecha_accion_inicio: string;
+  fecha_accion_fin: string;
+  cod_empleado: string;
+}
+
+export interface FiltrosReporteContratos {
+  cod_empleado: string;
+}
+
+export interface FiltrosReportePrestamos {
+  cod_empleado: string
+  num_nomina: number
+  tipo_prestamo: string,
+  estado_prestamo: string
+  numero_nomina: number
+  estado_empleado: string
+  estado_cuota: string
+}
+
+export interface FiltrosBoletaDePago {
+  num_nomina: number
+  cod_empleado: string
+}
+
+export interface RespuestaReportePrestamos {
+  success: boolean
+  message: string
+  data: GNPrestamo[]
+}
+
+export interface RespuestaReporteAnualizado {
+  success: boolean;
+  message: string;
+  data: GNReporteAnualizado | undefined;
 }
 
 export interface RespuestaReportePrestamoCtaCte {
@@ -116,29 +203,6 @@ export interface RespuestaReporteRolDeVacaciones {
   data: GNRolDeVacaciones[];
 }
 
-export interface FiltrosReporteAnualizado {
-  id_usuario: string;
-  tipo: "nomina" | "periodo";
-  codigo_nomina: number;
-  periodo: number;
-}
-
-export interface RespuestaReporteAnualizado {
-  success: boolean;
-  message: string;
-  data: GNReporteAnualizado | undefined;
-}
-
-export interface FiltrosReporteAccionesDePersonal {
-  fecha_accion_inicio: string;
-  fecha_accion_fin: string;
-  id_usuario: string;
-}
-
-export interface FiltrosReporteContratos {
-  id_usuario: string;
-}
-
 export interface RespuestaReporteAccionesDePersonal {
   success: boolean;
   message: string;
@@ -149,4 +213,15 @@ export interface RespuestaReporteContratos {
   success: boolean;
   message: string;
   data: GNContrato[];
+}
+
+export interface RespuestaReporteBoletasDePago {
+  success: boolean
+  message: string
+  data: {
+    peiodo_planilla: any
+    compania: any
+    boleta: any,
+    horas_dias: any
+  }
 }
