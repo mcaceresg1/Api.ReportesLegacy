@@ -15,3 +15,4 @@ export class ExportarLibroMayorAsientosExcelQuery implements IQuery {
     public readonly filtros: ExportarLibroMayorAsientosExcelParams
   ) {}
 }
+

@@ -1,18 +1,19 @@
 import { Request, Response } from "express";
 import { injectable, inject } from "inversify";
-import { ILibroMayorAsientosService } from "../../domain/services/ILibroMayorAsientosService";
+import { ILibroMayorService } from "../../domain/services/ILibroMayorService";
 import {
-  LibroMayorAsientosFiltros,
-  LibroMayorAsientosResponse,
-  GenerarLibroMayorAsientosParams,
-  ExportarLibroMayorAsientosExcelParams,
-} from "../../domain/entities/LibroMayorAsientos";
+  LibroMayorFiltros,
+  LibroMayorResponse,
+  GenerarLibroMayorParams,
+  ExportarLibroMayorExcelParams,
+  ExportarLibroMayorPDFParams,
+} from "../../domain/entities/LibroMayor";
 
 @injectable()
-export class LibroMayorAsientosController {
+export class LibroMayorController {
   constructor(
-    @inject("ILibroMayorAsientosService")
-    private libroMayorAsientosService: ILibroMayorAsientosService
+    @inject("ILibroMayorService")
+    private libroMayorService: ILibroMayorService
   ) {}
 
   /**
@@ -21,20 +22,20 @@ export class LibroMayorAsientosController {
   async health(req: Request, res: Response): Promise<void> {
     res.status(200).json({
       success: true,
-      message: "Servicio de Libro Mayor Asientos funcionando correctamente",
+      message: "Servicio de Libro Mayor funcionando correctamente",
       timestamp: new Date().toISOString(),
     });
   }
 
   /**
-   * Obtiene los filtros disponibles
+   * Obtiene las cuentas contables para un conjunto específico
    * @swagger
-   * /api/libro-mayor-asientos/{conjunto}/filtros:
+   * /api/libro-mayor/{conjunto}/cuentas-contables:
    *   get:
    *     tags:
-   *       - Libro Mayor Asientos
-   *     summary: Obtiene los filtros disponibles
-   *     description: Recupera los asientos y referencias disponibles para filtrar
+   *       - Libro Mayor
+   *     summary: Obtiene las cuentas contables
+   *     description: Recupera las cuentas contables disponibles para un conjunto
    *     parameters:
    *       - in: path
    *         name: conjunto
@@ -42,10 +43,10 @@ export class LibroMayorAsientosController {
    *         schema:
    *           type: string
    *         description: Código del conjunto contable
-   *         example: "001"
+   *         example: "FIDPLAN"
    *     responses:
    *       200:
-   *         description: Filtros obtenidos exitosamente
+   *         description: Cuentas contables obtenidas exitosamente
    *         content:
    *           application/json:
    *             schema:
@@ -57,23 +58,16 @@ export class LibroMayorAsientosController {
    *                 data:
    *                   type: array
    *                   items:
-   *                     type: object
-   *                     properties:
-   *                       asiento:
-   *                         type: string
-   *                         example: "000001"
-   *                       referencia:
-   *                         type: string
-   *                         example: "DOC001"
+   *                     $ref: '#/components/schemas/CuentaContableInfo'
    *                 message:
    *                   type: string
-   *                   example: "Filtros obtenidos exitosamente"
+   *                   example: "Cuentas contables obtenidas exitosamente"
    *       400:
    *         description: Parámetros inválidos
    *       500:
    *         description: Error interno del servidor
    */
-  async obtenerFiltros(req: Request, res: Response): Promise<void> {
+  async obtenerCuentasContables(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto } = req.params;
 
@@ -85,32 +79,32 @@ export class LibroMayorAsientosController {
         return;
       }
 
-      const filtros = await this.libroMayorAsientosService.obtenerFiltros(conjunto);
+      const cuentas = await this.libroMayorService.obtenerCuentasContables(conjunto);
 
       res.status(200).json({
         success: true,
-        data: filtros,
-        message: "Filtros obtenidos exitosamente",
+        data: cuentas,
+        message: "Cuentas contables obtenidas exitosamente",
       });
     } catch (error) {
-      console.error("Error en obtenerFiltros:", error);
+      console.error("Error en obtenerCuentasContables:", error);
       res.status(500).json({
         success: false,
-        message: "Error al obtener filtros",
+        message: "Error al obtener cuentas contables",
         error: error instanceof Error ? error.message : "Error desconocido",
       });
     }
   }
 
   /**
-   * Genera el reporte de Libro Mayor Asientos
+   * Obtiene los períodos contables para un conjunto específico
    * @swagger
-   * /api/libro-mayor-asientos/{conjunto}/generar:
+   * /api/libro-mayor/{conjunto}/periodos-contables:
    *   get:
    *     tags:
-   *       - Libro Mayor Asientos
-   *     summary: Genera el reporte de Libro Mayor Asientos
-   *     description: Ejecuta el proceso para generar el reporte de Libro Mayor Asientos
+   *       - Libro Mayor
+   *     summary: Obtiene los períodos contables
+   *     description: Recupera los períodos contables disponibles para un conjunto
    *     parameters:
    *       - in: path
    *         name: conjunto
@@ -118,69 +112,108 @@ export class LibroMayorAsientosController {
    *         schema:
    *           type: string
    *         description: Código del conjunto contable
-   *         example: "001"
-   *       - in: query
-   *         name: asiento
+   *         example: "FIDPLAN"
+   *     responses:
+   *       200:
+   *         description: Períodos contables obtenidos exitosamente
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     $ref: '#/components/schemas/PeriodoContableInfo'
+   *                 message:
+   *                   type: string
+   *                   example: "Períodos contables obtenidos exitosamente"
+   *       400:
+   *         description: Parámetros inválidos
+   *       500:
+   *         description: Error interno del servidor
+   */
+  async obtenerPeriodosContables(req: Request, res: Response): Promise<void> {
+    try {
+      const { conjunto } = req.params;
+
+      if (!conjunto) {
+        res.status(400).json({
+          success: false,
+          message: "El parámetro conjunto es obligatorio",
+        });
+        return;
+      }
+
+      const periodos = await this.libroMayorService.obtenerPeriodosContables(conjunto);
+
+      res.status(200).json({
+        success: true,
+        data: periodos,
+        message: "Períodos contables obtenidos exitosamente",
+      });
+    } catch (error) {
+      console.error("Error en obtenerPeriodosContables:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error al obtener períodos contables",
+        error: error instanceof Error ? error.message : "Error desconocido",
+      });
+    }
+  }
+
+  /**
+   * Genera el reporte de Libro Mayor
+   * @swagger
+   * /api/libro-mayor/{conjunto}/generar:
+   *   get:
+   *     tags:
+   *       - Libro Mayor
+   *     summary: Genera el reporte de Libro Mayor
+   *     description: Ejecuta el proceso para generar el reporte de Libro Mayor
+   *     parameters:
+   *       - in: path
+   *         name: conjunto
+   *         required: true
    *         schema:
    *           type: string
-   *         description: Filtro por asiento
-   *         example: "000001"
+   *         description: Código del conjunto contable
+   *         example: "FIDPLAN"
    *       - in: query
-   *         name: referencia
+   *         name: cuentaContableDesde
    *         schema:
    *           type: string
-   *         description: Filtro por referencia
-   *         example: "DOC001"
+   *         description: Cuenta contable desde
+   *         example: "01.1.1.1.004"
    *       - in: query
-   *         name: fechaInicio
+   *         name: cuentaContableHasta
+   *         schema:
+   *           type: string
+   *         description: Cuenta contable hasta
+   *         example: "02.Z.Z.Z.ZZZ"
+   *       - in: query
+   *         name: fechaDesde
    *         schema:
    *           type: string
    *           format: date
    *         description: Fecha de inicio
-   *         example: "2024-01-01"
+   *         example: "2011-01-31"
    *       - in: query
-   *         name: fechaFin
+   *         name: fechaHasta
    *         schema:
    *           type: string
    *           format: date
    *         description: Fecha de fin
-   *         example: "2024-12-31"
+   *         example: "2022-12-31"
    *       - in: query
-   *         name: contabilidad
+   *         name: centroCosto
    *         schema:
    *           type: string
-   *         description: Tipo de contabilidad
-   *         example: "F"
-   *       - in: query
-   *         name: tipoAsiento
-   *         schema:
-   *           type: string
-   *         description: Tipo de asiento
-   *         example: "N"
-   *       - in: query
-   *         name: origen
-   *         schema:
-   *           type: string
-   *         description: Origen del asiento
-   *         example: "01"
-   *       - in: query
-   *         name: exportado
-   *         schema:
-   *           type: string
-   *         description: Estado de exportación
-   *         example: "S"
-   *       - in: query
-   *         name: mayorizacion
-   *         schema:
-   *           type: string
-   *         description: Estado de mayorización
-   *         example: "N"
-   *       - in: query
-   *         name: documentoGlobal
-   *         schema:
-   *           type: string
-   *         description: Documento global
-   *         example: "DOC001"
+   *         description: Centro de costo
+   *         example: "001"
    *     responses:
    *       200:
    *         description: Reporte generado exitosamente
@@ -195,7 +228,7 @@ export class LibroMayorAsientosController {
    *                 data:
    *                   type: array
    *                   items:
-   *                     $ref: '#/components/schemas/LibroMayorAsientos'
+   *                     $ref: '#/components/schemas/LibroMayor'
    *                 pagination:
    *                   type: object
    *                   properties:
@@ -229,16 +262,11 @@ export class LibroMayorAsientosController {
     try {
       const { conjunto } = req.params;
       const {
-        asiento,
-        referencia,
-        fechaInicio,
-        fechaFin,
-        contabilidad,
-        tipoAsiento,
-        origen,
-        exportado,
-        mayorizacion,
-        documentoGlobal,
+        cuentaContableDesde,
+        cuentaContableHasta,
+        fechaDesde,
+        fechaHasta,
+        centroCosto,
       } = req.query;
 
       if (!conjunto) {
@@ -249,23 +277,29 @@ export class LibroMayorAsientosController {
         return;
       }
 
+      if (!fechaDesde || !fechaHasta) {
+        res.status(400).json({
+          success: false,
+          message: "Las fechas de inicio y fin son obligatorias",
+        });
+        return;
+      }
+
       // Preparar filtros
-      const filtros: GenerarLibroMayorAsientosParams = {
+      const filtros: GenerarLibroMayorParams = {
         conjunto,
-        asiento: asiento as string,
-        referencia: referencia as string,
-        ...(fechaInicio && { fechaInicio: new Date(fechaInicio as string) }),
-        ...(fechaFin && { fechaFin: new Date(fechaFin as string) }),
-        contabilidad: contabilidad as string,
-        tipoAsiento: tipoAsiento as string,
-        origen: origen as string,
-        exportado: exportado as string,
-        mayorizacion: mayorizacion as string,
-        documentoGlobal: documentoGlobal as string,
+        cuentaContableDesde: cuentaContableDesde as string,
+        cuentaContableHasta: cuentaContableHasta as string,
+        fechaDesde: fechaDesde as string,
+        fechaHasta: fechaHasta as string,
+        centroCosto: centroCosto as string,
       };
 
-      // Validar fechas si se proporcionan
-      if (filtros.fechaInicio && isNaN(filtros.fechaInicio.getTime())) {
+      // Validar fechas
+      const fechaInicio = new Date(filtros.fechaDesde);
+      const fechaFin = new Date(filtros.fechaHasta);
+
+      if (isNaN(fechaInicio.getTime())) {
         res.status(400).json({
           success: false,
           message: "La fecha de inicio debe tener un formato válido (YYYY-MM-DD)",
@@ -273,7 +307,7 @@ export class LibroMayorAsientosController {
         return;
       }
 
-      if (filtros.fechaFin && isNaN(filtros.fechaFin.getTime())) {
+      if (isNaN(fechaFin.getTime())) {
         res.status(400).json({
           success: false,
           message: "La fecha de fin debe tener un formato válido (YYYY-MM-DD)",
@@ -281,7 +315,7 @@ export class LibroMayorAsientosController {
         return;
       }
 
-      if (filtros.fechaInicio && filtros.fechaFin && filtros.fechaInicio > filtros.fechaFin) {
+      if (fechaInicio > fechaFin) {
         res.status(400).json({
           success: false,
           message: "La fecha de inicio no puede ser mayor que la fecha de fin",
@@ -289,7 +323,7 @@ export class LibroMayorAsientosController {
         return;
       }
 
-      const resultado = await this.libroMayorAsientosService.generarReporte(conjunto, filtros);
+      const resultado = await this.libroMayorService.generarReporte(conjunto, filtros);
 
       res.status(200).json(resultado);
     } catch (error) {
@@ -305,11 +339,11 @@ export class LibroMayorAsientosController {
   /**
    * Obtiene los datos paginados del reporte
    * @swagger
-   * /api/libro-mayor-asientos/{conjunto}/obtener:
+   * /api/libro-mayor/{conjunto}/obtener:
    *   get:
    *     tags:
-   *       - Libro Mayor Asientos
-   *     summary: Obtiene los datos del Libro Mayor Asientos
+   *       - Libro Mayor
+   *     summary: Obtiene los datos del Libro Mayor
    *     description: Recupera los datos del reporte con filtros opcionales y paginación
    *     parameters:
    *       - in: path
@@ -318,69 +352,39 @@ export class LibroMayorAsientosController {
    *         schema:
    *           type: string
    *         description: Código del conjunto contable
-   *         example: "001"
+   *         example: "FIDPLAN"
    *       - in: query
-   *         name: asiento
+   *         name: cuentaContableDesde
    *         schema:
    *           type: string
-   *         description: Filtro por asiento
-   *         example: "000001"
+   *         description: Cuenta contable desde
+   *         example: "01.1.1.1.004"
    *       - in: query
-   *         name: referencia
+   *         name: cuentaContableHasta
    *         schema:
    *           type: string
-   *         description: Filtro por referencia
-   *         example: "DOC001"
+   *         description: Cuenta contable hasta
+   *         example: "02.Z.Z.Z.ZZZ"
    *       - in: query
-   *         name: fechaInicio
+   *         name: fechaDesde
    *         schema:
    *           type: string
    *           format: date
    *         description: Fecha de inicio
-   *         example: "2024-01-01"
+   *         example: "2011-01-31"
    *       - in: query
-   *         name: fechaFin
+   *         name: fechaHasta
    *         schema:
    *           type: string
    *           format: date
    *         description: Fecha de fin
-   *         example: "2024-12-31"
+   *         example: "2022-12-31"
    *       - in: query
-   *         name: contabilidad
+   *         name: centroCosto
    *         schema:
    *           type: string
-   *         description: Tipo de contabilidad
-   *         example: "F"
-   *       - in: query
-   *         name: tipoAsiento
-   *         schema:
-   *           type: string
-   *         description: Tipo de asiento
-   *         example: "N"
-   *       - in: query
-   *         name: origen
-   *         schema:
-   *           type: string
-   *         description: Origen del asiento
-   *         example: "01"
-   *       - in: query
-   *         name: exportado
-   *         schema:
-   *           type: string
-   *         description: Estado de exportación
-   *         example: "S"
-   *       - in: query
-   *         name: mayorizacion
-   *         schema:
-   *           type: string
-   *         description: Estado de mayorización
-   *         example: "N"
-   *       - in: query
-   *         name: documentoGlobal
-   *         schema:
-   *           type: string
-   *         description: Documento global
-   *         example: "DOC001"
+   *         description: Centro de costo
+   *         example: "001"
    *       - in: query
    *         name: page
    *         schema:
@@ -410,7 +414,7 @@ export class LibroMayorAsientosController {
    *                 data:
    *                   type: array
    *                   items:
-   *                     $ref: '#/components/schemas/LibroMayorAsientos'
+   *                     $ref: '#/components/schemas/LibroMayor'
    *                 pagination:
    *                   type: object
    *                   properties:
@@ -440,20 +444,15 @@ export class LibroMayorAsientosController {
    *       500:
    *         description: Error interno del servidor
    */
-  async obtenerAsientos(req: Request, res: Response): Promise<void> {
+  async obtenerLibroMayor(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto } = req.params;
       const {
-        asiento,
-        referencia,
-        fechaInicio,
-        fechaFin,
-        contabilidad,
-        tipoAsiento,
-        origen,
-        exportado,
-        mayorizacion,
-        documentoGlobal,
+        cuentaContableDesde,
+        cuentaContableHasta,
+        fechaDesde,
+        fechaHasta,
+        centroCosto,
         page,
         limit,
       } = req.query;
@@ -462,6 +461,14 @@ export class LibroMayorAsientosController {
         res.status(400).json({
           success: false,
           message: "El parámetro conjunto es obligatorio",
+        });
+        return;
+      }
+
+      if (!fechaDesde || !fechaHasta) {
+        res.status(400).json({
+          success: false,
+          message: "Las fechas de inicio y fin son obligatorias",
         });
         return;
       }
@@ -479,24 +486,22 @@ export class LibroMayorAsientosController {
       }
 
       // Preparar filtros
-      const filtros: LibroMayorAsientosFiltros = {
+      const filtros: LibroMayorFiltros = {
         conjunto,
-        asiento: asiento as string,
-        referencia: referencia as string,
-        ...(fechaInicio && { fechaInicio: new Date(fechaInicio as string) }),
-        ...(fechaFin && { fechaFin: new Date(fechaFin as string) }),
-        contabilidad: contabilidad as string,
-        tipoAsiento: tipoAsiento as string,
-        origen: origen as string,
-        exportado: exportado as string,
-        mayorizacion: mayorizacion as string,
-        documentoGlobal: documentoGlobal as string,
+        cuentaContableDesde: cuentaContableDesde as string,
+        cuentaContableHasta: cuentaContableHasta as string,
+        fechaDesde: fechaDesde as string,
+        fechaHasta: fechaHasta as string,
+        centroCosto: centroCosto as string,
         page: pageNum,
         limit: limitNum,
       };
 
-      // Validar fechas si se proporcionan
-      if (filtros.fechaInicio && isNaN(filtros.fechaInicio.getTime())) {
+      // Validar fechas
+      const fechaInicio = new Date(filtros.fechaDesde);
+      const fechaFin = new Date(filtros.fechaHasta);
+
+      if (isNaN(fechaInicio.getTime())) {
         res.status(400).json({
           success: false,
           message: "La fecha de inicio debe tener un formato válido (YYYY-MM-DD)",
@@ -504,7 +509,7 @@ export class LibroMayorAsientosController {
         return;
       }
 
-      if (filtros.fechaFin && isNaN(filtros.fechaFin.getTime())) {
+      if (isNaN(fechaFin.getTime())) {
         res.status(400).json({
           success: false,
           message: "La fecha de fin debe tener un formato válido (YYYY-MM-DD)",
@@ -512,7 +517,7 @@ export class LibroMayorAsientosController {
         return;
       }
 
-      if (filtros.fechaInicio && filtros.fechaFin && filtros.fechaInicio > filtros.fechaFin) {
+      if (fechaInicio > fechaFin) {
         res.status(400).json({
           success: false,
           message: "La fecha de inicio no puede ser mayor que la fecha de fin",
@@ -520,14 +525,14 @@ export class LibroMayorAsientosController {
         return;
       }
 
-      const resultado = await this.libroMayorAsientosService.obtenerAsientos(conjunto, filtros);
+      const resultado = await this.libroMayorService.obtenerLibroMayor(conjunto, filtros);
 
       res.status(200).json(resultado);
     } catch (error) {
-      console.error("Error en obtenerAsientos:", error);
+      console.error("Error en obtenerLibroMayor:", error);
       res.status(500).json({
         success: false,
-        message: "Error al obtener asientos",
+        message: "Error al obtener libro mayor",
         error: error instanceof Error ? error.message : "Error desconocido",
       });
     }
@@ -536,12 +541,12 @@ export class LibroMayorAsientosController {
   /**
    * Exporta el reporte a Excel
    * @swagger
-   * /api/libro-mayor-asientos/{conjunto}/excel:
+   * /api/libro-mayor/{conjunto}/exportar-excel:
    *   get:
    *     tags:
-   *       - Libro Mayor Asientos
-   *     summary: Exporta el Libro Mayor Asientos a Excel
-   *     description: Genera y descarga un archivo Excel con los datos del Libro Mayor Asientos
+   *       - Libro Mayor
+   *     summary: Exporta el Libro Mayor a Excel
+   *     description: Genera y descarga un archivo Excel con los datos del Libro Mayor
    *     parameters:
    *       - in: path
    *         name: conjunto
@@ -549,69 +554,39 @@ export class LibroMayorAsientosController {
    *         schema:
    *           type: string
    *         description: Código del conjunto contable
-   *         example: "001"
+   *         example: "FIDPLAN"
    *       - in: query
-   *         name: asiento
+   *         name: cuentaContableDesde
    *         schema:
    *           type: string
-   *         description: Filtro por asiento
-   *         example: "000001"
+   *         description: Cuenta contable desde
+   *         example: "01.1.1.1.004"
    *       - in: query
-   *         name: referencia
+   *         name: cuentaContableHasta
    *         schema:
    *           type: string
-   *         description: Filtro por referencia
-   *         example: "DOC001"
+   *         description: Cuenta contable hasta
+   *         example: "02.Z.Z.Z.ZZZ"
    *       - in: query
-   *         name: fechaInicio
+   *         name: fechaDesde
    *         schema:
    *           type: string
    *           format: date
    *         description: Fecha de inicio
-   *         example: "2024-01-01"
+   *         example: "2011-01-31"
    *       - in: query
-   *         name: fechaFin
+   *         name: fechaHasta
    *         schema:
    *           type: string
    *           format: date
    *         description: Fecha de fin
-   *         example: "2024-12-31"
+   *         example: "2022-12-31"
    *       - in: query
-   *         name: contabilidad
+   *         name: centroCosto
    *         schema:
    *           type: string
-   *         description: Tipo de contabilidad
-   *         example: "F"
-   *       - in: query
-   *         name: tipoAsiento
-   *         schema:
-   *           type: string
-   *         description: Tipo de asiento
-   *         example: "N"
-   *       - in: query
-   *         name: origen
-   *         schema:
-   *           type: string
-   *         description: Origen del asiento
-   *         example: "01"
-   *       - in: query
-   *         name: exportado
-   *         schema:
-   *           type: string
-   *         description: Estado de exportación
-   *         example: "S"
-   *       - in: query
-   *         name: mayorizacion
-   *         schema:
-   *           type: string
-   *         description: Estado de mayorización
-   *         example: "N"
-   *       - in: query
-   *         name: documentoGlobal
-   *         schema:
-   *           type: string
-   *         description: Documento global
-   *         example: "DOC001"
+   *         description: Centro de costo
+   *         example: "001"
    *       - in: query
    *         name: limit
    *         schema:
@@ -637,16 +612,11 @@ export class LibroMayorAsientosController {
     try {
       const { conjunto } = req.params;
       const {
-        asiento,
-        referencia,
-        fechaInicio,
-        fechaFin,
-        contabilidad,
-        tipoAsiento,
-        origen,
-        exportado,
-        mayorizacion,
-        documentoGlobal,
+        cuentaContableDesde,
+        cuentaContableHasta,
+        fechaDesde,
+        fechaHasta,
+        centroCosto,
         limit,
       } = req.query;
 
@@ -654,6 +624,14 @@ export class LibroMayorAsientosController {
         res.status(400).json({
           success: false,
           message: "El parámetro conjunto es obligatorio",
+        });
+        return;
+      }
+
+      if (!fechaDesde || !fechaHasta) {
+        res.status(400).json({
+          success: false,
+          message: "Las fechas de inicio y fin son obligatorias",
         });
         return;
       }
@@ -669,23 +647,21 @@ export class LibroMayorAsientosController {
       }
 
       // Preparar filtros
-      const filtros: ExportarLibroMayorAsientosExcelParams = {
+      const filtros: ExportarLibroMayorExcelParams = {
         conjunto,
-        asiento: asiento as string,
-        referencia: referencia as string,
-        ...(fechaInicio && { fechaInicio: new Date(fechaInicio as string) }),
-        ...(fechaFin && { fechaFin: new Date(fechaFin as string) }),
-        contabilidad: contabilidad as string,
-        tipoAsiento: tipoAsiento as string,
-        origen: origen as string,
-        exportado: exportado as string,
-        mayorizacion: mayorizacion as string,
-        documentoGlobal: documentoGlobal as string,
+        cuentaContableDesde: cuentaContableDesde as string,
+        cuentaContableHasta: cuentaContableHasta as string,
+        fechaDesde: fechaDesde as string,
+        fechaHasta: fechaHasta as string,
+        centroCosto: centroCosto as string,
         limit: limitNum,
       };
 
-      // Validar fechas si se proporcionan
-      if (filtros.fechaInicio && isNaN(filtros.fechaInicio.getTime())) {
+      // Validar fechas
+      const fechaInicio = new Date(filtros.fechaDesde);
+      const fechaFin = new Date(filtros.fechaHasta);
+
+      if (isNaN(fechaInicio.getTime())) {
         res.status(400).json({
           success: false,
           message: "La fecha de inicio debe tener un formato válido (YYYY-MM-DD)",
@@ -693,7 +669,7 @@ export class LibroMayorAsientosController {
         return;
       }
 
-      if (filtros.fechaFin && isNaN(filtros.fechaFin.getTime())) {
+      if (isNaN(fechaFin.getTime())) {
         res.status(400).json({
           success: false,
           message: "La fecha de fin debe tener un formato válido (YYYY-MM-DD)",
@@ -701,7 +677,7 @@ export class LibroMayorAsientosController {
         return;
       }
 
-      if (filtros.fechaInicio && filtros.fechaFin && filtros.fechaInicio > filtros.fechaFin) {
+      if (fechaInicio > fechaFin) {
         res.status(400).json({
           success: false,
           message: "La fecha de inicio no puede ser mayor que la fecha de fin",
@@ -709,10 +685,10 @@ export class LibroMayorAsientosController {
         return;
       }
 
-      const excelBuffer = await this.libroMayorAsientosService.exportarExcel(conjunto, filtros);
+      const excelBuffer = await this.libroMayorService.exportarExcel(conjunto, filtros);
 
       // Configurar headers para descarga
-      const fileName = `libro-mayor-asientos-${conjunto}-${new Date().toISOString().split('T')[0]}.xlsx`;
+      const fileName = `libro-mayor-${conjunto}-${new Date().toISOString().split('T')[0]}.xlsx`;
       res.setHeader(
         "Content-Type",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -729,7 +705,7 @@ export class LibroMayorAsientosController {
       console.error("Error en exportarExcel:", error);
       res.status(500).json({
         success: false,
-        message: "Error al exportar Libro Mayor Asientos a Excel",
+        message: "Error al exportar Libro Mayor a Excel",
         error: error instanceof Error ? error.message : "Error desconocido",
       });
     }
@@ -738,12 +714,12 @@ export class LibroMayorAsientosController {
   /**
    * Exporta el reporte a PDF
    * @swagger
-   * /api/libro-mayor-asientos/{conjunto}/pdf:
+   * /api/libro-mayor/{conjunto}/exportar-pdf:
    *   get:
    *     tags:
-   *       - Libro Mayor Asientos
-   *     summary: Exporta el Libro Mayor Asientos a PDF
-   *     description: Genera y descarga un archivo PDF con los datos del Libro Mayor Asientos
+   *       - Libro Mayor
+   *     summary: Exporta el Libro Mayor a PDF
+   *     description: Genera y descarga un archivo PDF con los datos del Libro Mayor
    *     parameters:
    *       - in: path
    *         name: conjunto
@@ -751,69 +727,39 @@ export class LibroMayorAsientosController {
    *         schema:
    *           type: string
    *         description: Código del conjunto contable
-   *         example: "001"
+   *         example: "FIDPLAN"
    *       - in: query
-   *         name: asiento
+   *         name: cuentaContableDesde
    *         schema:
    *           type: string
-   *         description: Filtro por asiento
-   *         example: "000001"
+   *         description: Cuenta contable desde
+   *         example: "01.1.1.1.004"
    *       - in: query
-   *         name: referencia
+   *         name: cuentaContableHasta
    *         schema:
    *           type: string
-   *         description: Filtro por referencia
-   *         example: "DOC001"
+   *         description: Cuenta contable hasta
+   *         example: "02.Z.Z.Z.ZZZ"
    *       - in: query
-   *         name: fechaInicio
+   *         name: fechaDesde
    *         schema:
    *           type: string
    *           format: date
    *         description: Fecha de inicio
-   *         example: "2024-01-01"
+   *         example: "2011-01-31"
    *       - in: query
-   *         name: fechaFin
+   *         name: fechaHasta
    *         schema:
    *           type: string
    *           format: date
    *         description: Fecha de fin
-   *         example: "2024-12-31"
+   *         example: "2022-12-31"
    *       - in: query
-   *         name: contabilidad
+   *         name: centroCosto
    *         schema:
    *           type: string
-   *         description: Tipo de contabilidad
-   *         example: "F"
-   *       - in: query
-   *         name: tipoAsiento
-   *         schema:
-   *           type: string
-   *         description: Tipo de asiento
-   *         example: "N"
-   *       - in: query
-   *         name: origen
-   *         schema:
-   *           type: string
-   *         description: Origen del asiento
-   *         example: "01"
-   *       - in: query
-   *         name: exportado
-   *         schema:
-   *           type: string
-   *         description: Estado de exportación
-   *         example: "S"
-   *       - in: query
-   *         name: mayorizacion
-   *         schema:
-   *           type: string
-   *         description: Estado de mayorización
-   *         example: "N"
-   *       - in: query
-   *         name: documentoGlobal
-   *         schema:
-   *           type: string
-   *         description: Documento global
-   *         example: "DOC001"
+   *         description: Centro de costo
+   *         example: "001"
    *       - in: query
    *         name: limit
    *         schema:
@@ -839,16 +785,11 @@ export class LibroMayorAsientosController {
     try {
       const { conjunto } = req.params;
       const {
-        asiento,
-        referencia,
-        fechaInicio,
-        fechaFin,
-        contabilidad,
-        tipoAsiento,
-        origen,
-        exportado,
-        mayorizacion,
-        documentoGlobal,
+        cuentaContableDesde,
+        cuentaContableHasta,
+        fechaDesde,
+        fechaHasta,
+        centroCosto,
         limit,
       } = req.query;
 
@@ -856,6 +797,14 @@ export class LibroMayorAsientosController {
         res.status(400).json({
           success: false,
           message: "El parámetro conjunto es obligatorio",
+        });
+        return;
+      }
+
+      if (!fechaDesde || !fechaHasta) {
+        res.status(400).json({
+          success: false,
+          message: "Las fechas de inicio y fin son obligatorias",
         });
         return;
       }
@@ -871,23 +820,21 @@ export class LibroMayorAsientosController {
       }
 
       // Preparar filtros
-      const filtros: ExportarLibroMayorAsientosExcelParams = {
+      const filtros: ExportarLibroMayorPDFParams = {
         conjunto,
-        asiento: asiento as string,
-        referencia: referencia as string,
-        ...(fechaInicio && { fechaInicio: new Date(fechaInicio as string) }),
-        ...(fechaFin && { fechaFin: new Date(fechaFin as string) }),
-        contabilidad: contabilidad as string,
-        tipoAsiento: tipoAsiento as string,
-        origen: origen as string,
-        exportado: exportado as string,
-        mayorizacion: mayorizacion as string,
-        documentoGlobal: documentoGlobal as string,
+        cuentaContableDesde: cuentaContableDesde as string,
+        cuentaContableHasta: cuentaContableHasta as string,
+        fechaDesde: fechaDesde as string,
+        fechaHasta: fechaHasta as string,
+        centroCosto: centroCosto as string,
         limit: limitNum,
       };
 
-      // Validar fechas si se proporcionan
-      if (filtros.fechaInicio && isNaN(filtros.fechaInicio.getTime())) {
+      // Validar fechas
+      const fechaInicio = new Date(filtros.fechaDesde);
+      const fechaFin = new Date(filtros.fechaHasta);
+
+      if (isNaN(fechaInicio.getTime())) {
         res.status(400).json({
           success: false,
           message: "La fecha de inicio debe tener un formato válido (YYYY-MM-DD)",
@@ -895,7 +842,7 @@ export class LibroMayorAsientosController {
         return;
       }
 
-      if (filtros.fechaFin && isNaN(filtros.fechaFin.getTime())) {
+      if (isNaN(fechaFin.getTime())) {
         res.status(400).json({
           success: false,
           message: "La fecha de fin debe tener un formato válido (YYYY-MM-DD)",
@@ -903,7 +850,7 @@ export class LibroMayorAsientosController {
         return;
       }
 
-      if (filtros.fechaInicio && filtros.fechaFin && filtros.fechaInicio > filtros.fechaFin) {
+      if (fechaInicio > fechaFin) {
         res.status(400).json({
           success: false,
           message: "La fecha de inicio no puede ser mayor que la fecha de fin",
@@ -911,10 +858,10 @@ export class LibroMayorAsientosController {
         return;
       }
 
-      const pdfBuffer = await this.libroMayorAsientosService.exportarPDF(conjunto, filtros);
+      const pdfBuffer = await this.libroMayorService.exportarPDF(conjunto, filtros);
 
       // Configurar headers para descarga
-      const fileName = `libro-mayor-asientos-${conjunto}-${new Date().toISOString().split('T')[0]}.pdf`;
+      const fileName = `libro-mayor-${conjunto}-${new Date().toISOString().split('T')[0]}.pdf`;
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader(
         "Content-Disposition",
@@ -928,10 +875,9 @@ export class LibroMayorAsientosController {
       console.error("Error en exportarPDF:", error);
       res.status(500).json({
         success: false,
-        message: "Error al exportar Libro Mayor Asientos a PDF",
+        message: "Error al exportar Libro Mayor a PDF",
         error: error instanceof Error ? error.message : "Error desconocido",
       });
     }
   }
 }
-

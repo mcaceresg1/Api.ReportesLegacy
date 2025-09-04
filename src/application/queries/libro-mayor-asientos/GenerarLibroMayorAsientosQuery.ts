@@ -15,3 +15,4 @@ export class GenerarLibroMayorAsientosQuery implements IQuery {
     public readonly filtros: GenerarLibroMayorAsientosParams
   ) {}
 }
+

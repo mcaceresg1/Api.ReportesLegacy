@@ -25,3 +25,4 @@ export class ObtenerFiltrosLibroMayorAsientosHandler
     return resultado;
   }
 }
+

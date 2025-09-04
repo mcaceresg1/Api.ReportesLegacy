@@ -144,6 +144,13 @@ export class ReporteDocumentosProveedorRepository
     fechaFin: string
   ): Promise<DocumentosPorPagar[]> {
     try {
+      console.log("🔍 [Repository] Parámetros recibidos:", {
+        conjunto,
+        proveedor,
+        fechaInicio,
+        fechaFin,
+      });
+
       const query = `
         SELECT
           P.CONTRIBUYENTE,
@@ -195,11 +202,30 @@ export class ReporteDocumentosProveedorRepository
           AND AM.FECHA >= :fechaInicio
           AND AM.FECHA <= :fechaFin
       `;
+<<<<<<< HEAD
   
       const fechaInicioISO = fechaInicio ? new Date(fechaInicio).toISOString().split("T")[0] : '1900-01-01';
       const fechaFinISO = fechaFin ? new Date(fechaFin).toISOString().split("T")[0] : '9999-12-31';
       const proveedorFinal = proveedor ?? '';
   
+=======
+
+      const fechaInicioISO = fechaInicio
+        ? new Date(fechaInicio).toISOString().split("T")[0]
+        : "1900-01-01";
+      const fechaFinISO = fechaFin
+        ? new Date(fechaFin).toISOString().split("T")[0]
+        : "9999-12-31";
+      const proveedorFinal = proveedor ?? "";
+
+      console.log("📋 [Repository] Parámetros procesados para la consulta:", {
+        proveedor: proveedorFinal,
+        fechaInicio: fechaInicioISO,
+        fechaFin: fechaFinISO,
+      });
+
+      console.log("🔍 [Repository] Ejecutando consulta SQL...");
+>>>>>>> 4ee46e6bd1a824b448a48609f08f41a4fb41d1e3
       const result = await exactusSequelize.query<DocumentosPorPagar>(query, {
         replacements: {
           proveedor: proveedorFinal,
@@ -208,10 +234,40 @@ export class ReporteDocumentosProveedorRepository
         },
         type: QueryTypes.SELECT,
       });
+<<<<<<< HEAD
   
       return result;
     } catch (error) {
       console.error("Error al obtener reporte de documentos por proveedor:", error);
+=======
+
+      console.log("📊 [Repository] Resultado de la consulta:", {
+        cantidad: result?.length || 0,
+        primerosElementos: result?.slice(0, 2) || [],
+      });
+
+      // Log detallado del primer elemento para debugging
+      if (result && result.length > 0) {
+        const firstElement = result[0] as any;
+        console.log("🔍 [Repository] Primer elemento detallado:", {
+          CONTRIBUYENTE: firstElement.CONTRIBUYENTE,
+          NOMBRE: firstElement.NOMBRE,
+          TIPO: firstElement.TIPO,
+          DEBE_LOC: firstElement.DEBE_LOC,
+          HABER_LOC: firstElement.HABER_LOC,
+          DEBE_DOL: firstElement.DEBE_DOL,
+          HABER_DOL: firstElement.HABER_DOL,
+          MONEDA: firstElement.MONEDA,
+        });
+      }
+
+      return result;
+    } catch (error) {
+      console.error(
+        "❌ [Repository] Error al obtener reporte de documentos por proveedor:",
+        error
+      );
+>>>>>>> 4ee46e6bd1a824b448a48609f08f41a4fb41d1e3
       return [];
     }
   }

@@ -62,3 +62,4 @@ export interface ILibroMayorAsientosService {
     filtros: ExportarLibroMayorAsientosExcelParams
   ): Promise<Buffer>;
 }
+
