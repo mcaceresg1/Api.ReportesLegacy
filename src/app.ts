@@ -53,6 +53,7 @@ import { IReporteClipperRepository } from "./domain/repositories/IReporteClipper
 import libroMayorAsientosRoutes from "./infrastructure/routes/libro-mayor-asientos.routes";
 import libroMayorRoutes from "./infrastructure/routes/libro-mayor.routes";
 import estadoSituacionFinancieraRoutes from "./infrastructure/routes/estado-situacion-financiera.routes";
+import estadoResultadosRoutes from "./infrastructure/routes/estado-resultados.routes";
 import { createReporteGNRoutes } from "./infrastructure/routes/ReporteGNRoutes";
 import { IReporteHmisRepository } from "./domain/repositories/IReporteHmisRepository";
 import { createReporteHmisRoutes } from "./infrastructure/routes/ReporteHmisRoutes";
@@ -365,6 +366,14 @@ app.use(
   estadoSituacionFinancieraRoutes
 );
 console.log("✅ Estado Situación Financiera routes registradas correctamente");
+
+// Estado Resultados Routes
+app.use(
+  "/api/estado-resultados",
+  QueryOptimizationMiddleware.validateQueryParams,
+  estadoResultadosRoutes
+);
+console.log("✅ Estado Resultados routes registradas correctamente");
 app.use(
   "/api/diario-contabilidad",
   QueryOptimizationMiddleware.validateQueryParams,
