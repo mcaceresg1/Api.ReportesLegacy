@@ -202,13 +202,6 @@ export class ReporteDocumentosProveedorRepository
           AND AM.FECHA >= :fechaInicio
           AND AM.FECHA <= :fechaFin
       `;
-<<<<<<< HEAD
-  
-      const fechaInicioISO = fechaInicio ? new Date(fechaInicio).toISOString().split("T")[0] : '1900-01-01';
-      const fechaFinISO = fechaFin ? new Date(fechaFin).toISOString().split("T")[0] : '9999-12-31';
-      const proveedorFinal = proveedor ?? '';
-  
-=======
 
       const fechaInicioISO = fechaInicio
         ? new Date(fechaInicio).toISOString().split("T")[0]
@@ -225,7 +218,6 @@ export class ReporteDocumentosProveedorRepository
       });
 
       console.log("🔍 [Repository] Ejecutando consulta SQL...");
->>>>>>> 4ee46e6bd1a824b448a48609f08f41a4fb41d1e3
       const result = await exactusSequelize.query<DocumentosPorPagar>(query, {
         replacements: {
           proveedor: proveedorFinal,
@@ -234,12 +226,6 @@ export class ReporteDocumentosProveedorRepository
         },
         type: QueryTypes.SELECT,
       });
-<<<<<<< HEAD
-  
-      return result;
-    } catch (error) {
-      console.error("Error al obtener reporte de documentos por proveedor:", error);
-=======
 
       console.log("📊 [Repository] Resultado de la consulta:", {
         cantidad: result?.length || 0,
@@ -267,9 +253,7 @@ export class ReporteDocumentosProveedorRepository
         "❌ [Repository] Error al obtener reporte de documentos por proveedor:",
         error
       );
->>>>>>> 4ee46e6bd1a824b448a48609f08f41a4fb41d1e3
       return [];
     }
   }
-  
 }
