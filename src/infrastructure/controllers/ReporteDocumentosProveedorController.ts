@@ -276,10 +276,7 @@ export class ReporteDocumentosProveedorController {
    *         description: "Error interno del servidor"
    */
 
-  async obtenerReporteDocumentosPorPagar(
-    req: Request,
-    res: Response
-  ): Promise<void> {
+  async obtenerReporteDocumentosPorPagar(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto, proveedor, fechaInicio, fechaFin } = req.query;
 
@@ -334,4 +331,5 @@ export class ReporteDocumentosProveedorController {
       });
     }
   }
+  
 }
