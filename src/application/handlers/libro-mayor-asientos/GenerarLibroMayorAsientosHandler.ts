@@ -27,3 +27,4 @@ export class GenerarLibroMayorAsientosHandler
     return resultado;
   }
 }
+

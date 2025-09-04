@@ -87,3 +87,4 @@ export interface ExportarLibroMayorAsientosExcelParams {
   documentoGlobal?: string;
   limit?: number;
 }
+

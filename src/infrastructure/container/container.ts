@@ -34,6 +34,7 @@ import { IReporteDocumentosProveedorRepository } from "../../domain/repositories
 import { IReporteGNRepository } from "../../domain/repositories/IReporteGNRepository";
 import { IReporteHmisRepository } from "../../domain/repositories/IReporteHmisRepository";
 import { ILibroMayorAsientosService } from "../../domain/services/ILibroMayorAsientosService";
+import { ILibroMayorService } from "../../domain/services/ILibroMayorService";
 import { IReporteGNService } from "../../domain/services/IReporteGNService";
 import { IReporteDocumentosProveedorService } from "../../domain/services/IReporteDocumentosProveedorService";
 import { IReporteHmisService } from "../../domain/services/IReporteHmisService";
@@ -93,6 +94,7 @@ import { SaldoPromediosRepository } from "../repositories/SaldoPromediosReposito
 import { BalanceComprobacionRepository } from "../repositories/BalanceComprobacionRepository";
 import { ReporteGenericoSaldosRepository } from "../repositories/ReporteGenericoSaldosRepository";
 import { LibroMayorAsientosRepository } from "../repositories/LibroMayorAsientosRepository";
+import { LibroMayorRepository } from "../repositories/LibroMayorRepository";
 import { ReporteDocumentosProveedorRepository } from "../repositories/ReporteDocumentosProveedorRepository";
 import { ReporteGNRepository } from "../repositories/ReporteGNRepository";
 import { ReporteHmisRepository } from "../repositories/ReporteHmisRepository";
@@ -117,6 +119,7 @@ import { SaldoPromediosService } from "../../application/services/SaldoPromedios
 import { BalanceComprobacionService } from "../../application/services/BalanceComprobacionService";
 import { ReporteGenericoSaldosService } from "../../application/services/ReporteGenericoSaldosService";
 import { LibroMayorAsientosService } from "../../application/services/LibroMayorAsientosService";
+import { LibroMayorService } from "../../application/services/LibroMayorService";
 import { ReporteGNService } from "../../application/services/ReporteGNService";
 import { ReporteDocumentosProveedorService } from "../../application/services/ReporteDocumentosProveedorService";
 import { ReporteHmisService } from "../../application/services/ReporteHmisService";
@@ -150,6 +153,7 @@ import { BalanceComprobacionRoutes } from "../routes/BalanceComprobacionRoutes";
 import { ReporteGenericoSaldosController } from "../controllers/ReporteGenericoSaldosController";
 import { ReporteGenericoSaldosRoutes } from "../routes/ReporteGenericoSaldosRoutes";
 import { LibroMayorAsientosController } from "../controllers/LibroMayorAsientosController";
+import { LibroMayorController } from "../controllers/LibroMayorController";
 import { ReporteGNController } from "../controllers/ReporteGNController";
 import { ReporteDocumentosProveedorController } from "../controllers/ReporteDocumentosProveedorController";
 import { HmisController } from "../controllers/HmisController";
@@ -303,6 +307,9 @@ container
   .bind<LibroMayorAsientosRepository>("LibroMayorAsientosRepository")
   .to(LibroMayorAsientosRepository);
 container
+  .bind<LibroMayorRepository>("LibroMayorRepository")
+  .to(LibroMayorRepository);
+container
   .bind<IReporteDocumentosProveedorRepository>(
     "IReporteDocumentosProveedorRepository"
   )
@@ -369,6 +376,9 @@ container
 container
   .bind<ILibroMayorAsientosService>("ILibroMayorAsientosService")
   .to(LibroMayorAsientosService);
+container
+  .bind<ILibroMayorService>("ILibroMayorService")
+  .to(LibroMayorService);
 container.bind<IReporteGNService>("IReporteGNService").to(ReporteGNService);
 container
   .bind<IReporteDocumentosProveedorService>(
@@ -464,6 +474,9 @@ container.bind<ClipperController>("ClipperController").to(ClipperController);
 container
   .bind<LibroMayorAsientosController>("LibroMayorAsientosController")
   .to(LibroMayorAsientosController);
+container
+  .bind<LibroMayorController>("LibroMayorController")
+  .to(LibroMayorController);
 container
   .bind<ReporteGNController>("ReporteGNController")
   .to(ReporteGNController);

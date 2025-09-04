@@ -51,6 +51,7 @@ import { CqrsService } from "./infrastructure/cqrs/CqrsService";
 import { createReporteClipperRoutes } from "./infrastructure/routes/ReporteClipperRoutes";
 import { IReporteClipperRepository } from "./domain/repositories/IReporteClipperRepository";
 import libroMayorAsientosRoutes from "./infrastructure/routes/libro-mayor-asientos.routes";
+import libroMayorRoutes from "./infrastructure/routes/libro-mayor.routes";
 import { createReporteGNRoutes } from "./infrastructure/routes/ReporteGNRoutes";
 import { IReporteHmisRepository } from "./domain/repositories/IReporteHmisRepository";
 import { createReporteHmisRoutes } from "./infrastructure/routes/ReporteHmisRoutes";
@@ -347,6 +348,14 @@ app.use(
   libroMayorAsientosRoutes
 );
 console.log("✅ Libro Mayor Asientos routes registradas correctamente");
+
+// Libro Mayor Routes
+app.use(
+  "/api/libro-mayor",
+  QueryOptimizationMiddleware.validateQueryParams,
+  libroMayorRoutes
+);
+console.log("✅ Libro Mayor routes registradas correctamente");
 app.use(
   "/api/diario-contabilidad",
   QueryOptimizationMiddleware.validateQueryParams,
