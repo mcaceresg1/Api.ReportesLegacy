@@ -172,19 +172,23 @@ export class ReporteDocumentosProveedorController {
     try {
       const { conjunto, proveedor, fechaInicio, fechaFin } = req.query;
 
-      if (!conjunto || !proveedor || !fechaInicio || !fechaFin) {
+      if (!conjunto || !fechaInicio || !fechaFin) {
         res.status(400).json({
           success: false,
           message:
-            "Parámetros incompletos. Se requieren conjunto, proveedor, fechaInicio y fechaFin.",
+            "Parámetros incompletos. Se requieren conjunto, fechaInicio y fechaFin.",
         });
         return;
       }
 
+      // Convertir proveedor vacío a null
+      const proveedorParam =
+        (proveedor as string)?.trim() === "" ? null : (proveedor as string);
+
       const reporte =
         await this.reporteService.obtenerReporteDocumentosPorProveedor(
           conjunto as string,
-          proveedor as string,
+          proveedorParam,
           fechaInicio as string,
           fechaFin as string
         );
@@ -279,13 +283,28 @@ export class ReporteDocumentosProveedorController {
     try {
       const { conjunto, proveedor, fechaInicio, fechaFin } = req.query;
 
+      console.log("🔍 [Backend] Parámetros recibidos en documentosPorPagar:", {
+        conjunto,
+        proveedor,
+        fechaInicio,
+        fechaFin,
+      });
+
       if (!conjunto) {
+        console.log("❌ [Backend] Error: conjunto no proporcionado");
         res.status(400).json({
           success: false,
           message: "Parámetros incompletos. Se requieren conjunto",
         });
         return;
       }
+
+      console.log("📡 [Backend] Llamando al servicio con parámetros:", {
+        conjunto: conjunto as string,
+        proveedor: proveedor as string,
+        fechaInicio: fechaInicio as string,
+        fechaFin: fechaFin as string,
+      });
 
       const reporte =
         await this.reporteService.obtenerReporteDocumentosPorPagar(
@@ -295,13 +314,18 @@ export class ReporteDocumentosProveedorController {
           fechaFin as string
         );
 
+      console.log("📊 [Backend] Reporte obtenido del servicio:", {
+        cantidad: reporte?.length || 0,
+        primerosElementos: reporte?.slice(0, 2) || [],
+      });
+
       res.json({
         success: true,
         data: reporte,
       });
     } catch (error) {
       console.error(
-        "Error en ReporteDocumentosProveedorController.obtenerReporteDocumentosPorPagar:",
+        "❌ [Backend] Error en ReporteDocumentosProveedorController.obtenerReporteDocumentosPorPagar:",
         error
       );
       res.status(500).json({
