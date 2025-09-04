@@ -272,13 +272,12 @@ export class ReporteDocumentosProveedorController {
    *         description: "Error interno del servidor"
    */
 
-  async obtenerReporteDocumentosPorPagar(
-    req: Request,
-    res: Response
-  ): Promise<void> {
+  async obtenerReporteDocumentosPorPagar(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto, proveedor, fechaInicio, fechaFin } = req.query;
-
+      console.log({ conjunto, proveedor, fechaInicio, fechaFin });
+      
+      // Validar parámetro obligatorio
       if (!conjunto) {
         res.status(400).json({
           success: false,
@@ -286,28 +285,26 @@ export class ReporteDocumentosProveedorController {
         });
         return;
       }
-
-      const reporte =
-        await this.reporteService.obtenerReporteDocumentosPorPagar(
-          conjunto as string,
-          proveedor as string,
-          fechaInicio as string,
-          fechaFin as string
-        );
-
+  
+      // Llamada al servicio con parámetros parseados a string
+      const reporte = await this.reporteService.obtenerReporteDocumentosPorPagar(
+        conjunto as string,
+        proveedor as string || '',          // si proveedor no viene, pasar string vacío
+        fechaInicio as string || null,      // si no viene fecha, pasar null para ignorar filtro
+        fechaFin as string || null
+      );
+  
       res.json({
         success: true,
         data: reporte,
       });
     } catch (error) {
-      console.error(
-        "Error en ReporteDocumentosProveedorController.obtenerReporteDocumentosPorPagar:",
-        error
-      );
+      console.error("Error en ReporteDocumentosProveedorController.obtenerReporteDocumentosPorPagar:", error);
       res.status(500).json({
         success: false,
         message: "Error interno del servidor.",
       });
     }
   }
+  
 }

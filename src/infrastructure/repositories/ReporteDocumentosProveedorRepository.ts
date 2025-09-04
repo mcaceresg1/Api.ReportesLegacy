@@ -154,22 +154,10 @@ export class ReporteDocumentosProveedorRepository
           DCP.APLICACION,
           AD.FECHA,
           DCP.ASIENTO,
-          CASE
-            WHEN DCP.TIPO IN ('CHQ', 'TEF', 'RET', 'N/C', 'O/C', 'CNJ') THEN DCP.MONTO_LOCAL
-            ELSE 0
-          END AS DEBE_LOC,
-          CASE
-            WHEN DCP.TIPO IN ('FAC', 'B/V', 'L/C', 'RHP', 'INT', 'N/D', 'O/D') THEN DCP.MONTO_LOCAL
-            ELSE 0
-          END AS HABER_LOC,
-          CASE
-            WHEN DCP.TIPO IN ('CHQ', 'TEF', 'RET', 'N/C', 'O/C', 'CNJ') THEN DCP.MONTO_DOLAR
-            ELSE 0
-          END AS DEBE_DOL,
-          CASE
-            WHEN DCP.TIPO IN ('FAC', 'B/V', 'L/C', 'RHP', 'INT', 'N/D', 'O/D') THEN DCP.MONTO_DOLAR
-            ELSE 0
-          END AS HABER_DOL,
+          CASE WHEN DCP.TIPO IN ('CHQ', 'TEF', 'RET', 'N/C', 'O/C', 'CNJ') THEN DCP.MONTO_LOCAL ELSE 0 END AS DEBE_LOC,
+          CASE WHEN DCP.TIPO IN ('FAC', 'B/V', 'L/C', 'RHP', 'INT', 'N/D', 'O/D') THEN DCP.MONTO_LOCAL ELSE 0 END AS HABER_LOC,
+          CASE WHEN DCP.TIPO IN ('CHQ', 'TEF', 'RET', 'N/C', 'O/C', 'CNJ') THEN DCP.MONTO_DOLAR ELSE 0 END AS DEBE_DOL,
+          CASE WHEN DCP.TIPO IN ('FAC', 'B/V', 'L/C', 'RHP', 'INT', 'N/D', 'O/D') THEN DCP.MONTO_DOLAR ELSE 0 END AS HABER_DOL,
           DCP.MONEDA
         FROM ${conjunto}.PROVEEDOR P
         INNER JOIN ${conjunto}.DOCUMENTOS_CP DCP ON DCP.PROVEEDOR = P.PROVEEDOR
@@ -178,8 +166,8 @@ export class ReporteDocumentosProveedorRepository
         WHERE
           DCP.TIPO IN ('B/V', 'CHQ', 'CNJ', 'DCC', 'DEP')
           AND (:proveedor = '' OR P.PROVEEDOR = :proveedor)
-          AND (:fechaInicio IS NULL OR AD.FECHA >= :fechaInicio)
-          AND (:fechaFin IS NULL OR AD.FECHA <= :fechaFin)
+          AND AD.FECHA >= :fechaInicio
+          AND AD.FECHA <= :fechaFin
   
         UNION ALL
   
@@ -192,22 +180,10 @@ export class ReporteDocumentosProveedorRepository
           DCP.APLICACION,
           AM.FECHA,
           DCP.ASIENTO,
-          CASE
-            WHEN DCP.TIPO IN ('CHQ', 'TEF', 'RET', 'N/C', 'O/C', 'CNJ') THEN DCP.MONTO_LOCAL
-            ELSE 0
-          END AS DEBE_LOC,
-          CASE
-            WHEN DCP.TIPO IN ('FAC', 'B/V', 'L/C', 'RHP', 'INT', 'N/D', 'O/D') THEN DCP.MONTO_LOCAL
-            ELSE 0
-          END AS HABER_LOC,
-          CASE
-            WHEN DCP.TIPO IN ('CHQ', 'TEF', 'RET', 'N/C', 'O/C', 'CNJ') THEN DCP.MONTO_DOLAR
-            ELSE 0
-          END AS DEBE_DOL,
-          CASE
-            WHEN DCP.TIPO IN ('FAC', 'B/V', 'L/C', 'RHP', 'INT', 'N/D', 'O/D') THEN DCP.MONTO_DOLAR
-            ELSE 0
-          END AS HABER_DOL,
+          CASE WHEN DCP.TIPO IN ('CHQ', 'TEF', 'RET', 'N/C', 'O/C', 'CNJ') THEN DCP.MONTO_LOCAL ELSE 0 END AS DEBE_LOC,
+          CASE WHEN DCP.TIPO IN ('FAC', 'B/V', 'L/C', 'RHP', 'INT', 'N/D', 'O/D') THEN DCP.MONTO_LOCAL ELSE 0 END AS HABER_LOC,
+          CASE WHEN DCP.TIPO IN ('CHQ', 'TEF', 'RET', 'N/C', 'O/C', 'CNJ') THEN DCP.MONTO_DOLAR ELSE 0 END AS DEBE_DOL,
+          CASE WHEN DCP.TIPO IN ('FAC', 'B/V', 'L/C', 'RHP', 'INT', 'N/D', 'O/D') THEN DCP.MONTO_DOLAR ELSE 0 END AS HABER_DOL,
           DCP.MONEDA
         FROM ${conjunto}.PROVEEDOR P
         INNER JOIN ${conjunto}.DOCUMENTOS_CP DCP ON DCP.PROVEEDOR = P.PROVEEDOR
@@ -216,20 +192,14 @@ export class ReporteDocumentosProveedorRepository
         WHERE
           DCP.TIPO IN ('B/V', 'CHQ', 'CNJ', 'DCC', 'DEP')
           AND (:proveedor = '' OR P.PROVEEDOR = :proveedor)
-          AND (:fechaInicio IS NULL OR AM.FECHA >= :fechaInicio)
-          AND (:fechaFin IS NULL OR AM.FECHA <= :fechaFin)
+          AND AM.FECHA >= :fechaInicio
+          AND AM.FECHA <= :fechaFin
       `;
-
-      // Asegúrate que las fechas estén en formato ISO antes de pasarlas
-      const fechaInicioISO = fechaInicio
-        ? new Date(fechaInicio).toISOString().split("T")[0]
-        : null;
-      const fechaFinISO = fechaFin
-        ? new Date(fechaFin).toISOString().split("T")[0]
-        : null;
-
-      const proveedorFinal = proveedor ?? "";
-
+  
+      const fechaInicioISO = fechaInicio ? new Date(fechaInicio).toISOString().split("T")[0] : '1900-01-01';
+      const fechaFinISO = fechaFin ? new Date(fechaFin).toISOString().split("T")[0] : '9999-12-31';
+      const proveedorFinal = proveedor ?? '';
+  
       const result = await exactusSequelize.query<DocumentosPorPagar>(query, {
         replacements: {
           proveedor: proveedorFinal,
@@ -238,14 +208,12 @@ export class ReporteDocumentosProveedorRepository
         },
         type: QueryTypes.SELECT,
       });
-
+  
       return result;
     } catch (error) {
-      console.error(
-        "Error al obtener reporte de documentos por proveedor:",
-        error
-      );
+      console.error("Error al obtener reporte de documentos por proveedor:", error);
       return [];
     }
   }
+  
 }
