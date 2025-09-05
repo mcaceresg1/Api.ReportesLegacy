@@ -39,7 +39,7 @@ export interface IReporteGNRepository {
     filtros: FiltrosReporteRolDeVacaciones
   ): Promise<RespuestaReporteRolDeVacaciones | undefined>;
 
-  getPrestamoCtaCte(
+  getPrestamoCtaCte(conjunto: string,
     filtros: FiltrosReportePrestamoCtaCte
   ): Promise<RespuestaReportePrestamoCtaCte | undefined>;
 
