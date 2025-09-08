@@ -12,3 +12,5 @@ export class ObtenerFiltrosLibroMayorAsientosQuery implements IQuery {
   constructor(public readonly conjunto: string) {}
 }
 
+
+

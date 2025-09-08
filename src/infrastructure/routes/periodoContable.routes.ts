@@ -331,5 +331,43 @@ export function createPeriodoContableRoutes(): Router {
     controller.generarReporte(req, res);
   });
 
+  /**
+   * @swagger
+   * /api/reporte-periodo-contable/{conjunto}/exportar-excel:
+   *   post:
+   *     summary: Exportar reporte de periodos contables a Excel
+   *     description: Exporta el reporte de periodos contables a formato Excel
+   *     tags: [Periodo Contable]
+   *     parameters:
+   *       - in: path
+   *         name: conjunto
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Código del conjunto contable
+   *         example: "ASFSAC"
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/FiltroPeriodoContable'
+   *     responses:
+   *       200:
+   *         description: Archivo Excel generado exitosamente
+   *         content:
+   *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+   *             schema:
+   *               type: string
+   *               format: binary
+   *       400:
+   *         description: Parámetros inválidos o faltantes
+   *       500:
+   *         description: Error interno del servidor
+   */
+  router.post('/:conjunto/exportar-excel', (req, res) => {
+    controller.exportarExcel(req, res);
+  });
+
   return router;
 }
