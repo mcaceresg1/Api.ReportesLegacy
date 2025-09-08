@@ -59,6 +59,8 @@ import { IReporteHmisRepository } from "./domain/repositories/IReporteHmisReposi
 import { createReporteHmisRoutes } from "./infrastructure/routes/ReporteHmisRoutes";
 import { IReporteDocumentosProveedorRepository } from "./domain/repositories/IReporteDocumentosProveedorRepository";
 import { createReporteDocumentosProveedorRoutes } from "./infrastructure/routes/ReporteDocumentosProveedorRoutes";
+import { IClipperLibroDiarioRepository } from "./domain/repositories/IClipperLibroDiarioRepository";
+import { createClipperLibroDiarioRoutes } from "./infrastructure/routes/ClipperLibroDiarioRoutes";
 
 const reporteGNRoutes = createReporteGNRoutes();
 
@@ -114,6 +116,8 @@ const reporteDocumentosProveedorRepository =
   container.get<IReporteDocumentosProveedorRepository>(
     "IReporteDocumentosProveedorRepository"
   );
+
+const reporteClipperLibroDiarioRepository = container.get<IClipperLibroDiarioRepository>("IClipperLibroDiarioRepository");
 
 // Inicializar CQRS
 console.log("🚀 Inicializando CQRS Service...");
@@ -230,6 +234,8 @@ const reporteGenericoSaldosRoutes = container.get<ReporteGenericoSaldosRoutes>(
 const reporteDocumentosProveedorRoutes = createReporteDocumentosProveedorRoutes(
   reporteDocumentosProveedorRepository
 );
+
+const reporteClipperLibroDiarioRoutes = createClipperLibroDiarioRoutes();
 
 // Endpoint de prueba
 app.get("/api/test", (req, res) => {
@@ -424,7 +430,9 @@ app.use(
   QueryOptimizationMiddleware.validateQueryParams,
   reporteDocumentosProveedorRoutes
 );
-console.log("✅ REPORTE DOCUMENTOS PROVEEDOR routes registradas correctamente");
+
+app.use('/api/libro-diario-clipper', createClipperLibroDiarioRoutes());
+console.log("✅ REPORTE Libro diario Clipper routes registradas correctamente");
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================
 

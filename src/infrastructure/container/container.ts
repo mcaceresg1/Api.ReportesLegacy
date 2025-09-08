@@ -220,6 +220,11 @@ import { ReporteClipperRepository } from "../repositories/ReporteClipperReposito
 import { ClipperController } from "../controllers/ClipperController";
 import { IReporteClipperService } from "../../domain/services/IReporteClipperService";
 import { ReporteClipperService } from "../../application/services/ReporteCliperService";
+import { IClipperLibroDiarioRepository } from "../../domain/repositories/IClipperLibroDiarioRepository";
+import { ReporteClipperLibroDiarioRepository } from "../repositories/ReporteClipperLibroDiarioRepository";
+import { IClipperLibroDiarioService } from "../../domain/services/IClipperLibroDiarioService";
+import { ClipperLibroDiarioService } from "../../application/services/ClipperLibroDiarioService";
+import { ClipperLibroDiarioController } from "../controllers/ClipperLibroDiarioController";
 
 const container = new Container();
 
@@ -341,6 +346,7 @@ container
 container
   .bind<IReporteClipperRepository>("IReporteClipperRepository")
   .to(ReporteClipperRepository);
+container.bind<IClipperLibroDiarioRepository>("IClipperLibroDiarioRepository").to(ReporteClipperLibroDiarioRepository);
 
 // Services
 container.bind<IUsuarioService>("IUsuarioService").to(UsuarioService);
@@ -413,6 +419,7 @@ container.bind<IDatabaseService>("IDatabaseService").to(DatabaseService);
 container
   .bind<IReporteClipperService>("IReporteClipperService")
   .to(ReporteClipperService);
+container.bind<IClipperLibroDiarioService>("IClipperLibroDiarioService").to(ClipperLibroDiarioService);
 
 // Controllers
 container.bind<UsuarioController>("UsuarioController").to(UsuarioController);
@@ -512,6 +519,8 @@ container
   )
   .to(ReporteDocumentosProveedorController);
 container.bind<HmisController>("HmisController").to(HmisController);
+container.bind<ClipperLibroDiarioController>("ClipperLibroDiarioController").to(ClipperLibroDiarioController);
+
 
 // CQRS Buses
 container.bind<ICommandBus>("ICommandBus").to(CommandBus);
