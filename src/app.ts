@@ -59,6 +59,7 @@ import { IReporteHmisRepository } from "./domain/repositories/IReporteHmisReposi
 import { createReporteHmisRoutes } from "./infrastructure/routes/ReporteHmisRoutes";
 import { IReporteDocumentosProveedorRepository } from "./domain/repositories/IReporteDocumentosProveedorRepository";
 import { createReporteDocumentosProveedorRoutes } from "./infrastructure/routes/ReporteDocumentosProveedorRoutes";
+import libroMayorContabilidadRoutes from "./infrastructure/routes/libro-mayor-contabilidad.routes";
 
 const reporteGNRoutes = createReporteGNRoutes();
 
@@ -374,6 +375,14 @@ app.use(
   estadoResultadosRoutes
 );
 console.log("✅ Estado Resultados routes registradas correctamente");
+
+// Libro Mayor de Contabilidad Routes
+app.use(
+  "/api/libro-mayor-contabilidad",
+  QueryOptimizationMiddleware.validateQueryParams,
+  libroMayorContabilidadRoutes
+);
+console.log("✅ Libro Mayor de Contabilidad routes registradas correctamente");
 app.use(
   "/api/diario-contabilidad",
   QueryOptimizationMiddleware.validateQueryParams,

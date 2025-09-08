@@ -40,6 +40,8 @@ import { IEstadoResultadosService } from "../../domain/services/IEstadoResultado
 import { IReporteGNService } from "../../domain/services/IReporteGNService";
 import { IReporteDocumentosProveedorService } from "../../domain/services/IReporteDocumentosProveedorService";
 import { IReporteHmisService } from "../../domain/services/IReporteHmisService";
+import { ILibroMayorContabilidadService } from "../../domain/services/ILibroMayorContabilidadService";
+import { ILibroMayorContabilidadRepository } from "../../domain/repositories/ILibroMayorContabilidadRepository";
 
 import { ICuentaContableRepository } from "../../domain/repositories/ICuentaContableRepository";
 import { IUsuarioService } from "../../domain/services/IUsuarioService";
@@ -102,6 +104,7 @@ import { EstadoResultadosRepository } from "../repositories/EstadoResultadosRepo
 import { ReporteDocumentosProveedorRepository } from "../repositories/ReporteDocumentosProveedorRepository";
 import { ReporteGNRepository } from "../repositories/ReporteGNRepository";
 import { ReporteHmisRepository } from "../repositories/ReporteHmisRepository";
+import { LibroMayorContabilidadRepository } from "../repositories/LibroMayorContabilidadRepository";
 
 import { CuentaContableRepository } from "../repositories/CuentaContableRepository";
 import { UsuarioService } from "../../application/services/UsuarioService";
@@ -129,6 +132,7 @@ import { EstadoResultadosService } from "../../application/services/EstadoResult
 import { ReporteGNService } from "../../application/services/ReporteGNService";
 import { ReporteDocumentosProveedorService } from "../../application/services/ReporteDocumentosProveedorService";
 import { ReporteHmisService } from "../../application/services/ReporteHmisService";
+import { LibroMayorContabilidadService } from "../../application/services/LibroMayorContabilidadService";
 
 import { DatabaseService } from "../../application/services/DatabaseService";
 
@@ -165,6 +169,7 @@ import { EstadoResultadosController } from "../controllers/EstadoResultadosContr
 import { ReporteGNController } from "../controllers/ReporteGNController";
 import { ReporteDocumentosProveedorController } from "../controllers/ReporteDocumentosProveedorController";
 import { HmisController } from "../controllers/HmisController";
+import { LibroMayorContabilidadController } from "../controllers/LibroMayorContabilidadController";
 
 // CQRS implementations
 import { CommandBus } from "../cqrs/CommandBus";
@@ -334,6 +339,9 @@ container
 container
   .bind<IReporteHmisRepository>("IReporteHmisRepository")
   .to(ReporteHmisRepository);
+container
+  .bind<ILibroMayorContabilidadRepository>("ILibroMayorContabilidadRepository")
+  .to(LibroMayorContabilidadRepository);
 
 container
   .bind<ICuentaContableRepository>("ICuentaContableRepository")
@@ -408,6 +416,9 @@ container
 container
   .bind<IReporteHmisService>("IReporteHmisService")
   .to(ReporteHmisService);
+container
+  .bind<ILibroMayorContabilidadService>("ILibroMayorContabilidadService")
+  .to(LibroMayorContabilidadService);
 
 container.bind<IDatabaseService>("IDatabaseService").to(DatabaseService);
 container
@@ -512,6 +523,9 @@ container
   )
   .to(ReporteDocumentosProveedorController);
 container.bind<HmisController>("HmisController").to(HmisController);
+container
+  .bind<LibroMayorContabilidadController>("LibroMayorContabilidadController")
+  .to(LibroMayorContabilidadController);
 
 // CQRS Buses
 container.bind<ICommandBus>("ICommandBus").to(CommandBus);
