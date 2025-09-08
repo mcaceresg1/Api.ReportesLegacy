@@ -25,6 +25,12 @@ import { GenerarReporteDiarioContabilidadHandler } from "../../application/handl
 import { ObtenerDiarioContabilidadHandler } from "../../application/handlers/diario-contabilidad/ObtenerDiarioContabilidadHandler";
 import { ExportarDiarioContabilidadExcelHandler } from "../../application/handlers/diario-contabilidad/ExportarDiarioContabilidadExcelHandler";
 
+// Reporte Generico Saldos handlers
+import { GenerarReporteGenericoSaldosHandler } from "../../application/handlers/reporte-generico-saldos/GenerarReporteGenericoSaldosHandler";
+import { ObtenerReporteGenericoSaldosHandler } from "../../application/handlers/reporte-generico-saldos/ObtenerReporteGenericoSaldosHandler";
+import { ExportarReporteGenericoSaldosExcelHandler } from "../../application/handlers/reporte-generico-saldos/ExportarReporteGenericoSaldosExcelHandler";
+import { ObtenerEstadisticasReporteGenericoSaldosHandler } from "../../application/handlers/reporte-generico-saldos/ObtenerEstadisticasReporteGenericoSaldosHandler";
+
 @injectable()
 export class CqrsService {
   constructor(
@@ -51,7 +57,15 @@ export class CqrsService {
     @inject("ObtenerDiarioContabilidadHandler")
     private obtenerDiarioContabilidadHandler: ObtenerDiarioContabilidadHandler,
     @inject("ExportarDiarioContabilidadExcelHandler")
-    private exportarDiarioContabilidadExcelHandler: ExportarDiarioContabilidadExcelHandler
+    private exportarDiarioContabilidadExcelHandler: ExportarDiarioContabilidadExcelHandler,
+    @inject("GenerarReporteGenericoSaldosHandler")
+    private generarReporteGenericoSaldosHandler: GenerarReporteGenericoSaldosHandler,
+    @inject("ObtenerReporteGenericoSaldosHandler")
+    private obtenerReporteGenericoSaldosHandler: ObtenerReporteGenericoSaldosHandler,
+    @inject("ExportarReporteGenericoSaldosExcelHandler")
+    private exportarReporteGenericoSaldosExcelHandler: ExportarReporteGenericoSaldosExcelHandler,
+    @inject("ObtenerEstadisticasReporteGenericoSaldosHandler")
+    private obtenerEstadisticasReporteGenericoSaldosHandler: ObtenerEstadisticasReporteGenericoSaldosHandler
   ) {
     console.log("🔧 Constructor CqrsService ejecutándose...");
     this.registerHandlers();
@@ -92,6 +106,25 @@ export class CqrsService {
     this.queryBus.register(
       "ExportarDiarioContabilidadExcelQuery",
       this.exportarDiarioContabilidadExcelHandler
+    );
+
+    // Reporte Generico Saldos
+    console.log("📊 Registrando handlers de Reporte Generico Saldos...");
+    this.commandBus.register(
+      "GenerarReporteGenericoSaldosCommand",
+      this.generarReporteGenericoSaldosHandler
+    );
+    this.queryBus.register(
+      "ObtenerReporteGenericoSaldosQuery",
+      this.obtenerReporteGenericoSaldosHandler
+    );
+    this.queryBus.register(
+      "ExportarReporteGenericoSaldosExcelQuery",
+      this.exportarReporteGenericoSaldosExcelHandler
+    );
+    this.queryBus.register(
+      "ObtenerEstadisticasReporteGenericoSaldosQuery",
+      this.obtenerEstadisticasReporteGenericoSaldosHandler
     );
 
     console.log("🎉 Todos los handlers CQRS registrados exitosamente");
