@@ -173,6 +173,37 @@ queryBus.register(
   exportarBalanceComprobacionExcelHandler
 );
 
+// Reporte Generico Saldos Handlers
+const generarReporteGenericoSaldosHandler = container.get(
+  "GenerarReporteGenericoSaldosHandler"
+) as any;
+const obtenerReporteGenericoSaldosHandler = container.get(
+  "ObtenerReporteGenericoSaldosHandler"
+) as any;
+const exportarReporteGenericoSaldosExcelHandler = container.get(
+  "ExportarReporteGenericoSaldosExcelHandler"
+) as any;
+const obtenerEstadisticasReporteGenericoSaldosHandler = container.get(
+  "ObtenerEstadisticasReporteGenericoSaldosHandler"
+) as any;
+
+commandBus.register(
+  "GenerarReporteGenericoSaldosCommand",
+  generarReporteGenericoSaldosHandler
+);
+queryBus.register(
+  "ObtenerReporteGenericoSaldosQuery",
+  obtenerReporteGenericoSaldosHandler
+);
+queryBus.register(
+  "ExportarReporteGenericoSaldosExcelQuery",
+  exportarReporteGenericoSaldosExcelHandler
+);
+queryBus.register(
+  "ObtenerEstadisticasReporteGenericoSaldosQuery",
+  obtenerEstadisticasReporteGenericoSaldosHandler
+);
+
 console.log("✅ Handlers registrados manualmente");
 console.log("✅ CQRS Service inicializado");
 
