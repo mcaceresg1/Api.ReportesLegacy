@@ -1,0 +1,25 @@
+### Test Swagger Documentation - Balance Comprobación Clipper
+
+### 1. Verificar documentación Swagger
+GET http://localhost:3000/api-docs
+Content-Type: application/json
+
+### 2. Test endpoint principal con parámetro válido
+GET http://localhost:3000/api/balance-comprobacion-clipper/bdclipperGPC
+Content-Type: application/json
+
+### 3. Test endpoint principal con segundo parámetro válido
+GET http://localhost:3000/api/balance-comprobacion-clipper/bdclipperGPC1
+Content-Type: application/json
+
+### 4. Test endpoint de información
+GET http://localhost:3000/api/balance-comprobacion-clipper/info
+Content-Type: application/json
+
+### 5. Test endpoint sin parámetro (debe retornar error 404)
+GET http://localhost:3000/api/balance-comprobacion-clipper
+Content-Type: application/json
+
+### 6. Test endpoint con parámetro inválido (debe retornar error 400)
+GET http://localhost:3000/api/balance-comprobacion-clipper/invalid
+Content-Type: application/json

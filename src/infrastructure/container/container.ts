@@ -43,6 +43,10 @@ import { IReporteDocumentosProveedorService } from "../../domain/services/IRepor
 import { IReporteHmisService } from "../../domain/services/IReporteHmisService";
 import { ILibroMayorContabilidadService } from "../../domain/services/ILibroMayorContabilidadService";
 import { ILibroMayorContabilidadRepository } from "../../domain/repositories/ILibroMayorContabilidadRepository";
+import { IBalanceComprobacionClipperRepository } from "../../domain/repositories/IBalanceComprobacionClipperRepository";
+import { IBalanceGeneralClipperRepository } from "../../domain/repositories/IBalanceGeneralClipperRepository";
+import { IBalanceComprobacionClipperService } from "../../domain/services/IBalanceComprobacionClipperService";
+import { IBalanceGeneralClipperService } from "../../domain/services/IBalanceGeneralClipperService";
 
 import { ICuentaContableRepository } from "../../domain/repositories/ICuentaContableRepository";
 import { IUsuarioService } from "../../domain/services/IUsuarioService";
@@ -105,6 +109,8 @@ import { ReporteGNRepository } from "../repositories/ReporteGNRepository";
 import { ReporteHmisRepository } from "../repositories/ReporteHmisRepository";
 import { ReporteGenericoSaldosRepository } from "../repositories/ReporteGenericoSaldosRepository";
 import { LibroMayorContabilidadRepository } from "../repositories/LibroMayorContabilidadRepository";
+import { BalanceComprobacionClipperRepository } from "../repositories/BalanceComprobacionClipperRepository";
+import { BalanceGeneralClipperRepository } from "../repositories/BalanceGeneralClipperRepository";
 
 import { CuentaContableRepository } from "../repositories/CuentaContableRepository";
 import { UsuarioService } from "../../application/services/UsuarioService";
@@ -133,6 +139,8 @@ import { ReporteDocumentosProveedorService } from "../../application/services/Re
 import { ReporteHmisService } from "../../application/services/ReporteHmisService";
 import { ReporteGenericoSaldosService } from "../../application/services/ReporteGenericoSaldosService";
 import { LibroMayorContabilidadService } from "../../application/services/LibroMayorContabilidadService";
+import { BalanceComprobacionClipperService } from "../../application/services/BalanceComprobacionClipperService";
+import { BalanceGeneralClipperService } from "../../application/services/BalanceGeneralClipperService";
 
 import { DatabaseService } from "../../application/services/DatabaseService";
 
@@ -169,6 +177,8 @@ import { ReporteDocumentosProveedorController } from "../controllers/ReporteDocu
 import { HmisController } from "../controllers/HmisController";
 import { ReporteGenericoSaldosController } from "../controllers/ReporteGenericoSaldosController";
 import { LibroMayorContabilidadController } from "../controllers/LibroMayorContabilidadController";
+import { BalanceComprobacionClipperController } from "../controllers/BalanceComprobacionClipperController";
+import { BalanceGeneralClipperController } from "../controllers/BalanceGeneralClipperController";
 
 // CQRS implementations
 import { CommandBus } from "../cqrs/CommandBus";
@@ -226,6 +236,9 @@ import { ReporteClipperLibroDiarioRepository } from "../repositories/ReporteClip
 import { IClipperLibroDiarioService } from "../../domain/services/IClipperLibroDiarioService";
 import { ClipperLibroDiarioService } from "../../application/services/ClipperLibroDiarioService";
 import { ClipperLibroDiarioController } from "../controllers/ClipperLibroDiarioController";
+import { ICacheService } from "../../domain/services/ICacheService";
+import { CacheService } from "../../application/services/CacheService";
+import { ClipperLibroDiarioCacheService } from "../../application/services/ClipperLibroDiarioCacheService";
 
 const container = new Container();
 
@@ -355,6 +368,20 @@ container
 container
   .bind<IClipperLibroDiarioRepository>("IClipperLibroDiarioRepository")
   .to(ReporteClipperLibroDiarioRepository);
+container
+  .bind<IBalanceComprobacionClipperRepository>(
+    "IBalanceComprobacionClipperRepository"
+  )
+  .to(BalanceComprobacionClipperRepository);
+container
+  .bind<IBalanceGeneralClipperRepository>("IBalanceGeneralClipperRepository")
+  .to(BalanceGeneralClipperRepository);
+
+// Cache Services
+container.bind<ICacheService>("ICacheService").to(CacheService);
+container
+  .bind<ClipperLibroDiarioCacheService>("ClipperLibroDiarioCacheService")
+  .to(ClipperLibroDiarioCacheService);
 
 // Services
 container.bind<IUsuarioService>("IUsuarioService").to(UsuarioService);
@@ -431,6 +458,14 @@ container
 container
   .bind<IClipperLibroDiarioService>("IClipperLibroDiarioService")
   .to(ClipperLibroDiarioService);
+container
+  .bind<IBalanceComprobacionClipperService>(
+    "IBalanceComprobacionClipperService"
+  )
+  .to(BalanceComprobacionClipperService);
+container
+  .bind<IBalanceGeneralClipperService>("IBalanceGeneralClipperService")
+  .to(BalanceGeneralClipperService);
 
 // Controllers
 container.bind<UsuarioController>("UsuarioController").to(UsuarioController);
@@ -536,6 +571,15 @@ container
 container
   .bind<ClipperLibroDiarioController>("ClipperLibroDiarioController")
   .to(ClipperLibroDiarioController);
+container
+  .bind<BalanceComprobacionClipperController>(
+    "BalanceComprobacionClipperController"
+  )
+  .to(BalanceComprobacionClipperController);
+container
+  .bind<BalanceGeneralClipperController>("BalanceGeneralClipperController")
+  .to(BalanceGeneralClipperController);
+// BalanceComprobacionClipperRoutes se instancia directamente en app.ts
 
 // CQRS Buses
 container.bind<ICommandBus>("ICommandBus").to(CommandBus);
@@ -635,6 +679,8 @@ container
     "ObtenerFiltrosLibroMayorAsientosHandler"
   )
   .to(ObtenerFiltrosLibroMayorAsientosHandler);
+
+// Balance Comprobación Clipper - No necesita handlers CQRS, usa servicio directamente
 
 // CQRS Service
 container.bind<CqrsService>("CqrsService").to(CqrsService);

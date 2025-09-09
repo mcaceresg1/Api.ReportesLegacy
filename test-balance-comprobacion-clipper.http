@@ -1,0 +1,19 @@
+### Test Balance Comprobación Clipper - Obtener datos (bdclipperGPC)
+GET http://localhost:3000/api/balance-comprobacion-clipper?bdClipperGPC=bdclipperGPC
+Content-Type: application/json
+
+### Test Balance Comprobación Clipper - Obtener datos (bdclipperGPC1)
+GET http://localhost:3000/api/balance-comprobacion-clipper?bdClipperGPC=bdclipperGPC1
+Content-Type: application/json
+
+### Test Balance Comprobación Clipper - Error sin parámetro
+GET http://localhost:3000/api/balance-comprobacion-clipper
+Content-Type: application/json
+
+### Test Balance Comprobación Clipper - Información del endpoint
+GET http://localhost:3000/api/balance-comprobacion-clipper/info
+Content-Type: application/json
+
+### Test Health Check
+GET http://localhost:3000/health
+Content-Type: application/json

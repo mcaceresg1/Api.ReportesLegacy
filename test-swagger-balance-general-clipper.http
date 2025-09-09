@@ -1,0 +1,41 @@
+### Test Swagger Documentation - Balance General Clipper
+
+### 1. Verificar documentación Swagger
+GET http://localhost:3000/api-docs
+Content-Type: application/json
+
+### 2. Test endpoint balance general por nivel con parámetros válidos
+GET http://localhost:3000/api/balance-general-clipper/bdclipperGPC/3
+Content-Type: application/json
+
+### 3. Test endpoint balance general por nivel con otro nivel
+GET http://localhost:3000/api/balance-general-clipper/bdclipperGPC/1
+Content-Type: application/json
+
+### 4. Test endpoint balance general por mes y nivel con parámetros válidos
+GET http://localhost:3000/api/balance-general-clipper/bdclipperGPC/12/1
+Content-Type: application/json
+
+### 5. Test endpoint balance general por mes y nivel con otro mes
+GET http://localhost:3000/api/balance-general-clipper/bdclipperGPC/6/2
+Content-Type: application/json
+
+### 6. Test endpoint de información
+GET http://localhost:3000/api/balance-general-clipper/info
+Content-Type: application/json
+
+### 7. Test endpoint sin parámetros (debe retornar error 404)
+GET http://localhost:3000/api/balance-general-clipper
+Content-Type: application/json
+
+### 8. Test endpoint con nivel inválido (debe retornar error 400)
+GET http://localhost:3000/api/balance-general-clipper/bdclipperGPC/6
+Content-Type: application/json
+
+### 9. Test endpoint con mes inválido (debe retornar error 400)
+GET http://localhost:3000/api/balance-general-clipper/bdclipperGPC/13/1
+Content-Type: application/json
+
+### 10. Test endpoint con base de datos inválida (debe retornar error 500)
+GET http://localhost:3000/api/balance-general-clipper/invalid/3
+Content-Type: application/json

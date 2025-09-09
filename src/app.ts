@@ -63,6 +63,11 @@ import { createReporteDocumentosProveedorRoutes } from "./infrastructure/routes/
 import libroMayorContabilidadRoutes from "./infrastructure/routes/LibroMayorContabilidadRoutes";
 import { IClipperLibroDiarioRepository } from "./domain/repositories/IClipperLibroDiarioRepository";
 import { createClipperLibroDiarioRoutes } from "./infrastructure/routes/ClipperLibroDiarioRoutes";
+import { createBalanceComprobacionClipperRoutes } from "./infrastructure/routes/BalanceComprobacionClipperRoutes";
+import { createBalanceGeneralClipperRoutes } from "./infrastructure/routes/BalanceGeneralClipperRoutes";
+// Importar controladores para que swagger-jsdoc procese la documentación
+import "./infrastructure/controllers/BalanceComprobacionClipperController";
+import "./infrastructure/controllers/BalanceGeneralClipperController";
 
 const reporteGNRoutes = createReporteGNRoutes();
 
@@ -183,6 +188,8 @@ queryBus.register(
   exportarBalanceComprobacionExcelHandler
 );
 
+// Balance Comprobación Clipper - No necesita handlers CQRS, usa servicio directamente
+
 console.log("✅ Handlers registrados manualmente");
 console.log("✅ CQRS Service inicializado");
 
@@ -241,6 +248,13 @@ const reporteDocumentosProveedorRoutes = createReporteDocumentosProveedorRoutes(
 );
 
 const reporteClipperLibroDiarioRoutes = createClipperLibroDiarioRoutes();
+
+// Balance Comprobación Clipper Routes
+const balanceComprobacionClipperRoutes =
+  createBalanceComprobacionClipperRoutes();
+
+// Balance General Clipper Routes
+const balanceGeneralClipperRoutes = createBalanceGeneralClipperRoutes();
 
 // Endpoint de prueba
 app.get("/api/test", (req, res) => {
@@ -447,6 +461,22 @@ app.use(
 
 app.use("/api/libro-diario-clipper", createClipperLibroDiarioRoutes());
 console.log("✅ REPORTE Libro diario Clipper routes registradas correctamente");
+
+// Balance Comprobación Clipper Routes
+app.use(
+  "/api/balance-comprobacion-clipper",
+  QueryOptimizationMiddleware.validateQueryParams,
+  balanceComprobacionClipperRoutes
+);
+console.log("✅ Balance Comprobación Clipper routes registradas correctamente");
+
+// Balance General Clipper Routes
+app.use(
+  "/api/balance-general-clipper",
+  QueryOptimizationMiddleware.validateQueryParams,
+  balanceGeneralClipperRoutes
+);
+console.log("✅ Balance General Clipper routes registradas correctamente");
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================
 
