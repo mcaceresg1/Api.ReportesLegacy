@@ -342,17 +342,17 @@ export class ReporteGenericoSaldosRepository implements IReporteGenericoSaldosRe
 
       // Query para obtener los resultados finales
       const selectQuery = `
-        SELECT 
-            sCuentaContable AS tipo,
-            sDescCuentaContable AS numero,
-            sNit AS apellidosNombres,
-            sRazonSocial AS fecha,
+        SELECT
+            sCuentaContable,
+            sDescCuentaContable,
+            sNit,
+            sRazonSocial AS apellidosNombres,
             sReferencia AS concepto,
-            sCodTipoDoc,
-            sTipoDocSunat,
+            sCodTipoDoc AS tipo,
+            sTipoDocSunat AS numero,
             sAsiento,
             nConsecutivo,
-            dtFechaAsiento,
+            dtFechaAsiento AS fecha,
             FORMAT(nSaldoLocal, 'N2') AS monto
         FROM ${conjunto}.${tableName}
         ORDER BY sCuentaContable, sNit
