@@ -1,9 +1,11 @@
 import { injectable } from "inversify";
 import {
+  FiltrosBoletaDePago,
   FiltrosReporteAccionesDePersonal,
   FiltrosReporteAnualizado,
   FiltrosReporteContratos,
   FiltrosReportePrestamoCtaCte,
+  FiltrosReportePrestamos,
   FiltrosReporteRolDeVacaciones,
   GNAccionDePersonal,
   GNContrato,
@@ -12,8 +14,10 @@ import {
   GNRolDeVacaciones,
   RespuestaReporteAccionesDePersonal,
   RespuestaReporteAnualizado,
+  RespuestaReporteBoletasDePago,
   RespuestaReporteContratos,
   RespuestaReportePrestamoCtaCte,
+  RespuestaReportePrestamos,
   RespuestaReporteRolDeVacaciones,
 } from "../../domain/entities/ReporteGN";
 import { IReporteGNRepository } from "../../domain/repositories/IReporteGNRepository";
@@ -22,22 +26,23 @@ import { QueryTypes } from "sequelize";
 
 @injectable()
 export class ReporteGNRepository implements IReporteGNRepository {
-  async getAnualizado({
-    codigo_nomina,
-    id_usuario,
-    periodo,
-    tipo,
-  }: FiltrosReporteAnualizado): Promise<
-    RespuestaReporteAnualizado | undefined
-  > {
+  async getReporteAnualizado(
+    conjunto: string,
+    {
+      codigo_nomina,
+      periodo,
+      filtro,
+      cod_empleado,
+    }: FiltrosReporteAnualizado
+  ): Promise<RespuestaReporteAnualizado | undefined> {
     try {
       const query =
-        tipo === "nomina"
+        filtro === "N"
           ? `
-      exec dbo.PA_ERP_CN_DATOSANUALIZADO;1 'FIDPLAN','E001','','','${id_usuario}',2,'N',${codigo_nomina}
+      exec dbo.PA_ERP_CN_DATOSANUALIZADO;1 '${conjunto}','E001','','','${cod_empleado}',2,'N',${codigo_nomina}
       `
           : `
-      exec dbo.PA_ERP_CN_DATOSANUALIZADO;1 'FIDPLAN','E001','','','${id_usuario}',2,'P',${periodo}
+      exec dbo.PA_ERP_CN_DATOSANUALIZADO;1 '${conjunto}','E001','','','${cod_empleado}',2,'P',${periodo}
       `;
       const data = (await exactusSequelize.query(query, {
         type: QueryTypes.SELECT,
@@ -53,7 +58,8 @@ export class ReporteGNRepository implements IReporteGNRepository {
     }
   }
   async getPrestamoCtaCte({
-    cta_cte,
+    cod_empleado,
+    naturaleza,
   }: FiltrosReportePrestamoCtaCte): Promise<
     RespuestaReportePrestamoCtaCte | undefined
   > {
@@ -65,7 +71,7 @@ m.saldo_int_dolar,   m.fch_ult_modific,   m.usuario_apro,
 m.fecha_apro,   m.usuario_rh,   m.fecha_apro_rh,   m.tipo_cambio,   m.documento,   m.observaciones,  
 m.empleado, m.RowPointer ,  LTRIM ( RTRIM(  CONVERT( VARCHAR(20 ),m.U_ESQUEMA_ORIGEN ) ) )   FROM 	
 FIDPLAN.movimiento_cta_cte m,FIDPLAN. tipo_movimiento tm                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 WHERE TM.tipo_movimiento = M.tipo_movimiento 
-AND  	M.empleado = '${cta_cte}' AND  	TM.naturaleza = 'C'   ORDER BY 1 ASC
+AND  	M.empleado = '${cod_empleado}' AND  	TM.naturaleza = '${naturaleza}'   ORDER BY 1 ASC
       `;
       const data = (await exactusSequelize.query(query, {
         type: QueryTypes.SELECT,
@@ -84,15 +90,16 @@ AND  	M.empleado = '${cta_cte}' AND  	TM.naturaleza = 'C'   ORDER BY 1 ASC
       throw error;
     }
   }
-  async getRolDeVacaciones({
-    pagina = 1,
-    registrosPorPagina = 10,
-    fecha_fin,
-    fecha_inicio,
-    id_usuario,
-  }: FiltrosReporteRolDeVacaciones): Promise<
-    RespuestaReporteRolDeVacaciones | undefined
-  > {
+  async getRolDeVacaciones(
+    conjunto: string,
+    {
+      pagina = 1,
+      registrosPorPagina = 10,
+      fecha_fin,
+      fecha_inicio,
+      cod_empleado,
+    }: FiltrosReporteRolDeVacaciones
+  ): Promise<RespuestaReporteRolDeVacaciones | undefined> {
     try {
       const offset = (pagina - 1) * registrosPorPagina;
 
@@ -104,13 +111,13 @@ AND  	M.empleado = '${cta_cte}' AND  	TM.naturaleza = 'C'   ORDER BY 1 ASC
     where 	e.empleado = g.empleado 
     and fecha_inicio >= '${fecha_inicio}'                    
     and  	fecha_inicio <= '${fecha_fin}'            
-    AND e.empleado >= '${id_usuario}'   
+    AND e.empleado >= '${cod_empleado}'   
     union all  
     select e.empleado, fecha_inicio, fecha_inicio, duracion, 'D' as tipo_vacacion, e.nombre  
     from FIDPLAN.empleado e, FIDPLAN.descuento_real g  where 	e.empleado = g.empleado 
     and fecha_inicio >= '${fecha_inicio}'                    
     and  	fecha_inicio <= '${fecha_fin}'            
-    AND e.empleado >= '${id_usuario}' 
+    AND e.empleado >= '${cod_empleado}' 
       ) as reporte
     `;
       const [totalResult]: any = await exactusSequelize.query(totalQuery, {
@@ -125,13 +132,13 @@ AND  	M.empleado = '${cta_cte}' AND  	TM.naturaleza = 'C'   ORDER BY 1 ASC
     where 	e.empleado = g.empleado 
     and fecha_inicio >= '${fecha_inicio}'                    
     and  	fecha_inicio <= '${fecha_fin}'            
-    AND e.empleado >= '${id_usuario}'   
+    AND e.empleado >= '${cod_empleado}'   
     union all  
     select e.empleado, fecha_inicio, fecha_inicio, duracion, 'D' as tipo_vacacion, e.nombre  
     from FIDPLAN.empleado e, FIDPLAN.descuento_real g  where 	e.empleado = g.empleado 
     and fecha_inicio >= '${fecha_inicio}'                    
     and  	fecha_inicio <= '${fecha_fin}'            
-    AND e.empleado >= '${id_usuario}' 
+    AND e.empleado >= '${cod_empleado}' 
       ) as reporte
       ORDER BY empleado ASC
       OFFSET :offset ROWS FETCH NEXT ${registrosPorPagina} ROWS ONLY
@@ -156,16 +163,17 @@ AND  	M.empleado = '${cta_cte}' AND  	TM.naturaleza = 'C'   ORDER BY 1 ASC
       throw err;
     }
   }
-  async getContratos({
-    id_usuario,
-  }: FiltrosReporteContratos): Promise<RespuestaReporteContratos | undefined> {
+  async getContratos(
+    conjunto: string,
+    { cod_empleado }: FiltrosReporteContratos
+  ): Promise<RespuestaReporteContratos | undefined> {
     try {
       const query = `
      SELECT 	ec.empleado,e.nombre,ec.tipo_contrato,ec.fecha_inicio,ec.fecha_finalizacion,   ec.estado_contrato  
-FROM 	 FIDPLAN.empleado_contrato ec(NOLOCK)
-INNER JOIN FIDPLAN.empleado e(NOLOCK) ON ec.empleado = e.empleado 
-INNER JOIN FIDPLAN.estado_empleado ep(NOLOCK) ON e.estado_empleado = ep.estado_empleado
-WHERE e.empleado = ec.empleado AND UPPER( ec.empleado) LIKE '${id_usuario}'`;
+FROM 	 ${conjunto}.empleado_contrato ec(NOLOCK)
+INNER JOIN ${conjunto}.empleado e(NOLOCK) ON ec.empleado = e.empleado 
+INNER JOIN ${conjunto}.estado_empleado ep(NOLOCK) ON e.estado_empleado = ep.estado_empleado
+WHERE e.empleado = ec.empleado AND UPPER(e.empleado) LIKE '${cod_empleado}'`;
       const data = (await exactusSequelize.query(query, {
         type: QueryTypes.SELECT,
       })) as GNContrato[];
@@ -180,13 +188,14 @@ WHERE e.empleado = ec.empleado AND UPPER( ec.empleado) LIKE '${id_usuario}'`;
     }
   }
 
-  async getAccionesDePersonal({
-    fecha_accion_fin,
-    fecha_accion_inicio,
-    id_usuario,
-  }: FiltrosReporteAccionesDePersonal): Promise<
-    RespuestaReporteAccionesDePersonal | undefined
-  > {
+  async getAccionesDePersonal(
+    conjunto: string,
+    {
+      fecha_accion_fin,
+      fecha_accion_inicio,
+      cod_empleado,
+    }: FiltrosReporteAccionesDePersonal
+  ): Promise<RespuestaReporteAccionesDePersonal | undefined> {
     try {
       const query = `
 USE EXACTUS;
@@ -195,10 +204,10 @@ ax.fecha_rige,  ax.fecha_vence,  ax.puesto,  ax.plaza,  ax.salario_promedio,  ax
 ax.departamento,  ax.centro_costo,  ax.nomina,  ax.dias_accion,  ax.saldo,  
 axp.numero_accion AS numero_accion_cuenta,  ax.regimen_vacacional,  
 ta.descripcion, ax.RowPointer ,  LTRIM ( RTRIM(  LTRIM(STR( ax.U_NUM_ACCION_ORIGEN, 10, 0 ))  ) )  AS origen
-FROM 	FIDPLAN.empleado_acc_per ax 
-inner join FIDPLAN.empleado emp ON ax.empleado = emp.empleado  
-left join FIDPLAN.acc_per_impresion axp ON ax.numero_accion = axp.numero_accion AND 'ADMPQUES'=  axp.usuario 
-inner join FIDPLAN.tipo_accion ta  ON ax.tipo_accion = ta.tipo_accion                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+FROM 	${conjunto}.empleado_acc_per ax 
+inner join ${conjunto}.empleado emp ON ax.empleado = emp.empleado  
+left join ${conjunto}.acc_per_impresion axp ON ax.numero_accion = axp.numero_accion AND 'ADMPQUES'=  axp.usuario 
+inner join ${conjunto}.tipo_accion ta  ON ax.tipo_accion = ta.tipo_accion                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
 WHERE  ( UPPER( ta.tipo_accion ) = 'V004' 
 OR UPPER( ta.tipo_accion ) = 'V003' 
 OR UPPER( ta.tipo_accion ) = 'V002'
@@ -223,7 +232,7 @@ OR UPPER( ta.tipo_accion ) = 'AS01'
 OR UPPER( ta.tipo_accion ) = 'AC01' 
 OR UPPER( ta.tipo_accion ) = 'A001'
 )  AND  fecha >= '${fecha_accion_inicio}'    AND  fecha <= '${fecha_accion_fin}'                
-AND UPPER( ax.empleado ) LIKE '${id_usuario}'  ORDER BY 1 ASC
+AND UPPER( ax.empleado ) LIKE '${cod_empleado}'  ORDER BY 1 ASC
       `;
 
       const data = (await exactusSequelize.query(query, {
@@ -238,5 +247,21 @@ AND UPPER( ax.empleado ) LIKE '${id_usuario}'  ORDER BY 1 ASC
       console.error("Error al obtener las acciones de personal:", error);
       throw error;
     }
+  }
+
+  async getPrestamos(
+    conjunto: string,
+    filtros: FiltrosReportePrestamos
+  ): Promise<RespuestaReportePrestamos | undefined> {
+    // TODO: Implement getPrestamos method
+    throw new Error("Method not implemented.");
+  }
+
+  async getBoletaDePago(
+    conjunto: string,
+    filtros: FiltrosBoletaDePago
+  ): Promise<RespuestaReporteBoletasDePago | undefined> {
+    // TODO: Implement getBoletaDePago method
+    throw new Error("Method not implemented.");
   }
 }
