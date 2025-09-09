@@ -32,7 +32,6 @@ import { createPeriodoContableRoutes } from "./infrastructure/routes/periodoCont
 import { createMovimientoContableAgrupadoRoutes } from "./infrastructure/routes/movimientoContableAgrupado.routes";
 import { createSaldoPromediosRoutes } from "./infrastructure/routes/saldoPromedios.routes";
 import { BalanceComprobacionRoutes } from "./infrastructure/routes/BalanceComprobacionRoutes";
-import { ReporteGenericoSaldosRoutes } from "./infrastructure/routes/ReporteGenericoSaldosRoutes";
 import { AuthMiddleware } from "./infrastructure/middleware/AuthMiddleware";
 import { QueryOptimizationMiddleware } from "./infrastructure/middleware/QueryOptimizationMiddleware";
 import { IUsuarioService } from "./domain/services/IUsuarioService";
@@ -173,36 +172,6 @@ queryBus.register(
   exportarBalanceComprobacionExcelHandler
 );
 
-// Reporte Generico Saldos Handlers
-const generarReporteGenericoSaldosHandler = container.get(
-  "GenerarReporteGenericoSaldosHandler"
-) as any;
-const obtenerReporteGenericoSaldosHandler = container.get(
-  "ObtenerReporteGenericoSaldosHandler"
-) as any;
-const exportarReporteGenericoSaldosExcelHandler = container.get(
-  "ExportarReporteGenericoSaldosExcelHandler"
-) as any;
-const obtenerEstadisticasReporteGenericoSaldosHandler = container.get(
-  "ObtenerEstadisticasReporteGenericoSaldosHandler"
-) as any;
-
-commandBus.register(
-  "GenerarReporteGenericoSaldosCommand",
-  generarReporteGenericoSaldosHandler
-);
-queryBus.register(
-  "ObtenerReporteGenericoSaldosQuery",
-  obtenerReporteGenericoSaldosHandler
-);
-queryBus.register(
-  "ExportarReporteGenericoSaldosExcelQuery",
-  exportarReporteGenericoSaldosExcelHandler
-);
-queryBus.register(
-  "ObtenerEstadisticasReporteGenericoSaldosQuery",
-  obtenerEstadisticasReporteGenericoSaldosHandler
-);
 
 console.log("✅ Handlers registrados manualmente");
 console.log("✅ CQRS Service inicializado");
@@ -254,10 +223,6 @@ const balanceComprobacionRoutes = container.get<BalanceComprobacionRoutes>(
   "BalanceComprobacionRoutes"
 );
 
-// Reporte Generico Saldos Routes
-const reporteGenericoSaldosRoutes = container.get<ReporteGenericoSaldosRoutes>(
-  "ReporteGenericoSaldosRoutes"
-);
 
 const reporteDocumentosProveedorRoutes = createReporteDocumentosProveedorRoutes(
   reporteDocumentosProveedorRepository
@@ -448,11 +413,6 @@ app.use(
   "/api/balance-comprobacion",
   QueryOptimizationMiddleware.validateQueryParams,
   balanceComprobacionRoutes.getRouter()
-);
-app.use(
-  "/api/reporte-generico-saldos",
-  QueryOptimizationMiddleware.validateQueryParams,
-  reporteGenericoSaldosRoutes.getRouter()
 );
 app.use(
   "/api/reporte-hmis",

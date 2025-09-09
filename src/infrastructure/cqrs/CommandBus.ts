@@ -9,6 +9,9 @@ export class CommandBus implements ICommandBus {
 
   async execute<T extends ICommand, TResult = void>(command: T): Promise<TResult> {
     const commandType = command.constructor.name;
+    console.log(`🔍 CommandBus.execute - Command type: ${commandType}`);
+    console.log(`🔍 CommandBus.execute - Available handlers:`, Array.from(this.handlers.keys()));
+    
     const handler = this.handlers.get(commandType);
 
     if (!handler) {
@@ -19,6 +22,7 @@ export class CommandBus implements ICommandBus {
   }
 
   register<T extends ICommand>(commandType: string, handler: ICommandHandler<T>): void {
+    console.log(`🔧 CommandBus.register - Registering handler for: ${commandType}`);
     this.handlers.set(commandType, handler);
   }
 }
