@@ -177,6 +177,185 @@ const swaggerOptions = {
             "createDate",
           ],
         },
+        ClipperLibroDiario: {
+          type: "object",
+          properties: {
+            clase: {
+              type: "string",
+              description: "Clase del comprobante (ej. COMPRAS)",
+              example: "COMPRAS",
+            },
+            numeroComprobante: {
+              type: "string",
+              description: "Número del comprobante",
+              example: "D06/00066",
+            },
+            nombre: {
+              type: "string",
+              description: "Nombre del concepto",
+              example: "I.G.V.",
+            },
+            documento: {
+              type: "string",
+              description: "Número de documento",
+              example: "TK/40614",
+            },
+            glosa: {
+              type: "string",
+              description: "Descripción o glosa del movimiento",
+              example: "GASTOS VARIOS",
+            },
+            montod: {
+              type: "number",
+              format: "double",
+              description: "Monto débito",
+              example: 0,
+            },
+            montoh: {
+              type: "number",
+              format: "double",
+              description: "Monto haber",
+              example: 79.48,
+            },
+          },
+          required: [
+            "clase",
+            "numeroComprobante",
+            "nombre",
+            "documento",
+            "glosa",
+            "montod",
+            "montoh",
+          ],
+        },
+        ClipperBalanceComprobacion: {
+          type: "object",
+          properties: {
+            cuenta: {
+              type: "string",
+              description: "Código de la cuenta contable",
+              example: "101010001",
+            },
+            nombre: {
+              type: "string",
+              description: "Nombre de la cuenta contable",
+              example: "EFECTIVO SOLES LIMA",
+            },
+            saldoAcumuladoDebe: {
+              type: "number",
+              format: "double",
+              description: "Saldo acumulado en debe (enero a noviembre)",
+              example: 1077484.66,
+            },
+            saldoAcumuladoHaber: {
+              type: "number",
+              format: "double",
+              description: "Saldo acumulado en haber (enero a noviembre)",
+              example: 757125.3,
+            },
+            movimientoMesDebe: {
+              type: "number",
+              format: "double",
+              description: "Movimiento del mes en debe (diciembre)",
+              example: 4294156.76,
+            },
+            movimientoMesHaber: {
+              type: "number",
+              format: "double",
+              description: "Movimiento del mes en haber (diciembre)",
+              example: 4614516.12,
+            },
+            saldoActualDebe: {
+              type: "number",
+              format: "double",
+              description: "Saldo actual en debe (enero a diciembre)",
+              example: 5371641.42,
+            },
+            saldoActualHaber: {
+              type: "number",
+              format: "double",
+              description: "Saldo actual en haber (enero a diciembre)",
+              example: 5371641.42,
+            },
+          },
+          required: [
+            "cuenta",
+            "nombre",
+            "saldoAcumuladoDebe",
+            "saldoAcumuladoHaber",
+            "movimientoMesDebe",
+            "movimientoMesHaber",
+            "saldoActualDebe",
+            "saldoActualHaber",
+          ],
+        },
+        ClipperBalanceGeneral: {
+          type: "object",
+          properties: {
+            cuenta: {
+              type: "string",
+              description: "Código de la cuenta contable",
+              example: "101010001",
+            },
+            nombre: {
+              type: "string",
+              description: "Nombre de la cuenta contable",
+              example: "EFECTIVO SOLES LIMA",
+            },
+            saldoAcumuladoDebe: {
+              type: "number",
+              format: "double",
+              description:
+                "Saldo acumulado en debe (enero a noviembre o hasta mes anterior)",
+              example: 1077484.66,
+            },
+            saldoAcumuladoHaber: {
+              type: "number",
+              format: "double",
+              description:
+                "Saldo acumulado en haber (enero a noviembre o hasta mes anterior)",
+              example: 757125.3,
+            },
+            movimientoMesDebe: {
+              type: "number",
+              format: "double",
+              description:
+                "Movimiento del mes en debe (diciembre o mes especificado)",
+              example: 4294156.76,
+            },
+            movimientoMesHaber: {
+              type: "number",
+              format: "double",
+              description:
+                "Movimiento del mes en haber (diciembre o mes especificado)",
+              example: 4614516.12,
+            },
+            saldoActualDebe: {
+              type: "number",
+              format: "double",
+              description:
+                "Saldo actual en debe (enero a diciembre o hasta mes especificado)",
+              example: 5371641.42,
+            },
+            saldoActualHaber: {
+              type: "number",
+              format: "double",
+              description:
+                "Saldo actual en haber (enero a diciembre o hasta mes especificado)",
+              example: 5371641.42,
+            },
+          },
+          required: [
+            "cuenta",
+            "nombre",
+            "saldoAcumuladoDebe",
+            "saldoAcumuladoHaber",
+            "movimientoMesDebe",
+            "movimientoMesHaber",
+            "saldoActualDebe",
+            "saldoActualHaber",
+          ],
+        },
         // Schemas de Libro Mayor eliminados
         // ReporteLibroMayorItem, FiltrosReporteLibroMayor, ResumenLibroMayor, ReporteLibroMayorResponse
       },
