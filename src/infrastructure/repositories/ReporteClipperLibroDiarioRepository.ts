@@ -1,16 +1,22 @@
-import { injectable } from 'inversify';
-import { QueryTypes } from 'sequelize';
-import { ClipperLibroDiario } from '../../domain/entities/LibroDiarioClipper';
-import { IClipperLibroDiarioRepository } from '../../domain/repositories/IClipperLibroDiarioRepository';
-import { clipperGPCDatabases } from '../database/config/clipper-gpC-database';
+import { injectable } from "inversify";
+import { QueryTypes } from "sequelize";
+import { ClipperLibroDiario } from "../../domain/entities/LibroDiarioClipper";
+import { IClipperLibroDiarioRepository } from "../../domain/repositories/IClipperLibroDiarioRepository";
+import { clipperGPCDatabases } from "../database/config/clipper-gpc-database";
 
 @injectable()
-export class ReporteClipperLibroDiarioRepository implements IClipperLibroDiarioRepository {
-
-  async getComprobantes(libro: string, mes: string, bdClipperGPC: string): Promise<ClipperLibroDiario[]> {
+export class ReporteClipperLibroDiarioRepository
+  implements IClipperLibroDiarioRepository
+{
+  async getComprobantes(
+    libro: string,
+    mes: string,
+    bdClipperGPC: string
+  ): Promise<ClipperLibroDiario[]> {
     try {
       const sequelize = clipperGPCDatabases[bdClipperGPC];
-      if (!sequelize) throw new Error(`Base de datos "${bdClipperGPC}" no configurada.`);
+      if (!sequelize)
+        throw new Error(`Base de datos "${bdClipperGPC}" no configurada.`);
 
       const query = `
         SELECT
@@ -39,61 +45,79 @@ export class ReporteClipperLibroDiarioRepository implements IClipperLibroDiarioR
 
       return result;
     } catch (error) {
-      console.error('❌ Error al obtener comprobantes por libro y mes:', error);
+      console.error("❌ Error al obtener comprobantes por libro y mes:", error);
       return [];
     }
   }
 
-  async getComprobantesAgrupados(libro: string, mes: string, bdClipperGPC: string): Promise<{
-    numeroComprobante: string;
-    clase: string;
-    totalDebe: number;
-    totalHaber: number;
-    detalles: ClipperLibroDiario[];
-  }[]> {
-    const comprobantes = await this.getComprobantes(libro, mes, bdClipperGPC);
-
-    const agrupado = comprobantes.reduce((acc, item) => {
-      const key = item.numeroComprobante;
-      if (!acc[key]) {
-        acc[key] = {
-          numeroComprobante: key,
-          clase: item.clase,
-          totalDebe: 0,
-          totalHaber: 0,
-          detalles: [],
-        };
-      }
-
-      acc[key].totalDebe += item.montod ?? 0;
-      acc[key].totalHaber += item.montoh ?? 0;
-      acc[key].detalles.push(item);
-      return acc;
-    }, {} as Record<string, {
+  async getComprobantesAgrupados(
+    libro: string,
+    mes: string,
+    bdClipperGPC: string
+  ): Promise<
+    {
       numeroComprobante: string;
       clase: string;
       totalDebe: number;
       totalHaber: number;
       detalles: ClipperLibroDiario[];
-    }>);
+    }[]
+  > {
+    const comprobantes = await this.getComprobantes(libro, mes, bdClipperGPC);
+
+    const agrupado = comprobantes.reduce(
+      (acc, item) => {
+        const key = item.numeroComprobante;
+        if (!acc[key]) {
+          acc[key] = {
+            numeroComprobante: key,
+            clase: item.clase,
+            totalDebe: 0,
+            totalHaber: 0,
+            detalles: [],
+          };
+        }
+
+        acc[key].totalDebe += item.montod ?? 0;
+        acc[key].totalHaber += item.montoh ?? 0;
+        acc[key].detalles.push(item);
+        return acc;
+      },
+      {} as Record<
+        string,
+        {
+          numeroComprobante: string;
+          clase: string;
+          totalDebe: number;
+          totalHaber: number;
+          detalles: ClipperLibroDiario[];
+        }
+      >
+    );
 
     return Object.values(agrupado);
   }
 
-  async getComprobantePorNumero(numeroComprobante: string, bdClipperGPC: string): Promise<ClipperLibroDiario | null> {
+  async getComprobantePorNumero(
+    numeroComprobante: string,
+    bdClipperGPC: string
+  ): Promise<ClipperLibroDiario | null> {
     try {
       const sequelize = clipperGPCDatabases[bdClipperGPC];
-      if (!sequelize) throw new Error(`Base de datos "${bdClipperGPC}" no configurada.`);
+      if (!sequelize)
+        throw new Error(`Base de datos "${bdClipperGPC}" no configurada.`);
 
-      const partes = numeroComprobante.split('/');
+      const partes = numeroComprobante.split("/");
       if (partes.length !== 2) {
-        throw new Error(`Formato inválido de número de comprobante: "${numeroComprobante}". Debe ser 'D00/00001'.`);
+        throw new Error(
+          `Formato inválido de número de comprobante: "${numeroComprobante}". Debe ser 'D00/00001'.`
+        );
       }
 
-      const libroCodigo = partes[0] ?? '';
+      const libroCodigo = partes[0] ?? "";
       const numero = partes[1];
       if (!libroCodigo) {
-        throw new Error('Código de libro inválido o vacío.');
+        throw new Error("Código de libro inválido o vacío.");
       }
 
       const codigo = libroCodigo.substring(1);
@@ -127,7 +151,7 @@ export class ReporteClipperLibroDiarioRepository implements IClipperLibroDiarioR
 
       return result[0] ?? null;
     } catch (error) {
-      console.error('❌ Error al obtener detalle de comprobante:', error);
+      console.error("❌ Error al obtener detalle de comprobante:", error);
       return null;
     }
   }

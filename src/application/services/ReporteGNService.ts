@@ -57,9 +57,10 @@ export class ReporteGNService implements IReporteGNService {
     return this.reporteGNRepository.getPrestamos(conjunto, filtros);
   }
   async getPrestamoCtaCte(
+    conjunto: string,
     filtros: FiltrosReportePrestamoCtaCte
   ): Promise<RespuestaReportePrestamoCtaCte | undefined> {
-    return this.reporteGNRepository.getPrestamoCtaCte(filtros);
+    return this.reporteGNRepository.getPrestamoCtaCte(conjunto, filtros);
   }
   async getBoletaDePago(
     conjunto: string,
