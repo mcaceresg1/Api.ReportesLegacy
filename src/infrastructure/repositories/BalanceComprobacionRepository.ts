@@ -139,7 +139,9 @@ export class BalanceComprobacionRepository
           MONEDA, NIVEL, TNIVEL1, TNIVEL2, TNIVEL3, TNIVEL4, TNIVEL5, TNIVEL6,   
           TNIVEL7, TNIVEL8, TNIVEL9, TNIVEL10, TNIVEL11, TNIVEL12, NIVEL1,   
           NIVEL2, NIVEL3, NIVEL4, NIVEL5, NIVEL6, NIVEL7, NIVEL8, NIVEL9, 
-          NIVEL10, NIVEL11, NIVEL12, sTIPO, sTIPO_DETALLADO, TIPO_REPORTE    
+          NIVEL10, NIVEL11, NIVEL12, sTIPO, sTIPO_DETALLADO, TIPO_REPORTE,
+          CENTRO_COSTO, CUENTA6, CUENTA7, DESC6, DESC7, CUENTA8, DESC8, 
+          CUENTA9, DESC9, CUENTA10, DESC10, CUENTA11, DESC11
         ) 
         SELECT BAL.CUENTA_CONTABLE, 
           CD.DESCRIPCION, CD.CUENTA1, CD.DESCRIPCION1, CD.CUENTA2, CD.DESCRIPCION2,
@@ -147,7 +149,8 @@ export class BalanceComprobacionRepository
           SUM(BAL.SALDO_LOCAL), SUM(BAL.SALDO_DOLAR),  
           SUM(BAL.DEBITO_LOCAL), SUM(BAL.DEBITO_DOLAR), SUM(BAL.CREDITO_LOCAL), 
           SUM(BAL.CREDITO_DOLAR), 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-          CD.TIPO, CD.TIPO_DETALLADO, ?                             
+          CD.TIPO, CD.TIPO_DETALLADO, ?, 
+          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
         FROM (   
           select null cuenta_contable, 0 saldo_local, 0 saldo_dolar, 0 debito_local, 0 debito_dolar, 0 credito_local, 0 credito_dolar, null centro_costo 
           from ${conjunto}.globales_as where 1 = 2    
