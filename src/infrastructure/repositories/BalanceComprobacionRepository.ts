@@ -132,119 +132,260 @@ export class BalanceComprobacionRepository
       );
 
       const query = `
-        INSERT INTO ${conjunto}.R_XML_8DDC5522302C179 (  
-          CUENTA_CONTABLE, DESCRIPCION, CUENTA1, DESC1, CUENTA2, DESC2, 
-          CUENTA3, DESC3, CUENTA4, DESC4, CUENTA5, DESC5, SALDO_LOCAL,  
-          SALDO_DOLAR, DEBITO_LOCAL, DEBITO_DOLAR, CREDITO_LOCAL, CREDITO_DOLAR, 
-          MONEDA, NIVEL, TNIVEL1, TNIVEL2, TNIVEL3, TNIVEL4, TNIVEL5, TNIVEL6,   
-          TNIVEL7, TNIVEL8, TNIVEL9, TNIVEL10, TNIVEL11, TNIVEL12, NIVEL1,   
-          NIVEL2, NIVEL3, NIVEL4, NIVEL5, NIVEL6, NIVEL7, NIVEL8, NIVEL9, 
-          NIVEL10, NIVEL11, NIVEL12, sTIPO, sTIPO_DETALLADO, TIPO_REPORTE,
-          CENTRO_COSTO, CUENTA6, CUENTA7, DESC6, DESC7, CUENTA8, DESC8, 
-          CUENTA9, DESC9, CUENTA10, DESC10, CUENTA11, DESC11
-        ) 
-        SELECT BAL.CUENTA_CONTABLE, 
-          CD.DESCRIPCION, CD.CUENTA1, CD.DESCRIPCION1, CD.CUENTA2, CD.DESCRIPCION2,
-          CD.CUENTA3, CD.DESCRIPCION3, CD.CUENTA4, CD.DESCRIPCION4, CD.CUENTA5, CD.DESCRIPCION5,    
-          SUM(BAL.SALDO_LOCAL), SUM(BAL.SALDO_DOLAR),  
-          SUM(BAL.DEBITO_LOCAL), SUM(BAL.DEBITO_DOLAR), SUM(BAL.CREDITO_LOCAL), 
-          SUM(BAL.CREDITO_DOLAR), 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-          CD.TIPO, CD.TIPO_DETALLADO, ?, 
-          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
-        FROM (   
-          select null cuenta_contable, 0 saldo_local, 0 saldo_dolar, 0 debito_local, 0 debito_dolar, 0 credito_local, 0 credito_dolar, null centro_costo 
-          from ${conjunto}.globales_as where 1 = 2    
-          union all    
-          select m.cuenta_contable, m.debito_local - m.credito_local, m.debito_dolar - m.credito_dolar, 0, 0, 0, 0, null  
-          from (   
-            select m.centro_costo, m.cuenta_contable,  	
-              case when m.saldo_fisc_local > 0 then abs(m.saldo_fisc_local) else 0 end debito_local,  	
-              case when m.saldo_fisc_local < 0 then abs(m.saldo_fisc_local) else 0 end credito_local,  	
-              case when m.saldo_fisc_dolar > 0 then abs(m.saldo_fisc_dolar) else 0 end debito_dolar,  	
-              case when m.saldo_fisc_dolar < 0 then abs(m.saldo_fisc_dolar) else 0 end credito_dolar   	
-            from ${conjunto}.saldo m  
-            inner join (   
-              select m.centro_costo, m.cuenta_contable, max(m.fecha) fecha  	
-              from ${conjunto}.saldo m  	
-              where m.fecha <= ?                                            	
-              group by m.centro_costo, m.cuenta_contable  
-            ) smax on ( m.centro_costo = smax.centro_costo and m.cuenta_contable = smax.cuenta_contable and m.fecha = smax.fecha )   
-            where 1 = 1 
-            UNION ALL    	
-            select m.centro_costo, m.cuenta_contable,  	
-              coalesce ( m.debito_local, 0 ) debito_local,  	
-              coalesce ( m.credito_local, 0 ) credito_local,  	
-              coalesce ( m.debito_dolar, 0 ) debito_dolar, 
-              coalesce ( m.credito_dolar, 0 ) credito_dolar  	
-            from ${conjunto}.asiento_de_diario am 
-            inner join ${conjunto}.diario m on ( am.asiento = m.asiento )  
-            where am.fecha <= ?                                         
-            and contabilidad in ( 'F', 'A' )  
-          ) m   
-          union all   
-          select m.cuenta_contable, 0, 0, m.debito_local, m.debito_dolar, m.credito_local, m.credito_dolar, null  
-          from (   
-            select m.centro_costo, m.cuenta_contable,  	
-              sum ( m.debito_fisc_local ) debito_local,  	
-              sum ( m.credito_fisc_local ) credito_local,  	
-              sum ( m.debito_fisc_dolar ) debito_dolar,  	
-              sum ( m.credito_fisc_dolar ) credito_dolar  	 
-            from ${conjunto}.saldo m 
-            where ( m.fecha >= '1980-01-01 00:00:00' ) 
-            and ( m.fecha <= ? )   
-            group by m.centro_costo, m.cuenta_contable  
-            UNION ALL    	
-            select m.centro_costo, m.cuenta_contable,  	
-              - coalesce ( m.debito_local, 0 ) debito_local,  	
-              - coalesce ( m.credito_local, 0 ) credito_local,  	
-              - coalesce ( m.debito_dolar, 0 ) debito_dolar,  	
-              - coalesce ( m.credito_dolar, 0 ) credito_dolar  	
-            from ${conjunto}.mayor m 
-            where m.fecha >= '1980-01-01 00:00:00'                                             
-            and m.fecha < ?              
-            and contabilidad in ( 'F','A' )  
-            UNION ALL    	
-            select m.centro_costo, m.cuenta_contable,  	
-              coalesce ( m.debito_local, 0 ) debito_local,  	
-              coalesce ( m.credito_local, 0 ) credito_local,  	
-              coalesce ( m.debito_dolar, 0 ) debito_dolar,  	
-              coalesce ( m.credito_dolar, 0 ) credito_dolar  	
-            from ${conjunto}.mayor m 
-            where m.fecha > ?                                             
-            and m.fecha <= ?         
-            and contabilidad in ( 'F', 'A' ) 
-            UNION ALL    	
-            select m.centro_costo, m.cuenta_contable,  	
-              coalesce ( m.debito_local, 0 ) debito_local,  	
-              coalesce ( m.credito_local, 0 ) credito_local,  
-              coalesce ( m.debito_dolar, 0 ) debito_dolar,  	
-              coalesce ( m.credito_dolar, 0 ) credito_dolar  	
-            from ${conjunto}.asiento_de_diario am 
-            inner join ${conjunto}.diario m on ( am.asiento = m.asiento )  
-            where am.fecha <= ?                                        
-            and am.fecha >= ?                                         
-            and contabilidad in ( 'F', 'A' )  
-          ) m  
-        ) BAL    	
+        INSERT INTO ${conjunto}.R_XML_8DDC5522302C179 (
+          CUENTA_CONTABLE,
+          DESCRIPCION,
+          CUENTA1, DESC1,
+          CUENTA2, DESC2,
+          CUENTA3, DESC3,
+          CUENTA4, DESC4,
+          CUENTA5, DESC5,
+          SALDO_LOCAL,
+          SALDO_DOLAR,
+          DEBITO_LOCAL,
+          DEBITO_DOLAR,
+          CREDITO_LOCAL,
+          CREDITO_DOLAR,
+          MONEDA,
+          NIVEL,
+          TNIVEL1, TNIVEL2, TNIVEL3, TNIVEL4, TNIVEL5, TNIVEL6,
+          TNIVEL7, TNIVEL8, TNIVEL9, TNIVEL10, TNIVEL11, TNIVEL12,
+          NIVEL1, NIVEL2, NIVEL3, NIVEL4, NIVEL5, NIVEL6,
+          NIVEL7, NIVEL8, NIVEL9, NIVEL10, NIVEL11, NIVEL12,
+          sTIPO,
+          sTIPO_DETALLADO,
+          TIPO_REPORTE,
+          CENTRO_COSTO,
+          CUENTA6, CUENTA7, DESC6, DESC7,
+          CUENTA8, DESC8, CUENTA9, DESC9,
+          CUENTA10, DESC10, CUENTA11, DESC11
+        )
+        SELECT 
+          BAL.CUENTA_CONTABLE,
+          CD.DESCRIPCION,
+          CD.CUENTA1, CD.DESCRIPCION1,
+          CD.CUENTA2, CD.DESCRIPCION2,
+          CD.CUENTA3, CD.DESCRIPCION3,
+          CD.CUENTA4, CD.DESCRIPCION4,
+          CD.CUENTA5, CD.DESCRIPCION5,
+          SUM(BAL.SALDO_LOCAL) AS SALDO_LOCAL,
+          SUM(BAL.SALDO_DOLAR) AS SALDO_DOLAR,
+          SUM(BAL.DEBITO_LOCAL) AS DEBITO_LOCAL,
+          SUM(BAL.DEBITO_DOLAR) AS DEBITO_DOLAR,
+          SUM(BAL.CREDITO_LOCAL) AS CREDITO_LOCAL,
+          SUM(BAL.CREDITO_DOLAR) AS CREDITO_DOLAR,
+          0 AS MONEDA,
+          1 AS NIVEL,
+          0, 0, 0, 0, 0, 0, -- TNIVEL1-6
+          0, 0, 0, 0, 0, 0, -- TNIVEL7-12
+          0, 1, 0, 0, 0, 0, -- NIVEL1-6
+          0, 0, 0, 0, 0, 0, -- NIVEL7-12
+          CD.TIPO,
+          CD.TIPO_DETALLADO,
+          ? AS TIPO_REPORTE,
+          NULL AS CENTRO_COSTO,
+          NULL, NULL, NULL, NULL, -- CUENTA6, CUENTA7, DESC6, DESC7
+          NULL, NULL, NULL, NULL, -- CUENTA8, DESC8, CUENTA9, DESC9
+          NULL, NULL, NULL, NULL  -- CUENTA10, DESC10, CUENTA11, DESC11
+        FROM (
+          -- Subquery principal que une todos los movimientos contables
+          
+          -- Registro dummy para inicialización
+          SELECT 
+            NULL AS cuenta_contable,
+            0 AS saldo_local,
+            0 AS saldo_dolar,
+            0 AS debito_local,
+            0 AS debito_dolar,
+            0 AS credito_local,
+            0 AS credito_dolar,
+            NULL AS centro_costo
+          FROM ${conjunto}.globales_as 
+          WHERE 1 = 2
+          
+          UNION ALL
+          
+          -- Saldos iniciales (diferencia entre débitos y créditos)
+          SELECT 
+            m.cuenta_contable,
+            m.debito_local - m.credito_local AS saldo_local,
+            m.debito_dolar - m.credito_dolar AS saldo_dolar,
+            0 AS debito_local,
+            0 AS debito_dolar,
+            0 AS credito_local,
+            0 AS credito_dolar,
+            NULL AS centro_costo
+          FROM (
+            SELECT 
+              m.centro_costo,
+              m.cuenta_contable,
+              CASE 
+                WHEN m.saldo_fisc_local > 0 THEN ABS(m.saldo_fisc_local) 
+                ELSE 0 
+              END AS debito_local,
+              CASE 
+                WHEN m.saldo_fisc_local < 0 THEN ABS(m.saldo_fisc_local) 
+                ELSE 0 
+              END AS credito_local,
+              CASE 
+                WHEN m.saldo_fisc_dolar > 0 THEN ABS(m.saldo_fisc_dolar) 
+                ELSE 0 
+              END AS debito_dolar,
+              CASE 
+                WHEN m.saldo_fisc_dolar < 0 THEN ABS(m.saldo_fisc_dolar) 
+                ELSE 0 
+              END AS credito_dolar
+            FROM ${conjunto}.saldo m
+            INNER JOIN (
+              SELECT 
+                m.centro_costo,
+                m.cuenta_contable,
+                MAX(m.fecha) AS fecha
+              FROM ${conjunto}.saldo m
+              WHERE m.fecha <= ?
+              GROUP BY m.centro_costo, m.cuenta_contable
+            ) smax ON (
+              m.centro_costo = smax.centro_costo 
+              AND m.cuenta_contable = smax.cuenta_contable 
+              AND m.fecha = smax.fecha
+            )
+            WHERE 1 = 1
+            
+            UNION ALL
+            
+            -- Movimientos de asientos hasta fecha fin
+            SELECT 
+              m.centro_costo,
+              m.cuenta_contable,
+              COALESCE(m.debito_local, 0) AS debito_local,
+              COALESCE(m.credito_local, 0) AS credito_local,
+              COALESCE(m.debito_dolar, 0) AS debito_dolar,
+              COALESCE(m.credito_dolar, 0) AS credito_dolar
+            FROM ${conjunto}.asiento_de_diario am
+            INNER JOIN ${conjunto}.diario m ON (am.asiento = m.asiento)
+            WHERE am.fecha <= ?
+              AND contabilidad IN ('F', 'A')
+          ) m
+          
+          UNION ALL
+          
+          -- Movimientos del periodo actual (débitos y créditos separados)
+          SELECT 
+            m.cuenta_contable,
+            0 AS saldo_local,
+            0 AS saldo_dolar,
+            m.debito_local,
+            m.debito_dolar,
+            m.credito_local,
+            m.credito_dolar,
+            NULL AS centro_costo
+          FROM (
+            -- Saldos fiscales del periodo
+            SELECT 
+              m.centro_costo,
+              m.cuenta_contable,
+              SUM(m.debito_fisc_local) AS debito_local,
+              SUM(m.credito_fisc_local) AS credito_local,
+              SUM(m.debito_fisc_dolar) AS debito_dolar,
+              SUM(m.credito_fisc_dolar) AS credito_dolar
+            FROM ${conjunto}.saldo m
+            WHERE m.fecha >= '1980-01-01 00:00:00'
+              AND m.fecha <= ?
+            GROUP BY m.centro_costo, m.cuenta_contable
+            
+            UNION ALL
+            
+            -- Ajuste negativo del libro mayor (periodo anterior)
+            SELECT 
+              m.centro_costo,
+              m.cuenta_contable,
+              -COALESCE(m.debito_local, 0) AS debito_local,
+              -COALESCE(m.credito_local, 0) AS credito_local,
+              -COALESCE(m.debito_dolar, 0) AS debito_dolar,
+              -COALESCE(m.credito_dolar, 0) AS credito_dolar
+            FROM ${conjunto}.mayor m
+            WHERE m.fecha >= '1980-01-01 00:00:00'
+              AND m.fecha < ?
+              AND contabilidad IN ('F', 'A')
+            
+            UNION ALL
+            
+            -- Movimientos del libro mayor periodo actual
+            SELECT 
+              m.centro_costo,
+              m.cuenta_contable,
+              COALESCE(m.debito_local, 0) AS debito_local,
+              COALESCE(m.credito_local, 0) AS credito_local,
+              COALESCE(m.debito_dolar, 0) AS debito_dolar,
+              COALESCE(m.credito_dolar, 0) AS credito_dolar
+            FROM ${conjunto}.mayor m
+            WHERE m.fecha > ?
+              AND m.fecha <= ?
+              AND contabilidad IN ('F', 'A')
+            
+            UNION ALL
+            
+            -- Asientos del periodo actual
+            SELECT 
+              m.centro_costo,
+              m.cuenta_contable,
+              COALESCE(m.debito_local, 0) AS debito_local,
+              COALESCE(m.credito_local, 0) AS credito_local,
+              COALESCE(m.debito_dolar, 0) AS debito_dolar,
+              COALESCE(m.credito_dolar, 0) AS credito_dolar
+            FROM ${conjunto}.asiento_de_diario am
+            INNER JOIN ${conjunto}.diario m ON (am.asiento = m.asiento)
+            WHERE am.fecha <= ?
+              AND am.fecha >= ?
+              AND contabilidad IN ('F', 'A')
+          ) m
+        ) BAL
+
+        -- JOIN con catálogo de cuentas para obtener jerarquía
         INNER JOIN (
-          SELECT C.CUENTA_CONTABLE, C.DESCRIPCION,  
-            SUBSTRING( CC1.CUENTA_CONTABLE, 1, 2 ) AS CUENTA1, CC1.DESCRIPCION AS DESCRIPCION1, 
-            SUBSTRING( CC2.CUENTA_CONTABLE, 1, 4 ) AS CUENTA2, CC2.DESCRIPCION AS DESCRIPCION2,  
-            SUBSTRING( CC3.CUENTA_CONTABLE, 1, 6 ) AS CUENTA3, CC3.DESCRIPCION AS DESCRIPCION3,  
-            SUBSTRING( CC4.CUENTA_CONTABLE, 1, 8 ) AS CUENTA4, CC4.DESCRIPCION AS DESCRIPCION4,  
-            SUBSTRING( CC5.CUENTA_CONTABLE, 1, 12 ) AS CUENTA5, CC5.DESCRIPCION AS DESCRIPCION5,  
-            C.TIPO, C.TIPO_DETALLADO  
-          FROM ${conjunto}.CUENTA_CONTABLE C 
-          INNER JOIN ${conjunto}.CUENTA_CONTABLE CC1 ON CC1.CUENTA_CONTABLE = SUBSTRING( C.CUENTA_CONTABLE, 1, 2 ) + '.0.0.0.000'  
-          INNER JOIN ${conjunto}.CUENTA_CONTABLE CC2 ON CC2.CUENTA_CONTABLE = SUBSTRING( C.CUENTA_CONTABLE, 1, 4 ) + '.0.0.000' 
-          INNER JOIN ${conjunto}.CUENTA_CONTABLE CC3 ON CC3.CUENTA_CONTABLE = SUBSTRING( C.CUENTA_CONTABLE, 1, 6 ) + '.0.000'  
-          INNER JOIN ${conjunto}.CUENTA_CONTABLE CC4 ON CC4.CUENTA_CONTABLE = SUBSTRING( C.CUENTA_CONTABLE, 1, 8 ) + '.000' 
-          INNER JOIN ${conjunto}.CUENTA_CONTABLE CC5 ON CC5.CUENTA_CONTABLE = SUBSTRING( C.CUENTA_CONTABLE, 1, 12 ) + '' 
-        ) CD  	
-        ON BAL.CUENTA_CONTABLE = CD.CUENTA_CONTABLE  
-        GROUP BY BAL.CUENTA_CONTABLE, CD.DESCRIPCION,  
-          CD.CUENTA1, CD.DESCRIPCION1, CD.CUENTA2, CD.DESCRIPCION2, CD.CUENTA3, CD.DESCRIPCION3, 
-          CD.CUENTA4, CD.DESCRIPCION4, CD.CUENTA5, CD.DESCRIPCION5, CD.TIPO, CD.TIPO_DETALLADO
+          SELECT 
+            C.CUENTA_CONTABLE,
+            C.DESCRIPCION,
+            -- Nivel 1 (2 dígitos)
+            SUBSTRING(CC1.CUENTA_CONTABLE, 1, 2) AS CUENTA1,
+            CC1.DESCRIPCION AS DESCRIPCION1,
+            -- Nivel 2 (4 dígitos)
+            SUBSTRING(CC2.CUENTA_CONTABLE, 1, 4) AS CUENTA2,
+            CC2.DESCRIPCION AS DESCRIPCION2,
+            -- Nivel 3 (6 dígitos)
+            SUBSTRING(CC3.CUENTA_CONTABLE, 1, 6) AS CUENTA3,
+            CC3.DESCRIPCION AS DESCRIPCION3,
+            -- Nivel 4 (8 dígitos)
+            SUBSTRING(CC4.CUENTA_CONTABLE, 1, 8) AS CUENTA4,
+            CC4.DESCRIPCION AS DESCRIPCION4,
+            -- Nivel 5 (12 dígitos)
+            SUBSTRING(CC5.CUENTA_CONTABLE, 1, 12) AS CUENTA5,
+            CC5.DESCRIPCION AS DESCRIPCION5,
+            C.TIPO,
+            C.TIPO_DETALLADO
+          FROM ${conjunto}.CUENTA_CONTABLE C
+          INNER JOIN ${conjunto}.CUENTA_CONTABLE CC1 ON 
+            CC1.CUENTA_CONTABLE = SUBSTRING(C.CUENTA_CONTABLE, 1, 2) + '.0.0.0.000'
+          INNER JOIN ${conjunto}.CUENTA_CONTABLE CC2 ON 
+            CC2.CUENTA_CONTABLE = SUBSTRING(C.CUENTA_CONTABLE, 1, 4) + '.0.0.000'
+          INNER JOIN ${conjunto}.CUENTA_CONTABLE CC3 ON 
+            CC3.CUENTA_CONTABLE = SUBSTRING(C.CUENTA_CONTABLE, 1, 6) + '.0.000'
+          INNER JOIN ${conjunto}.CUENTA_CONTABLE CC4 ON 
+            CC4.CUENTA_CONTABLE = SUBSTRING(C.CUENTA_CONTABLE, 1, 8) + '.000'
+          INNER JOIN ${conjunto}.CUENTA_CONTABLE CC5 ON 
+            CC5.CUENTA_CONTABLE = SUBSTRING(C.CUENTA_CONTABLE, 1, 12) + ''
+        ) CD ON BAL.CUENTA_CONTABLE = CD.CUENTA_CONTABLE
+
+        GROUP BY 
+          BAL.CUENTA_CONTABLE,
+          CD.DESCRIPCION,
+          CD.CUENTA1, CD.DESCRIPCION1,
+          CD.CUENTA2, CD.DESCRIPCION2,
+          CD.CUENTA3, CD.DESCRIPCION3,
+          CD.CUENTA4, CD.DESCRIPCION4,
+          CD.CUENTA5, CD.DESCRIPCION5,
+          CD.TIPO,
+          CD.TIPO_DETALLADO
       `;
 
       const fechaFinStr = fechaFin.toISOString().slice(0, 19).replace("T", " ");
@@ -262,14 +403,14 @@ export class BalanceComprobacionRepository
       await exactusSequelize.query(query, {
         replacements: [
           tipoReporte,
-          fechaFinStr,
-          fechaFinStr,
-          fechaFinStr,
-          fechaFinMasUnoStr,
-          fechaFinStr,
-          fechaFinStr,
-          fechaFinStr,
-          fechaInicioStr,
+          fechaFinStr,        // Saldos hasta fecha fin
+          fechaFinStr,        // Asientos hasta fecha fin
+          fechaFinStr,        // Saldos fiscales hasta fecha fin
+          fechaFinMasUnoStr,  // Mayor periodo anterior
+          fechaFinStr,        // Mayor periodo actual inicio
+          fechaFinStr,        // Mayor periodo actual fin
+          fechaFinStr,        // Asientos periodo actual fin
+          fechaInicioStr,     // Asientos periodo actual inicio
         ]
       });
     } catch (error) {
@@ -356,69 +497,78 @@ export class BalanceComprobacionRepository
       );
       const total = (countResult as any[])[0]?.total || 0;
 
-      // Query para obtener los datos paginados
+      // Query para obtener los datos paginados con formato de Balance de Comprobación
       const dataQuery = `
         SELECT 
-          isnull(CUENTA_CONTABLE, '') CUENTA_CONTABLE,
-          isnull(sTIPO_DETALLADO, '') sTIPO_DETALLADO,
-          isnull(CREDITO_LOCAL, 0) CREDITO_LOCAL,
-          isnull(CREDITO_DOLAR, 0) CREDITO_DOLAR,
-          isnull(DEBITO_LOCAL, 0) DEBITO_LOCAL,
-          isnull(DEBITO_DOLAR, 0) DEBITO_DOLAR,
-          isnull(TIPO_REPORTE, '') TIPO_REPORTE,
-          isnull(CENTRO_COSTO, '') CENTRO_COSTO,
-          isnull(DESCRIPCION, '') DESCRIPCION,
-          isnull(SALDO_LOCAL, 0) SALDO_LOCAL,
-          isnull(SALDO_DOLAR, 0) SALDO_DOLAR,
-          isnull(CUENTA1, '') CUENTA1,
-          isnull(CUENTA2, '') CUENTA2,
-          isnull(CUENTA3, '') CUENTA3,
-          isnull(TNIVEL1, 0) TNIVEL1,
-          isnull(TNIVEL2, 0) TNIVEL2,
-          isnull(TNIVEL3, 0) TNIVEL3,
-          isnull(CUENTA4, '') CUENTA4,
-          isnull(TNIVEL4, 0) TNIVEL4,
-          isnull(CUENTA5, '') CUENTA5,
-          isnull(TNIVEL5, 0) TNIVEL5,
-          isnull(TNIVEL6, 0) TNIVEL6,
-          isnull(MONEDA, 0) MONEDA,
-          isnull(NIVEL1, 0) NIVEL1,
-          isnull(TNIVEL3, 0) NIVEL3,
-          isnull(NIVEL5, 0) NIVEL5,
-          isnull(NIVEL2, 0) NIVEL2,
-          isnull(NIVEL6, 0) NIVEL6,
-          isnull(NIVEL4, 0) NIVEL4,
-          isnull(DESC1, '') DESC1,
-          isnull(DESC2, '') DESC2,
-          isnull(DESC3, '') DESC3,
-          isnull(NIVEL, 0) NIVEL,
-          isnull(sTIPO, '') sTIPO,
-          isnull(DESC4, '') DESC4,
-          isnull(DESC5, '') DESC5,
-          isnull(CUENTA6, '') CUENTA6,
-          isnull(CUENTA7, '') CUENTA7,
-          isnull(DESC6, '') DESC6,
-          isnull(DESC7, '') DESC7,
-          isnull(NIVEL7, 0) NIVEL7,
-          isnull(TNIVEL7, 0) TNIVEL7,
-          isnull(NIVEL8, 0) NIVEL8,
-          isnull(TNIVEL8, 0) TNIVEL8,
-          isnull(CUENTA8, '') CUENTA8,
-          isnull(DESC8, '') DESC8,
-          isnull(CUENTA9, '') CUENTA9,
-          isnull(DESC9, '') DESC9,
-          isnull(NIVEL9, 0) NIVEL9,
-          isnull(TNIVEL9, 0) TNIVEL9,
-          isnull(CUENTA10, '') CUENTA10,
-          isnull(DESC10, '') DESC10,
-          isnull(NIVEL10, 0) NIVEL10,
-          isnull(TNIVEL10, 0) TNIVEL10,
-          isnull(CUENTA11, '') CUENTA11,
-          isnull(DESC11, '') DESC11,
-          isnull(NIVEL11, 0) NIVEL11,
-          isnull(TNIVEL11, 0) TNIVEL11,
-          isnull(NIVEL12, 0) NIVEL12,
-          isnull(TNIVEL12, 0) TNIVEL12
+          -- Información básica de cuenta
+          ISNULL(CUENTA_CONTABLE, '') AS CUENTA_CONTABLE,
+          ISNULL(DESCRIPCION, '') AS DESCRIPCION,
+          ISNULL(sTIPO, '') AS sTIPO,
+          ISNULL(sTIPO_DETALLADO, '') AS sTIPO_DETALLADO,
+          ISNULL(TIPO_REPORTE, '') AS TIPO_REPORTE,
+          ISNULL(CENTRO_COSTO, '') AS CENTRO_COSTO,
+          
+          -- Saldos y movimientos
+          ISNULL(SALDO_LOCAL, 0) AS SALDO_LOCAL,
+          ISNULL(SALDO_DOLAR, 0) AS SALDO_DOLAR,
+          ISNULL(DEBITO_LOCAL, 0) AS DEBITO_LOCAL,
+          ISNULL(DEBITO_DOLAR, 0) AS DEBITO_DOLAR,
+          ISNULL(CREDITO_LOCAL, 0) AS CREDITO_LOCAL,
+          ISNULL(CREDITO_DOLAR, 0) AS CREDITO_DOLAR,
+          
+          -- Jerarquía de cuentas
+          ISNULL(CUENTA1, '') AS CUENTA1,
+          ISNULL(DESC1, '') AS DESC1,
+          ISNULL(CUENTA2, '') AS CUENTA2,
+          ISNULL(DESC2, '') AS DESC2,
+          ISNULL(CUENTA3, '') AS CUENTA3,
+          ISNULL(DESC3, '') AS DESC3,
+          ISNULL(CUENTA4, '') AS CUENTA4,
+          ISNULL(DESC4, '') AS DESC4,
+          ISNULL(CUENTA5, '') AS CUENTA5,
+          ISNULL(DESC5, '') AS DESC5,
+          ISNULL(CUENTA6, '') AS CUENTA6,
+          ISNULL(DESC6, '') AS DESC6,
+          ISNULL(CUENTA7, '') AS CUENTA7,
+          ISNULL(DESC7, '') AS DESC7,
+          ISNULL(CUENTA8, '') AS CUENTA8,
+          ISNULL(DESC8, '') AS DESC8,
+          ISNULL(CUENTA9, '') AS CUENTA9,
+          ISNULL(DESC9, '') AS DESC9,
+          ISNULL(CUENTA10, '') AS CUENTA10,
+          ISNULL(DESC10, '') AS DESC10,
+          ISNULL(CUENTA11, '') AS CUENTA11,
+          ISNULL(DESC11, '') AS DESC11,
+          
+          -- Configuración de niveles
+          ISNULL(MONEDA, 0) AS MONEDA,
+          ISNULL(NIVEL, 0) AS NIVEL,
+          ISNULL(NIVEL1, 0) AS NIVEL1,
+          ISNULL(NIVEL2, 0) AS NIVEL2,
+          ISNULL(NIVEL3, 0) AS NIVEL3,
+          ISNULL(NIVEL4, 0) AS NIVEL4,
+          ISNULL(NIVEL5, 0) AS NIVEL5,
+          ISNULL(NIVEL6, 0) AS NIVEL6,
+          ISNULL(NIVEL7, 0) AS NIVEL7,
+          ISNULL(NIVEL8, 0) AS NIVEL8,
+          ISNULL(NIVEL9, 0) AS NIVEL9,
+          ISNULL(NIVEL10, 0) AS NIVEL10,
+          ISNULL(NIVEL11, 0) AS NIVEL11,
+          ISNULL(NIVEL12, 0) AS NIVEL12,
+          
+          -- Tipos de nivel
+          ISNULL(TNIVEL1, 0) AS TNIVEL1,
+          ISNULL(TNIVEL2, 0) AS TNIVEL2,
+          ISNULL(TNIVEL3, 0) AS TNIVEL3,
+          ISNULL(TNIVEL4, 0) AS TNIVEL4,
+          ISNULL(TNIVEL5, 0) AS TNIVEL5,
+          ISNULL(TNIVEL6, 0) AS TNIVEL6,
+          ISNULL(TNIVEL7, 0) AS TNIVEL7,
+          ISNULL(TNIVEL8, 0) AS TNIVEL8,
+          ISNULL(TNIVEL9, 0) AS TNIVEL9,
+          ISNULL(TNIVEL10, 0) AS TNIVEL10,
+          ISNULL(TNIVEL11, 0) AS TNIVEL11,
+          ISNULL(TNIVEL12, 0) AS TNIVEL12
         FROM ${conjunto}.R_XML_8DDC5522302C179 
         ${whereClause}
         ORDER BY CUENTA_CONTABLE
