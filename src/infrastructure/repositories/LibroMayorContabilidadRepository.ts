@@ -61,6 +61,44 @@ export class LibroMayorContabilidadRepository implements ILibroMayorContabilidad
     try {
       const { conjunto, fechaDesde, fechaHasta, cuentaContableDesde, cuentaContableHasta, centroCosto, tipoAsiento, origen, contabilidad, claseAsiento, limit } = filtros;
 
+      // Crear tabla temporal si no existe
+      const createTableQuery = `
+        IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES 
+                      WHERE TABLE_SCHEMA = '${conjunto}' 
+                      AND TABLE_NAME = 'REPCG_MAYOR')
+        BEGIN
+          CREATE TABLE ${conjunto}.REPCG_MAYOR (
+            CUENTA NVARCHAR(50),
+            FECHA DATETIME,
+            SALDO_DEUDOR DECIMAL(18,2),
+            SALDO_DEUDOR_DOLAR DECIMAL(18,2),
+            SALDO_ACREEDOR DECIMAL(18,2),
+            SALDO_ACREEDOR_DOLAR DECIMAL(18,2),
+            ASIENTO NVARCHAR(50),
+            ORIGEN NVARCHAR(10),
+            FUENTE NVARCHAR(50),
+            REFERENCIA NVARCHAR(255),
+            TIPO_LINEA NVARCHAR(10),
+            DEBITO_LOCAL DECIMAL(18,2),
+            DEBITO_DOLAR DECIMAL(18,2),
+            CREDITO_LOCAL DECIMAL(18,2),
+            CREDITO_DOLAR DECIMAL(18,2),
+            CENTRO_COSTO NVARCHAR(50),
+            DESCRIPCION NVARCHAR(255),
+            ACEPTA INT,
+            CONSECUTIVO INT,
+            TIPO_ASIENTO NVARCHAR(10),
+            NIT NVARCHAR(50),
+            NIT_NOMBRE NVARCHAR(255),
+            TIPO NVARCHAR(10),
+            DOCUMENTO NVARCHAR(50),
+            USUARIO NVARCHAR(50)
+          )
+        END
+      `;
+      
+      await this.databaseService.ejecutarQuery(createTableQuery, []);
+
       // Limpiar tabla temporal
       await this.databaseService.ejecutarQuery(`DELETE FROM ${conjunto}.REPCG_MAYOR WHERE USUARIO = 'ADMPQUES'`, []);
 
