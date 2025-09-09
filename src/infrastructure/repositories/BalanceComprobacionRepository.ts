@@ -1,20 +1,17 @@
-import { injectable, inject } from "inversify";
+import { injectable } from "inversify";
 import { IBalanceComprobacionRepository } from "../../domain/repositories/IBalanceComprobacionRepository";
 import {
   BalanceComprobacion,
   BalanceComprobacionFiltros,
   BalanceComprobacionResponse,
 } from "../../domain/entities/BalanceComprobacion";
-import { IDatabaseService } from "../../domain/services/IDatabaseService";
+import { exactusSequelize } from "../database/config/exactus-database";
 import * as XLSX from "xlsx";
 
 @injectable()
 export class BalanceComprobacionRepository
   implements IBalanceComprobacionRepository
 {
-  constructor(
-    @inject("IDatabaseService") private databaseService: IDatabaseService
-  ) {}
 
   /**
    * Genera el reporte de Balance de Comprobación
@@ -36,7 +33,7 @@ export class BalanceComprobacionRepository
         ORDER BY SCHEMA_NAME
       `;
 
-      const schemas = await this.databaseService.ejecutarQuery(schemasQuery);
+      const [schemas] = await exactusSequelize.query(schemasQuery);
       console.log("Esquemas disponibles:", schemas);
       console.log("Tipo de schemas:", typeof schemas);
       console.log("Es array:", Array.isArray(schemas));
@@ -127,10 +124,10 @@ export class BalanceComprobacionRepository
         END
       `;
 
-      await this.databaseService.ejecutarNonQuery(createTableQuery);
+      await exactusSequelize.query(createTableQuery);
 
       // Limpiar la tabla temporal
-      await this.databaseService.ejecutarNonQuery(
+      await exactusSequelize.query(
         `DELETE FROM ${conjunto}.R_XML_8DDC5522302C179 WHERE 1=1`
       );
 
@@ -259,17 +256,19 @@ export class BalanceComprobacionRepository
         .slice(0, 19)
         .replace("T", " ");
 
-      await this.databaseService.ejecutarNonQuery(query, [
-        tipoReporte,
-        fechaFinStr,
-        fechaFinStr,
-        fechaFinStr,
-        fechaFinMasUnoStr,
-        fechaFinStr,
-        fechaFinStr,
-        fechaFinStr,
-        fechaInicioStr,
-      ]);
+      await exactusSequelize.query(query, {
+        replacements: [
+          tipoReporte,
+          fechaFinStr,
+          fechaFinStr,
+          fechaFinStr,
+          fechaFinMasUnoStr,
+          fechaFinStr,
+          fechaFinStr,
+          fechaFinStr,
+          fechaInicioStr,
+        ]
+      });
     } catch (error) {
       console.error(
         "Error generando reporte de Balance de Comprobación:",
@@ -299,10 +298,10 @@ export class BalanceComprobacionRepository
         AND TABLE_NAME = 'R_XML_8DDC5522302C179'
       `;
 
-      const tableExistsResult = await this.databaseService.ejecutarQuery(
+      const [tableExistsResult] = await exactusSequelize.query(
         tableExistsQuery
       );
-      const tableExists = tableExistsResult[0]?.count > 0;
+      const tableExists = (tableExistsResult as any[])[0]?.count > 0;
 
       if (!tableExists) {
         // Si la tabla no existe, generar el reporte primero
@@ -348,11 +347,11 @@ export class BalanceComprobacionRepository
         ${whereClause}
       `;
 
-      const countResult = await this.databaseService.ejecutarQuery(
+      const [countResult] = await exactusSequelize.query(
         countQuery,
-        params
+        { replacements: params }
       );
-      const total = countResult[0]?.total || 0;
+      const total = (countResult as any[])[0]?.total || 0;
 
       // Query para obtener los datos paginados
       const dataQuery = `
@@ -427,9 +426,9 @@ export class BalanceComprobacionRepository
       const limit = filtros.limit || 25;
       const dataParams = [...params, offset, limit];
 
-      const data = await this.databaseService.ejecutarQuery(
+      const [data] = await exactusSequelize.query(
         dataQuery,
-        dataParams
+        { replacements: dataParams }
       );
 
       const pagina = Math.floor(offset / limit) + 1;
@@ -473,10 +472,10 @@ export class BalanceComprobacionRepository
         AND TABLE_NAME = 'R_XML_8DDC5522302C179'
       `;
 
-      const tableExistsResult = await this.databaseService.ejecutarQuery(
+      const [tableExistsResult] = await exactusSequelize.query(
         tableExistsQuery
       );
-      const tableExists = tableExistsResult[0]?.count > 0;
+      const tableExists = (tableExistsResult as any[])[0]?.count > 0;
 
       if (!tableExists) {
         // Si la tabla no existe, generar el reporte primero
@@ -557,7 +556,9 @@ export class BalanceComprobacionRepository
          OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY
       `;
 
-      const data = await this.databaseService.ejecutarQuery(query, [limit]);
+      const [data] = await exactusSequelize.query(query, { 
+        replacements: [limit] 
+      });
 
       // Crear workbook de Excel
       const workbook = XLSX.utils.book_new();
