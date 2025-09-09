@@ -236,20 +236,23 @@ export class ReporteGNController {
     try {
       const { conjunto } = req.params;
       const { fecha_accion_inicio, fecha_accion_fin, id_usuario } = req.query;
-      
+
       if (!conjunto) {
         res.status(400).json({
           success: false,
-          message: 'El parámetro conjunto es requerido'
+          message: "El parámetro conjunto es requerido",
         });
         return;
       }
-      
-      const acciones = await this.reporteGNService.getAccionesDePersonal(conjunto, {
-        fecha_accion_inicio: fecha_accion_inicio as string,
-        fecha_accion_fin: fecha_accion_fin as string,
-        cod_empleado: id_usuario as string,
-      });
+
+      const acciones = await this.reporteGNService.getAccionesDePersonal(
+        conjunto,
+        {
+          fecha_accion_inicio: fecha_accion_inicio as string,
+          fecha_accion_fin: fecha_accion_fin as string,
+          cod_empleado: id_usuario as string,
+        }
+      );
       res.json({
         success: acciones?.success,
         data: acciones?.data,
@@ -302,15 +305,15 @@ export class ReporteGNController {
     try {
       const { conjunto } = req.params;
       const { id_usuario } = req.query;
-      
+
       if (!conjunto) {
         res.status(400).json({
           success: false,
-          message: 'El parámetro conjunto es requerido'
+          message: "El parámetro conjunto es requerido",
         });
         return;
       }
-      
+
       const contratos = await this.reporteGNService.getContratos(conjunto, {
         cod_empleado: id_usuario as string,
       });
@@ -408,22 +411,25 @@ export class ReporteGNController {
         pagina,
         registrosPorPagina,
       } = req.query;
-      
+
       if (!conjunto) {
         res.status(400).json({
           success: false,
-          message: 'El parámetro conjunto es requerido'
+          message: "El parámetro conjunto es requerido",
         });
         return;
       }
-      
-      const rolDeVacaciones = await this.reporteGNService.getRolDeVacaciones(conjunto, {
-        fecha_fin: fecha_fin as string,
-        pagina: pagina as unknown as number,
-        registrosPorPagina: registrosPorPagina as unknown as number,
-        fecha_inicio: fecha_inicio as string,
-        cod_empleado: id_usuario as string,
-      });
+
+      const rolDeVacaciones = await this.reporteGNService.getRolDeVacaciones(
+        conjunto,
+        {
+          fecha_fin: fecha_fin as string,
+          pagina: pagina as unknown as number,
+          registrosPorPagina: registrosPorPagina as unknown as number,
+          fecha_inicio: fecha_inicio as string,
+          cod_empleado: id_usuario as string,
+        }
+      );
       res.json({
         success: rolDeVacaciones?.success,
         data: rolDeVacaciones,
@@ -491,24 +497,27 @@ export class ReporteGNController {
     try {
       const { conjunto } = req.params;
       const { id_usuario, tipo, codigo_nomina, periodo } = req.query;
-      
+
       if (!conjunto) {
         res.status(400).json({
           success: false,
-          message: 'El parámetro conjunto es requerido'
+          message: "El parámetro conjunto es requerido",
         });
         return;
       }
-      
-      const anualizado = await this.reporteGNService.getReporteAnualizado(conjunto, {
-        cod_empleado: id_usuario as string,
-        filtro: tipo as "N" | "P",
-        codigo_nomina: codigo_nomina as unknown as number,
-        periodo: periodo as unknown as number,
-        centro_costo: "",
-        area: "",
-        activo: 1,
-      });
+
+      const anualizado = await this.reporteGNService.getReporteAnualizado(
+        conjunto,
+        {
+          cod_empleado: id_usuario as string,
+          filtro: tipo as "N" | "P",
+          codigo_nomina: codigo_nomina as unknown as number,
+          periodo: periodo as unknown as number,
+          centro_costo: "",
+          area: "",
+          activo: 1,
+        }
+      );
       res.json({
         success: anualizado?.success,
         data: anualizado?.data,
@@ -560,11 +569,14 @@ export class ReporteGNController {
    */
   async getPrestamoCtaCte(req: Request, res: Response): Promise<void> {
     try {
-      const { cta_cte } = req.query;
-      const prestamoCtaCte = await this.reporteGNService.getPrestamoCtaCte({
-        cod_empleado: cta_cte as string,
-        naturaleza: "C",
-      });
+      const { conjunto, cta_cte } = req.query;
+      const prestamoCtaCte = await this.reporteGNService.getPrestamoCtaCte(
+        conjunto as string,
+        {
+          cod_empleado: cta_cte as string,
+          naturaleza: "C",
+        }
+      );
       res.json({
         success: prestamoCtaCte?.success,
         data: prestamoCtaCte?.data,

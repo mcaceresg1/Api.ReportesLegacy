@@ -61,6 +61,8 @@ import { createReporteGenericoSaldosRoutes } from "./infrastructure/routes/Repor
 import { IReporteDocumentosProveedorRepository } from "./domain/repositories/IReporteDocumentosProveedorRepository";
 import { createReporteDocumentosProveedorRoutes } from "./infrastructure/routes/ReporteDocumentosProveedorRoutes";
 import libroMayorContabilidadRoutes from "./infrastructure/routes/LibroMayorContabilidadRoutes";
+import { IClipperLibroDiarioRepository } from "./domain/repositories/IClipperLibroDiarioRepository";
+import { createClipperLibroDiarioRoutes } from "./infrastructure/routes/ClipperLibroDiarioRoutes";
 
 const reporteGNRoutes = createReporteGNRoutes();
 
@@ -112,13 +114,17 @@ const reporteClipperRepository = container.get<IReporteClipperRepository>(
 const reporteHmisRepository = container.get<IReporteHmisRepository>(
   "IReporteHmisRepository"
 );
-const reporteGenericoSaldosRepository = container.get<IReporteGenericoSaldosRepository>(
-  "IReporteGenericoSaldosRepository"
-);
+const reporteGenericoSaldosRepository =
+  container.get<IReporteGenericoSaldosRepository>(
+    "IReporteGenericoSaldosRepository"
+  );
 const reporteDocumentosProveedorRepository =
   container.get<IReporteDocumentosProveedorRepository>(
     "IReporteDocumentosProveedorRepository"
   );
+
+const reporteClipperLibroDiarioRepository =
+  container.get<IClipperLibroDiarioRepository>("IClipperLibroDiarioRepository");
 
 // Inicializar CQRS
 console.log("🚀 Inicializando CQRS Service...");
@@ -177,7 +183,6 @@ queryBus.register(
   exportarBalanceComprobacionExcelHandler
 );
 
-
 console.log("✅ Handlers registrados manualmente");
 console.log("✅ CQRS Service inicializado");
 
@@ -231,10 +236,11 @@ const balanceComprobacionRoutes = container.get<BalanceComprobacionRoutes>(
   "BalanceComprobacionRoutes"
 );
 
-
 const reporteDocumentosProveedorRoutes = createReporteDocumentosProveedorRoutes(
   reporteDocumentosProveedorRepository
 );
+
+const reporteClipperLibroDiarioRoutes = createClipperLibroDiarioRoutes();
 
 // Endpoint de prueba
 app.get("/api/test", (req, res) => {
@@ -438,7 +444,9 @@ app.use(
   QueryOptimizationMiddleware.validateQueryParams,
   reporteDocumentosProveedorRoutes
 );
-console.log("✅ REPORTE DOCUMENTOS PROVEEDOR routes registradas correctamente");
+
+app.use("/api/libro-diario-clipper", createClipperLibroDiarioRoutes());
+console.log("✅ REPORTE Libro diario Clipper routes registradas correctamente");
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================
 

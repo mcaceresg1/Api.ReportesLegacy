@@ -219,9 +219,13 @@ export interface RespuestaReporteBoletasDePago {
   success: boolean
   message: string
   data: {
-    peiodo_planilla: any
+    periodo_planilla: any
     compania: any
     boleta: any,
-    horas_dias: any
+    horas_dias: any,
+    ingresos: any,
+    aportes: any,
+    descuentos: any,
+    goce_real: any
   }
 }

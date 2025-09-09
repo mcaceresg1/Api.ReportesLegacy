@@ -37,6 +37,7 @@ export interface IReporteGNService {
   ): Promise<RespuestaReporteRolDeVacaciones | undefined>;
 
   getPrestamoCtaCte(
+    conjunto: string,
     filtros: FiltrosReportePrestamoCtaCte
   ): Promise<RespuestaReportePrestamoCtaCte | undefined>;
 
