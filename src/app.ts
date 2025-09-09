@@ -55,7 +55,9 @@ import estadoSituacionFinancieraRoutes from "./infrastructure/routes/estado-situ
 import estadoResultadosRoutes from "./infrastructure/routes/estado-resultados.routes";
 import { createReporteGNRoutes } from "./infrastructure/routes/ReporteGNRoutes";
 import { IReporteHmisRepository } from "./domain/repositories/IReporteHmisRepository";
+import { IReporteGenericoSaldosRepository } from "./domain/repositories/IReporteGenericoSaldosRepository";
 import { createReporteHmisRoutes } from "./infrastructure/routes/ReporteHmisRoutes";
+import { createReporteGenericoSaldosRoutes } from "./infrastructure/routes/ReporteGenericoSaldosRoutes";
 import { IReporteDocumentosProveedorRepository } from "./domain/repositories/IReporteDocumentosProveedorRepository";
 import { createReporteDocumentosProveedorRoutes } from "./infrastructure/routes/ReporteDocumentosProveedorRoutes";
 import libroMayorContabilidadRoutes from "./infrastructure/routes/libro-mayor-contabilidad.routes";
@@ -109,6 +111,9 @@ const reporteClipperRepository = container.get<IReporteClipperRepository>(
 );
 const reporteHmisRepository = container.get<IReporteHmisRepository>(
   "IReporteHmisRepository"
+);
+const reporteGenericoSaldosRepository = container.get<IReporteGenericoSaldosRepository>(
+  "IReporteGenericoSaldosRepository"
 );
 const reporteDocumentosProveedorRepository =
   container.get<IReporteDocumentosProveedorRepository>(
@@ -217,6 +222,9 @@ const reporteClipperRoutes = createReporteClipperRoutes(
   reporteClipperRepository
 );
 const reporteHmisRoutes = createReporteHmisRoutes(reporteHmisRepository);
+const reporteGenericoSaldosRoutes = createReporteGenericoSaldosRoutes(
+  reporteGenericoSaldosRepository
+);
 
 // Balance Comprobación Routes
 const balanceComprobacionRoutes = container.get<BalanceComprobacionRoutes>(
@@ -418,6 +426,11 @@ app.use(
   "/api/reporte-hmis",
   QueryOptimizationMiddleware.validateQueryParams,
   reporteHmisRoutes
+);
+app.use(
+  "/api/reporte-generico-saldos",
+  QueryOptimizationMiddleware.validateQueryParams,
+  reporteGenericoSaldosRoutes
 );
 app.use(
   "/api/documentos-proveedor",

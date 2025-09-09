@@ -32,6 +32,8 @@ import { IBalanceComprobacionRepository } from "../../domain/repositories/IBalan
 import { IReporteDocumentosProveedorRepository } from "../../domain/repositories/IReporteDocumentosProveedorRepository";
 import { IReporteGNRepository } from "../../domain/repositories/IReporteGNRepository";
 import { IReporteHmisRepository } from "../../domain/repositories/IReporteHmisRepository";
+import { IReporteGenericoSaldosRepository } from "../../domain/repositories/IReporteGenericoSaldosRepository";
+import { IReporteGenericoSaldosService } from "../../domain/services/IReporteGenericoSaldosService";
 import { ILibroMayorAsientosService } from "../../domain/services/ILibroMayorAsientosService";
 import { ILibroMayorService } from "../../domain/services/ILibroMayorService";
 import { IEstadoSituacionFinancieraService } from "../../domain/services/IEstadoSituacionFinancieraService";
@@ -101,6 +103,7 @@ import { EstadoResultadosRepository } from "../repositories/EstadoResultadosRepo
 import { ReporteDocumentosProveedorRepository } from "../repositories/ReporteDocumentosProveedorRepository";
 import { ReporteGNRepository } from "../repositories/ReporteGNRepository";
 import { ReporteHmisRepository } from "../repositories/ReporteHmisRepository";
+import { ReporteGenericoSaldosRepository } from "../repositories/ReporteGenericoSaldosRepository";
 import { LibroMayorContabilidadRepository } from "../repositories/LibroMayorContabilidadRepository";
 
 import { CuentaContableRepository } from "../repositories/CuentaContableRepository";
@@ -128,6 +131,7 @@ import { EstadoResultadosService } from "../../application/services/EstadoResult
 import { ReporteGNService } from "../../application/services/ReporteGNService";
 import { ReporteDocumentosProveedorService } from "../../application/services/ReporteDocumentosProveedorService";
 import { ReporteHmisService } from "../../application/services/ReporteHmisService";
+import { ReporteGenericoSaldosService } from "../../application/services/ReporteGenericoSaldosService";
 import { LibroMayorContabilidadService } from "../../application/services/LibroMayorContabilidadService";
 
 import { DatabaseService } from "../../application/services/DatabaseService";
@@ -163,6 +167,7 @@ import { EstadoResultadosController } from "../controllers/EstadoResultadosContr
 import { ReporteGNController } from "../controllers/ReporteGNController";
 import { ReporteDocumentosProveedorController } from "../controllers/ReporteDocumentosProveedorController";
 import { HmisController } from "../controllers/HmisController";
+import { ReporteGenericoSaldosController } from "../controllers/ReporteGenericoSaldosController";
 import { LibroMayorContabilidadController } from "../controllers/LibroMayorContabilidadController";
 
 // CQRS implementations
@@ -196,6 +201,9 @@ import { ExportarDiarioContabilidadExcelHandler } from "../../application/handle
 import { GenerarReporteBalanceComprobacionHandler } from "../../application/handlers/balance-comprobacion/GenerarReporteBalanceComprobacionHandler";
 import { ObtenerBalanceComprobacionHandler } from "../../application/handlers/balance-comprobacion/ObtenerBalanceComprobacionHandler";
 import { ExportarBalanceComprobacionExcelHandler } from "../../application/handlers/balance-comprobacion/ExportarBalanceComprobacionExcelHandler";
+
+// Reporte Genérico de Saldos Handlers
+import { GenerarReporteGenericoSaldosHandler } from "../../application/handlers/reporte-generico-saldos/GenerarReporteGenericoSaldosHandler";
 
 
 // Libro Mayor Asientos Handlers
@@ -326,6 +334,9 @@ container
   .bind<IReporteHmisRepository>("IReporteHmisRepository")
   .to(ReporteHmisRepository);
 container
+  .bind<IReporteGenericoSaldosRepository>("IReporteGenericoSaldosRepository")
+  .to(ReporteGenericoSaldosRepository);
+container
   .bind<ILibroMayorContabilidadRepository>("ILibroMayorContabilidadRepository")
   .to(LibroMayorContabilidadRepository);
 
@@ -399,6 +410,9 @@ container
 container
   .bind<IReporteHmisService>("IReporteHmisService")
   .to(ReporteHmisService);
+container
+  .bind<IReporteGenericoSaldosService>("IReporteGenericoSaldosService")
+  .to(ReporteGenericoSaldosService);
 container
   .bind<ILibroMayorContabilidadService>("ILibroMayorContabilidadService")
   .to(LibroMayorContabilidadService);
@@ -501,6 +515,9 @@ container
   .to(ReporteDocumentosProveedorController);
 container.bind<HmisController>("HmisController").to(HmisController);
 container
+  .bind<ReporteGenericoSaldosController>("ReporteGenericoSaldosController")
+  .to(ReporteGenericoSaldosController);
+container
   .bind<LibroMayorContabilidadController>("LibroMayorContabilidadController")
   .to(LibroMayorContabilidadController);
 
@@ -577,6 +594,13 @@ container
     "ExportarBalanceComprobacionExcelHandler"
   )
   .to(ExportarBalanceComprobacionExcelHandler);
+
+// Reporte Genérico de Saldos Handlers
+container
+  .bind<GenerarReporteGenericoSaldosHandler>(
+    "GenerarReporteGenericoSaldosHandler"
+  )
+  .to(GenerarReporteGenericoSaldosHandler);
 
 
 // Libro Mayor Asientos Handlers

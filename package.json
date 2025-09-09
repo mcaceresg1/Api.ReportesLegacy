@@ -16,6 +16,7 @@
   "license": "ISC",
   "description": "Backend API con TypeScript",
   "dependencies": {
+    "@types/pdfkit": "^0.17.3",
     "@types/uuid": "^10.0.0",
     "amqplib": "^0.10.8",
     "axios": "^1.10.0",
@@ -33,6 +34,7 @@
     "mssql": "^11.0.1",
     "mysql2": "^3.14.1",
     "nodemon": "^3.1.10",
+    "pdfkit": "^0.17.2",
     "reflect-metadata": "^0.2.2",
     "sequelize": "^6.37.7",
     "swagger-jsdoc": "^6.2.8",
