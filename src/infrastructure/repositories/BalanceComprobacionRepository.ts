@@ -325,14 +325,14 @@ export class BalanceComprobacionRepository
       const params: any[] = [];
 
       // Construir filtros dinámicos
-      if (filtros.cuentaContable) {
-        whereClause += " AND CUENTA_CONTABLE LIKE ?";
-        params.push(`%${filtros.cuentaContable}%`);
+      if (filtros.cuentaDesde) {
+        whereClause += " AND CUENTA_CONTABLE >= ?";
+        params.push(filtros.cuentaDesde);
       }
 
-      if (filtros.centroCosto) {
-        whereClause += " AND CENTRO_COSTO LIKE ?";
-        params.push(`%${filtros.centroCosto}%`);
+      if (filtros.cuentaHasta) {
+        whereClause += " AND CUENTA_CONTABLE <= ?";
+        params.push(filtros.cuentaHasta);
       }
 
       if (filtros.tipo) {

@@ -20,3 +20,4 @@ export class GenerarLibroMayorAsientosQuery implements IQuery {
 
 
 
+

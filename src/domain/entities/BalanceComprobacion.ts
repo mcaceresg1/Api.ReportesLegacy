@@ -74,12 +74,46 @@ export interface BalanceComprobacionFiltros {
   usuario: string;
   fechaInicio: Date;
   fechaFin: Date;
-  contabilidad?: string | undefined; // 'F' (Fiscal) o 'A' (Ambas) - por defecto 'F,A'
-  tipoReporte?: string | undefined; // 'Preliminar' u 'Oficial' - por defecto 'Preliminar'
-  cuentaContable?: string | undefined;
-  centroCosto?: string | undefined;
-  tipo?: string | undefined;
-  tipoDetallado?: string | undefined;
+  contabilidad?: string; // 'F' (Fiscal) o 'A' (Ambas) - por defecto 'F,A'
+  tipoReporte?: string; // 'Preliminar' u 'Oficial' - por defecto 'Preliminar'
+  // Filtros generales
+  moneda?: string;
+  origen?: string;
+  nivelAnalisis?: number;
+  realizarAnalisisAsientos?: boolean;
+  cuentaDesde?: string;
+  cuentaHasta?: string;
+  libroElectronico?: boolean;
+  campoLibroElectronico?: string;
+  versionLibroElectronico?: string;
+  // Filtros de asientos
+  excluirAsientoCierre?: boolean;
+  soloMostrarNivelSeleccionado?: boolean;
+  considerarAsientoApertura?: boolean;
+  asientoDesde?: number;
+  asientoHasta?: number;
+  agrupacionDesde?: number;
+  agrupacionHasta?: number;
+  // Tipos de asiento
+  tiposSeleccionados?: string[];
+  desglosarPorTipoEnExcel?: boolean;
+  // Cuenta contable
+  formatoCuentaContable?: string;
+  // Centro de costo
+  formatoCentroCosto?: string;
+  analisisCentroCosto?: string;
+  ordenamientoCentroCosto?: string;
+  // Dimensión
+  dimensionAdicional?: string;
+  // Títulos
+  tituloPrincipal?: string;
+  titulo2?: string;
+  titulo3?: string;
+  titulo4?: string;
+  // Filtros adicionales
+  tipo?: string;
+  tipoDetallado?: string;
+  // Paginación
   limit?: number;
   offset?: number;
   page?: number;
@@ -106,6 +140,40 @@ export interface GenerarBalanceComprobacionParams {
   fechaFin: Date;
   contabilidad?: string;
   tipoReporte?: string;
+  // Filtros generales
+  moneda?: string;
+  origen?: string;
+  nivelAnalisis?: number;
+  realizarAnalisisAsientos?: boolean;
+  cuentaDesde?: string;
+  cuentaHasta?: string;
+  libroElectronico?: boolean;
+  campoLibroElectronico?: string;
+  versionLibroElectronico?: string;
+  // Filtros de asientos
+  excluirAsientoCierre?: boolean;
+  soloMostrarNivelSeleccionado?: boolean;
+  considerarAsientoApertura?: boolean;
+  asientoDesde?: number;
+  asientoHasta?: number;
+  agrupacionDesde?: number;
+  agrupacionHasta?: number;
+  // Tipos de asiento
+  tiposSeleccionados?: string[];
+  desglosarPorTipoEnExcel?: boolean;
+  // Cuenta contable
+  formatoCuentaContable?: string;
+  // Centro de costo
+  formatoCentroCosto?: string;
+  analisisCentroCosto?: string;
+  ordenamientoCentroCosto?: string;
+  // Dimensión
+  dimensionAdicional?: string;
+  // Títulos
+  tituloPrincipal?: string;
+  titulo2?: string;
+  titulo3?: string;
+  titulo4?: string;
 }
 
 /**
@@ -119,4 +187,38 @@ export interface ExportarBalanceComprobacionExcelParams {
   contabilidad?: string;
   tipoReporte?: string;
   limit?: number;
+  // Filtros generales
+  moneda?: string;
+  origen?: string;
+  nivelAnalisis?: number;
+  realizarAnalisisAsientos?: boolean;
+  cuentaDesde?: string;
+  cuentaHasta?: string;
+  libroElectronico?: boolean;
+  campoLibroElectronico?: string;
+  versionLibroElectronico?: string;
+  // Filtros de asientos
+  excluirAsientoCierre?: boolean;
+  soloMostrarNivelSeleccionado?: boolean;
+  considerarAsientoApertura?: boolean;
+  asientoDesde?: number;
+  asientoHasta?: number;
+  agrupacionDesde?: number;
+  agrupacionHasta?: number;
+  // Tipos de asiento
+  tiposSeleccionados?: string[];
+  desglosarPorTipoEnExcel?: boolean;
+  // Cuenta contable
+  formatoCuentaContable?: string;
+  // Centro de costo
+  formatoCentroCosto?: string;
+  analisisCentroCosto?: string;
+  ordenamientoCentroCosto?: string;
+  // Dimensión
+  dimensionAdicional?: string;
+  // Títulos
+  tituloPrincipal?: string;
+  titulo2?: string;
+  titulo3?: string;
+  titulo4?: string;
 }

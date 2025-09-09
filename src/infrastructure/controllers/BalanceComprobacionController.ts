@@ -103,6 +103,40 @@ export class BalanceComprobacionController {
         fechaFin,
         contabilidad,
         tipoReporte,
+        // Filtros generales
+        moneda,
+        origen,
+        nivelAnalisis,
+        realizarAnalisisAsientos,
+        cuentaDesde,
+        cuentaHasta,
+        libroElectronico,
+        campoLibroElectronico,
+        versionLibroElectronico,
+        // Filtros de asientos
+        excluirAsientoCierre,
+        soloMostrarNivelSeleccionado,
+        considerarAsientoApertura,
+        asientoDesde,
+        asientoHasta,
+        agrupacionDesde,
+        agrupacionHasta,
+        // Tipos de asiento
+        tiposSeleccionados,
+        desglosarPorTipoEnExcel,
+        // Cuenta contable
+        formatoCuentaContable,
+        // Centro de costo
+        formatoCentroCosto,
+        analisisCentroCosto,
+        ordenamientoCentroCosto,
+        // Dimensión
+        dimensionAdicional,
+        // Títulos
+        tituloPrincipal,
+        titulo2,
+        titulo3,
+        titulo4,
       } = req.body;
 
       // Validaciones
@@ -297,12 +331,43 @@ export class BalanceComprobacionController {
         usuario,
         fechaInicio,
         fechaFin,
-        cuentaContable,
-        centroCosto,
-        tipo,
-        tipoDetallado,
         contabilidad,
         tipoReporte,
+        // Filtros generales
+        moneda,
+        origen,
+        nivelAnalisis,
+        realizarAnalisisAsientos,
+        cuentaDesde,
+        cuentaHasta,
+        libroElectronico,
+        campoLibroElectronico,
+        versionLibroElectronico,
+        // Filtros de asientos
+        excluirAsientoCierre,
+        soloMostrarNivelSeleccionado,
+        considerarAsientoApertura,
+        asientoDesde,
+        asientoHasta,
+        agrupacionDesde,
+        agrupacionHasta,
+        // Tipos de asiento
+        tiposSeleccionados,
+        desglosarPorTipoEnExcel,
+        // Cuenta contable
+        formatoCuentaContable,
+        // Centro de costo
+        formatoCentroCosto,
+        analisisCentroCosto,
+        ordenamientoCentroCosto,
+        // Dimensión
+        dimensionAdicional,
+        // Títulos
+        tituloPrincipal,
+        titulo2,
+        titulo3,
+        titulo4,
+        // Paginación
         page,
         limit,
       } = req.query;
@@ -352,10 +417,41 @@ export class BalanceComprobacionController {
         fechaFin: fechaFinDate,
         contabilidad: contabilidad as string,
         tipoReporte: tipoReporte as string,
-        cuentaContable: cuentaContable as string,
-        centroCosto: centroCosto as string,
-        tipo: tipo as string,
-        tipoDetallado: tipoDetallado as string,
+        // Filtros generales
+        ...(moneda && { moneda: moneda as string }),
+        ...(origen && { origen: origen as string }),
+        ...(nivelAnalisis && { nivelAnalisis: parseInt(nivelAnalisis as string, 10) }),
+        ...(realizarAnalisisAsientos && { realizarAnalisisAsientos: realizarAnalisisAsientos === 'true' }),
+        ...(cuentaDesde && { cuentaDesde: cuentaDesde as string }),
+        ...(cuentaHasta && { cuentaHasta: cuentaHasta as string }),
+        ...(libroElectronico && { libroElectronico: libroElectronico === 'true' }),
+        ...(campoLibroElectronico && { campoLibroElectronico: campoLibroElectronico as string }),
+        ...(versionLibroElectronico && { versionLibroElectronico: versionLibroElectronico as string }),
+        // Filtros de asientos
+        ...(excluirAsientoCierre && { excluirAsientoCierre: excluirAsientoCierre === 'true' }),
+        ...(soloMostrarNivelSeleccionado && { soloMostrarNivelSeleccionado: soloMostrarNivelSeleccionado === 'true' }),
+        ...(considerarAsientoApertura && { considerarAsientoApertura: considerarAsientoApertura === 'true' }),
+        ...(asientoDesde && { asientoDesde: parseInt(asientoDesde as string, 10) }),
+        ...(asientoHasta && { asientoHasta: parseInt(asientoHasta as string, 10) }),
+        ...(agrupacionDesde && { agrupacionDesde: parseInt(agrupacionDesde as string, 10) }),
+        ...(agrupacionHasta && { agrupacionHasta: parseInt(agrupacionHasta as string, 10) }),
+        // Tipos de asiento
+        ...(tiposSeleccionados && { tiposSeleccionados: (tiposSeleccionados as string).split(',') }),
+        ...(desglosarPorTipoEnExcel && { desglosarPorTipoEnExcel: desglosarPorTipoEnExcel === 'true' }),
+        // Cuenta contable
+        ...(formatoCuentaContable && { formatoCuentaContable: formatoCuentaContable as string }),
+        // Centro de costo
+        ...(formatoCentroCosto && { formatoCentroCosto: formatoCentroCosto as string }),
+        ...(analisisCentroCosto && { analisisCentroCosto: analisisCentroCosto as string }),
+        ...(ordenamientoCentroCosto && { ordenamientoCentroCosto: ordenamientoCentroCosto as string }),
+        // Dimensión
+        ...(dimensionAdicional && { dimensionAdicional: dimensionAdicional as string }),
+        // Títulos
+        ...(tituloPrincipal && { tituloPrincipal: tituloPrincipal as string }),
+        ...(titulo2 && { titulo2: titulo2 as string }),
+        ...(titulo3 && { titulo3: titulo3 as string }),
+        ...(titulo4 && { titulo4: titulo4 as string }),
+        // Paginación
         limit: limitNum,
         offset,
       };
@@ -475,6 +571,40 @@ export class BalanceComprobacionController {
         contabilidad,
         tipoReporte,
         limit,
+        // Filtros generales
+        moneda,
+        origen,
+        nivelAnalisis,
+        realizarAnalisisAsientos,
+        cuentaDesde,
+        cuentaHasta,
+        libroElectronico,
+        campoLibroElectronico,
+        versionLibroElectronico,
+        // Filtros de asientos
+        excluirAsientoCierre,
+        soloMostrarNivelSeleccionado,
+        considerarAsientoApertura,
+        asientoDesde,
+        asientoHasta,
+        agrupacionDesde,
+        agrupacionHasta,
+        // Tipos de asiento
+        tiposSeleccionados,
+        desglosarPorTipoEnExcel,
+        // Cuenta contable
+        formatoCuentaContable,
+        // Centro de costo
+        formatoCentroCosto,
+        analisisCentroCosto,
+        ordenamientoCentroCosto,
+        // Dimensión
+        dimensionAdicional,
+        // Títulos
+        tituloPrincipal,
+        titulo2,
+        titulo3,
+        titulo4,
       } = req.query;
 
       // Validaciones
@@ -517,7 +647,41 @@ export class BalanceComprobacionController {
         fechaFinDate,
         contabilidad as string,
         tipoReporte as string,
-        limitNum
+        limitNum,
+        // Filtros generales
+        moneda as string,
+        origen as string,
+        nivelAnalisis ? parseInt(nivelAnalisis as string, 10) : undefined,
+        realizarAnalisisAsientos === 'true',
+        cuentaDesde as string,
+        cuentaHasta as string,
+        libroElectronico === 'true',
+        campoLibroElectronico as string,
+        versionLibroElectronico as string,
+        // Filtros de asientos
+        excluirAsientoCierre === 'true',
+        soloMostrarNivelSeleccionado === 'true',
+        considerarAsientoApertura === 'true',
+        asientoDesde ? parseInt(asientoDesde as string, 10) : undefined,
+        asientoHasta ? parseInt(asientoHasta as string, 10) : undefined,
+        agrupacionDesde ? parseInt(agrupacionDesde as string, 10) : undefined,
+        agrupacionHasta ? parseInt(agrupacionHasta as string, 10) : undefined,
+        // Tipos de asiento
+        tiposSeleccionados ? (tiposSeleccionados as string).split(',') : undefined,
+        desglosarPorTipoEnExcel === 'true',
+        // Cuenta contable
+        formatoCuentaContable as string,
+        // Centro de costo
+        formatoCentroCosto as string,
+        analisisCentroCosto as string,
+        ordenamientoCentroCosto as string,
+        // Dimensión
+        dimensionAdicional as string,
+        // Títulos
+        tituloPrincipal as string,
+        titulo2 as string,
+        titulo3 as string,
+        titulo4 as string
       );
 
       // Configurar headers para descarga
