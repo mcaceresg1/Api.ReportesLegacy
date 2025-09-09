@@ -1,0 +1,17 @@
+### Verificación de Documentación Swagger
+
+### 1. Verificar que Swagger esté funcionando
+GET http://localhost:3000/api-docs
+Content-Type: application/json
+
+### 2. Verificar endpoint de balance general por nivel
+GET http://localhost:3000/api/balance-general-clipper/bdclipperGPC/3
+Content-Type: application/json
+
+### 3. Verificar endpoint de balance general por mes y nivel
+GET http://localhost:3000/api/balance-general-clipper/bdclipperGPC/12/1
+Content-Type: application/json
+
+### 4. Verificar endpoint de balance comprobación clipper
+GET http://localhost:3000/api/balance-comprobacion-clipper/bdclipperGPC
+Content-Type: application/json
