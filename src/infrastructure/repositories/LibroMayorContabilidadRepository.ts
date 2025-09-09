@@ -1,6 +1,5 @@
-import { injectable, inject } from 'inversify';
-import { QueryTypes } from 'sequelize';
-import { IDatabaseService } from '../../domain/services/IDatabaseService';
+import { injectable } from 'inversify';
+import { exactusSequelize } from '../database/config/exactus-database';
 import { ILibroMayorContabilidadRepository } from '../../domain/repositories/ILibroMayorContabilidadRepository';
 import { 
   LibroMayorContabilidad, 
@@ -14,9 +13,6 @@ import {
 
 @injectable()
 export class LibroMayorContabilidadRepository implements ILibroMayorContabilidadRepository {
-  constructor(
-    @inject('IDatabaseService') private databaseService: IDatabaseService
-  ) {}
 
   async obtenerCuentasContables(conjunto: string): Promise<CuentaContableInfo[]> {
     try {
@@ -31,8 +27,8 @@ export class LibroMayorContabilidadRepository implements ILibroMayorContabilidad
         ORDER BY C.CUENTA_CONTABLE
       `;
 
-      const result = await this.databaseService.ejecutarQuery(query, []);
-      return result as CuentaContableInfo[];
+      const [results] = await exactusSequelize.query(query);
+      return results as CuentaContableInfo[];
     } catch (error) {
       console.error('Error al obtener cuentas contables:', error);
       throw error;
@@ -52,8 +48,8 @@ export class LibroMayorContabilidadRepository implements ILibroMayorContabilidad
         ORDER BY P.FECHA_FINAL DESC
       `;
 
-      const result = await this.databaseService.ejecutarQuery(query, []);
-      return result as PeriodoContableInfo[];
+      const [results] = await exactusSequelize.query(query);
+      return results as PeriodoContableInfo[];
     } catch (error) {
       console.error('Error al obtener períodos contables:', error);
       throw error;
@@ -70,8 +66,8 @@ export class LibroMayorContabilidadRepository implements ILibroMayorContabilidad
         ORDER BY T.CODIGO
       `;
 
-      const result = await this.databaseService.ejecutarQuery(query, []);
-      return result as TipoAsientoInfo[];
+      const [results] = await exactusSequelize.query(query);
+      return results as TipoAsientoInfo[];
     } catch (error) {
       console.error('Error al obtener tipos de asiento:', error);
       throw error;
@@ -88,8 +84,8 @@ export class LibroMayorContabilidadRepository implements ILibroMayorContabilidad
         ORDER BY CC.CODIGO
       `;
 
-      const result = await this.databaseService.ejecutarQuery(query, []);
-      return result as CentroCostoInfo[];
+      const [results] = await exactusSequelize.query(query);
+      return results as CentroCostoInfo[];
     } catch (error) {
       console.error('Error al obtener centros de costo:', error);
       throw error;
@@ -106,8 +102,8 @@ export class LibroMayorContabilidadRepository implements ILibroMayorContabilidad
         ORDER BY P.CODIGO
       `;
 
-      const result = await this.databaseService.ejecutarQuery(query, []);
-      return result as PaqueteInfo[];
+      const [results] = await exactusSequelize.query(query);
+      return results as PaqueteInfo[];
     } catch (error) {
       console.error('Error al obtener paquetes:', error);
       throw error;
@@ -122,7 +118,7 @@ export class LibroMayorContabilidadRepository implements ILibroMayorContabilidad
       const tableName = `R_XML_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
       // Eliminar tabla temporal si existe y crearla nuevamente
-      await this.databaseService.ejecutarQuery(`DROP TABLE IF EXISTS ${conjunto}.${tableName}`, []);
+      await exactusSequelize.query(`DROP TABLE IF EXISTS ${conjunto}.${tableName}`);
 
       // Crear tabla temporal para reporte XML
       const createTableQuery = `
@@ -157,7 +153,7 @@ export class LibroMayorContabilidadRepository implements ILibroMayorContabilidad
         )
       `;
       
-      await this.databaseService.ejecutarQuery(createTableQuery, []);
+      await exactusSequelize.query(createTableQuery);
 
       // Crear tabla REPCG_MAYOR si no existe
       const createRepcgTableQuery = `
@@ -196,10 +192,10 @@ export class LibroMayorContabilidadRepository implements ILibroMayorContabilidad
         END
       `;
       
-      await this.databaseService.ejecutarQuery(createRepcgTableQuery, []);
+      await exactusSequelize.query(createRepcgTableQuery);
 
       // Limpiar registros previos del usuario
-      await this.databaseService.ejecutarQuery(`DELETE FROM ${conjunto}.REPCG_MAYOR WHERE USUARIO = 'ADMPQUES'`, []);
+      await exactusSequelize.query(`DELETE FROM ${conjunto}.REPCG_MAYOR WHERE USUARIO = 'ADMPQUES'`);
 
       // Insertar saldos iniciales (TIPO_LINEA = '1')
       const insertSaldosIniciales = `
@@ -255,7 +251,7 @@ export class LibroMayorContabilidadRepository implements ILibroMayorContabilidad
                     WHEN 'N' THEN 0 
                     ELSE 1 
                 END AS ACEPTA  
-            FROM (   	
+        FROM (    
                 -- Saldos fiscales
                 SELECT  	
                     m.centro_costo,  	
@@ -280,7 +276,7 @@ export class LibroMayorContabilidadRepository implements ILibroMayorContabilidad
                 )  
                 WHERE 1 = 1   
                 
-                UNION ALL    	
+                    UNION ALL    	
                 
                 -- Movimientos del diario
                 SELECT  	
@@ -301,7 +297,7 @@ export class LibroMayorContabilidadRepository implements ILibroMayorContabilidad
         GROUP BY CUENTA, FECHA, DESCRIPCION, ACEPTA
       `;
 
-      await this.databaseService.ejecutarQuery(insertSaldosIniciales, []);
+      await exactusSequelize.query(insertSaldosIniciales);
 
       // Insertar movimientos del mayor
       const insertMovimientosMayor = `
@@ -355,10 +351,10 @@ export class LibroMayorContabilidadRepository implements ILibroMayorContabilidad
         WHERE M.CONTABILIDAD IN ('A', 'F') 
           AND M.FECHA >= '${fechaDesde}'                        
           AND M.FECHA <= '${fechaHasta}'                      
-          AND M.CLASE_ASIENTO != 'C'
+        AND M.CLASE_ASIENTO != 'C'
       `;
 
-      await this.databaseService.ejecutarQuery(insertMovimientosMayor, []);
+      await exactusSequelize.query(insertMovimientosMayor);
 
       // Insertar movimientos del diario
       const insertMovimientosDiario = `
@@ -413,24 +409,24 @@ export class LibroMayorContabilidadRepository implements ILibroMayorContabilidad
         WHERE A.CONTABILIDAD IN ('A', 'F') 
           AND A.FECHA >= '${fechaDesde}'                         
           AND A.FECHA <= '${fechaHasta}'                       
-          AND A.CLASE_ASIENTO != 'C'
+        AND A.CLASE_ASIENTO != 'C'
       `;
 
-      await this.databaseService.ejecutarQuery(insertMovimientosDiario, []);
+      await exactusSequelize.query(insertMovimientosDiario);
 
       // Actualizar período contable
       const updatePeriodoContable = `
         UPDATE ${conjunto}.REPCG_MAYOR  	
         SET PERIODO_CONTABLE = (
             SELECT MIN(FECHA_FINAL) 
-            FROM ${conjunto}.PERIODO_CONTABLE P  
+        FROM ${conjunto}.PERIODO_CONTABLE P  
             WHERE P.CONTABILIDAD IN ('A', 'F')  
               AND ${conjunto}.REPCG_MAYOR.FECHA < P.FECHA_FINAL + 1
         )	  	
         WHERE USUARIO = 'ADMPQUES'
       `;
 
-      await this.databaseService.ejecutarQuery(updatePeriodoContable, []);
+      await exactusSequelize.query(updatePeriodoContable);
 
       // Insertar en tabla de resultados
       const insertResultados = `
@@ -468,7 +464,7 @@ export class LibroMayorContabilidadRepository implements ILibroMayorContabilidad
         WHERE USUARIO = 'ADMPQUES'
       `;
 
-      await this.databaseService.ejecutarQuery(insertResultados, []);
+      await exactusSequelize.query(insertResultados);
 
       // Obtener resultados finales
       const selectResultados = `
@@ -489,12 +485,12 @@ export class LibroMayorContabilidadRepository implements ILibroMayorContabilidad
         ${limit ? `OFFSET 0 ROWS FETCH NEXT ${limit} ROWS ONLY` : ''}
       `;
 
-      const result = await this.databaseService.ejecutarQuery(selectResultados, []);
+      const [results] = await exactusSequelize.query(selectResultados);
       
       // Limpiar tabla temporal
-      await this.databaseService.ejecutarQuery(`DROP TABLE ${conjunto}.${tableName}`, []);
+      await exactusSequelize.query(`DROP TABLE ${conjunto}.${tableName}`);
       
-      return result as LibroMayorContabilidad[];
+      return results as LibroMayorContabilidad[];
     } catch (error) {
       console.error('Error al generar reporte de Libro Mayor de Contabilidad:', error);
       throw error;
