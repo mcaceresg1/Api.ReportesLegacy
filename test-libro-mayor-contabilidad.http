@@ -1,0 +1,151 @@
+### Test Libro Mayor de Contabilidad APIs
+
+### Health Check
+GET http://localhost:3000/api/libro-mayor-contabilidad/health
+
+### Obtener Cuentas Contables
+GET http://localhost:3000/api/libro-mayor-contabilidad/PRLTRA/cuentas-contables
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW5pc3RyYWRvciIsImVtYWlsIjoiYWRtaW5AYWRtaW4uY29tIiwicm9sSWQiOjEsImlhdCI6MTc1NzM5MjYxOCwiZXhwIjoxNzU3Mzk2MjE4fQ.Rlvz6WKgCjtUdMXulz6VTm2gFHd_sEXPU10pJuIKe-A
+
+### Obtener Períodos Contables
+GET http://localhost:3000/api/libro-mayor-contabilidad/PRLTRA/periodos-contables
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW5pc3RyYWRvciIsImVtYWlsIjoiYWRtaW5AYWRtaW4uY29tIiwicm9sSWQiOjEsImlhdCI6MTc1NzM5MjYxOCwiZXhwIjoxNzU3Mzk2MjE4fQ.Rlvz6WKgCjtUdMXulz6VTm2gFHd_sEXPU10pJuIKe-A
+
+### Obtener Tipos de Asiento
+GET http://localhost:3000/api/libro-mayor-contabilidad/PRLTRA/tipos-asiento
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW5pc3RyYWRvciIsImVtYWlsIjoiYWRtaW5AYWRtaW4uY29tIiwicm9sSWQiOjEsImlhdCI6MTc1NzM5MjYxOCwiZXhwIjoxNzU3Mzk2MjE4fQ.Rlvz6WKgCjtUdMXulz6VTm2gFHd_sEXPU10pJuIKe-A
+
+### Obtener Centros de Costo
+GET http://localhost:3000/api/libro-mayor-contabilidad/PRLTRA/centros-costo
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW5pc3RyYWRvciIsImVtYWlsIjoiYWRtaW5AYWRtaW4uY29tIiwicm9sSWQiOjEsImlhdCI6MTc1NzM5MjYxOCwiZXhwIjoxNzU3Mzk2MjE4fQ.Rlvz6WKgCjtUdMXulz6VTm2gFHd_sEXPU10pJuIKe-A
+
+### Obtener Paquetes
+GET http://localhost:3000/api/libro-mayor-contabilidad/PRLTRA/paquetes
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW5pc3RyYWRvciIsImVtYWlsIjoiYWRtaW5AYWRtaW4uY29tIiwicm9sSWQiOjEsImlhdCI6MTc1NzM5MjYxOCwiZXhwIjoxNzU3Mzk2MjE4fQ.Rlvz6WKgCjtUdMXulz6VTm2gFHd_sEXPU10pJuIKe-A
+
+### Generar Reporte - Básico
+POST http://localhost:3000/api/libro-mayor-contabilidad/PRLTRA/generar
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW5pc3RyYWRvciIsImVtYWlsIjoiYWRtaW5AYWRtaW4uY29tIiwicm9sSWQiOjEsImlhdCI6MTc1NzM5MjYxOCwiZXhwIjoxNzU3Mzk2MjE4fQ.Rlvz6WKgCjtUdMXulz6VTm2gFHd_sEXPU10pJuIKe-A
+
+{
+  "fechaDesde": "2023-01-01",
+  "fechaHasta": "2025-07-15",
+  "limit": 1000
+}
+
+### Generar Reporte - Completo
+POST http://localhost:3000/api/libro-mayor-contabilidad/PRLTRA/generar
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW5pc3RyYWRvciIsImVtYWlsIjoiYWRtaW5AYWRtaW4uY29tIiwicm9sSWQiOjEsImlhdCI6MTc1NzM5MjYxOCwiZXhwIjoxNzU3Mzk2MjE4fQ.Rlvz6WKgCjtUdMXulz6VTm2gFHd_sEXPU10pJuIKe-A
+
+{
+  "fechaDesde": "2023-01-01",
+  "fechaHasta": "2025-07-15",
+  "moneda": "NUEVO_SOL",
+  "clase": "OFICIAL",
+  "contabilidad": {
+    "fiscal": true,
+    "corporativa": false
+  },
+  "tipoReporte": "DETALLADO",
+  "claseReporte": "ESTANDAR",
+  "origen": "AMBOS",
+  "nivelAnalisis": 5,
+  "ordenadoPor": "FECHA",
+  "cuentaContableDesde": "01",
+  "cuentaContableHasta": "99",
+  "libroElectronico": false,
+  "opcionesAsientos": {
+    "excluirAsientoCierreAnual": true,
+    "considerarAsientoApertura": false,
+    "detalleMovimientoEfectivo": false,
+    "conexionDirectaBD": false,
+    "noMostrarCuentasSinSaldo": false,
+    "pleRespetarNIT": true,
+    "incluirInfoAuditoria": false
+  },
+  "centroCosto": {
+    "tipo": "RANGO",
+    "desde": "001",
+    "hasta": "999"
+  },
+  "tiposAsiento": ["N", "A"],
+  "nitDesde": "",
+  "nitHasta": "",
+  "usarFiltroPaquete": false,
+  "paquetes": [],
+  "tituloPrincipal": "Libro Mayor de Contabilidad",
+  "titulo2": "Período: 2023-2025",
+  "titulo3": "Contabilidad: Fiscal",
+  "titulo4": "Generado el: 2025-01-30",
+  "nivelCuenta": 2,
+  "operadorCuenta": "=",
+  "valorCuenta": "01",
+  "conectorCuenta": "AND",
+  "dimensionAdicional": "",
+  "limit": 1000
+}
+
+### Obtener Reporte con Paginación
+POST http://localhost:3000/api/libro-mayor-contabilidad/PRLTRA/obtener
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW5pc3RyYWRvciIsImVtYWlsIjoiYWRtaW5AYWRtaW4uY29tIiwicm9sSWQiOjEsImlhdCI6MTc1NzM5MjYxOCwiZXhwIjoxNzU3Mzk2MjE4fQ.Rlvz6WKgCjtUdMXulz6VTm2gFHd_sEXPU10pJuIKe-A
+
+{
+  "fechaDesde": "2023-01-01",
+  "fechaHasta": "2025-07-15",
+  "page": 1,
+  "pageSize": 100,
+  "limit": 1000
+}
+
+### Exportar a Excel
+POST http://localhost:3000/api/libro-mayor-contabilidad/PRLTRA/exportar-excel
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW5pc3RyYWRvciIsImVtYWlsIjoiYWRtaW5AYWRtaW4uY29tIiwicm9sSWQiOjEsImlhdCI6MTc1NzM5MjYxOCwiZXhwIjoxNzU3Mzk2MjE4fQ.Rlvz6WKgCjtUdMXulz6VTm2gFHd_sEXPU10pJuIKe-A
+
+{
+  "fechaDesde": "2023-01-01",
+  "fechaHasta": "2025-07-15",
+  "moneda": "NUEVO_SOL",
+  "clase": "OFICIAL",
+  "contabilidad": {
+    "fiscal": true,
+    "corporativa": false
+  },
+  "tipoReporte": "DETALLADO",
+  "claseReporte": "ESTANDAR",
+  "origen": "AMBOS",
+  "nivelAnalisis": 5,
+  "ordenadoPor": "FECHA",
+  "cuentaContableDesde": "01",
+  "cuentaContableHasta": "99",
+  "libroElectronico": false,
+  "limit": 10000
+}
+
+### Exportar a PDF
+POST http://localhost:3000/api/libro-mayor-contabilidad/PRLTRA/exportar-pdf
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW5pc3RyYWRvciIsImVtYWlsIjoiYWRtaW5AYWRtaW4uY29tIiwicm9sSWQiOjEsImlhdCI6MTc1NzM5MjYxOCwiZXhwIjoxNzU3Mzk2MjE4fQ.Rlvz6WKgCjtUdMXulz6VTm2gFHd_sEXPU10pJuIKe-A
+
+{
+  "fechaDesde": "2023-01-01",
+  "fechaHasta": "2025-07-15",
+  "moneda": "NUEVO_SOL",
+  "clase": "OFICIAL",
+  "contabilidad": {
+    "fiscal": true,
+    "corporativa": false
+  },
+  "tipoReporte": "DETALLADO",
+  "claseReporte": "ESTANDAR",
+  "origen": "AMBOS",
+  "nivelAnalisis": 5,
+  "ordenadoPor": "FECHA",
+  "cuentaContableDesde": "01",
+  "cuentaContableHasta": "99",
+  "libroElectronico": false,
+  "limit": 10000
+}

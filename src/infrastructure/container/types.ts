@@ -87,6 +87,7 @@ export const TYPES = {
   SaldoPromediosController: "SaldoPromediosController",
   EstadoSituacionFinancieraController: "EstadoSituacionFinancieraController",
   EstadoResultadosController: "EstadoResultadosController",
+  LibroMayorContabilidadController: "LibroMayorContabilidadController",
 
   // CQRS
   ICommandBus: "ICommandBus",
