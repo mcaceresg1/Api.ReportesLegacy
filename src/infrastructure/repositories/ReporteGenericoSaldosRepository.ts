@@ -368,7 +368,7 @@ export class ReporteGenericoSaldosRepository implements IReporteGenericoSaldosRe
         tipo: row.tipo || '',
         numero: row.numero || '',
         apellidosNombres: row.apellidosNombres || '',
-        fecha: this.formatDate(row.dtFechaAsiento),
+        fecha: this.formatDate(row.fecha),
         concepto: row.concepto || '',
         monto: parseFloat(row.monto?.replace(/,/g, '') || '0')
       }));
