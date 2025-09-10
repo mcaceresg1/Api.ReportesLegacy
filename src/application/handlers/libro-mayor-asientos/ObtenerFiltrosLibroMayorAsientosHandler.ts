@@ -5,7 +5,7 @@ import { ILibroMayorAsientosService } from "../../../domain/services/ILibroMayor
 
 @injectable()
 export class ObtenerFiltrosLibroMayorAsientosHandler
-  implements IQueryHandler<ObtenerFiltrosLibroMayorAsientosQuery, { asiento: string; referencia: string }[]>
+  implements IQueryHandler<ObtenerFiltrosLibroMayorAsientosQuery, { asiento: string; tipoAsiento: string }[]>
 {
   constructor(
     @inject("ILibroMayorAsientosService")
@@ -14,7 +14,7 @@ export class ObtenerFiltrosLibroMayorAsientosHandler
 
   async handle(
     query: ObtenerFiltrosLibroMayorAsientosQuery
-  ): Promise<{ asiento: string; referencia: string }[]> {
+  ): Promise<{ asiento: string; tipoAsiento: string }[]> {
     console.log("Ejecutando query ObtenerFiltrosLibroMayorAsientosQuery");
 
     const resultado = await this.libroMayorAsientosService.obtenerFiltros(

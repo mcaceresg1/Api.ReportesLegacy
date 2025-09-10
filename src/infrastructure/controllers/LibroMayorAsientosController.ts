@@ -34,7 +34,7 @@ export class LibroMayorAsientosController {
    *     tags:
    *       - Libro Mayor Asientos
    *     summary: Obtiene los filtros disponibles
-   *     description: Recupera los asientos y referencias disponibles para filtrar
+   *     description: Recupera los asientos y tipos de asiento disponibles para filtrar
    *     parameters:
    *       - in: path
    *         name: conjunto
@@ -62,9 +62,9 @@ export class LibroMayorAsientosController {
    *                       asiento:
    *                         type: string
    *                         example: "000001"
-   *                       referencia:
+   *                       tipoAsiento:
    *                         type: string
-   *                         example: "DOC001"
+   *                         example: "N"
    *                 message:
    *                   type: string
    *                   example: "Filtros obtenidos exitosamente"
@@ -126,61 +126,11 @@ export class LibroMayorAsientosController {
    *         description: Filtro por asiento
    *         example: "000001"
    *       - in: query
-   *         name: referencia
-   *         schema:
-   *           type: string
-   *         description: Filtro por referencia
-   *         example: "DOC001"
-   *       - in: query
-   *         name: fechaInicio
-   *         schema:
-   *           type: string
-   *           format: date
-   *         description: Fecha de inicio
-   *         example: "2024-01-01"
-   *       - in: query
-   *         name: fechaFin
-   *         schema:
-   *           type: string
-   *           format: date
-   *         description: Fecha de fin
-   *         example: "2024-12-31"
-   *       - in: query
-   *         name: contabilidad
-   *         schema:
-   *           type: string
-   *         description: Tipo de contabilidad
-   *         example: "F"
-   *       - in: query
    *         name: tipoAsiento
    *         schema:
    *           type: string
-   *         description: Tipo de asiento
+   *         description: Filtro por tipo de asiento
    *         example: "N"
-   *       - in: query
-   *         name: origen
-   *         schema:
-   *           type: string
-   *         description: Origen del asiento
-   *         example: "01"
-   *       - in: query
-   *         name: exportado
-   *         schema:
-   *           type: string
-   *         description: Estado de exportación
-   *         example: "S"
-   *       - in: query
-   *         name: mayorizacion
-   *         schema:
-   *           type: string
-   *         description: Estado de mayorización
-   *         example: "N"
-   *       - in: query
-   *         name: documentoGlobal
-   *         schema:
-   *           type: string
-   *         description: Documento global
-   *         example: "DOC001"
    *     responses:
    *       200:
    *         description: Reporte generado exitosamente
@@ -228,18 +178,7 @@ export class LibroMayorAsientosController {
   async generarReporte(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto } = req.params;
-      const {
-        asiento,
-        referencia,
-        fechaInicio,
-        fechaFin,
-        contabilidad,
-        tipoAsiento,
-        origen,
-        exportado,
-        mayorizacion,
-        documentoGlobal,
-      } = req.query;
+      const { asiento, tipoAsiento } = req.query;
 
       if (!conjunto) {
         res.status(400).json({
@@ -249,45 +188,12 @@ export class LibroMayorAsientosController {
         return;
       }
 
-      // Preparar filtros
+      // Preparar filtros simplificados
       const filtros: GenerarLibroMayorAsientosParams = {
         conjunto,
         asiento: asiento as string,
-        referencia: referencia as string,
-        ...(fechaInicio && { fechaInicio: new Date(fechaInicio as string) }),
-        ...(fechaFin && { fechaFin: new Date(fechaFin as string) }),
-        contabilidad: contabilidad as string,
         tipoAsiento: tipoAsiento as string,
-        origen: origen as string,
-        exportado: exportado as string,
-        mayorizacion: mayorizacion as string,
-        documentoGlobal: documentoGlobal as string,
       };
-
-      // Validar fechas si se proporcionan
-      if (filtros.fechaInicio && isNaN(filtros.fechaInicio.getTime())) {
-        res.status(400).json({
-          success: false,
-          message: "La fecha de inicio debe tener un formato válido (YYYY-MM-DD)",
-        });
-        return;
-      }
-
-      if (filtros.fechaFin && isNaN(filtros.fechaFin.getTime())) {
-        res.status(400).json({
-          success: false,
-          message: "La fecha de fin debe tener un formato válido (YYYY-MM-DD)",
-        });
-        return;
-      }
-
-      if (filtros.fechaInicio && filtros.fechaFin && filtros.fechaInicio > filtros.fechaFin) {
-        res.status(400).json({
-          success: false,
-          message: "La fecha de inicio no puede ser mayor que la fecha de fin",
-        });
-        return;
-      }
 
       const resultado = await this.libroMayorAsientosService.generarReporte(conjunto, filtros);
 
@@ -326,61 +232,11 @@ export class LibroMayorAsientosController {
    *         description: Filtro por asiento
    *         example: "000001"
    *       - in: query
-   *         name: referencia
-   *         schema:
-   *           type: string
-   *         description: Filtro por referencia
-   *         example: "DOC001"
-   *       - in: query
-   *         name: fechaInicio
-   *         schema:
-   *           type: string
-   *           format: date
-   *         description: Fecha de inicio
-   *         example: "2024-01-01"
-   *       - in: query
-   *         name: fechaFin
-   *         schema:
-   *           type: string
-   *           format: date
-   *         description: Fecha de fin
-   *         example: "2024-12-31"
-   *       - in: query
-   *         name: contabilidad
-   *         schema:
-   *           type: string
-   *         description: Tipo de contabilidad
-   *         example: "F"
-   *       - in: query
    *         name: tipoAsiento
    *         schema:
    *           type: string
-   *         description: Tipo de asiento
+   *         description: Filtro por tipo de asiento
    *         example: "N"
-   *       - in: query
-   *         name: origen
-   *         schema:
-   *           type: string
-   *         description: Origen del asiento
-   *         example: "01"
-   *       - in: query
-   *         name: exportado
-   *         schema:
-   *           type: string
-   *         description: Estado de exportación
-   *         example: "S"
-   *       - in: query
-   *         name: mayorizacion
-   *         schema:
-   *           type: string
-   *         description: Estado de mayorización
-   *         example: "N"
-   *       - in: query
-   *         name: documentoGlobal
-   *         schema:
-   *           type: string
-   *         description: Documento global
-   *         example: "DOC001"
    *       - in: query
    *         name: page
    *         schema:
@@ -443,20 +299,7 @@ export class LibroMayorAsientosController {
   async obtenerAsientos(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto } = req.params;
-      const {
-        asiento,
-        referencia,
-        fechaInicio,
-        fechaFin,
-        contabilidad,
-        tipoAsiento,
-        origen,
-        exportado,
-        mayorizacion,
-        documentoGlobal,
-        page,
-        limit,
-      } = req.query;
+      const { asiento, tipoAsiento, page, limit } = req.query;
 
       if (!conjunto) {
         res.status(400).json({
@@ -478,47 +321,14 @@ export class LibroMayorAsientosController {
         return;
       }
 
-      // Preparar filtros
+      // Preparar filtros simplificados
       const filtros: LibroMayorAsientosFiltros = {
         conjunto,
         asiento: asiento as string,
-        referencia: referencia as string,
-        ...(fechaInicio && { fechaInicio: new Date(fechaInicio as string) }),
-        ...(fechaFin && { fechaFin: new Date(fechaFin as string) }),
-        contabilidad: contabilidad as string,
         tipoAsiento: tipoAsiento as string,
-        origen: origen as string,
-        exportado: exportado as string,
-        mayorizacion: mayorizacion as string,
-        documentoGlobal: documentoGlobal as string,
         page: pageNum,
         limit: limitNum,
       };
-
-      // Validar fechas si se proporcionan
-      if (filtros.fechaInicio && isNaN(filtros.fechaInicio.getTime())) {
-        res.status(400).json({
-          success: false,
-          message: "La fecha de inicio debe tener un formato válido (YYYY-MM-DD)",
-        });
-        return;
-      }
-
-      if (filtros.fechaFin && isNaN(filtros.fechaFin.getTime())) {
-        res.status(400).json({
-          success: false,
-          message: "La fecha de fin debe tener un formato válido (YYYY-MM-DD)",
-        });
-        return;
-      }
-
-      if (filtros.fechaInicio && filtros.fechaFin && filtros.fechaInicio > filtros.fechaFin) {
-        res.status(400).json({
-          success: false,
-          message: "La fecha de inicio no puede ser mayor que la fecha de fin",
-        });
-        return;
-      }
 
       const resultado = await this.libroMayorAsientosService.obtenerAsientos(conjunto, filtros);
 
@@ -557,61 +367,11 @@ export class LibroMayorAsientosController {
    *         description: Filtro por asiento
    *         example: "000001"
    *       - in: query
-   *         name: referencia
-   *         schema:
-   *           type: string
-   *         description: Filtro por referencia
-   *         example: "DOC001"
-   *       - in: query
-   *         name: fechaInicio
-   *         schema:
-   *           type: string
-   *           format: date
-   *         description: Fecha de inicio
-   *         example: "2024-01-01"
-   *       - in: query
-   *         name: fechaFin
-   *         schema:
-   *           type: string
-   *           format: date
-   *         description: Fecha de fin
-   *         example: "2024-12-31"
-   *       - in: query
-   *         name: contabilidad
-   *         schema:
-   *           type: string
-   *         description: Tipo de contabilidad
-   *         example: "F"
-   *       - in: query
    *         name: tipoAsiento
    *         schema:
    *           type: string
-   *         description: Tipo de asiento
+   *         description: Filtro por tipo de asiento
    *         example: "N"
-   *       - in: query
-   *         name: origen
-   *         schema:
-   *           type: string
-   *         description: Origen del asiento
-   *         example: "01"
-   *       - in: query
-   *         name: exportado
-   *         schema:
-   *           type: string
-   *         description: Estado de exportación
-   *         example: "S"
-   *       - in: query
-   *         name: mayorizacion
-   *         schema:
-   *           type: string
-   *         description: Estado de mayorización
-   *         example: "N"
-   *       - in: query
-   *         name: documentoGlobal
-   *         schema:
-   *           type: string
-   *         description: Documento global
-   *         example: "DOC001"
    *       - in: query
    *         name: limit
    *         schema:
@@ -636,19 +396,7 @@ export class LibroMayorAsientosController {
   async exportarExcel(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto } = req.params;
-      const {
-        asiento,
-        referencia,
-        fechaInicio,
-        fechaFin,
-        contabilidad,
-        tipoAsiento,
-        origen,
-        exportado,
-        mayorizacion,
-        documentoGlobal,
-        limit,
-      } = req.query;
+      const { asiento, tipoAsiento, limit } = req.query;
 
       if (!conjunto) {
         res.status(400).json({
@@ -668,46 +416,13 @@ export class LibroMayorAsientosController {
         return;
       }
 
-      // Preparar filtros
+      // Preparar filtros simplificados
       const filtros: ExportarLibroMayorAsientosExcelParams = {
         conjunto,
         asiento: asiento as string,
-        referencia: referencia as string,
-        ...(fechaInicio && { fechaInicio: new Date(fechaInicio as string) }),
-        ...(fechaFin && { fechaFin: new Date(fechaFin as string) }),
-        contabilidad: contabilidad as string,
         tipoAsiento: tipoAsiento as string,
-        origen: origen as string,
-        exportado: exportado as string,
-        mayorizacion: mayorizacion as string,
-        documentoGlobal: documentoGlobal as string,
         limit: limitNum,
       };
-
-      // Validar fechas si se proporcionan
-      if (filtros.fechaInicio && isNaN(filtros.fechaInicio.getTime())) {
-        res.status(400).json({
-          success: false,
-          message: "La fecha de inicio debe tener un formato válido (YYYY-MM-DD)",
-        });
-        return;
-      }
-
-      if (filtros.fechaFin && isNaN(filtros.fechaFin.getTime())) {
-        res.status(400).json({
-          success: false,
-          message: "La fecha de fin debe tener un formato válido (YYYY-MM-DD)",
-        });
-        return;
-      }
-
-      if (filtros.fechaInicio && filtros.fechaFin && filtros.fechaInicio > filtros.fechaFin) {
-        res.status(400).json({
-          success: false,
-          message: "La fecha de inicio no puede ser mayor que la fecha de fin",
-        });
-        return;
-      }
 
       const excelBuffer = await this.libroMayorAsientosService.exportarExcel(conjunto, filtros);
 
@@ -759,61 +474,11 @@ export class LibroMayorAsientosController {
    *         description: Filtro por asiento
    *         example: "000001"
    *       - in: query
-   *         name: referencia
-   *         schema:
-   *           type: string
-   *         description: Filtro por referencia
-   *         example: "DOC001"
-   *       - in: query
-   *         name: fechaInicio
-   *         schema:
-   *           type: string
-   *           format: date
-   *         description: Fecha de inicio
-   *         example: "2024-01-01"
-   *       - in: query
-   *         name: fechaFin
-   *         schema:
-   *           type: string
-   *           format: date
-   *         description: Fecha de fin
-   *         example: "2024-12-31"
-   *       - in: query
-   *         name: contabilidad
-   *         schema:
-   *           type: string
-   *         description: Tipo de contabilidad
-   *         example: "F"
-   *       - in: query
    *         name: tipoAsiento
    *         schema:
    *           type: string
-   *         description: Tipo de asiento
+   *         description: Filtro por tipo de asiento
    *         example: "N"
-   *       - in: query
-   *         name: origen
-   *         schema:
-   *           type: string
-   *         description: Origen del asiento
-   *         example: "01"
-   *       - in: query
-   *         name: exportado
-   *         schema:
-   *           type: string
-   *         description: Estado de exportación
-   *         example: "S"
-   *       - in: query
-   *         name: mayorizacion
-   *         schema:
-   *           type: string
-   *         description: Estado de mayorización
-   *         example: "N"
-   *       - in: query
-   *         name: documentoGlobal
-   *         schema:
-   *           type: string
-   *         description: Documento global
-   *         example: "DOC001"
    *       - in: query
    *         name: limit
    *         schema:
@@ -838,19 +503,7 @@ export class LibroMayorAsientosController {
   async exportarPDF(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto } = req.params;
-      const {
-        asiento,
-        referencia,
-        fechaInicio,
-        fechaFin,
-        contabilidad,
-        tipoAsiento,
-        origen,
-        exportado,
-        mayorizacion,
-        documentoGlobal,
-        limit,
-      } = req.query;
+      const { asiento, tipoAsiento, limit } = req.query;
 
       if (!conjunto) {
         res.status(400).json({
@@ -870,46 +523,13 @@ export class LibroMayorAsientosController {
         return;
       }
 
-      // Preparar filtros
+      // Preparar filtros simplificados
       const filtros: ExportarLibroMayorAsientosExcelParams = {
         conjunto,
         asiento: asiento as string,
-        referencia: referencia as string,
-        ...(fechaInicio && { fechaInicio: new Date(fechaInicio as string) }),
-        ...(fechaFin && { fechaFin: new Date(fechaFin as string) }),
-        contabilidad: contabilidad as string,
         tipoAsiento: tipoAsiento as string,
-        origen: origen as string,
-        exportado: exportado as string,
-        mayorizacion: mayorizacion as string,
-        documentoGlobal: documentoGlobal as string,
         limit: limitNum,
       };
-
-      // Validar fechas si se proporcionan
-      if (filtros.fechaInicio && isNaN(filtros.fechaInicio.getTime())) {
-        res.status(400).json({
-          success: false,
-          message: "La fecha de inicio debe tener un formato válido (YYYY-MM-DD)",
-        });
-        return;
-      }
-
-      if (filtros.fechaFin && isNaN(filtros.fechaFin.getTime())) {
-        res.status(400).json({
-          success: false,
-          message: "La fecha de fin debe tener un formato válido (YYYY-MM-DD)",
-        });
-        return;
-      }
-
-      if (filtros.fechaInicio && filtros.fechaFin && filtros.fechaInicio > filtros.fechaFin) {
-        res.status(400).json({
-          success: false,
-          message: "La fecha de inicio no puede ser mayor que la fecha de fin",
-        });
-        return;
-      }
 
       const pdfBuffer = await this.libroMayorAsientosService.exportarPDF(conjunto, filtros);
 

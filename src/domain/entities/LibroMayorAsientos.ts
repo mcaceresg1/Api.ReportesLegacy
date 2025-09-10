@@ -22,15 +22,7 @@ export interface LibroMayorAsientos {
 export interface LibroMayorAsientosFiltros {
   conjunto: string;
   asiento?: string;
-  referencia?: string;
-  fechaInicio?: Date;
-  fechaFin?: Date;
-  contabilidad?: string;
   tipoAsiento?: string;
-  origen?: string;
-  exportado?: string;
-  mayorizacion?: string;
-  documentoGlobal?: string;
   page?: number;
   limit?: number;
   offset?: number;
@@ -59,15 +51,7 @@ export interface LibroMayorAsientosResponse {
 export interface GenerarLibroMayorAsientosParams {
   conjunto: string;
   asiento?: string;
-  referencia?: string;
-  fechaInicio?: Date;
-  fechaFin?: Date;
-  contabilidad?: string;
   tipoAsiento?: string;
-  origen?: string;
-  exportado?: string;
-  mayorizacion?: string;
-  documentoGlobal?: string;
 }
 
 /**
@@ -76,15 +60,7 @@ export interface GenerarLibroMayorAsientosParams {
 export interface ExportarLibroMayorAsientosExcelParams {
   conjunto: string;
   asiento?: string;
-  referencia?: string;
-  fechaInicio?: Date;
-  fechaFin?: Date;
-  contabilidad?: string;
   tipoAsiento?: string;
-  origen?: string;
-  exportado?: string;
-  mayorizacion?: string;
-  documentoGlobal?: string;
   limit?: number;
 }
 

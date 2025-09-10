@@ -12,11 +12,11 @@ import {
  */
 export interface ILibroMayorAsientosService {
   /**
-   * Obtiene los filtros disponibles (asientos y referencias)
+   * Obtiene los filtros disponibles (asientos y tipos de asiento)
    * @param conjunto Código del conjunto contable
    * @returns Lista de filtros disponibles
    */
-  obtenerFiltros(conjunto: string): Promise<{ asiento: string; referencia: string }[]>;
+  obtenerFiltros(conjunto: string): Promise<{ asiento: string; tipoAsiento: string }[]>;
 
   /**
    * Genera el reporte de Libro Mayor Asientos

@@ -17,9 +17,9 @@ export class LibroMayorAsientosService implements ILibroMayorAsientosService {
   ) {}
 
   /**
-   * Obtiene los filtros disponibles (asientos y referencias)
+   * Obtiene los filtros disponibles (asientos y tipos de asiento)
    */
-  async obtenerFiltros(conjunto: string): Promise<{ asiento: string; referencia: string }[]> {
+  async obtenerFiltros(conjunto: string): Promise<{ asiento: string; tipoAsiento: string }[]> {
     try {
       console.log(`Obteniendo filtros para conjunto: ${conjunto}`);
       const filtros = await this.libroMayorAsientosRepository.obtenerFiltros(conjunto);

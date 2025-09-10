@@ -12,24 +12,24 @@ import {
 export class LibroMayorAsientosRepository {
 
   /**
-   * Obtiene los filtros disponibles (asientos y referencias)
+   * Obtiene los filtros disponibles (asientos y tipos de asiento)
    */
-  async obtenerFiltros(conjunto: string): Promise<{ asiento: string; referencia: string }[]> {
+  async obtenerFiltros(conjunto: string): Promise<{ asiento: string; tipoAsiento: string }[]> {
     try {
       const query = `
         SELECT DISTINCT 
           asiento,
-          documento_global as referencia
+          tipo_asiento as tipoAsiento
         FROM ${conjunto}.asiento_mayorizado (NOLOCK)
         WHERE asiento IS NOT NULL 
-          AND documento_global IS NOT NULL
-        ORDER BY asiento, documento_global
+          AND tipo_asiento IS NOT NULL
+        ORDER BY asiento, tipo_asiento
       `;
 
       const [results] = await exactusSequelize.query(query);
       return (results as any[]).map((row: any) => ({
         asiento: row.asiento,
-        referencia: row.referencia,
+        tipoAsiento: row.tipoAsiento,
       }));
     } catch (error) {
       console.error('Error obteniendo filtros de libro mayor asientos:', error);
@@ -48,55 +48,15 @@ export class LibroMayorAsientosRepository {
       let whereClause = "WHERE 1=1";
       const replacements: any = {};
 
-      // Aplicar filtros
+      // Aplicar filtros simplificados
       if (filtros.asiento) {
         whereClause += " AND asiento = :asiento";
         replacements.asiento = filtros.asiento;
       }
 
-      if (filtros.referencia) {
-        whereClause += " AND documento_global = :referencia";
-        replacements.referencia = filtros.referencia;
-      }
-
-      if (filtros.fechaInicio) {
-        whereClause += " AND fecha >= :fechaInicio";
-        replacements.fechaInicio = filtros.fechaInicio;
-      }
-
-      if (filtros.fechaFin) {
-        whereClause += " AND fecha <= :fechaFin";
-        replacements.fechaFin = filtros.fechaFin;
-      }
-
-      if (filtros.contabilidad) {
-        whereClause += " AND contabilidad = :contabilidad";
-        replacements.contabilidad = filtros.contabilidad;
-      }
-
       if (filtros.tipoAsiento) {
         whereClause += " AND tipo_asiento = :tipoAsiento";
         replacements.tipoAsiento = filtros.tipoAsiento;
-      }
-
-      if (filtros.origen) {
-        whereClause += " AND origen = :origen";
-        replacements.origen = filtros.origen;
-      }
-
-      if (filtros.exportado) {
-        whereClause += " AND exportado = :exportado";
-        replacements.exportado = filtros.exportado;
-      }
-
-      if (filtros.mayorizacion) {
-        whereClause += " AND mayor_auditoria = :mayorizacion";
-        replacements.mayorizacion = filtros.mayorizacion;
-      }
-
-      if (filtros.documentoGlobal) {
-        whereClause += " AND documento_global = :documentoGlobal";
-        replacements.documentoGlobal = filtros.documentoGlobal;
       }
 
       const query = `
@@ -148,55 +108,15 @@ export class LibroMayorAsientosRepository {
       let whereClause = "WHERE 1=1";
       const replacements: any = {};
 
-      // Aplicar filtros
+      // Aplicar filtros simplificados
       if (filtros.asiento) {
         whereClause += " AND asiento = :asiento";
         replacements.asiento = filtros.asiento;
       }
 
-      if (filtros.referencia) {
-        whereClause += " AND documento_global = :referencia";
-        replacements.referencia = filtros.referencia;
-      }
-
-      if (filtros.fechaInicio) {
-        whereClause += " AND fecha >= :fechaInicio";
-        replacements.fechaInicio = filtros.fechaInicio;
-      }
-
-      if (filtros.fechaFin) {
-        whereClause += " AND fecha <= :fechaFin";
-        replacements.fechaFin = filtros.fechaFin;
-      }
-
-      if (filtros.contabilidad) {
-        whereClause += " AND contabilidad = :contabilidad";
-        replacements.contabilidad = filtros.contabilidad;
-      }
-
       if (filtros.tipoAsiento) {
         whereClause += " AND tipo_asiento = :tipoAsiento";
         replacements.tipoAsiento = filtros.tipoAsiento;
-      }
-
-      if (filtros.origen) {
-        whereClause += " AND origen = :origen";
-        replacements.origen = filtros.origen;
-      }
-
-      if (filtros.exportado) {
-        whereClause += " AND exportado = :exportado";
-        replacements.exportado = filtros.exportado;
-      }
-
-      if (filtros.mayorizacion) {
-        whereClause += " AND mayor_auditoria = :mayorizacion";
-        replacements.mayorizacion = filtros.mayorizacion;
-      }
-
-      if (filtros.documentoGlobal) {
-        whereClause += " AND documento_global = :documentoGlobal";
-        replacements.documentoGlobal = filtros.documentoGlobal;
       }
 
       // Obtener total de registros
@@ -281,55 +201,15 @@ export class LibroMayorAsientosRepository {
       let whereClause = "WHERE 1=1";
       const replacements: any = {};
 
-      // Aplicar filtros
+      // Aplicar filtros simplificados
       if (filtros.asiento) {
         whereClause += " AND asiento = :asiento";
         replacements.asiento = filtros.asiento;
       }
 
-      if (filtros.referencia) {
-        whereClause += " AND documento_global = :referencia";
-        replacements.referencia = filtros.referencia;
-      }
-
-      if (filtros.fechaInicio) {
-        whereClause += " AND fecha >= :fechaInicio";
-        replacements.fechaInicio = filtros.fechaInicio;
-      }
-
-      if (filtros.fechaFin) {
-        whereClause += " AND fecha <= :fechaFin";
-        replacements.fechaFin = filtros.fechaFin;
-      }
-
-      if (filtros.contabilidad) {
-        whereClause += " AND contabilidad = :contabilidad";
-        replacements.contabilidad = filtros.contabilidad;
-      }
-
       if (filtros.tipoAsiento) {
         whereClause += " AND tipo_asiento = :tipoAsiento";
         replacements.tipoAsiento = filtros.tipoAsiento;
-      }
-
-      if (filtros.origen) {
-        whereClause += " AND origen = :origen";
-        replacements.origen = filtros.origen;
-      }
-
-      if (filtros.exportado) {
-        whereClause += " AND exportado = :exportado";
-        replacements.exportado = filtros.exportado;
-      }
-
-      if (filtros.mayorizacion) {
-        whereClause += " AND mayor_auditoria = :mayorizacion";
-        replacements.mayorizacion = filtros.mayorizacion;
-      }
-
-      if (filtros.documentoGlobal) {
-        whereClause += " AND documento_global = :documentoGlobal";
-        replacements.documentoGlobal = filtros.documentoGlobal;
       }
 
       // Aplicar límite si se especifica

@@ -1,0 +1,73 @@
+### Test Libro Mayor Asientos - Filtros Simplificados
+
+### 1. Health Check
+GET http://localhost:3000/api/libro-mayor-asientos/health
+Content-Type: application/json
+
+### 2. Obtener Filtros Disponibles (Solo Asiento y Tipo de Asiento)
+GET http://localhost:3000/api/libro-mayor-asientos/ASFSAC/filtros
+Content-Type: application/json
+
+### 3. Generar Reporte - Sin Filtros
+GET http://localhost:3000/api/libro-mayor-asientos/ASFSAC/generar
+Content-Type: application/json
+
+### 4. Generar Reporte - Con Filtro de Asiento
+GET http://localhost:3000/api/libro-mayor-asientos/ASFSAC/generar?asiento=000001
+Content-Type: application/json
+
+### 5. Generar Reporte - Con Filtro de Tipo de Asiento
+GET http://localhost:3000/api/libro-mayor-asientos/ASFSAC/generar?tipoAsiento=N
+Content-Type: application/json
+
+### 6. Generar Reporte - Con Ambos Filtros
+GET http://localhost:3000/api/libro-mayor-asientos/ASFSAC/generar?asiento=000001&tipoAsiento=N
+Content-Type: application/json
+
+### 7. Obtener Datos Paginados - Sin Filtros
+GET http://localhost:3000/api/libro-mayor-asientos/ASFSAC/obtener?page=1&limit=10
+Content-Type: application/json
+
+### 8. Obtener Datos Paginados - Con Filtro de Asiento
+GET http://localhost:3000/api/libro-mayor-asientos/ASFSAC/obtener?asiento=000001&page=1&limit=10
+Content-Type: application/json
+
+### 9. Obtener Datos Paginados - Con Filtro de Tipo de Asiento
+GET http://localhost:3000/api/libro-mayor-asientos/ASFSAC/obtener?tipoAsiento=N&page=1&limit=10
+Content-Type: application/json
+
+### 10. Obtener Datos Paginados - Con Ambos Filtros
+GET http://localhost:3000/api/libro-mayor-asientos/ASFSAC/obtener?asiento=000001&tipoAsiento=N&page=1&limit=10
+Content-Type: application/json
+
+### 11. Exportar a Excel - Sin Filtros
+GET http://localhost:3000/api/libro-mayor-asientos/ASFSAC/exportar/excel
+Content-Type: application/json
+
+### 12. Exportar a Excel - Con Filtro de Asiento
+GET http://localhost:3000/api/libro-mayor-asientos/ASFSAC/exportar/excel?asiento=000001
+Content-Type: application/json
+
+### 13. Exportar a Excel - Con Filtro de Tipo de Asiento
+GET http://localhost:3000/api/libro-mayor-asientos/ASFSAC/exportar/excel?tipoAsiento=N
+Content-Type: application/json
+
+### 14. Exportar a Excel - Con Ambos Filtros
+GET http://localhost:3000/api/libro-mayor-asientos/ASFSAC/exportar/excel?asiento=000001&tipoAsiento=N
+Content-Type: application/json
+
+### 15. Exportar a PDF - Sin Filtros
+GET http://localhost:3000/api/libro-mayor-asientos/ASFSAC/exportar/pdf
+Content-Type: application/json
+
+### 16. Exportar a PDF - Con Filtro de Asiento
+GET http://localhost:3000/api/libro-mayor-asientos/ASFSAC/exportar/pdf?asiento=000001
+Content-Type: application/json
+
+### 17. Exportar a PDF - Con Filtro de Tipo de Asiento
+GET http://localhost:3000/api/libro-mayor-asientos/ASFSAC/exportar/pdf?tipoAsiento=N
+Content-Type: application/json
+
+### 18. Exportar a PDF - Con Ambos Filtros
+GET http://localhost:3000/api/libro-mayor-asientos/ASFSAC/exportar/pdf?asiento=000001&tipoAsiento=N
+Content-Type: application/json
