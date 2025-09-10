@@ -1,0 +1,69 @@
+### Test Libro Diario Asientos API
+
+### 1. Health Check
+GET http://localhost:3000/api/libro-diario-asientos/health
+Content-Type: application/json
+
+### 2. Obtener Filtros Disponibles
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/filtros
+Content-Type: application/json
+
+### 3. Generar Reporte - Sin Filtros
+POST http://localhost:3000/api/libro-diario-asientos/ASFSAC/generar
+Content-Type: application/json
+
+### 4. Generar Reporte - Con Filtro de Asiento
+POST http://localhost:3000/api/libro-diario-asientos/ASFSAC/generar?asiento=0700000483
+Content-Type: application/json
+
+### 5. Generar Reporte - Con Filtro de Tipo de Asiento
+POST http://localhost:3000/api/libro-diario-asientos/ASFSAC/generar?tipoAsiento=N
+Content-Type: application/json
+
+### 6. Generar Reporte - Con Filtro de Paquete
+POST http://localhost:3000/api/libro-diario-asientos/ASFSAC/generar?paquete=PAQ001
+Content-Type: application/json
+
+### 7. Generar Reporte - Con Filtro de Fechas
+POST http://localhost:3000/api/libro-diario-asientos/ASFSAC/generar?fechaDesde=2024-01-01&fechaHasta=2024-12-31
+Content-Type: application/json
+
+### 8. Obtener Datos Paginados - Sin Filtros
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/obtener?page=1&limit=10
+Content-Type: application/json
+
+### 9. Obtener Datos Paginados - Con Filtro de Asiento
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/obtener?asiento=0700000483&page=1&limit=10
+Content-Type: application/json
+
+### 10. Obtener Datos Paginados - Con Filtro de Tipo de Asiento
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/obtener?tipoAsiento=N&page=1&limit=10
+Content-Type: application/json
+
+### 11. Obtener Datos Paginados - Con Filtro de Paquete
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/obtener?paquete=PAQ001&page=1&limit=10
+Content-Type: application/json
+
+### 12. Obtener Datos Paginados - Con Filtro de Fechas
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/obtener?fechaDesde=2024-01-01&fechaHasta=2024-12-31&page=1&limit=10
+Content-Type: application/json
+
+### 13. Exportar Excel - Sin Filtros
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/exportar-excel
+Content-Type: application/json
+
+### 14. Exportar Excel - Con Filtro de Asiento
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/exportar-excel?asiento=0700000483
+Content-Type: application/json
+
+### 15. Exportar Excel - Con Filtro de Tipo de Asiento
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/exportar-excel?tipoAsiento=N
+Content-Type: application/json
+
+### 16. Exportar Excel - Con Filtro de Paquete
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/exportar-excel?paquete=PAQ001
+Content-Type: application/json
+
+### 17. Exportar Excel - Con Filtro de Fechas
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/exportar-excel?fechaDesde=2024-01-01&fechaHasta=2024-12-31
+Content-Type: application/json
