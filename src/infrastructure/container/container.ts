@@ -682,6 +682,32 @@ container
 
 // Balance Comprobación Clipper - No necesita handlers CQRS, usa servicio directamente
 
+// Ganancias y Pérdidas Clipper
+import { IGananciasPerdidasClipperRepository } from "../../domain/repositories/IGananciasPerdidasClipperRepository";
+import { GananciasPerdidasClipperRepository } from "../repositories/GananciasPerdidasClipperRepository";
+import { IGananciasPerdidasClipperService } from "../../domain/services/IGananciasPerdidasClipperService";
+import { GananciasPerdidasClipperService } from "../../application/services/GananciasPerdidasClipperService";
+import { GananciasPerdidasClipperController } from "../controllers/GananciasPerdidasClipperController";
+
+// Ganancias y Pérdidas Clipper - Repositorio
+container
+  .bind<IGananciasPerdidasClipperRepository>(
+    "IGananciasPerdidasClipperRepository"
+  )
+  .to(GananciasPerdidasClipperRepository);
+
+// Ganancias y Pérdidas Clipper - Servicio
+container
+  .bind<IGananciasPerdidasClipperService>("IGananciasPerdidasClipperService")
+  .to(GananciasPerdidasClipperService);
+
+// Ganancias y Pérdidas Clipper - Controlador
+container
+  .bind<GananciasPerdidasClipperController>(
+    "GananciasPerdidasClipperController"
+  )
+  .to(GananciasPerdidasClipperController);
+
 // CQRS Service
 container.bind<CqrsService>("CqrsService").to(CqrsService);
 

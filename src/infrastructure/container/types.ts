@@ -130,4 +130,11 @@ export const TYPES = {
 
   // Infrastructure
   Sequelize: "Sequelize",
+
+  // Ganancias y Pérdidas Clipper
+  IGananciasPerdidasClipperRepository: "IGananciasPerdidasClipperRepository",
+  IGananciasPerdidasClipperService: "IGananciasPerdidasClipperService",
+  GananciasPerdidasClipperRepository: "GananciasPerdidasClipperRepository",
+  GananciasPerdidasClipperService: "GananciasPerdidasClipperService",
+  GananciasPerdidasClipperController: "GananciasPerdidasClipperController",
 };
