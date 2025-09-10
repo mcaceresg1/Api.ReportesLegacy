@@ -106,7 +106,7 @@ export class LibroMayorAsientosController {
    * Genera el reporte de Libro Mayor Asientos
    * @swagger
    * /api/libro-mayor-asientos/{conjunto}/generar:
-   *   get:
+   *   post:
    *     tags:
    *       - Libro Mayor Asientos
    *     summary: Genera el reporte de Libro Mayor Asientos
