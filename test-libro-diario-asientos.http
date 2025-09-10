@@ -7,63 +7,54 @@ Content-Type: application/json
 ### 2. Obtener Filtros Disponibles
 GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/filtros
 Content-Type: application/json
+Authorization: Bearer [tu-token]
 
-### 3. Generar Reporte - Sin Filtros
+### 3. Generar Reporte (sin filtros)
 POST http://localhost:3000/api/libro-diario-asientos/ASFSAC/generar
 Content-Type: application/json
+Authorization: Bearer [tu-token]
 
-### 4. Generar Reporte - Con Filtro de Asiento
-POST http://localhost:3000/api/libro-diario-asientos/ASFSAC/generar?asiento=0700000483
+### 4. Generar Reporte (con filtros)
+POST http://localhost:3000/api/libro-diario-asientos/ASFSAC/generar?asiento=0700000483&tipoAsiento=04&paquete=001&fechaDesde=2020-01-01&fechaHasta=2024-12-31
 Content-Type: application/json
+Authorization: Bearer [tu-token]
 
-### 5. Generar Reporte - Con Filtro de Tipo de Asiento
-POST http://localhost:3000/api/libro-diario-asientos/ASFSAC/generar?tipoAsiento=N
+### 5. Obtener Asientos (sin filtros, paginado)
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/obtener?page=1&limit=20
 Content-Type: application/json
+Authorization: Bearer [tu-token]
 
-### 6. Generar Reporte - Con Filtro de Paquete
-POST http://localhost:3000/api/libro-diario-asientos/ASFSAC/generar?paquete=PAQ001
+### 6. Obtener Asientos (con filtros, paginado)
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/obtener?asiento=0700000483&tipoAsiento=04&paquete=001&fechaDesde=2020-01-01&fechaHasta=2024-12-31&page=1&limit=20
 Content-Type: application/json
+Authorization: Bearer [tu-token]
 
-### 7. Generar Reporte - Con Filtro de Fechas
-POST http://localhost:3000/api/libro-diario-asientos/ASFSAC/generar?fechaDesde=2024-01-01&fechaHasta=2024-12-31
-Content-Type: application/json
-
-### 8. Obtener Datos Paginados - Sin Filtros
-GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/obtener?page=1&limit=10
-Content-Type: application/json
-
-### 9. Obtener Datos Paginados - Con Filtro de Asiento
-GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/obtener?asiento=0700000483&page=1&limit=10
-Content-Type: application/json
-
-### 10. Obtener Datos Paginados - Con Filtro de Tipo de Asiento
-GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/obtener?tipoAsiento=N&page=1&limit=10
-Content-Type: application/json
-
-### 11. Obtener Datos Paginados - Con Filtro de Paquete
-GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/obtener?paquete=PAQ001&page=1&limit=10
-Content-Type: application/json
-
-### 12. Obtener Datos Paginados - Con Filtro de Fechas
-GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/obtener?fechaDesde=2024-01-01&fechaHasta=2024-12-31&page=1&limit=10
-Content-Type: application/json
-
-### 13. Exportar Excel - Sin Filtros
+### 7. Exportar a Excel (sin filtros)
 GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/exportar-excel
 Content-Type: application/json
+Authorization: Bearer [tu-token]
 
-### 14. Exportar Excel - Con Filtro de Asiento
-GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/exportar-excel?asiento=0700000483
+### 8. Exportar a Excel (con filtros)
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/exportar-excel?asiento=0700000483&tipoAsiento=04&paquete=001&fechaDesde=2020-01-01&fechaHasta=2024-12-31
 Content-Type: application/json
+Authorization: Bearer [tu-token]
 
-### 15. Exportar Excel - Con Filtro de Tipo de Asiento
-GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/exportar-excel?tipoAsiento=N
+### 9. Obtener Asientos (filtro por asiento específico)
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/obtener?asiento=0700000483&page=1&limit=10
 Content-Type: application/json
+Authorization: Bearer [tu-token]
 
-### 16. Exportar Excel - Con Filtro de Paquete
-GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/exportar-excel?paquete=PAQ001
+### 10. Obtener Asientos (filtro por tipo de asiento)
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/obtener?tipoAsiento=04&page=1&limit=10
 Content-Type: application/json
+Authorization: Bearer [tu-token]
 
-### 17. Exportar Excel - Con Filtro de Fechas
-GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/exportar-excel?fechaDesde=2024-01-01&fechaHasta=2024-12-31
+### 11. Obtener Asientos (filtro por paquete)
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/obtener?paquete=001&page=1&limit=10
 Content-Type: application/json
+Authorization: Bearer [tu-token]
+
+### 12. Obtener Asientos (filtro por rango de fechas)
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/obtener?fechaDesde=2020-01-01&fechaHasta=2020-12-31&page=1&limit=10
+Content-Type: application/json
+Authorization: Bearer [tu-token]

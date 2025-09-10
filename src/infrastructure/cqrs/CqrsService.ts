@@ -28,6 +28,10 @@ import { ExportarDiarioContabilidadExcelHandler } from "../../application/handle
 // Reporte Genérico de Saldos handlers
 import { GenerarReporteGenericoSaldosHandler } from "../../application/handlers/reporte-generico-saldos/GenerarReporteGenericoSaldosHandler";
 
+// Libro Diario Asientos handlers
+import { ObtenerLibroDiarioAsientosHandler } from "../../application/handlers/libro-diario-asientos/ObtenerLibroDiarioAsientosHandler";
+import { GenerarLibroDiarioAsientosHandler } from "../../application/handlers/libro-diario-asientos/GenerarLibroDiarioAsientosHandler";
+
 
 @injectable()
 export class CqrsService {
@@ -58,6 +62,10 @@ export class CqrsService {
     private exportarDiarioContabilidadExcelHandler: ExportarDiarioContabilidadExcelHandler,
     @inject("GenerarReporteGenericoSaldosHandler")
     private generarReporteGenericoSaldosHandler: GenerarReporteGenericoSaldosHandler,
+    @inject("ObtenerLibroDiarioAsientosHandler")
+    private obtenerLibroDiarioAsientosHandler: ObtenerLibroDiarioAsientosHandler,
+    @inject("GenerarLibroDiarioAsientosHandler")
+    private generarLibroDiarioAsientosHandler: GenerarLibroDiarioAsientosHandler,
   ) {
     console.log("🔧 Constructor CqrsService ejecutándose...");
     this.registerHandlers();
@@ -105,6 +113,17 @@ export class CqrsService {
     this.commandBus.register(
       "GenerarReporteGenericoSaldosCommand",
       this.generarReporteGenericoSaldosHandler as any
+    );
+
+    // Libro Diario Asientos
+    console.log("📖 Registrando handlers de Libro Diario Asientos...");
+    this.queryBus.register(
+      "ObtenerLibroDiarioAsientosQuery",
+      this.obtenerLibroDiarioAsientosHandler
+    );
+    this.queryBus.register(
+      "GenerarLibroDiarioAsientosQuery",
+      this.generarLibroDiarioAsientosHandler
     );
 
     console.log("🎉 Todos los handlers CQRS registrados exitosamente");
