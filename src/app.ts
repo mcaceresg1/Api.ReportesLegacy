@@ -48,6 +48,7 @@ import { IReporteCentroCostoRepository } from "./domain/repositories/IReporteCen
 import { ICuentaContableRepository } from "./domain/repositories/ICuentaContableRepository";
 import { CqrsService } from "./infrastructure/cqrs/CqrsService";
 import { createReporteClipperRoutes } from "./infrastructure/routes/ReporteClipperRoutes";
+import { createGananciasPerdidasClipperRoutes } from "./infrastructure/routes/GananciasPerdidasClipperRoutes";
 import { IReporteClipperRepository } from "./domain/repositories/IReporteClipperRepository";
 import libroMayorAsientosRoutes from "./infrastructure/routes/libro-mayor-asientos.routes";
 import libroMayorRoutes from "./infrastructure/routes/libro-mayor.routes";
@@ -68,6 +69,7 @@ import { createBalanceGeneralClipperRoutes } from "./infrastructure/routes/Balan
 // Importar controladores para que swagger-jsdoc procese la documentación
 import "./infrastructure/controllers/BalanceComprobacionClipperController";
 import "./infrastructure/controllers/BalanceGeneralClipperController";
+import "./infrastructure/controllers/GananciasPerdidasClipperController";
 
 const reporteGNRoutes = createReporteGNRoutes();
 
@@ -477,6 +479,14 @@ app.use(
   balanceGeneralClipperRoutes
 );
 console.log("✅ Balance General Clipper routes registradas correctamente");
+
+// Ganancias y Pérdidas Clipper Routes
+app.use(
+  "/api/ganancias-perdidas-clipper",
+  QueryOptimizationMiddleware.validateQueryParams,
+  createGananciasPerdidasClipperRoutes()
+);
+console.log("✅ Ganancias y Pérdidas Clipper routes registradas correctamente");
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================
 
