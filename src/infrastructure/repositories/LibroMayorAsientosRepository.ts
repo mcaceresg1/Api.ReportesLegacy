@@ -62,26 +62,19 @@ export class LibroMayorAsientosRepository {
       const query = `
         SELECT 
           A.asiento,
-          '' as contabilidad,
-          '' as tipo_asiento,
           A.contabilidad,
           A.tipo_asiento,
           A.fecha,
           A.origen,
           A.documento_global,
-          0 as monto_total_local,
-          0 as monto_total_dolar,
-          0 as mayor_auditoria,
           A.monto_total_local,
-          0 as monto_total_dolar,
-          0 as mayor_auditoria,
           A.monto_total_dolar,
           A.mayor_auditoria,
           A.exportado,
           A.tipo_ingreso_mayor
         FROM ${conjunto}.asiento_mayorizado A (NOLOCK)
         ${whereClause}
-        ORDER BY 1 ASC
+        ORDER BY A.asiento ASC
       `;
 
       const [results] = await exactusSequelize.query(query, { replacements });
@@ -144,26 +137,19 @@ export class LibroMayorAsientosRepository {
       const dataQuery = `
         SELECT 
           A.asiento,
-          '' as contabilidad,
-          '' as tipo_asiento,
           A.contabilidad,
           A.tipo_asiento,
           A.fecha,
           A.origen,
           A.documento_global,
-          0 as monto_total_local,
-          0 as monto_total_dolar,
-          0 as mayor_auditoria,
           A.monto_total_local,
-          0 as monto_total_dolar,
-          0 as mayor_auditoria,
           A.monto_total_dolar,
           A.mayor_auditoria,
           A.exportado,
           A.tipo_ingreso_mayor
         FROM ${conjunto}.asiento_mayorizado A (NOLOCK)
         ${whereClause}
-        ORDER BY 1 ASC
+        ORDER BY A.asiento ASC
         OFFSET ${offset} ROWS
         FETCH NEXT ${limit} ROWS ONLY
       `;
@@ -235,26 +221,19 @@ export class LibroMayorAsientosRepository {
       const query = `
         SELECT ${limitClause}
           A.asiento,
-          '' as contabilidad,
-          '' as tipo_asiento,
           A.contabilidad,
           A.tipo_asiento,
           A.fecha,
           A.origen,
           A.documento_global,
-          0 as monto_total_local,
-          0 as monto_total_dolar,
-          0 as mayor_auditoria,
           A.monto_total_local,
-          0 as monto_total_dolar,
-          0 as mayor_auditoria,
           A.monto_total_dolar,
           A.mayor_auditoria,
           A.exportado,
           A.tipo_ingreso_mayor
         FROM ${conjunto}.asiento_mayorizado A (NOLOCK)
         ${whereClause}
-        ORDER BY 1 ASC
+        ORDER BY A.asiento ASC
       `;
 
       const [results] = await exactusSequelize.query(query, { replacements });
