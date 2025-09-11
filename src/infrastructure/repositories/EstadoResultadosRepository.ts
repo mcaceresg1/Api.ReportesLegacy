@@ -8,13 +8,21 @@ export class EstadoResultadosRepository {
   async getTiposEgp(conjunto: string, usuario: string): Promise<TipoEgp[]> {
     try {
       const query = `
-        SELECT cast ( UPPER(T.TIPO) + '' + T.DESCRIPCION + '' + T.QRP as varchar(1000) ) as tipo_descripcion_qrp
-        FROM ${conjunto}.TIPO_EGP T (NOLOCK)
-        INNER JOIN ${conjunto}.USUARIO_EGP U (NOLOCK) ON T.TIPO=U.TIPO AND U.USUARIO = :usuario      
-        WHERE 1 = 1 AND T.TIPO NOT IN ( '10.1', '10.2' )   	
-        AND ( T.TIPO NOT LIKE '320%' OR T.TIPO = '320' )    	
-        AND ( T.TIPO NOT LIKE '324%' OR T.TIPO = '324'  ) 
-        ORDER BY 1
+        SELECT DISTINCT 
+          E.TIPO,
+          CASE 
+            WHEN E.TIPO = 'GYPPQ' THEN 'GYPPQ - Estado de Resultados Comparativo'
+            WHEN E.TIPO = 'GYPPA' THEN 'GYPPA - Estado de Resultados Anual'
+            WHEN E.TIPO = 'GYPPB' THEN 'GYPPB - Estado de Resultados Básico'
+            ELSE E.TIPO + ' - Tipo de Reporte'
+          END as DESCRIPCION,
+          'Q' as QRP
+        FROM JBRTRA.EGP E (NOLOCK)
+        WHERE E.USUARIO = :usuario
+          AND E.TIPO NOT IN ('10.1', '10.2')
+          AND (E.TIPO NOT LIKE '320%' OR E.TIPO = '320')
+          AND (E.TIPO NOT LIKE '324%' OR E.TIPO = '324')
+        ORDER BY E.TIPO
       `;
 
       const [results] = await exactusSequelize.query(query, { 
@@ -22,9 +30,9 @@ export class EstadoResultadosRepository {
       });
       
       return (results as any[]).map((row: any) => ({
-        tipo: row.tipo_descripcion_qrp?.split(' ')[0] || '',
-        descripcion: row.tipo_descripcion_qrp?.split(' ').slice(1, -1).join(' ') || '',
-        qrp: row.tipo_descripcion_qrp?.split(' ').pop() || ''
+        tipo: row.TIPO || '',
+        descripcion: row.DESCRIPCION || '',
+        qrp: row.QRP || ''
       }));
     } catch (error) {
       console.error('Error al obtener tipos EGP:', error);

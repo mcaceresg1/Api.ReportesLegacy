@@ -260,8 +260,40 @@ curl -X POST "http://localhost:3000/api/estado-resultados/EMP001/exportar-pdf" \
 1. **Autenticación**: Reemplaza `YOUR_TOKEN_HERE` con un token válido
 2. **Puerto**: Ajusta el puerto si tu aplicación corre en otro puerto
 3. **Fechas**: Usa fechas válidas en formato YYYY-MM-DD
-4. **Conjunto**: Verifica que el conjunto "001" exista en tu base de datos
+4. **Conjunto**: Verifica que el conjunto "EMP001" exista en tu base de datos
 5. **Usuario**: Asegúrate de que el usuario tenga permisos para ejecutar reportes
+6. **Datos de Prueba**: Si obtienes arrays vacíos, ejecuta el script de generación de datos
+
+## Configuración de Datos de Prueba
+
+### Opción 1: Ejecutar Script SQL Directamente
+```sql
+-- Ejecuta el archivo setup-estado-resultados-data.sql en tu base de datos
+-- Este script genera los datos necesarios para el Estado de Resultados
+```
+
+### Opción 2: Usar el Script de Node.js
+```bash
+# Instalar dependencias si no están instaladas
+npm install
+
+# Ejecutar el script de generación de datos
+node test-data-generation.js
+```
+
+### Opción 3: Verificar Datos Existentes
+```sql
+-- Verificar si existen datos en la tabla EGP
+SELECT COUNT(*) as TotalRegistros, TIPO, USUARIO
+FROM JBRTRA.EGP 
+WHERE USUARIO = 'ADMPQUES'
+GROUP BY TIPO, USUARIO;
+
+-- Ver algunos registros de ejemplo
+SELECT TOP 10 * FROM JBRTRA.EGP 
+WHERE USUARIO = 'ADMPQUES' 
+ORDER BY PERIODO, TIPO, FAMILIA;
+```
 
 ## Pruebas Recomendadas
 
