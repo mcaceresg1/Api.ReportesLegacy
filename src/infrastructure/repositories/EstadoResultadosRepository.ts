@@ -83,6 +83,8 @@ export class EstadoResultadosRepository {
     pageSize: number = 20
   ): Promise<EstadoResultados[]> {
     const inicioEjecucion = Date.now();
+    const maxRetries = 2;
+    let lastError: Error | null = null;
     
     try {
       // Validar parámetros requeridos
@@ -96,97 +98,89 @@ export class EstadoResultadosRepository {
 
       console.log(`🔍 [REPOSITORY] Iniciando getEstadoResultados para conjunto: ${conjunto}, usuario: ${usuario}, fecha: ${fechaActual}`);
 
-      // Consulta optimizada que usa directamente los datos de EGP
+      // Consulta optimizada con mejor performance
       const finalQuery = `
+        WITH PosicionesConDatos AS (
+          SELECT 
+            P.FAMILIA,
+            P.NOMBRE AS CONCEPTO,
+            P.POSICION,
+            P.ORDEN,
+            P.FAMILIA_PADRE,
+            PA.NOMBRE AS PADRE_NOMBRE,
+            ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_periodo_actual THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ACTUAL,
+            ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_periodo_anterior THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ANTERIOR
+          FROM JBRTRA.POSICION_EGP P (NOLOCK)
+          LEFT JOIN JBRTRA.POSICION_EGP PA (NOLOCK) ON PA.TIPO = P.TIPO AND PA.FAMILIA = P.FAMILIA_PADRE
+          LEFT JOIN JBRTRA.EGP EG (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA AND EG.USUARIO = :usuario
+          WHERE P.TIPO = :tipo_egp
+          GROUP BY P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN, P.FAMILIA_PADRE, PA.NOMBRE
+        )
         SELECT 
-          PA.NOMBRE AS PADRE_NOMBRE,
-          P.FAMILIA,
-          P.NOMBRE AS CONCEPTO,
-          P.POSICION,
+          PADRE_NOMBRE,
+          FAMILIA,
+          CONCEPTO,
+          POSICION,
           'Nuevo Sol' AS MONEDA,
-          P.ORDEN,     
-          ISNULL(SUM(CASE EG.PERIODO 
-                        WHEN :fecha_periodo_actual THEN EG.SALDO 
-                        ELSE 0 
-                     END), 0) AS SALDO_ACTUAL, 
-          ISNULL(SUM(CASE EG.PERIODO 
-                        WHEN :fecha_periodo_anterior THEN EG.SALDO 
-                        ELSE 0 
-                     END), 0) AS SALDO_ANTERIOR,
-          -- Cálculo de variación
-          ISNULL(SUM(CASE EG.PERIODO 
-                        WHEN :fecha_periodo_actual THEN EG.SALDO 
-                        ELSE 0 
-                     END), 0) - 
-          ISNULL(SUM(CASE EG.PERIODO 
-                        WHEN :fecha_periodo_anterior THEN EG.SALDO 
-                        ELSE 0 
-                     END), 0) AS VARIACION,
-          P.FAMILIA_PADRE
-        FROM JBRTRA.POSICION_EGP P (NOLOCK)   
-        LEFT JOIN JBRTRA.POSICION_EGP PA (NOLOCK)   
-            ON PA.TIPO = P.TIPO 
-            AND PA.FAMILIA = P.FAMILIA_PADRE 
-        LEFT OUTER JOIN JBRTRA.EGP EG (NOLOCK)   
-            ON EG.TIPO = P.TIPO 
-            AND EG.FAMILIA = P.FAMILIA 
-            AND EG.USUARIO = :usuario          
-        WHERE P.TIPO = :tipo_egp
-        GROUP BY PA.NOMBRE, P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN, P.FAMILIA_PADRE   
-
-        UNION ALL   
-
-        -- Elementos sin padre (nivel superior)
+          ORDEN,
+          SALDO_ACTUAL,
+          SALDO_ANTERIOR,
+          (SALDO_ACTUAL - SALDO_ANTERIOR) AS VARIACION,
+          FAMILIA_PADRE
+        FROM PosicionesConDatos
+        WHERE FAMILIA_PADRE IS NOT NULL
+        
+        UNION ALL
+        
         SELECT 
           NULL AS PADRE_NOMBRE,
-          P.FAMILIA,
-          P.NOMBRE AS CONCEPTO,
-          P.POSICION, 
+          FAMILIA,
+          CONCEPTO,
+          POSICION,
           'Nuevo Sol' AS MONEDA,
-          P.ORDEN, 
-          ISNULL(SUM(CASE EG.PERIODO 
-                        WHEN :fecha_periodo_actual THEN EG.SALDO 
-                        ELSE 0 
-                     END), 0) AS SALDO_ACTUAL,
-          ISNULL(SUM(CASE EG.PERIODO 
-                        WHEN :fecha_periodo_anterior THEN EG.SALDO 
-                        ELSE 0 
-                     END), 0) AS SALDO_ANTERIOR,
-          -- Cálculo de variación
-          ISNULL(SUM(CASE EG.PERIODO 
-                        WHEN :fecha_periodo_actual THEN EG.SALDO 
-                        ELSE 0 
-                     END), 0) - 
-          ISNULL(SUM(CASE EG.PERIODO 
-                        WHEN :fecha_periodo_anterior THEN EG.SALDO 
-                        ELSE 0 
-                     END), 0) AS VARIACION,
-          P.FAMILIA_PADRE
-        FROM JBRTRA.POSICION_EGP P (NOLOCK)   
-        LEFT OUTER JOIN JBRTRA.EGP EG (NOLOCK)   
-            ON EG.TIPO = P.TIPO 
-            AND EG.FAMILIA = P.FAMILIA 
-            AND EG.USUARIO = :usuario        
-        WHERE P.FAMILIA_PADRE IS NULL 
-            AND P.AGRUPA = 'N'   
-            AND P.TIPO = :tipo_egp                         
-        GROUP BY P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN, P.FAMILIA_PADRE
+          ORDEN,
+          SALDO_ACTUAL,
+          SALDO_ANTERIOR,
+          (SALDO_ACTUAL - SALDO_ANTERIOR) AS VARIACION,
+          FAMILIA_PADRE
+        FROM PosicionesConDatos
+        WHERE FAMILIA_PADRE IS NULL
         ORDER BY POSICION, ORDEN
         OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY
       `;
 
       console.log(`🔍 [REPOSITORY] Ejecutando consulta optimizada...`);
       
-      const [results] = await exactusSequelize.query(finalQuery, {
-        replacements: {
-          fecha_periodo_actual: fechaActual,
-          fecha_periodo_anterior: fechaAnterior,
-          usuario: usuario,
-          tipo_egp: tipoEgp,
-          offset: (page - 1) * pageSize,
-          pageSize: pageSize
+      // Intentar ejecutar la consulta con retry en caso de timeout
+      let results: any = null;
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          const [queryResults] = await exactusSequelize.query(finalQuery, {
+            replacements: {
+              fecha_periodo_actual: fechaActual,
+              fecha_periodo_anterior: fechaAnterior,
+              usuario: usuario,
+              tipo_egp: tipoEgp,
+              offset: (page - 1) * pageSize,
+              pageSize: pageSize
+            }
+          });
+          results = queryResults;
+          break; // Si la consulta es exitosa, salir del loop
+        } catch (error: any) {
+          lastError = error;
+          if (error.message && error.message.includes('Timeout') && attempt < maxRetries) {
+            console.warn(`⚠️ [REPOSITORY] Timeout en intento ${attempt}, reintentando...`);
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Esperar antes del retry
+            continue;
+          }
+          throw error; // Si no es timeout o es el último intento, lanzar el error
         }
-      });
+      }
+
+      if (!results) {
+        throw lastError || new Error('No se pudieron obtener resultados después de varios intentos');
+      }
 
       console.log(`🔍 [REPOSITORY] Consulta completada. Resultados: ${results ? (results as any[]).length : 0}`);
 
@@ -196,22 +190,40 @@ export class EstadoResultadosRepository {
       // Mapear resultados con jerarquía
       const datosReporte = this.mapearResultadosConJerarquia(results ? (results as any[]) : [], fechaActual, fechaAnterior, tipoEgp);
       
-      // Calcular totales
-      const totales = await this.calcularTotales(conjunto, usuario, tipoEgp, fechaActual, fechaAnterior);
+      // Calcular totales (solo si no hay timeout)
+      let totales: EstadoResultados[] = [];
+      try {
+        totales = await this.calcularTotales(conjunto, usuario, tipoEgp, fechaActual, fechaAnterior);
+      } catch (error) {
+        console.warn('⚠️ [REPOSITORY] Error al calcular totales, continuando sin ellos:', error);
+      }
       
       // Combinar todos los elementos
       const resultadoFinal = [...estructuraReporte, ...datosReporte, ...totales];
       
       // Registrar ejecución
       const tiempoEjecucion = Date.now() - inicioEjecucion;
-      await this.registrarEjecucion(conjunto, usuario, fechaActual, fechaAnterior, resultadoFinal.length, tiempoEjecucion);
+      try {
+        await this.registrarEjecucion(conjunto, usuario, fechaActual, fechaAnterior, resultadoFinal.length, tiempoEjecucion);
+      } catch (error) {
+        console.warn('⚠️ [REPOSITORY] Error al registrar ejecución:', error);
+      }
       
       console.log(`✅ [REPOSITORY] getEstadoResultados completado en ${tiempoEjecucion}ms`);
       
       return resultadoFinal;
 
     } catch (error) {
-      console.error('Error al obtener estado de resultados:', error);
+      const tiempoEjecucion = Date.now() - inicioEjecucion;
+      console.error(`❌ [REPOSITORY] Error después de ${tiempoEjecucion}ms:`, error);
+      
+      // Registrar error de ejecución
+      try {
+        await this.registrarErrorEjecucion(conjunto, usuario, filtros.fecha!, error as Error, tiempoEjecucion);
+      } catch (logError) {
+        console.error('Error al registrar error de ejecución:', logError);
+      }
+      
       throw new Error(`Error al obtener estado de resultados: ${error}`);
     }
   }
@@ -400,6 +412,32 @@ export class EstadoResultadosRepository {
     }
   }
 
+  private async registrarErrorEjecucion(
+    conjunto: string,
+    usuario: string,
+    fechaActual: string,
+    error: Error,
+    tiempoEjecucion: number
+  ): Promise<void> {
+    try {
+      const query = `
+        INSERT INTO JBRTRA.LOG_REPORTES (usuario, reporte, fecha_ejecucion, periodo_actual, periodo_anterior, registros_procesados, tiempo_ejecucion, estado, mensaje_error)
+        VALUES (:usuario, 'ESTADO_RESULTADOS', GETDATE(), :fechaActual, NULL, 0, :tiempoEjecucion, 'ERROR', :mensajeError)
+      `;
+
+      await exactusSequelize.query(query, {
+        replacements: { 
+          usuario, 
+          fechaActual, 
+          tiempoEjecucion, 
+          mensajeError: error.message.substring(0, 500) // Limitar mensaje a 500 caracteres
+        }
+      });
+    } catch (logError) {
+      console.error('Error al registrar error de ejecución:', logError);
+    }
+  }
+
   private mapearResultadosConJerarquia(results: any[], fechaActual: string, fechaAnterior: string, tipoEgp: string): EstadoResultados[] {
     return results.map((row: any) => {
       const variacion = row.VARIACION || 0;
@@ -430,5 +468,96 @@ export class EstadoResultadosRepository {
         variacion_formateada: this.formatearVariacion(variacion)
       };
     });
+  }
+
+  /**
+   * Método para obtener sugerencias de índices que mejorarían el performance
+   * Este método puede ser llamado para analizar y sugerir índices
+   */
+  async getSugerenciasIndices(): Promise<string[]> {
+    return [
+      '-- Índices sugeridos para mejorar performance del Estado de Resultados:',
+      '-- 1. Índice compuesto en JBRTRA.POSICION_EGP:',
+      'CREATE INDEX IX_POSICION_EGP_TIPO_FAMILIA ON JBRTRA.POSICION_EGP (TIPO, FAMILIA) INCLUDE (NOMBRE, POSICION, ORDEN, FAMILIA_PADRE);',
+      '',
+      '-- 2. Índice compuesto en JBRTRA.EGP:',
+      'CREATE INDEX IX_EGP_USUARIO_TIPO_FAMILIA_PERIODO ON JBRTRA.EGP (USUARIO, TIPO, FAMILIA, PERIODO) INCLUDE (SALDO);',
+      '',
+      '-- 3. Índice en JBRTRA.POSICION_EGP para búsquedas por FAMILIA_PADRE:',
+      'CREATE INDEX IX_POSICION_EGP_FAMILIA_PADRE ON JBRTRA.POSICION_EGP (FAMILIA_PADRE) WHERE FAMILIA_PADRE IS NOT NULL;',
+      '',
+      '-- 4. Índice en JBRTRA.POSICION_EGP para elementos sin padre:',
+      'CREATE INDEX IX_POSICION_EGP_SIN_PADRE ON JBRTRA.POSICION_EGP (TIPO, AGRUPA) WHERE FAMILIA_PADRE IS NULL AND AGRUPA = \'N\';'
+    ];
+  }
+
+  /**
+   * Método alternativo con consulta más simple para casos de timeout
+   */
+  async getEstadoResultadosSimple(
+    conjunto: string, 
+    usuario: string, 
+    filtros: FiltrosEstadoResultados,
+    page: number = 1,
+    pageSize: number = 20
+  ): Promise<EstadoResultados[]> {
+    const inicioEjecucion = Date.now();
+    
+    try {
+      if (!conjunto || !usuario || !filtros.fecha) {
+        throw new Error('Conjunto, usuario y fecha son requeridos');
+      }
+
+      const fechaActual = filtros.fecha!;
+      const fechaAnterior = this.calcularFechaAnterior(fechaActual);
+      const tipoEgp = filtros.tipoEgp || 'GYPPQ';
+
+      console.log(`🔍 [REPOSITORY] Ejecutando consulta simple para evitar timeout...`);
+
+      // Consulta más simple sin UNION ALL
+      const simpleQuery = `
+        SELECT TOP :pageSize
+          PA.NOMBRE AS PADRE_NOMBRE,
+          P.FAMILIA,
+          P.NOMBRE AS CONCEPTO,
+          P.POSICION,
+          'Nuevo Sol' AS MONEDA,
+          P.ORDEN,
+          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_periodo_actual THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ACTUAL,
+          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_periodo_anterior THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ANTERIOR,
+          (ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_periodo_actual THEN EG.SALDO ELSE 0 END), 0) - 
+           ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_periodo_anterior THEN EG.SALDO ELSE 0 END), 0)) AS VARIACION,
+          P.FAMILIA_PADRE
+        FROM JBRTRA.POSICION_EGP P (NOLOCK)
+        LEFT JOIN JBRTRA.POSICION_EGP PA (NOLOCK) ON PA.TIPO = P.TIPO AND PA.FAMILIA = P.FAMILIA_PADRE
+        LEFT JOIN JBRTRA.EGP EG (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA AND EG.USUARIO = :usuario
+        WHERE P.TIPO = :tipo_egp
+        GROUP BY PA.NOMBRE, P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN, P.FAMILIA_PADRE
+        ORDER BY P.POSICION, P.ORDEN
+      `;
+
+      const [results] = await exactusSequelize.query(simpleQuery, {
+        replacements: {
+          fecha_periodo_actual: fechaActual,
+          fecha_periodo_anterior: fechaAnterior,
+          usuario: usuario,
+          tipo_egp: tipoEgp,
+          pageSize: pageSize
+        }
+      });
+
+      const datosReporte = this.mapearResultadosConJerarquia(results ? (results as any[]) : [], fechaActual, fechaAnterior, tipoEgp);
+      const estructuraReporte = this.generarEstructuraReporte(conjunto, fechaActual, fechaAnterior);
+      const resultadoFinal = [...estructuraReporte, ...datosReporte];
+
+      const tiempoEjecucion = Date.now() - inicioEjecucion;
+      console.log(`✅ [REPOSITORY] Consulta simple completada en ${tiempoEjecucion}ms`);
+
+      return resultadoFinal;
+
+    } catch (error) {
+      console.error('Error en consulta simple:', error);
+      throw new Error(`Error al obtener estado de resultados (consulta simple): ${error}`);
+    }
   }
 }
