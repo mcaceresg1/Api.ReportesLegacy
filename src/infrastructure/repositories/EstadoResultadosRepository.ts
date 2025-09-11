@@ -96,7 +96,20 @@ export class EstadoResultadosRepository {
           throw new Error('Conjunto, usuario y fecha son requeridos');
         }
 
-        const fechaActual = filtros.fecha!;
+        // Validar y formatear fecha
+        let fechaActual: string = filtros.fecha!;
+        
+        // Si es un objeto Date, convertir a string
+        if (fechaActual && typeof fechaActual === 'object' && 'toISOString' in fechaActual) {
+          fechaActual = (fechaActual as any).toISOString().split('T')[0];
+        } else if (typeof fechaActual === 'string') {
+          // Asegurar que la fecha esté en formato YYYY-MM-DD
+          const dateObj = new Date(fechaActual);
+          if (!isNaN(dateObj.getTime())) {
+            fechaActual = (fechaActual as any).toISOString().split('T')[0];
+          }
+        }
+        
         const fechaAnterior = this.calcularFechaAnterior(fechaActual);
         const tipoEgp = filtros.tipoEgp || 'GYPPQ';
 
