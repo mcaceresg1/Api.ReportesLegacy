@@ -20,6 +20,7 @@ try {
     queryBus.handlers ? Array.from(queryBus.handlers.keys()) : "No disponible"
   );
 
+<<<<<<< HEAD
   // Verificar si el handler específico está registrado
   const handler = queryBus.handlers
     ? queryBus.handlers.get("ObtenerLibroDiarioAsientosQuery")
@@ -32,3 +33,5 @@ try {
   console.error("❌ Error:", error.message);
   console.error("Stack:", error.stack);
 }
+=======
+>>>>>>> 0d660557d3fd01512361c99a92502d4617c682e4
