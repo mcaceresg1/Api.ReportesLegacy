@@ -94,28 +94,26 @@ export class EstadoResultadosRepository {
       const fechaAnterior = this.calcularFechaAnterior(fechaActual);
       const tipoEgp = filtros.tipoEgp || 'GYPPQ';
 
-      console.log(`🔍 [REPOSITORY] Iniciando consulta ULTRA-SIMPLE para evitar timeout...`);
+      console.log(`🔍 [REPOSITORY] Iniciando consulta con diagnóstico...`);
+      console.log(`🔍 [REPOSITORY] Parámetros: usuario=${usuario}, fechaActual=${fechaActual}, fechaAnterior=${fechaAnterior}, tipoEgp=${tipoEgp}`);
 
-      // Consulta optimizada con saldos reales pero sin UNION ALL
+      // Primero, diagnosticar qué datos existen
+      await this.diagnosticarDatosEGP(usuario, fechaActual, fechaAnterior, tipoEgp);
+
+      // Consulta simplificada que retorna solo los 3 campos requeridos
       const ultraSimpleQuery = `
         SELECT TOP 50
-          P.FAMILIA,
-          P.NOMBRE AS CONCEPTO,
-          P.POSICION,
-          P.ORDEN,
-          P.FAMILIA_PADRE,
-          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_periodo_actual THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ACTUAL,
-          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_periodo_anterior THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ANTERIOR,
-          (ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_periodo_actual THEN EG.SALDO ELSE 0 END), 0) - 
-           ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_periodo_anterior THEN EG.SALDO ELSE 0 END), 0)) AS VARIACION
+          P.NOMBRE AS nombre_cuenta,
+          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_periodo_anterior THEN EG.SALDO ELSE 0 END), 0) AS saldo_inicial,
+          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_periodo_actual THEN EG.SALDO ELSE 0 END), 0) AS saldo_final
         FROM JBRTRA.POSICION_EGP P (NOLOCK)   
         LEFT JOIN JBRTRA.EGP EG (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA AND EG.USUARIO = :usuario
         WHERE P.TIPO = :tipo_egp
-        GROUP BY P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN, P.FAMILIA_PADRE
-        ORDER BY P.POSICION, P.ORDEN
+        GROUP BY P.NOMBRE
+        ORDER BY P.ORDEN
       `;
 
-      console.log(`🔍 [REPOSITORY] Ejecutando consulta ultra-simple...`);
+      console.log(`🔍 [REPOSITORY] Ejecutando consulta principal...`);
       
       const [results] = await exactusSequelize.query(ultraSimpleQuery, {
         replacements: {
@@ -126,17 +124,15 @@ export class EstadoResultadosRepository {
         }
       });
 
-      console.log(`🔍 [REPOSITORY] Consulta ultra-simple completada. Resultados: ${results ? (results as any[]).length : 0}`);
+      console.log(`🔍 [REPOSITORY] Consulta completada. Resultados: ${results ? (results as any[]).length : 0}`);
 
-      // Mapear resultados básicos
-      const datosReporte = this.mapearResultadosBasicos(results ? (results as any[]) : [], fechaActual, fechaAnterior, tipoEgp);
+      // Mapear resultados simplificados - solo 3 campos
+      const datosReporte = this.mapearResultadosSimplificados(results ? (results as any[]) : []);
       
-      // Solo agregar encabezado básico
-      const estructuraReporte = this.generarEstructuraReporte(conjunto, fechaActual, fechaAnterior);
-      const resultadoFinal = [...estructuraReporte, ...datosReporte];
+      const resultadoFinal = datosReporte;
       
       const tiempoEjecucion = Date.now() - inicioEjecucion;
-      console.log(`✅ [REPOSITORY] getEstadoResultados ultra-simple completado en ${tiempoEjecucion}ms`);
+      console.log(`✅ [REPOSITORY] getEstadoResultados completado en ${tiempoEjecucion}ms`);
       
       return resultadoFinal;
 
@@ -394,69 +390,88 @@ export class EstadoResultadosRepository {
     }));
   }
 
-  private getDatosMock(fecha: string): EstadoResultados[] {
-    // Datos mock para testing cuando la consulta falla
-    const fechaAnterior = this.calcularFechaAnterior(fecha);
-    
+  private mapearResultadosSimplificados(results: any[]): any[] {
+    // Mapeo ultra-simplificado - solo 3 campos requeridos
+    return results.map((row: any) => ({
+      nombre_cuenta: row.nombre_cuenta || '',
+      saldo_inicial: row.saldo_inicial || 0,
+      saldo_final: row.saldo_final || 0
+    }));
+  }
+
+  private async diagnosticarDatosEGP(usuario: string, fechaActual: string, fechaAnterior: string, tipoEgp: string): Promise<void> {
+    try {
+      console.log(`🔍 [DIAGNÓSTICO] Verificando datos en tabla EGP...`);
+      
+      // 1. Verificar si existen datos para el usuario
+      const queryUsuario = `SELECT COUNT(*) as total FROM JBRTRA.EGP WHERE USUARIO = :usuario`;
+      const [resultUsuario] = await exactusSequelize.query(queryUsuario, {
+        replacements: { usuario }
+      });
+      console.log(`🔍 [DIAGNÓSTICO] Total registros para usuario ${usuario}: ${(resultUsuario as any[])[0]?.total || 0}`);
+
+      // 2. Verificar fechas disponibles
+      const queryFechas = `SELECT DISTINCT PERIODO FROM JBRTRA.EGP WHERE USUARIO = :usuario ORDER BY PERIODO DESC`;
+      const [resultFechas] = await exactusSequelize.query(queryFechas, {
+        replacements: { usuario }
+      });
+      console.log(`🔍 [DIAGNÓSTICO] Fechas disponibles:`, (resultFechas as any[]).map(r => r.PERIODO));
+
+      // 3. Verificar datos para las fechas específicas
+      const queryFechasEspecificas = `
+        SELECT PERIODO, COUNT(*) as total, SUM(SALDO) as suma_saldos
+        FROM JBRTRA.EGP 
+        WHERE USUARIO = :usuario AND PERIODO IN (:fecha_actual, :fecha_anterior)
+        GROUP BY PERIODO
+      `;
+      const [resultFechasEspecificas] = await exactusSequelize.query(queryFechasEspecificas, {
+        replacements: { 
+          usuario, 
+          fecha_actual: fechaActual, 
+          fecha_anterior: fechaAnterior 
+        }
+      });
+      console.log(`🔍 [DIAGNÓSTICO] Datos por fecha:`, (resultFechasEspecificas as any[]));
+
+      // 4. Verificar datos para el tipo EGP
+      const queryTipoEgp = `
+        SELECT PERIODO, FAMILIA, SALDO
+        FROM JBRTRA.EGP 
+        WHERE USUARIO = :usuario AND TIPO = :tipo_egp AND PERIODO IN (:fecha_actual, :fecha_anterior)
+        ORDER BY PERIODO, FAMILIA
+      `;
+      const [resultTipoEgp] = await exactusSequelize.query(queryTipoEgp, {
+        replacements: { 
+          usuario, 
+          tipo_egp: tipoEgp,
+          fecha_actual: fechaActual, 
+          fecha_anterior: fechaAnterior 
+        }
+      });
+      console.log(`🔍 [DIAGNÓSTICO] Datos EGP para tipo ${tipoEgp}:`, (resultTipoEgp as any[]).slice(0, 5));
+
+    } catch (error) {
+      console.error(`❌ [DIAGNÓSTICO] Error en diagnóstico:`, error);
+    }
+  }
+
+  private getDatosMock(fecha: string): any[] {
+    // Datos mock simplificados - solo 3 campos requeridos
     return [
       {
-        cuenta_contable: '',
-        fecha_balance: new Date(fecha),
-        saldo_inicial: 0,
         nombre_cuenta: 'EMPRESA XYZ S.A. - MODO MOCK',
-        fecha_inicio: new Date(fechaAnterior),
-        fecha_cuenta: new Date(fecha),
-        saldo_final: 0,
-        tiporeporte: 'ESTADO DE RESULTADOS COMPARATIVO - MOCK',
-        posicion: '0',
-        caracter: 'E',
-        moneda: 'Nuevo Sol',
-        padre: '',
-        orden: 0,
-        mes: 'Período: ' + fechaAnterior + ' vs ' + fecha + ' (MOCK)',
-        esEncabezado: true
+        saldo_inicial: 0,
+        saldo_final: 0
       },
       {
-        cuenta_contable: 'MOCK001',
-        fecha_balance: new Date(fecha),
-        saldo_inicial: 100000,
         nombre_cuenta: 'INGRESOS POR VENTAS - MOCK',
-        fecha_inicio: new Date(fechaAnterior),
-        fecha_cuenta: new Date(fecha),
-        saldo_final: 120000,
-        tiporeporte: 'GYPPQ',
-        posicion: '1',
-        caracter: 'D',
-        moneda: 'Nuevo Sol',
-        padre: '',
-        orden: 1,
-        mes: '',
-        variacion: 20000,
-        nivel: 1,
-        esTotal: false,
-        esSubtotal: true,
-        esEncabezado: false
+        saldo_inicial: 100000,
+        saldo_final: 120000
       },
       {
-        cuenta_contable: 'MOCK002',
-        fecha_balance: new Date(fecha),
-        saldo_inicial: 80000,
         nombre_cuenta: 'COSTO DE VENTAS - MOCK',
-        fecha_inicio: new Date(fechaAnterior),
-        fecha_cuenta: new Date(fecha),
-        saldo_final: 90000,
-        tiporeporte: 'GYPPQ',
-        posicion: '2',
-        caracter: 'D',
-        moneda: 'Nuevo Sol',
-        padre: '',
-        orden: 2,
-        mes: '',
-        variacion: 10000,
-        nivel: 1,
-        esTotal: false,
-        esSubtotal: true,
-        esEncabezado: false
+        saldo_inicial: 80000,
+        saldo_final: 90000
       }
     ];
   }
