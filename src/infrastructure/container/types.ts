@@ -122,6 +122,10 @@ export const TYPES = {
   ExportarDiarioContabilidadExcelHandler:
     "ExportarDiarioContabilidadExcelHandler",
 
+  // Libro Diario Asientos Handlers
+  ObtenerLibroDiarioAsientosHandler: "ObtenerLibroDiarioAsientosHandler",
+  GenerarLibroDiarioAsientosHandler: "GenerarLibroDiarioAsientosHandler",
+
   // CQRS Service
   CqrsService: "CqrsService",
 
