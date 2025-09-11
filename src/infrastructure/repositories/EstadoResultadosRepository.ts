@@ -98,54 +98,25 @@ export class EstadoResultadosRepository {
 
       console.log(`🔍 [REPOSITORY] Iniciando getEstadoResultados para conjunto: ${conjunto}, usuario: ${usuario}, fecha: ${fechaActual}`);
 
-      // Consulta optimizada con mejor performance
+      // Consulta ultra-optimizada sin CTE ni UNION ALL
       const finalQuery = `
-        WITH PosicionesConDatos AS (
-          SELECT 
-            P.FAMILIA,
-            P.NOMBRE AS CONCEPTO,
-            P.POSICION,
-            P.ORDEN,
-            P.FAMILIA_PADRE,
-            PA.NOMBRE AS PADRE_NOMBRE,
-            ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_periodo_actual THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ACTUAL,
-            ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_periodo_anterior THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ANTERIOR
-          FROM JBRTRA.POSICION_EGP P (NOLOCK)
-          LEFT JOIN JBRTRA.POSICION_EGP PA (NOLOCK) ON PA.TIPO = P.TIPO AND PA.FAMILIA = P.FAMILIA_PADRE
-          LEFT JOIN JBRTRA.EGP EG (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA AND EG.USUARIO = :usuario
-          WHERE P.TIPO = :tipo_egp
-          GROUP BY P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN, P.FAMILIA_PADRE, PA.NOMBRE
-        )
         SELECT 
-          PADRE_NOMBRE,
-          FAMILIA,
-          CONCEPTO,
-          POSICION,
-          'Nuevo Sol' AS MONEDA,
-          ORDEN,
-          SALDO_ACTUAL,
-          SALDO_ANTERIOR,
-          (SALDO_ACTUAL - SALDO_ANTERIOR) AS VARIACION,
-          FAMILIA_PADRE
-        FROM PosicionesConDatos
-        WHERE FAMILIA_PADRE IS NOT NULL
-        
-        UNION ALL
-        
-        SELECT 
-          NULL AS PADRE_NOMBRE,
-          FAMILIA,
-          CONCEPTO,
-          POSICION,
-          'Nuevo Sol' AS MONEDA,
-          ORDEN,
-          SALDO_ACTUAL,
-          SALDO_ANTERIOR,
-          (SALDO_ACTUAL - SALDO_ANTERIOR) AS VARIACION,
-          FAMILIA_PADRE
-        FROM PosicionesConDatos
-        WHERE FAMILIA_PADRE IS NULL
-        ORDER BY POSICION, ORDEN
+          PA.NOMBRE AS PADRE_NOMBRE,
+          P.FAMILIA,
+          P.NOMBRE AS CONCEPTO,
+          P.POSICION,
+          P.ORDEN,
+          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_periodo_actual THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ACTUAL,
+          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_periodo_anterior THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ANTERIOR,
+          (ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_periodo_actual THEN EG.SALDO ELSE 0 END), 0) - 
+           ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_periodo_anterior THEN EG.SALDO ELSE 0 END), 0)) AS VARIACION,
+          P.FAMILIA_PADRE
+        FROM JBRTRA.POSICION_EGP P (NOLOCK)
+        LEFT JOIN JBRTRA.POSICION_EGP PA (NOLOCK) ON PA.TIPO = P.TIPO AND PA.FAMILIA = P.FAMILIA_PADRE
+        LEFT JOIN JBRTRA.EGP EG (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA AND EG.USUARIO = :usuario
+        WHERE P.TIPO = :tipo_egp
+        GROUP BY PA.NOMBRE, P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN, P.FAMILIA_PADRE
+        ORDER BY P.POSICION, P.ORDEN
         OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY
       `;
 
@@ -184,22 +155,12 @@ export class EstadoResultadosRepository {
 
       console.log(`🔍 [REPOSITORY] Consulta completada. Resultados: ${results ? (results as any[]).length : 0}`);
 
-      // Generar estructura del reporte
-      const estructuraReporte = this.generarEstructuraReporte(conjunto, fechaActual, fechaAnterior);
-      
-      // Mapear resultados con jerarquía
+      // Mapear resultados directamente sin operaciones adicionales
       const datosReporte = this.mapearResultadosConJerarquia(results ? (results as any[]) : [], fechaActual, fechaAnterior, tipoEgp);
       
-      // Calcular totales (solo si no hay timeout)
-      let totales: EstadoResultados[] = [];
-      try {
-        totales = await this.calcularTotales(conjunto, usuario, tipoEgp, fechaActual, fechaAnterior);
-      } catch (error) {
-        console.warn('⚠️ [REPOSITORY] Error al calcular totales, continuando sin ellos:', error);
-      }
-      
-      // Combinar todos los elementos
-      const resultadoFinal = [...estructuraReporte, ...datosReporte, ...totales];
+      // Solo agregar encabezado si es necesario
+      const estructuraReporte = this.generarEstructuraReporte(conjunto, fechaActual, fechaAnterior);
+      const resultadoFinal = [...estructuraReporte, ...datosReporte];
       
       // Registrar ejecución
       const tiempoEjecucion = Date.now() - inicioEjecucion;
@@ -254,22 +215,9 @@ export class EstadoResultadosRepository {
     return fechaObj.toISOString().split('T')[0] || '';
   }
 
-  private formatearNumero(valor: number): string {
-    if (valor === 0) return '0.00';
-    if (valor < 0) return `(${Math.abs(valor).toFixed(2)})`;
-    return valor.toFixed(2);
-  }
+  // Métodos de formateo eliminados - se manejarán en el frontend
 
-  private formatearVariacion(valor: number): string {
-    if (valor === 0) return '0.00';
-    if (valor > 0) return `+${valor.toFixed(2)}`;
-    return `(${Math.abs(valor).toFixed(2)})`;
-  }
-
-  private calcularNivelJerarquia(familiaPadre: string): number {
-    if (!familiaPadre) return 1;
-    return 2;
-  }
+  // Método eliminado - cálculo inline para mejor performance
 
   private generarEstructuraReporte(conjunto: string, fechaActual: string, fechaAnterior: string): EstadoResultados[] {
     return [
@@ -331,10 +279,7 @@ export class EstadoResultadosRepository {
           orden: 999,
           mes: '',
           variacion: variacion,
-          esTotal: true,
-          saldo_inicial_formateado: this.formatearNumero(row.saldo_anterior),
-          saldo_final_formateado: this.formatearNumero(row.saldo_actual),
-          variacion_formateada: this.formatearVariacion(variacion)
+          esTotal: true
         });
       }
 
@@ -439,35 +384,28 @@ export class EstadoResultadosRepository {
   }
 
   private mapearResultadosConJerarquia(results: any[], fechaActual: string, fechaAnterior: string, tipoEgp: string): EstadoResultados[] {
-    return results.map((row: any) => {
-      const variacion = row.VARIACION || 0;
-      const nivel = this.calcularNivelJerarquia(row.FAMILIA_PADRE);
-      
-      return {
-        cuenta_contable: row.FAMILIA || '',
-        fecha_balance: new Date(fechaActual),
-        saldo_inicial: row.SALDO_ANTERIOR || 0,
-        nombre_cuenta: row.CONCEPTO || '',
-        fecha_inicio: new Date(fechaAnterior),
-        fecha_cuenta: new Date(fechaActual),
-        saldo_final: row.SALDO_ACTUAL || 0,
-        tiporeporte: tipoEgp,
-        posicion: row.POSICION || '0',
-        caracter: 'D',
-        moneda: row.MONEDA || 'Nuevo Sol',
-        padre: row.PADRE_NOMBRE || '',
-        orden: row.ORDEN || 0,
-        mes: '',
-        variacion: variacion,
-        nivel: nivel,
-        esTotal: false,
-        esSubtotal: nivel === 1,
-        esEncabezado: false,
-        saldo_inicial_formateado: this.formatearNumero(row.SALDO_ANTERIOR || 0),
-        saldo_final_formateado: this.formatearNumero(row.SALDO_ACTUAL || 0),
-        variacion_formateada: this.formatearVariacion(variacion)
-      };
-    });
+    // Optimización: mapeo directo sin cálculos innecesarios
+    return results.map((row: any) => ({
+      cuenta_contable: row.FAMILIA || '',
+      fecha_balance: new Date(fechaActual),
+      saldo_inicial: row.SALDO_ANTERIOR || 0,
+      nombre_cuenta: row.CONCEPTO || '',
+      fecha_inicio: new Date(fechaAnterior),
+      fecha_cuenta: new Date(fechaActual),
+      saldo_final: row.SALDO_ACTUAL || 0,
+      tiporeporte: tipoEgp,
+      posicion: row.POSICION || '0',
+      caracter: 'D',
+      moneda: 'Nuevo Sol',
+      padre: row.PADRE_NOMBRE || '',
+      orden: row.ORDEN || 0,
+      mes: '',
+      variacion: row.VARIACION || 0,
+      nivel: row.FAMILIA_PADRE ? 2 : 1,
+      esTotal: false,
+      esSubtotal: !row.FAMILIA_PADRE,
+      esEncabezado: false
+    }));
   }
 
   /**
