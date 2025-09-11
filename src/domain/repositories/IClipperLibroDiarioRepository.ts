@@ -1,19 +1,5 @@
 import { ClipperLibroDiario } from "../entities/LibroDiarioClipper";
-
-export interface PaginationOptions {
-  page: number;
-  limit: number;
-}
-
-export interface PaginatedResult<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-  hasNext: boolean;
-  hasPrev: boolean;
-}
+import { ComprobanteResumen } from "../entities/ComprobanteResumen";
 
 export interface IClipperLibroDiarioRepository {
   /**
@@ -21,46 +7,26 @@ export interface IClipperLibroDiarioRepository {
    * @param libro Código del libro contable (ej. "D", "C", etc.)
    * @param mes Mes contable en formato "MM" (ej. "12")
    * @param bdClipperGPC Nombre de la base de datos de origen (por ejemplo: "CLIPPER_GPC_EMP009")
-   * @param pagination Opciones de paginación
    */
   getComprobantes(
     libro: string,
     mes: string,
-    bdClipperGPC: string,
-    pagination?: PaginationOptions
-  ): Promise<PaginatedResult<ClipperLibroDiario>>;
+    bdClipperGPC: string
+  ): Promise<ClipperLibroDiario[]>;
 
   /**
-   * Obtiene los comprobantes agrupados por número de comprobante.
+   * Obtiene comprobantes filtrados por clase específica.
    * @param libro Código del libro contable
    * @param mes Mes contable
    * @param bdClipperGPC Nombre de la base de datos de origen
-   * @param pagination Opciones de paginación
+   * @param clase Clase de comprobante a filtrar (ej. "COMPRAS", "VENTAS")
    */
-  getComprobantesAgrupados(
+  getComprobantesPorClase(
     libro: string,
     mes: string,
     bdClipperGPC: string,
-    pagination?: PaginationOptions
-  ): Promise<
-    PaginatedResult<{
-      numeroComprobante: string;
-      clase: string;
-      totalDebe: number;
-      totalHaber: number;
-      detalles: ClipperLibroDiario[];
-    }>
-  >;
-
-  /**
-   * Obtiene un comprobante específico por su número.
-   * @param numeroComprobante Número del comprobante (ej. "D00/00001")
-   * @param bdClipperGPC Nombre de la base de datos de origen
-   */
-  getComprobantePorNumero(
-    numeroComprobante: string,
-    bdClipperGPC: string
-  ): Promise<ClipperLibroDiario | null>;
+    clase: string
+  ): Promise<ClipperLibroDiario[]>;
 
   /**
    * Obtiene el total de comprobantes para un libro y mes determinado.
@@ -73,4 +39,16 @@ export interface IClipperLibroDiarioRepository {
     mes: string,
     bdClipperGPC: string
   ): Promise<number>;
+
+  /**
+   * Obtiene la lista de comprobantes únicos para resumen.
+   * @param libro Código del libro contable
+   * @param mes Mes contable
+   * @param bdClipperGPC Nombre de la base de datos de origen
+   */
+  getComprobantesResumen(
+    libro: string,
+    mes: string,
+    bdClipperGPC: string
+  ): Promise<ComprobanteResumen[]>;
 }

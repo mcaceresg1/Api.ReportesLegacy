@@ -1,11 +1,8 @@
 import { injectable } from "inversify";
 import { QueryTypes } from "sequelize";
 import { ClipperLibroDiario } from "../../domain/entities/LibroDiarioClipper";
-import {
-  IClipperLibroDiarioRepository,
-  PaginationOptions,
-  PaginatedResult,
-} from "../../domain/repositories/IClipperLibroDiarioRepository";
+import { ComprobanteResumen } from "../../domain/entities/ComprobanteResumen";
+import { IClipperLibroDiarioRepository } from "../../domain/repositories/IClipperLibroDiarioRepository";
 import { clipperGPCDatabases } from "../database/config/clipper-gpc-database";
 
 @injectable()
@@ -15,43 +12,25 @@ export class ReporteClipperLibroDiarioRepository
   async getComprobantes(
     libro: string,
     mes: string,
-    bdClipperGPC: string,
-    pagination?: PaginationOptions
-  ): Promise<PaginatedResult<ClipperLibroDiario>> {
+    bdClipperGPC: string
+  ): Promise<ClipperLibroDiario[]> {
     try {
+      console.log(
+        `🔍 [REPOSITORY] Iniciando getComprobantes: ${libro}/${mes}/${bdClipperGPC}`
+      );
+
       const sequelize = clipperGPCDatabases[bdClipperGPC];
       if (!sequelize)
         throw new Error(`Base de datos "${bdClipperGPC}" no configurada.`);
 
-      // Configurar paginación por defecto
-      const page = pagination?.page || 1;
-      const limit = pagination?.limit || 50;
-      const offset = (page - 1) * limit;
-
-      // Query optimizada para obtener el total de registros
-      // Usa índices en MES y TIPOVOU para mejor rendimiento
-      const countQuery = `
-        SELECT COUNT(*) as total
-        FROM VOUCHER T0 WITH (NOLOCK)
-        INNER JOIN LIBROS T1 WITH (NOLOCK) ON T0.TIPOVOU = T1.CODIGO
-        WHERE T0.MES = :mes
-          AND T1.LIBRO = :libro
-      `;
-
-      const countResult = await sequelize.query<{ total: number }>(countQuery, {
-        replacements: { mes, libro },
-        type: QueryTypes.SELECT,
-      });
-
-      const total = countResult[0]?.total || 0;
-
-      // Query principal optimizada con paginación
+      // Query principal optimizada sin paginación
       // Usa NOLOCK para mejor rendimiento en consultas de solo lectura
       // Optimizada para usar índices en MES, TIPOVOU y NUMERO
       const query = `
         SELECT
           T1.NOMBRE AS CLASE,
-          T1.LIBRO + '' + T1.CODIGO + '/' + T0.NUMERO AS NUMERO_COMPROBANTE,
+          T1.LIBRO + '' + T1.CODIGO + '/' + T0.NUMERO AS NUMERO_COMPROBANTE,	
+          T2.CUENTA,
           T2.NOMBRE,
           CASE
             WHEN T0.TDOC <> '' THEN T0.TDOC + '/' + T0.NDOC
@@ -66,141 +45,72 @@ export class ReporteClipperLibroDiarioRepository
         WHERE T0.MES = :mes
           AND T1.LIBRO = :libro
         ORDER BY T0.NUMERO DESC
-        OFFSET :offset ROWS
-        FETCH NEXT :limit ROWS ONLY
       `;
 
-      const result = await sequelize.query<ClipperLibroDiario>(query, {
-        replacements: { mes, libro, offset, limit },
+      console.log("🔍 [REPOSITORY] Ejecutando query SQL...");
+      const result = await sequelize.query<any>(query, {
+        replacements: { mes, libro },
         type: QueryTypes.SELECT,
       });
 
-      const totalPages = Math.ceil(total / limit);
+      console.log("🔍 [REPOSITORY] Resultado de la query:", {
+        type: typeof result,
+        isArray: Array.isArray(result),
+        length: Array.isArray(result) ? result.length : "N/A",
+        firstItem:
+          Array.isArray(result) && result.length > 0 ? result[0] : "N/A",
+      });
 
-      return {
-        data: result,
-        total,
-        page,
-        limit,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-      };
+      // Mapear los nombres de columnas de SQL Server a la entidad TypeScript
+      const mappedResult: ClipperLibroDiario[] = result.map((row: any) => ({
+        clase: row.CLASE,
+        numeroComprobante: row.NUMERO_COMPROBANTE,
+        cuenta: row.CUENTA,
+        nombre: row.NOMBRE,
+        documento: row.DOCUMENTO,
+        glosa: row.GLOSA,
+        montod: parseFloat(row.montoDebe) || 0,
+        montoh: parseFloat(row.montoHaber) || 0,
+      }));
+
+      console.log("🔍 [REPOSITORY] Resultado mapeado:", {
+        type: typeof mappedResult,
+        isArray: Array.isArray(mappedResult),
+        length: Array.isArray(mappedResult) ? mappedResult.length : "N/A",
+        hasPagination:
+          mappedResult &&
+          typeof mappedResult === "object" &&
+          "pagination" in mappedResult,
+      });
+
+      return mappedResult;
     } catch (error) {
       console.error("❌ Error al obtener comprobantes por libro y mes:", error);
-      return {
-        data: [],
-        total: 0,
-        page: 1,
-        limit: 50,
-        totalPages: 0,
-        hasNext: false,
-        hasPrev: false,
-      };
+      return [];
     }
   }
 
-  async getComprobantesAgrupados(
+  async getComprobantesPorClase(
     libro: string,
     mes: string,
     bdClipperGPC: string,
-    pagination?: PaginationOptions
-  ): Promise<
-    PaginatedResult<{
-      numeroComprobante: string;
-      clase: string;
-      totalDebe: number;
-      totalHaber: number;
-      detalles: ClipperLibroDiario[];
-    }>
-  > {
-    // Para comprobantes agrupados, obtenemos todos los datos primero
-    // y luego aplicamos paginación en memoria
-    const page = pagination?.page || 1;
-    const limit = pagination?.limit || 50;
-
-    const result = await this.getComprobantes(libro, mes, bdClipperGPC, {
-      page: 1,
-      limit: 10000,
-    });
-
-    const agrupado = result.data.reduce(
-      (acc, item) => {
-        const key = item.numeroComprobante;
-        if (!acc[key]) {
-          acc[key] = {
-            numeroComprobante: key,
-            clase: item.clase,
-            totalDebe: 0,
-            totalHaber: 0,
-            detalles: [],
-          };
-        }
-
-        acc[key].totalDebe += item.montod ?? 0;
-        acc[key].totalHaber += item.montoh ?? 0;
-        acc[key].detalles.push(item);
-        return acc;
-      },
-      {} as Record<
-        string,
-        {
-          numeroComprobante: string;
-          clase: string;
-          totalDebe: number;
-          totalHaber: number;
-          detalles: ClipperLibroDiario[];
-        }
-      >
-    );
-
-    const agrupadosArray = Object.values(agrupado);
-    const total = agrupadosArray.length;
-    const offset = (page - 1) * limit;
-    const paginatedData = agrupadosArray.slice(offset, offset + limit);
-    const totalPages = Math.ceil(total / limit);
-
-    return {
-      data: paginatedData,
-      total,
-      page,
-      limit,
-      totalPages,
-      hasNext: page < totalPages,
-      hasPrev: page > 1,
-    };
-  }
-
-  async getComprobantePorNumero(
-    numeroComprobante: string,
-    bdClipperGPC: string
-  ): Promise<ClipperLibroDiario | null> {
+    clase: string
+  ): Promise<ClipperLibroDiario[]> {
     try {
+      console.log(
+        `🔍 [REPOSITORY] Iniciando getComprobantesPorClase: ${libro}/${mes}/${bdClipperGPC}/${clase}`
+      );
+
       const sequelize = clipperGPCDatabases[bdClipperGPC];
       if (!sequelize)
         throw new Error(`Base de datos "${bdClipperGPC}" no configurada.`);
 
-      const partes = numeroComprobante.split("/");
-      if (partes.length !== 2) {
-        throw new Error(
-          `Formato inválido de número de comprobante: "${numeroComprobante}". Debe ser 'D00/00001'.`
-        );
-      }
-
-      const libroCodigo = partes[0] ?? "";
-      const numero = partes[1];
-      if (!libroCodigo) {
-        throw new Error("Código de libro inválido o vacío.");
-      }
-
-      const codigo = libroCodigo.substring(1);
-      const libro = libroCodigo[0];
-
-      // Query optimizada para obtener detalle de comprobante
+      // Query optimizada para filtrar por clase específica
       const query = `
         SELECT
           T1.NOMBRE AS CLASE,
-          T1.LIBRO + '' + T1.CODIGO + '/' + T0.NUMERO AS NUMERO_COMPROBANTE,
+          T1.LIBRO + '' + T1.CODIGO + '/' + T0.NUMERO AS NUMERO_COMPROBANTE,	
+          T2.CUENTA,
           T2.NOMBRE,
           CASE
             WHEN T0.TDOC <> '' THEN T0.TDOC + '/' + T0.NDOC
@@ -212,21 +122,50 @@ export class ReporteClipperLibroDiarioRepository
         FROM VOUCHER T0 WITH (NOLOCK)
         INNER JOIN LIBROS T1 WITH (NOLOCK) ON T0.TIPOVOU = T1.CODIGO
         INNER JOIN PCGR T2 WITH (NOLOCK) ON T0.CUENTA = T2.CUENTA
-        WHERE T1.LIBRO = :libro
-          AND T1.CODIGO = :codigo
-          AND T0.NUMERO = :numero
+        WHERE T0.MES = :mes
+          AND T1.LIBRO = :libro
+          AND T1.NOMBRE = :clase
         ORDER BY T0.NUMERO DESC
       `;
 
-      const result = await sequelize.query<ClipperLibroDiario>(query, {
-        replacements: { libro, codigo, numero },
+      console.log("🔍 [REPOSITORY] Ejecutando query SQL por clase...");
+      const result = await sequelize.query<any>(query, {
+        replacements: { mes, libro, clase },
         type: QueryTypes.SELECT,
       });
 
-      return result[0] ?? null;
+      console.log("🔍 [REPOSITORY] Resultado de la query por clase:", {
+        type: typeof result,
+        isArray: Array.isArray(result),
+        length: Array.isArray(result) ? result.length : "N/A",
+        clase: clase,
+        firstItem:
+          Array.isArray(result) && result.length > 0 ? result[0] : "N/A",
+      });
+
+      // Mapear los nombres de columnas de SQL Server a la entidad TypeScript
+      const mappedResult: ClipperLibroDiario[] = result.map((row: any) => ({
+        clase: row.CLASE,
+        numeroComprobante: row.NUMERO_COMPROBANTE,
+        cuenta: row.CUENTA,
+        nombre: row.NOMBRE,
+        documento: row.DOCUMENTO,
+        glosa: row.GLOSA,
+        montod: parseFloat(row.montoDebe) || 0,
+        montoh: parseFloat(row.montoHaber) || 0,
+      }));
+
+      console.log("🔍 [REPOSITORY] Resultado mapeado por clase:", {
+        type: typeof mappedResult,
+        isArray: Array.isArray(mappedResult),
+        length: Array.isArray(mappedResult) ? mappedResult.length : "N/A",
+        clase: clase,
+      });
+
+      return mappedResult;
     } catch (error) {
-      console.error("❌ Error al obtener detalle de comprobante:", error);
-      return null;
+      console.error("❌ Error al obtener comprobantes por clase:", error);
+      return [];
     }
   }
 
@@ -258,6 +197,58 @@ export class ReporteClipperLibroDiarioRepository
     } catch (error) {
       console.error("❌ Error al obtener total de comprobantes:", error);
       return 0;
+    }
+  }
+
+  async getComprobantesResumen(
+    libro: string,
+    mes: string,
+    bdClipperGPC: string
+  ): Promise<ComprobanteResumen[]> {
+    try {
+      console.log(
+        `🔍 [REPOSITORY] Iniciando getComprobantesResumen: ${libro}/${mes}/${bdClipperGPC}`
+      );
+
+      const sequelize = clipperGPCDatabases[bdClipperGPC];
+      if (!sequelize)
+        throw new Error(`Base de datos "${bdClipperGPC}" no configurada.`);
+
+      // Query optimizada para obtener comprobantes únicos agrupados
+      const query = `
+        SELECT DISTINCT
+          T1.LIBRO + '' + T1.CODIGO + '/' + T0.NUMERO AS COMPROBANTE,
+          T1.NOMBRE AS CLASE
+        FROM VOUCHER T0 WITH (NOLOCK)
+        INNER JOIN LIBROS T1 WITH (NOLOCK) ON T0.TIPOVOU = T1.CODIGO
+        WHERE T0.MES = :mes
+          AND T1.LIBRO = :libro
+        ORDER BY T1.LIBRO + '' + T1.CODIGO + '/' + T0.NUMERO
+      `;
+
+      console.log("🔍 [REPOSITORY] Ejecutando query SQL para resumen...");
+      const result = await sequelize.query<any>(query, {
+        replacements: { mes, libro },
+        type: QueryTypes.SELECT,
+      });
+
+      console.log(
+        `✅ [REPOSITORY] Query ejecutada. Registros encontrados: ${result.length}`
+      );
+
+      // Mapear resultados a la entidad ComprobanteResumen
+      const comprobantesResumen: ComprobanteResumen[] = result.map((row) => ({
+        comprobante: `COMPROBANTE>>${row.COMPROBANTE}`,
+        clase: `CLASE: ${row.CLASE}`,
+      }));
+
+      console.log(
+        `✅ [REPOSITORY] getComprobantesResumen completado. Total: ${comprobantesResumen.length}`
+      );
+      return comprobantesResumen;
+    } catch (error) {
+      console.error("❌ Error en getComprobantesResumen:", error);
+      throw error;
     }
   }
 }

@@ -1,0 +1,133 @@
+### Test Endpoint Libro Diario Clipper por Clase
+### Verificar que el endpoint funcione correctamente
+
+### Variables de entorno (ajustar según tu configuración)
+@baseUrl = http://192.168.90.73:3000
+@bdClipperGPC = bdclipperGPC
+@libro = D
+@mes = 08
+
+### 1. Test básico - Comprobantes de COMPRAS
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/{{libro}}/{{mes}}/comprobantes/clase/COMPRAS
+Accept: application/json
+
+### 2. Test básico - Comprobantes de VENTAS
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/{{libro}}/{{mes}}/comprobantes/clase/VENTAS
+Accept: application/json
+
+### 3. Test básico - Comprobantes de GASTOS
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/{{libro}}/{{mes}}/comprobantes/clase/GASTOS
+Accept: application/json
+
+### 4. Test básico - Comprobantes de INGRESOS
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/{{libro}}/{{mes}}/comprobantes/clase/INGRESOS
+Accept: application/json
+
+### 5. Test básico - Comprobantes de PAGOS
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/{{libro}}/{{mes}}/comprobantes/clase/PAGOS
+Accept: application/json
+
+### 6. Test básico - Comprobantes de COBROS
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/{{libro}}/{{mes}}/comprobantes/clase/COBROS
+Accept: application/json
+
+### 7. Test básico - Comprobantes de AJUSTES
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/{{libro}}/{{mes}}/comprobantes/clase/AJUSTES
+Accept: application/json
+
+### 8. Test básico - Comprobantes de CIERRE
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/{{libro}}/{{mes}}/comprobantes/clase/CIERRE
+Accept: application/json
+
+### 9. Test básico - Comprobantes de APERTURA
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/{{libro}}/{{mes}}/comprobantes/clase/APERTURA
+Accept: application/json
+
+### 10. Test básico - Comprobantes de DIFERENCIAS
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/{{libro}}/{{mes}}/comprobantes/clase/DIFERENCIAS
+Accept: application/json
+
+### 11. Test de error - Clase vacía (debe retornar 400)
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/{{libro}}/{{mes}}/comprobantes/clase/
+Accept: application/json
+
+### 12. Test de error - Parámetros faltantes (debe retornar 400)
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/{{libro}}//comprobantes/clase/COMPRAS
+Accept: application/json
+
+### 13. Test de error - Base de datos inexistente (debe retornar 500)
+GET {{baseUrl}}/api/libro-diario-clipper/BD_INEXISTENTE/{{libro}}/{{mes}}/comprobantes/clase/COMPRAS
+Accept: application/json
+
+### 14. Test de error - Mes inválido (debe retornar array vacío)
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/{{libro}}/99/comprobantes/clase/COMPRAS
+Accept: application/json
+
+### 15. Test de error - Libro inválido (debe retornar array vacío)
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/X/{{mes}}/comprobantes/clase/COMPRAS
+Accept: application/json
+
+### 16. Test de error - Clase inexistente (debe retornar array vacío)
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/{{libro}}/{{mes}}/comprobantes/clase/CLASE_INEXISTENTE
+Accept: application/json
+
+### 17. Comparación - Endpoint general vs por clase
+# Primero obtener todos los comprobantes
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/{{libro}}/{{mes}}/comprobantes
+Accept: application/json
+
+# Luego obtener solo COMPRAS
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/{{libro}}/{{mes}}/comprobantes/clase/COMPRAS
+Accept: application/json
+
+### 18. Test de rendimiento - Múltiples clases en paralelo
+# Ejecutar estos requests simultáneamente para probar rendimiento
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/{{libro}}/{{mes}}/comprobantes/clase/COMPRAS
+Accept: application/json
+
+###
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/{{libro}}/{{mes}}/comprobantes/clase/VENTAS
+Accept: application/json
+
+###
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/{{libro}}/{{mes}}/comprobantes/clase/GASTOS
+Accept: application/json
+
+### 19. Test con diferentes meses
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/{{libro}}/09/comprobantes/clase/COMPRAS
+Accept: application/json
+
+###
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/{{libro}}/10/comprobantes/clase/VENTAS
+Accept: application/json
+
+###
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/{{libro}}/11/comprobantes/clase/GASTOS
+Accept: application/json
+
+###
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/{{libro}}/12/comprobantes/clase/INGRESOS
+Accept: application/json
+
+### 20. Test de validación de respuesta
+# Verificar que la respuesta tenga la estructura correcta
+GET {{baseUrl}}/api/libro-diario-clipper/{{bdClipperGPC}}/{{libro}}/{{mes}}/comprobantes/clase/COMPRAS
+Accept: application/json
+
+# La respuesta debe tener:
+# {
+#   "success": true,
+#   "message": "Comprobantes de clase \"COMPRAS\" obtenidos exitosamente",
+#   "data": [
+#     {
+#       "clase": "COMPRAS",
+#       "numeroComprobante": "D06/00066",
+#       "cuenta": "40111101",
+#       "nombre": "I.G.V.",
+#       "documento": "TK/40614",
+#       "glosa": "GASTOS VARIOS",
+#       "montod": 0,
+#       "montoh": 79.48
+#     }
+#   ]
+# }

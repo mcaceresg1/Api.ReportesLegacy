@@ -190,6 +190,11 @@ const swaggerOptions = {
               description: "Número del comprobante",
               example: "D06/00066",
             },
+            cuenta: {
+              type: "string",
+              description: "Código de la cuenta contable",
+              example: "40111101",
+            },
             nombre: {
               type: "string",
               description: "Nombre del concepto",
@@ -221,6 +226,7 @@ const swaggerOptions = {
           required: [
             "clase",
             "numeroComprobante",
+            "cuenta",
             "nombre",
             "documento",
             "glosa",

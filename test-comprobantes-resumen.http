@@ -1,0 +1,22 @@
+### Test Comprobantes Resumen - Libro Diario Clipper
+### Endpoint: GET /api/libro-diario-clipper/{bdClipperGPC}/{libro}/{mes}/comprobantes-resumen
+
+### 1. Obtener comprobantes de resumen para Agosto 2024
+GET http://192.168.90.73:3000/api/libro-diario-clipper/bdclipperGPC/D/08/comprobantes-resumen
+Accept: application/json
+
+### 2. Obtener comprobantes de resumen para Septiembre 2024
+GET http://192.168.90.73:3000/api/libro-diario-clipper/bdclipperGPC/D/09/comprobantes-resumen
+Accept: application/json
+
+### 3. Obtener comprobantes de resumen para Diciembre 2024
+GET http://192.168.90.73:3000/api/libro-diario-clipper/bdclipperGPC/D/12/comprobantes-resumen
+Accept: application/json
+
+### 4. Test con parámetros inválidos (debería retornar 400)
+GET http://192.168.90.73:3000/api/libro-diario-clipper//D/08/comprobantes-resumen
+Accept: application/json
+
+### 5. Test con base de datos inexistente (debería retornar error)
+GET http://192.168.90.73:3000/api/libro-diario-clipper/inexistente/D/08/comprobantes-resumen
+Accept: application/json

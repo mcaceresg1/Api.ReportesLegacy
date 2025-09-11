@@ -1,0 +1,82 @@
+### Test Swagger - Libro Diario Clipper por Clase
+### Endpoint: GET /api/libro-diario-clipper/{bdClipperGPC}/{libro}/{mes}/comprobantes/clase/{clase}
+
+### 1. Obtener comprobantes de COMPRAS para agosto 2024
+GET http://192.168.90.73:3000/api/libro-diario-clipper/bdclipperGPC/D/08/comprobantes/clase/COMPRAS
+Content-Type: application/json
+
+### 2. Obtener comprobantes de VENTAS para agosto 2024
+GET http://192.168.90.73:3000/api/libro-diario-clipper/bdclipperGPC/D/08/comprobantes/clase/VENTAS
+Content-Type: application/json
+
+### 3. Obtener comprobantes de GASTOS para agosto 2024
+GET http://192.168.90.73:3000/api/libro-diario-clipper/bdclipperGPC/D/08/comprobantes/clase/GASTOS
+Content-Type: application/json
+
+### 4. Obtener comprobantes de INGRESOS para agosto 2024
+GET http://192.168.90.73:3000/api/libro-diario-clipper/bdclipperGPC/D/08/comprobantes/clase/INGRESOS
+Content-Type: application/json
+
+### 5. Obtener comprobantes de PAGOS para agosto 2024
+GET http://192.168.90.73:3000/api/libro-diario-clipper/bdclipperGPC/D/08/comprobantes/clase/PAGOS
+Content-Type: application/json
+
+### 6. Obtener comprobantes de COBROS para agosto 2024
+GET http://192.168.90.73:3000/api/libro-diario-clipper/bdclipperGPC/D/08/comprobantes/clase/COBROS
+Content-Type: application/json
+
+### 7. Obtener comprobantes de AJUSTES para agosto 2024
+GET http://192.168.90.73:3000/api/libro-diario-clipper/bdclipperGPC/D/08/comprobantes/clase/AJUSTES
+Content-Type: application/json
+
+### 8. Obtener comprobantes de CIERRE para agosto 2024
+GET http://192.168.90.73:3000/api/libro-diario-clipper/bdclipperGPC/D/08/comprobantes/clase/CIERRE
+Content-Type: application/json
+
+### 9. Obtener comprobantes de APERTURA para agosto 2024
+GET http://192.168.90.73:3000/api/libro-diario-clipper/bdclipperGPC/D/08/comprobantes/clase/APERTURA
+Content-Type: application/json
+
+### 10. Obtener comprobantes de DIFERENCIAS para agosto 2024
+GET http://192.168.90.73:3000/api/libro-diario-clipper/bdclipperGPC/D/08/comprobantes/clase/DIFERENCIAS
+Content-Type: application/json
+
+### 11. Test con clase inexistente (debe retornar array vacío)
+GET http://192.168.90.73:3000/api/libro-diario-clipper/bdclipperGPC/D/08/comprobantes/clase/CLASE_INEXISTENTE
+Content-Type: application/json
+
+### 12. Test con parámetros inválidos (debe retornar error 400)
+GET http://192.168.90.73:3000/api/libro-diario-clipper/bdclipperGPC/D/08/comprobantes/clase/
+Content-Type: application/json
+
+### 13. Test con mes inválido (debe retornar array vacío)
+GET http://192.168.90.73:3000/api/libro-diario-clipper/bdclipperGPC/D/99/comprobantes/clase/COMPRAS
+Content-Type: application/json
+
+### 14. Test con libro inválido (debe retornar array vacío)
+GET http://192.168.90.73:3000/api/libro-diario-clipper/bdclipperGPC/X/08/comprobantes/clase/COMPRAS
+Content-Type: application/json
+
+### 15. Test con base de datos inválida (debe retornar error 500)
+GET http://192.168.90.73:3000/api/libro-diario-clipper/BD_INEXISTENTE/D/08/comprobantes/clase/COMPRAS
+Content-Type: application/json
+
+### 16. Comparar con endpoint general (todos los comprobantes)
+GET http://192.168.90.73:3000/api/libro-diario-clipper/bdclipperGPC/D/08/comprobantes
+Content-Type: application/json
+
+### 17. Test con diferentes meses - Septiembre 2024
+GET http://192.168.90.73:3000/api/libro-diario-clipper/bdclipperGPC/D/09/comprobantes/clase/COMPRAS
+Content-Type: application/json
+
+### 18. Test con diferentes meses - Octubre 2024
+GET http://192.168.90.73:3000/api/libro-diario-clipper/bdclipperGPC/D/10/comprobantes/clase/VENTAS
+Content-Type: application/json
+
+### 19. Test con diferentes meses - Noviembre 2024
+GET http://192.168.90.73:3000/api/libro-diario-clipper/bdclipperGPC/D/11/comprobantes/clase/GASTOS
+Content-Type: application/json
+
+### 20. Test con diferentes meses - Diciembre 2024
+GET http://192.168.90.73:3000/api/libro-diario-clipper/bdclipperGPC/D/12/comprobantes/clase/INGRESOS
+Content-Type: application/json

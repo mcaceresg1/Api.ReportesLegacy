@@ -20,9 +20,9 @@ export class ClipperLibroDiarioController {
    * @swagger
    * /api/libro-diario-clipper/{bdClipperGPC}/{libro}/{mes}/comprobantes:
    *   get:
-   *     summary: Listar comprobantes del libro diario (con paginación)
+   *     summary: Listar comprobantes del libro diario
    *     tags: [Clipper - Libro Diario]
-   *     description: "Retorna los comprobantes contables para un libro y mes determinado con paginación para optimizar el rendimiento."
+   *     description: "Retorna todos los comprobantes contables para un libro y mes determinado."
    *     parameters:
    *       - in: path
    *         name: bdClipperGPC
@@ -42,26 +42,9 @@ export class ClipperLibroDiarioController {
    *         schema:
    *           type: string
    *           example: "08"
-   *       - in: query
-   *         name: page
-   *         required: false
-   *         schema:
-   *           type: integer
-   *           minimum: 1
-   *           default: 1
-   *           example: 1
-   *       - in: query
-   *         name: limit
-   *         required: false
-   *         schema:
-   *           type: integer
-   *           minimum: 1
-   *           maximum: 1000
-   *           default: 50
-   *           example: 50
    *     responses:
    *       200:
-   *         description: Lista de comprobantes con información de paginación
+   *         description: Lista de comprobantes
    *         content:
    *           application/json:
    *             schema:
@@ -75,28 +58,11 @@ export class ClipperLibroDiarioController {
    *                   type: array
    *                   items:
    *                     $ref: '#/components/schemas/ClipperLibroDiario'
-   *                 pagination:
-   *                   type: object
-   *                   properties:
-   *                     page:
-   *                       type: integer
-   *                     limit:
-   *                       type: integer
-   *                     total:
-   *                       type: integer
-   *                     totalPages:
-   *                       type: integer
-   *                     hasNext:
-   *                       type: boolean
-   *                     hasPrev:
-   *                       type: boolean
    *       400: { description: Parámetros inválidos }
    *       500: { description: Error interno }
    */
   async listarComprobantes(req: Request, res: Response): Promise<void> {
     const { bdClipperGPC, libro, mes } = req.params;
-    const page = parseInt(req.query["page"] as string) || 1;
-    const limit = parseInt(req.query["limit"] as string) || 50;
 
     if (!bdClipperGPC || !libro || !mes) {
       res.status(400).json({
@@ -107,38 +73,43 @@ export class ClipperLibroDiarioController {
       return;
     }
 
-    // Validar límites de paginación
-    if (limit > 1000) {
-      res.status(400).json({
-        success: false,
-        message: "El límite máximo por página es 1000",
-        data: null,
-      });
-      return;
-    }
-
     try {
-      const pagination = { page, limit };
+      console.log("🔍 [CONTROLLER] Iniciando listarComprobantes...");
       const result = await this.clipperLibroDiarioService.listarComprobantes(
         libro,
         mes,
-        bdClipperGPC,
-        pagination
+        bdClipperGPC
       );
 
-      res.json({
+      console.log("🔍 [CONTROLLER] Resultado del servicio:", {
+        type: typeof result,
+        isArray: Array.isArray(result),
+        length: Array.isArray(result) ? result.length : "N/A",
+        hasPagination:
+          result && typeof result === "object" && "pagination" in result,
+      });
+
+      // Forzar respuesta sin paginación usando write directo
+      const responseData = {
         success: true,
         message: "Comprobantes obtenidos exitosamente",
-        data: result.data,
-        pagination: {
-          page: result.page,
-          limit: result.limit,
-          total: result.total,
-          totalPages: result.totalPages,
-          hasNext: result.hasNext,
-          hasPrev: result.hasPrev,
-        },
+        data: result,
+      };
+
+      console.log("🔍 [CONTROLLER] ResponseData antes de enviar:", {
+        hasPagination: "pagination" in responseData,
+        dataType: typeof responseData.data,
+        dataLength: Array.isArray(responseData.data)
+          ? responseData.data.length
+          : "N/A",
       });
+
+      // Usar res.write + res.end para evitar cualquier middleware que intercepte res.json
+      res.writeHead(200, {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-cache",
+      });
+      res.end(JSON.stringify(responseData));
     } catch (error) {
       console.error("❌ Error en listarComprobantes:", error);
       res.status(500).json({
@@ -152,11 +123,11 @@ export class ClipperLibroDiarioController {
 
   /**
    * @swagger
-   * /api/libro-diario-clipper/{bdClipperGPC}/{libro}/{mes}/comprobantes-agrupados:
+   * /api/libro-diario-clipper/{bdClipperGPC}/{libro}/{mes}/comprobantes/clase/{clase}:
    *   get:
-   *     summary: Listar comprobantes agrupados por número
+   *     summary: Listar comprobantes del libro diario filtrados por clase
    *     tags: [Clipper - Libro Diario]
-   *     description: "Retorna los comprobantes agrupados por número, con totales de debe y haber."
+   *     description: "Retorna los comprobantes contables filtrados por una clase específica."
    *     parameters:
    *       - in: path
    *         name: bdClipperGPC
@@ -176,254 +147,15 @@ export class ClipperLibroDiarioController {
    *         schema:
    *           type: string
    *           example: "08"
-   *     responses:
-   *       200: { description: Lista de comprobantes agrupados }
-   *       400: { description: Parámetros inválidos }
-   *       500: { description: Error interno }
-   */
-  async listarComprobantesAgrupados(
-    req: Request,
-    res: Response
-  ): Promise<void> {
-    const { bdClipperGPC, libro, mes } = req.params;
-    const page = parseInt(req.query["page"] as string) || 1;
-    const limit = parseInt(req.query["limit"] as string) || 50;
-
-    if (!bdClipperGPC || !libro || !mes) {
-      res.status(400).json({
-        success: false,
-        message: "Parámetros bdClipperGPC, libro y mes son requeridos",
-        data: null,
-      });
-      return;
-    }
-
-    // Validar límites de paginación
-    if (limit > 1000) {
-      res.status(400).json({
-        success: false,
-        message: "El límite máximo por página es 1000",
-        data: null,
-      });
-      return;
-    }
-
-    try {
-      const pagination = { page, limit };
-      const result =
-        await this.clipperLibroDiarioService.listarComprobantesAgrupados(
-          libro,
-          mes,
-          bdClipperGPC,
-          pagination
-        );
-
-      res.json({
-        success: true,
-        message: "Comprobantes agrupados obtenidos exitosamente",
-        data: result.data,
-        pagination: {
-          page: result.page,
-          limit: result.limit,
-          total: result.total,
-          totalPages: result.totalPages,
-          hasNext: result.hasNext,
-          hasPrev: result.hasPrev,
-        },
-      });
-    } catch (error) {
-      console.error("❌ Error en listarComprobantesAgrupados:", error);
-      res.status(500).json({
-        success: false,
-        message: "Error interno",
-        error: error instanceof Error ? error.message : "Error desconocido",
-        data: null,
-      });
-    }
-  }
-
-  /**
-   * @swagger
-   * /api/libro-diario-clipper/{bdClipperGPC}/{libro}/{mes}/totales:
-   *   get:
-   *     summary: Obtener totales generales del libro diario
-   *     tags: [Clipper - Libro Diario]
-   *     description: "Retorna el total del debe y haber del libro diario."
-   *     parameters:
    *       - in: path
-   *         name: bdClipperGPC
+   *         name: clase
    *         required: true
    *         schema:
    *           type: string
-   *           example: "bdclipperGPC"
-   *       - in: path
-   *         name: libro
-   *         required: true
-   *         schema:
-   *           type: string
-   *           example: "D"
-   *       - in: path
-   *         name: mes
-   *         required: true
-   *         schema:
-   *           type: string
-   *           example: "08"
-   *     responses:
-   *       200: { description: Totales obtenidos exitosamente }
-   *       400: { description: Parámetros inválidos }
-   *       500: { description: Error interno }
-   */
-  async obtenerTotalesGenerales(req: Request, res: Response): Promise<void> {
-    const { bdClipperGPC, libro, mes } = req.params;
-
-    if (!bdClipperGPC || !libro || !mes) {
-      res.status(400).json({
-        success: false,
-        message: "Parámetros bdClipperGPC, libro y mes son requeridos",
-        data: null,
-      });
-      return;
-    }
-
-    try {
-      const totales =
-        await this.clipperLibroDiarioService.obtenerTotalesGenerales(
-          libro,
-          mes,
-          bdClipperGPC
-        );
-      res.json({
-        success: true,
-        message: "Totales generales obtenidos",
-        data: totales,
-      });
-    } catch (error) {
-      console.error("❌ Error en obtenerTotalesGenerales:", error);
-      res.status(500).json({
-        success: false,
-        message: "Error interno",
-        error: error instanceof Error ? error.message : "Error desconocido",
-        data: null,
-      });
-    }
-  }
-
-  /**
-   * @swagger
-   * /api/libro-diario-clipper/{bdClipperGPC}/comprobante/{numeroComprobante}:
-   *   get:
-   *     summary: Obtener detalle de un comprobante
-   *     tags: [Clipper - Libro Diario]
-   *     description: "Devuelve el detalle de un comprobante contable específico (por ejemplo: 'D00/00001')."
-   *     parameters:
-   *       - in: path
-   *         name: bdClipperGPC
-   *         required: true
-   *         schema:
-   *           type: string
-   *           example: "bdclipperGPC"
-   *       - in: path
-   *         name: numeroComprobante
-   *         required: true
-   *         schema:
-   *           type: string
-   *           example: "D00/00001"
-   *     responses:
-   *       200: { description: Detalle del comprobante obtenido exitosamente }
-   *       400: { description: Parámetro inválido }
-   *       404: { description: Comprobante no encontrado }
-   *       500: { description: Error interno }
-   */
-  async obtenerDetalleComprobante(req: Request, res: Response): Promise<void> {
-    const { bdClipperGPC, numeroComprobante } = req.params;
-
-    if (!bdClipperGPC || !numeroComprobante) {
-      res.status(400).json({
-        success: false,
-        message:
-          "Parámetros bdClipperGPC y número de comprobante son requeridos",
-        data: null,
-      });
-      return;
-    }
-
-    try {
-      const detalle =
-        await this.clipperLibroDiarioService.obtenerDetalleComprobante(
-          numeroComprobante,
-          bdClipperGPC
-        );
-      if (!detalle || detalle.length === 0) {
-        res.status(404).json({
-          success: false,
-          message: "Comprobante no encontrado",
-          data: null,
-        });
-        return;
-      }
-      res.json({
-        success: true,
-        message: "Detalle comprobante obtenido",
-        data: detalle,
-      });
-    } catch (error) {
-      console.error("❌ Error en obtenerDetalleComprobante:", error);
-      res.status(500).json({
-        success: false,
-        message: "Error interno",
-        error: error instanceof Error ? error.message : "Error desconocido",
-        data: null,
-      });
-    }
-  }
-
-  /**
-   * @swagger
-   * /api/libro-diario-clipper/{bdClipperGPC}/{libro}/{mes}/comprobantes-stream:
-   *   get:
-   *     summary: Listar comprobantes del libro diario con streaming
-   *     tags: [Clipper - Libro Diario]
-   *     description: "Retorna los comprobantes contables usando streaming para manejar grandes volúmenes de datos."
-   *     parameters:
-   *       - in: path
-   *         name: bdClipperGPC
-   *         required: true
-   *         schema:
-   *           type: string
-   *           example: "bdclipperGPC"
-   *       - in: path
-   *         name: libro
-   *         required: true
-   *         schema:
-   *           type: string
-   *           example: "D"
-   *       - in: path
-   *         name: mes
-   *         required: true
-   *         schema:
-   *           type: string
-   *           example: "08"
-   *       - in: query
-   *         name: chunkSize
-   *         required: false
-   *         schema:
-   *           type: integer
-   *           minimum: 10
-   *           maximum: 1000
-   *           default: 100
-   *           example: 100
-   *       - in: query
-   *         name: delay
-   *         required: false
-   *         schema:
-   *           type: integer
-   *           minimum: 0
-   *           maximum: 1000
-   *           default: 0
-   *           example: 0
+   *           example: "COMPRAS"
    *     responses:
    *       200:
-   *         description: Stream de comprobantes
+   *         description: Lista de comprobantes filtrados por clase
    *         content:
    *           application/json:
    *             schema:
@@ -440,10 +172,111 @@ export class ClipperLibroDiarioController {
    *       400: { description: Parámetros inválidos }
    *       500: { description: Error interno }
    */
-  async listarComprobantesStream(req: Request, res: Response): Promise<void> {
+  async listarComprobantesPorClase(req: Request, res: Response): Promise<void> {
+    const { bdClipperGPC, libro, mes, clase } = req.params;
+
+    if (!bdClipperGPC || !libro || !mes || !clase) {
+      res.status(400).json({
+        success: false,
+        message: "Parámetros bdClipperGPC, libro, mes y clase son requeridos",
+        data: null,
+      });
+      return;
+    }
+
+    try {
+      console.log("🔍 [CONTROLLER] Iniciando listarComprobantesPorClase...");
+      const result =
+        await this.clipperLibroDiarioService.listarComprobantesPorClase(
+          libro,
+          mes,
+          bdClipperGPC,
+          clase
+        );
+
+      console.log("🔍 [CONTROLLER] Resultado del servicio por clase:", {
+        type: typeof result,
+        isArray: Array.isArray(result),
+        length: Array.isArray(result) ? result.length : "N/A",
+        clase: clase,
+      });
+
+      const responseData = {
+        success: true,
+        message: `Comprobantes de clase "${clase}" obtenidos exitosamente`,
+        data: result,
+      };
+
+      res.writeHead(200, {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-cache",
+      });
+      res.end(JSON.stringify(responseData));
+    } catch (error) {
+      console.error("❌ Error en listarComprobantesPorClase:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error interno",
+        error: error instanceof Error ? error.message : "Error desconocido",
+        data: null,
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/libro-diario-clipper/{bdClipperGPC}/{libro}/{mes}/comprobantes-resumen:
+   *   get:
+   *     summary: Listar comprobantes únicos para resumen
+   *     tags: [Clipper - Libro Diario]
+   *     description: "Retorna la lista de comprobantes únicos agrupados por número y clase para vista de resumen."
+   *     parameters:
+   *       - in: path
+   *         name: bdClipperGPC
+   *         required: true
+   *         schema:
+   *           type: string
+   *           example: "bdclipperGPC"
+   *       - in: path
+   *         name: libro
+   *         required: true
+   *         schema:
+   *           type: string
+   *           example: "D"
+   *       - in: path
+   *         name: mes
+   *         required: true
+   *         schema:
+   *           type: string
+   *           example: "08"
+   *     responses:
+   *       200:
+   *         description: Lista de comprobantes únicos para resumen
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 message:
+   *                   type: string
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     type: object
+   *                     properties:
+   *                       comprobante:
+   *                         type: string
+   *                         example: "COMPROBANTE>>D06/00066"
+   *                       clase:
+   *                         type: string
+   *                         example: "CLASE: COMPRAS"
+   *       400: { description: Parámetros inválidos }
+   *       500: { description: Error interno }
+   */
+  async listarComprobantesResumen(req: Request, res: Response): Promise<void> {
     const { bdClipperGPC, libro, mes } = req.params;
-    const chunkSize = parseInt(req.query["chunkSize"] as string) || 100;
-    const delay = parseInt(req.query["delay"] as string) || 0;
 
     if (!bdClipperGPC || !libro || !mes) {
       res.status(400).json({
@@ -454,64 +287,39 @@ export class ClipperLibroDiarioController {
       return;
     }
 
-    // Validar parámetros de streaming
-    if (chunkSize < 10 || chunkSize > 1000) {
-      res.status(400).json({
-        success: false,
-        message: "El tamaño de chunk debe estar entre 10 y 1000",
-        data: null,
-      });
-      return;
-    }
-
-    if (delay < 0 || delay > 1000) {
-      res.status(400).json({
-        success: false,
-        message: "El delay debe estar entre 0 y 1000ms",
-        data: null,
-      });
-      return;
-    }
-
     try {
       console.log(
-        `🔄 Iniciando streaming de comprobantes: ${libro}/${mes}/${bdClipperGPC}`
+        `🔍 [CONTROLLER] Obteniendo comprobantes de resumen: ${libro}/${mes}/${bdClipperGPC}`
       );
 
-      // Obtener todos los datos (sin paginación para streaming)
-      const result = await this.clipperLibroDiarioService.listarComprobantes(
-        libro,
-        mes,
-        bdClipperGPC,
-        { page: 1, limit: 10000 }
+      const comprobantesResumen =
+        await this.clipperLibroDiarioService.listarComprobantesResumen(
+          libro,
+          mes,
+          bdClipperGPC
+        );
+
+      console.log(
+        `✅ [CONTROLLER] Comprobantes de resumen obtenidos: ${comprobantesResumen.length}`
       );
 
-      // Usar streaming para enviar los datos
-      StreamingService.streamJsonArray(result.data, res, {
-        chunkSize,
-        delay,
-        onProgress: (progress) => {
-          console.log(
-            `📊 Progreso streaming: ${progress.percentage}% (${progress.processed}/${progress.total})`
-          );
-        },
-        onError: (error) => {
-          console.error("❌ Error en streaming:", error);
-        },
-        onComplete: () => {
-          console.log("✅ Streaming completado exitosamente");
-        },
+      res.json({
+        success: true,
+        message: `Comprobantes de resumen obtenidos exitosamente (${comprobantesResumen.length} registros)`,
+        data: comprobantesResumen,
       });
     } catch (error) {
-      console.error("❌ Error en listarComprobantesStream:", error);
-      if (!res.headersSent) {
-        res.status(500).json({
-          success: false,
-          message: "Error interno",
-          error: error instanceof Error ? error.message : "Error desconocido",
-          data: null,
-        });
-      }
+      console.error(
+        "❌ [CONTROLLER] Error al obtener comprobantes de resumen:",
+        error
+      );
+
+      res.status(500).json({
+        success: false,
+        message: "Error interno",
+        error: error instanceof Error ? error.message : "Unknown error",
+        data: null,
+      });
     }
   }
 }
