@@ -32,7 +32,7 @@ export interface IReporteGNRepository {
   getPrestamos(
     conjunto: string,
     filtros: FiltrosReportePrestamos
-  ) : Promise<RespuestaReportePrestamos | undefined>
+  ): Promise<RespuestaReportePrestamos | undefined>
 
   getRolDeVacaciones(
     conjunto: string,
@@ -50,5 +50,7 @@ export interface IReporteGNRepository {
 
   getBoletaDePago(conjunto: string,
     filtros: FiltrosBoletaDePago
-  ) : Promise<RespuestaReporteBoletasDePago | undefined>
+  ): Promise<RespuestaReporteBoletasDePago | undefined>
+
+  exportarExcel(conjunto: string, filtros: any): Promise<Buffer>;
 }

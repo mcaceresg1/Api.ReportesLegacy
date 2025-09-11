@@ -401,4 +401,39 @@ AND UPPER( ax.empleado ) LIKE :cod_empleado  ORDER BY 1 ASC
       throw error;
     }
   }
+  async exportarExcel(conjunto: string, filtros: any): Promise<Buffer> {
+    try {
+      console.log(`Generando excel de acciones personal para conjunto ${conjunto}`);
+      const fechaInicio = filtros.reporte.fechaInicio;
+      const fechaFin = filtros.reporte.fechaFin;
+      const codigoEmpleado = filtros.reporte.codigoEmpleado;
+      const filtrosReporte = { fecha_accion_inicio: fechaInicio, fecha_accion_fin: fechaFin, cod_empleado: codigoEmpleado }
+      const resultado = await this.getAccionesDePersonal(conjunto, filtrosReporte);
+      const excelData = resultado.map(item => (
+        {
+          "numero_accion": Number(item.number_accion),
+          "descripcion_accion": item.descripcion_accion || '',
+          "estado_accion": item.estado_accion || '',
+          "fecha": item.fecha ? new Date(item.fecha),
+          "empleado": "08303169",
+          "nombre": "De Paz Cornelio Jose Luis",
+          "fecha_rige": "2020-02-29T00:00:00.000Z", "fecha_vence": null,
+          "puesto": null,
+          "plaza": null,
+          "salario_promedio": null,
+          "salario_diario_int": null,
+          "departamento": null
+          , "centro_costo": null,v
+          "nomina": null, 
+          "dias_accion": null,
+           "saldo": 0,
+            "numero_accion_cuenta": null,
+             "regimen_vacacional": null,
+              "descripcion": "CESADO", 
+              "RowPointer": "5B20A4DE-DB4A-4B20-9191-313E5D29DB16",
+                v "origen": "24971"
+        }))
+    } catch (error) { }
+  }
 }
+
