@@ -51,7 +51,6 @@ import { createReporteClipperRoutes } from "./infrastructure/routes/ReporteClipp
 import { createGananciasPerdidasClipperRoutes } from "./infrastructure/routes/GananciasPerdidasClipperRoutes";
 import { IReporteClipperRepository } from "./domain/repositories/IReporteClipperRepository";
 import libroMayorAsientosRoutes from "./infrastructure/routes/libro-mayor-asientos.routes";
-import libroDiarioAsientosRoutes from "./infrastructure/routes/libro-diario-asientos.routes";
 import libroMayorRoutes from "./infrastructure/routes/libro-mayor.routes";
 import estadoSituacionFinancieraRoutes from "./infrastructure/routes/estado-situacion-financiera.routes";
 import estadoResultadosRoutes from "./infrastructure/routes/estado-resultados.routes";
@@ -378,12 +377,6 @@ app.use(
   libroMayorAsientosRoutes
 );
 
-// Libro Diario Asientos Routes
-app.use(
-  "/api/libro-diario-asientos",
-  QueryOptimizationMiddleware.validateQueryParams,
-  libroDiarioAsientosRoutes
-);
 console.log("✅ Libro Mayor Asientos routes registradas correctamente");
 
 // Libro Mayor Routes
