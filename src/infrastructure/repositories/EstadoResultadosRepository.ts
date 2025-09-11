@@ -70,6 +70,19 @@ export class EstadoResultadosRepository {
     }
   }
 
+  // Método de diagnóstico para probar la conexión a la base de datos
+  async testDatabaseConnection(): Promise<boolean> {
+    try {
+      console.log(`🔍 [REPOSITORY] Probando conexión a la base de datos...`);
+      const [results] = await exactusSequelize.query('SELECT 1 as test');
+      console.log(`✅ [REPOSITORY] Conexión a la base de datos exitosa`);
+      return true;
+    } catch (error) {
+      console.error(`❌ [REPOSITORY] Error de conexión a la base de datos:`, error);
+      return false;
+    }
+  }
+
   async getEstadoResultados(
     conjunto: string, 
     usuario: string, 
@@ -90,15 +103,30 @@ export class EstadoResultadosRepository {
       const tipoEgp = filtros.tipoEgp || 'GYPPQ';
 
       console.log(`🔍 [REPOSITORY] Iniciando proceso estándar de Estado de Resultados...`);
+      console.log(`🔍 [REPOSITORY] Parámetros: conjunto=${conjunto}, usuario=${usuario}, fechaActual=${fechaActual}, fechaAnterior=${fechaAnterior}, tipoEgp=${tipoEgp}`);
+
+      // Paso 0: Probar conexión a la base de datos
+      console.log(`🔍 [REPOSITORY] Paso 0: Probando conexión a la base de datos...`);
+      const dbConnected = await this.testDatabaseConnection();
+      if (!dbConnected) {
+        throw new Error('No se pudo conectar a la base de datos');
+      }
+      console.log(`✅ [REPOSITORY] Paso 0 completado`);
 
       // Paso 1: Crear tabla temporal
+      console.log(`🔍 [REPOSITORY] Paso 1: Creando tabla temporal...`);
       await this.crearTablaTemporal();
+      console.log(`✅ [REPOSITORY] Paso 1 completado`);
 
       // Paso 2: Cargar datos EGP para período actual
+      console.log(`🔍 [REPOSITORY] Paso 2: Cargando datos EGP para período actual (${fechaActual})...`);
       await this.cargarDatosEGP(fechaActual, tipoEgp, usuario);
+      console.log(`✅ [REPOSITORY] Paso 2 completado`);
 
       // Paso 3: Cargar datos EGP para período anterior
+      console.log(`🔍 [REPOSITORY] Paso 3: Cargando datos EGP para período anterior (${fechaAnterior})...`);
       await this.cargarDatosEGP(fechaAnterior, tipoEgp, usuario);
+      console.log(`✅ [REPOSITORY] Paso 3 completado`);
 
       // Paso 4: Ejecutar query principal estándar (usando nombres de columnas correctos)
       const queryPrincipal = `
@@ -108,33 +136,33 @@ export class EstadoResultadosRepository {
           P.NOMBRE AS CONCEPTO,
           P.POSICION,
           'Nuevo Sol' AS MONEDA,
-          P.ORDEN,
+          P.ORDEN,     
           ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_actual THEN EG.SALDO ELSE 0 END), 0) AS SALDO2,
           ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_anterior THEN EG.SALDO ELSE 0 END), 0) AS SALDO1,
           (ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_actual THEN EG.SALDO ELSE 0 END), 0) - 
            ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_anterior THEN EG.SALDO ELSE 0 END), 0)) AS VARIACION,
           P.FAMILIA_PADRE
-        FROM JBRTRA.POSICION_EGP P (NOLOCK)
+        FROM JBRTRA.POSICION_EGP P (NOLOCK)   
         INNER JOIN JBRTRA.POSICION_EGP PA (NOLOCK) ON PA.TIPO = P.TIPO AND PA.FAMILIA = P.FAMILIA_PADRE
         LEFT OUTER JOIN JBRTRA.EGP EG (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA AND EG.USUARIO = :usuario
         WHERE P.TIPO = :tipo_egp
-        GROUP BY PA.NOMBRE, P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN, P.FAMILIA_PADRE
-        
-        UNION ALL
-        
+        GROUP BY PA.NOMBRE, P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN, P.FAMILIA_PADRE   
+
+        UNION ALL   
+
         SELECT 
           NULL AS PADRE_NOMBRE,
           P.FAMILIA,
           P.NOMBRE AS CONCEPTO,
-          P.POSICION,
+          P.POSICION, 
           'Nuevo Sol' AS MONEDA,
-          P.ORDEN,
+          P.ORDEN, 
           ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_actual THEN EG.SALDO ELSE 0 END), 0) AS SALDO2,
           ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_anterior THEN EG.SALDO ELSE 0 END), 0) AS SALDO1,
           (ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_actual THEN EG.SALDO ELSE 0 END), 0) - 
            ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_anterior THEN EG.SALDO ELSE 0 END), 0)) AS VARIACION,
           P.FAMILIA_PADRE
-        FROM JBRTRA.POSICION_EGP P (NOLOCK)
+        FROM JBRTRA.POSICION_EGP P (NOLOCK)   
         LEFT OUTER JOIN JBRTRA.EGP EG (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA AND EG.USUARIO = :usuario
         WHERE P.FAMILIA_PADRE IS NULL AND P.AGRUPA = 'N' AND P.TIPO = :tipo_egp
         GROUP BY P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN, P.FAMILIA_PADRE
@@ -142,7 +170,7 @@ export class EstadoResultadosRepository {
         ORDER BY POSICION, ORDEN
       `;
 
-      console.log(`🔍 [REPOSITORY] Ejecutando query principal estándar...`);
+      console.log(`🔍 [REPOSITORY] Paso 4: Ejecutando query principal estándar...`);
       console.log(`🔍 [REPOSITORY] Parámetros: fecha_actual=${fechaActual}, fecha_anterior=${fechaAnterior}, usuario=${usuario}, tipo_egp=${tipoEgp}`);
       
       const [results] = await exactusSequelize.query(queryPrincipal, {
@@ -159,7 +187,7 @@ export class EstadoResultadosRepository {
       if (results && (results as any[]).length > 0) {
         console.log(`🔍 [REPOSITORY] Primer resultado:`, (results as any[])[0]);
       }
-
+      
       // Mapear resultados con jerarquía
       const datosReporte = this.mapearResultadosConJerarquia(results ? (results as any[]) : [], fechaActual, fechaAnterior, tipoEgp);
       
