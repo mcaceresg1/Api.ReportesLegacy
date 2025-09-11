@@ -1,0 +1,272 @@
+# Comandos cURL para Pruebas - Estado de Resultados
+
+## 1. Obtener Tipos de EGP
+
+```bash
+curl -X GET "http://localhost:3000/api/estado-resultados/EMP001/tipos-egp?usuario=ADMPQUES" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+```
+
+## 2. Obtener Períodos Contables
+
+```bash
+curl -X GET "http://localhost:3000/api/estado-resultados/EMP001/periodos-contables?fecha=2024-12-31" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+```
+
+## 3. Obtener Reporte de Estado de Resultados (GET)
+
+### 3.1. Reporte Básico
+
+```bash
+curl -X GET "http://localhost:3000/api/estado-resultados/EMP001/reporte?usuario=ADMPQUES&page=1&pageSize=20" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+```
+
+### 3.2. Reporte con Filtros Básicos
+
+```bash
+curl -X GET "http://localhost:3000/api/estado-resultados/EMP001/reporte?usuario=ADMPQUES&fecha=2024-12-31&tipoEgp=GYPPQ&moneda=NUEVO_SOL&origen=DIARIO&contabilidad=FISCAL&comparativo=ANUAL&resultado=ANUAL&page=1&pageSize=25" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+```
+
+### 3.3. Reporte con Filtros Avanzados
+
+```bash
+curl -X GET "http://localhost:3000/api/estado-resultados/EMP001/reporte?usuario=ADMPQUES&fecha=2024-12-31&tipoEgp=GYPPQ&moneda=NUEVO_SOL&origen=DIARIO&contabilidad=FISCAL&comparativo=ANUAL&resultado=ANUAL&excluirAsientoCierreAnual=false&incluirAsientoCierreAnual=true&incluirDoceUltimosPeriodos=true&mostrarInformacionAnual=true&libroElectronico=false&centroCostoTipo=RANGO&centroCostoDesde=001&centroCostoHasta=999&incluirInformacionPresupuestos=false&page=1&pageSize=50" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+```
+
+## 4. Generar Reporte de Estado de Resultados (POST)
+
+### 4.1. Reporte Básico (Diciembre 2023 vs Noviembre 2023)
+
+```bash
+curl -X POST "http://localhost:3000/api/estado-resultados/reporte" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{
+    "conjunto": "EMP001",
+    "usuario": "ADMPQUES",
+    "filtros": {
+      "fecha": "2023-12-31",
+      "tipoEgp": "GYPPQ",
+      "page": 1,
+      "pageSize": 50
+    }
+  }'
+```
+
+### 4.2. Reporte con Filtros Específicos
+
+```bash
+curl -X POST "http://localhost:3000/api/estado-resultados/reporte" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{
+    "conjunto": "EMP001",
+    "usuario": "ADMPQUES",
+    "filtros": {
+      "fecha": "2024-01-31",
+      "tipoEgp": "GYPPQ",
+      "page": 1,
+      "pageSize": 100
+    }
+  }'
+```
+
+### 4.3. Reporte con Paginación
+
+```bash
+curl -X POST "http://localhost:3000/api/estado-resultados/reporte" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{
+    "conjunto": "EMP001",
+    "usuario": "ADMPQUES",
+    "filtros": {
+      "fecha": "2023-12-31",
+      "tipoEgp": "GYPPQ",
+      "page": 2,
+      "pageSize": 25
+    }
+  }'
+```
+
+## 5. Validar Balance
+
+```bash
+curl -X POST "http://localhost:3000/api/estado-resultados/validar-balance" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{
+    "conjunto": "001",
+    "usuario": "ADMPQUES",
+    "filtros": {
+      "fecha": "2023-12-31",
+      "tipoEgp": "GYPPQ"
+    }
+  }'
+```
+
+## 5. Obtener Total de Registros
+
+```bash
+curl -X POST "http://localhost:3000/api/estado-resultados/total-records" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{
+    "conjunto": "001",
+    "usuario": "ADMPQUES",
+    "filtros": {
+      "fecha": "2023-12-31",
+      "tipoEgp": "GYPPQ"
+    }
+  }'
+```
+
+## 6. Exportar a Excel
+
+```bash
+curl -X POST "http://localhost:3000/api/estado-resultados/EMP001/exportar-excel" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{
+    "conjunto": "EMP001",
+    "usuario": "ADMPQUES",
+    "fecha": "2024-12-31",
+    "tipoEgp": "GYPPQ",
+    "moneda": "NUEVO_SOL",
+    "origen": "DIARIO",
+    "contabilidad": "FISCAL",
+    "comparativo": "ANUAL",
+    "resultado": "ANUAL",
+    "excluirAsientoCierreAnual": false,
+    "incluirAsientoCierreAnual": true,
+    "incluirDoceUltimosPeriodos": true,
+    "mostrarInformacionAnual": true,
+    "libroElectronico": false,
+    "centroCostoTipo": "RANGO",
+    "centroCostoDesde": "001",
+    "centroCostoHasta": "999",
+    "incluirInformacionPresupuestos": false,
+    "tiposAsiento": [],
+    "dimensionAdicional": "",
+    "tituloPrincipal": "Estado de Resultados",
+    "titulo2": "Período 2024",
+    "titulo3": "",
+    "titulo4": "",
+    "page": 1,
+    "pageSize": 10000
+  }' \
+  --output "estado_resultados.xlsx"
+```
+
+## 7. Exportar a PDF
+
+```bash
+curl -X POST "http://localhost:3000/api/estado-resultados/EMP001/exportar-pdf" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{
+    "conjunto": "EMP001",
+    "usuario": "ADMPQUES",
+    "fecha": "2024-12-31",
+    "tipoEgp": "GYPPQ",
+    "moneda": "NUEVO_SOL",
+    "origen": "DIARIO",
+    "contabilidad": "FISCAL",
+    "comparativo": "ANUAL",
+    "resultado": "ANUAL"
+  }' \
+  --output "estado_resultados.pdf"
+```
+
+## Parámetros de Configuración
+
+### Conjunto
+- `"EMP001"` - Conjunto principal de la empresa
+
+### Usuario
+- `"ADMPQUES"` - Usuario administrador con permisos completos
+
+### Filtros GET (Query Parameters)
+- `usuario`: Usuario ejecutor (requerido)
+- `fecha`: Fecha en formato YYYY-MM-DD (período actual)
+- `tipoEgp`: Tipo de estructura de reporte (GYPPQ)
+- `moneda`: Moneda de presentación (NUEVO_SOL)
+- `origen`: Origen de datos (DIARIO)
+- `contabilidad`: Tipo de contabilidad (FISCAL)
+- `comparativo`: Tipo de comparativo (ANUAL)
+- `resultado`: Tipo de resultado (ANUAL)
+- `page`: Número de página (opcional, default: 1)
+- `pageSize`: Tamaño de página (opcional, default: 50)
+
+### Filtros POST (Body JSON)
+- `conjunto`: Código del conjunto
+- `usuario`: Usuario ejecutor
+- `filtros.fecha`: Fecha en formato YYYY-MM-DD
+- `filtros.tipoEgp`: Tipo de estructura de reporte
+- `filtros.page`: Número de página
+- `filtros.pageSize`: Tamaño de página
+
+## Respuesta Esperada
+
+### Estructura de Respuesta del Reporte
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "padre_nombre": "INGRESOS",
+      "concepto": "Ventas de Servicios",
+      "posicion": 1,
+      "moneda": "Nuevo Sol",
+      "saldo_anterior": 150000.00,
+      "saldo_actual": 175000.00,
+      "variacion": 25000.00,
+      "nivel": 2,
+      "esTotal": false,
+      "esSubtotal": false,
+      "esEncabezado": false,
+      "saldo_inicial_formateado": "150,000.00",
+      "saldo_final_formateado": "175,000.00",
+      "variacion_formateada": "+25,000.00"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "pageSize": 50,
+    "totalRecords": 150,
+    "totalPages": 3
+  },
+  "validacionBalance": {
+    "valido": true,
+    "mensaje": "Balance correcto: Total Ingresos - Total Egresos = Utilidad",
+    "totalIngresos": 175000.00,
+    "totalEgresos": 120000.00,
+    "utilidad": 55000.00
+  }
+}
+```
+
+## Notas Importantes
+
+1. **Autenticación**: Reemplaza `YOUR_TOKEN_HERE` con un token válido
+2. **Puerto**: Ajusta el puerto si tu aplicación corre en otro puerto
+3. **Fechas**: Usa fechas válidas en formato YYYY-MM-DD
+4. **Conjunto**: Verifica que el conjunto "001" exista en tu base de datos
+5. **Usuario**: Asegúrate de que el usuario tenga permisos para ejecutar reportes
+
+## Pruebas Recomendadas
+
+1. **Prueba Básica**: Ejecuta el comando #3.1 para verificar funcionalidad básica
+2. **Prueba de Paginación**: Ejecuta comandos #3.2 y #3.3 para verificar paginación
+3. **Prueba de Validación**: Ejecuta comando #4 para verificar validación de balance
+4. **Prueba de Exportación**: Ejecuta comandos #6 y #7 para verificar exportación
+5. **Prueba de Errores**: Intenta con fechas inválidas o conjuntos inexistentes

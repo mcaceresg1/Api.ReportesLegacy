@@ -13,6 +13,14 @@ export interface EstadoResultados {
   padre: string;
   orden: number;
   mes: string;
+  variacion?: number;
+  nivel?: number;
+  esTotal?: boolean;
+  esSubtotal?: boolean;
+  esEncabezado?: boolean;
+  saldo_inicial_formateado?: string;
+  saldo_final_formateado?: string;
+  variacion_formateada?: string;
 }
 
 export interface FiltrosEstadoResultados {
@@ -86,4 +94,24 @@ export interface EstadoResultadosResponse {
     totalPages: number;
   };
   message?: string;
+  validacionBalance?: ValidacionBalance | undefined;
+}
+
+export interface ValidacionBalance {
+  valido: boolean;
+  mensaje: string;
+  totalIngresos: number;
+  totalEgresos: number;
+  utilidad: number;
+}
+
+export interface LogEjecucion {
+  usuario: string;
+  reporte: string;
+  fechaEjecucion: Date;
+  periodoActual: string;
+  periodoAnterior: string;
+  registrosProcesados: number;
+  tiempoEjecucion: number;
+  estado: 'EXITOSO' | 'ERROR';
 }

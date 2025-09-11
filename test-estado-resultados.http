@@ -1,0 +1,68 @@
+### Test Estado de Resultados - Obtener Tipos EGP
+GET http://localhost:3000/api/estado-resultados/EMP001/tipos-egp?usuario=ADMPQUES
+Content-Type: application/json
+
+### Test Estado de Resultados - Obtener Períodos Contables
+GET http://localhost:3000/api/estado-resultados/EMP001/periodos-contables?fecha=2024-12-31
+Content-Type: application/json
+
+### Test Estado de Resultados - Obtener Reporte (Básico)
+GET http://localhost:3000/api/estado-resultados/EMP001/reporte?usuario=ADMPQUES&page=1&pageSize=20
+Content-Type: application/json
+
+### Test Estado de Resultados - Obtener Reporte (Con Filtros)
+GET http://localhost:3000/api/estado-resultados/EMP001/reporte?usuario=ADMPQUES&fecha=2024-12-31&tipoEgp=GYPPQ&moneda=NUEVO_SOL&origen=DIARIO&contabilidad=FISCAL&comparativo=ANUAL&resultado=ANUAL&page=1&pageSize=25
+Content-Type: application/json
+
+### Test Estado de Resultados - Obtener Reporte (Con Filtros Avanzados)
+GET http://localhost:3000/api/estado-resultados/EMP001/reporte?usuario=ADMPQUES&fecha=2024-12-31&tipoEgp=GYPPQ&moneda=NUEVO_SOL&origen=DIARIO&contabilidad=FISCAL&comparativo=ANUAL&resultado=ANUAL&excluirAsientoCierreAnual=false&incluirAsientoCierreAnual=true&incluirDoceUltimosPeriodos=true&mostrarInformacionAnual=true&libroElectronico=false&centroCostoTipo=RANGO&centroCostoDesde=001&centroCostoHasta=999&incluirInformacionPresupuestos=false&page=1&pageSize=50
+Content-Type: application/json
+
+### Test Estado de Resultados - Exportar Excel
+POST http://localhost:3000/api/estado-resultados/EMP001/exportar-excel
+Content-Type: application/json
+
+{
+  "conjunto": "EMP001",
+  "usuario": "ADMPQUES",
+  "fecha": "2024-12-31",
+  "tipoEgp": "GYPPQ",
+  "moneda": "NUEVO_SOL",
+  "origen": "DIARIO",
+  "contabilidad": "FISCAL",
+  "comparativo": "ANUAL",
+  "resultado": "ANUAL",
+  "excluirAsientoCierreAnual": false,
+  "incluirAsientoCierreAnual": true,
+  "incluirDoceUltimosPeriodos": true,
+  "mostrarInformacionAnual": true,
+  "libroElectronico": false,
+  "centroCostoTipo": "RANGO",
+  "centroCostoDesde": "001",
+  "centroCostoHasta": "999",
+  "incluirInformacionPresupuestos": false,
+  "tiposAsiento": [],
+  "dimensionAdicional": "",
+  "tituloPrincipal": "Estado de Resultados",
+  "titulo2": "Período 2024",
+  "titulo3": "",
+  "titulo4": "",
+  "page": 1,
+  "pageSize": 10000
+}
+
+### Test Estado de Resultados - Exportar PDF (No Implementado)
+POST http://localhost:3000/api/estado-resultados/EMP001/exportar-pdf
+Content-Type: application/json
+
+{
+  "conjunto": "EMP001",
+  "usuario": "ADMPQUES",
+  "fecha": "2024-12-31",
+  "tipoEgp": "GYPPQ",
+  "moneda": "NUEVO_SOL",
+  "origen": "DIARIO",
+  "contabilidad": "FISCAL",
+  "comparativo": "ANUAL",
+  "resultado": "ANUAL"
+}

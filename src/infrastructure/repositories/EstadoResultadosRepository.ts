@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
 import { exactusSequelize } from '../database/config/exactus-database';
-import { EstadoResultados, FiltrosEstadoResultados, TipoEgp, PeriodoContable } from '../../domain/entities/EstadoResultados';
+import { EstadoResultados, FiltrosEstadoResultados, TipoEgp, PeriodoContable, ValidacionBalance, LogEjecucion } from '../../domain/entities/EstadoResultados';
 
 @injectable()
 export class EstadoResultadosRepository {
@@ -63,7 +63,18 @@ export class EstadoResultadosRepository {
     page: number = 1,
     pageSize: number = 20
   ): Promise<EstadoResultados[]> {
+    const inicioEjecucion = Date.now();
+    
     try {
+      // Validar parámetros requeridos
+      if (!conjunto || !usuario || !filtros.fecha) {
+        throw new Error('Conjunto, usuario y fecha son requeridos');
+      }
+
+      const fechaActual = filtros.fecha!;
+      const fechaAnterior = this.calcularFechaAnterior(fechaActual);
+      const tipoEgp = filtros.tipoEgp || 'GYPPQ';
+
       // Crear tabla temporal para los resultados
       const createTableQuery = `
         CREATE TABLE ${conjunto}.R_XML_8DDC9208B6470F8 (
@@ -139,25 +150,25 @@ export class EstadoResultadosRepository {
         GROUP BY TIPO, FAMILIA
       `;
 
-      const fechaActual = filtros.fecha || new Date().toISOString().split('T')[0];
-      const tipoEgp = filtros.tipoEgp || 'GYPPQ';
+      const fechaActualPeriodo = filtros.fecha || new Date().toISOString().split('T')[0];
+      const tipoEgpPeriodo = filtros.tipoEgp || 'GYPPQ';
       
-      if (!fechaActual) {
+      if (!fechaActualPeriodo) {
         throw new Error('Fecha es requerida');
       }
 
       await exactusSequelize.query(insertCurrentPeriodQuery, { 
         replacements: { 
-          fecha_periodo_actual: fechaActual,
+          fecha_periodo_actual: fechaActualPeriodo,
           usuario,
-          tipo_egp: tipoEgp
+          tipo_egp: tipoEgpPeriodo
         } 
       });
 
       // Insertar datos del período anterior
-      const fechaAnterior = new Date(fechaActual);
-      fechaAnterior.setMonth(fechaAnterior.getMonth() - 1);
-      const fechaAnteriorStr = fechaAnterior.toISOString().split('T')[0];
+      const fechaAnteriorObj = new Date(fechaActualPeriodo);
+      fechaAnteriorObj.setMonth(fechaAnteriorObj.getMonth() - 1);
+      const fechaAnteriorStr = fechaAnteriorObj.toISOString().split('T')[0];
 
       const insertPreviousPeriodQuery = `
         INSERT INTO ${conjunto}.EGP ( PERIODO, TIPO, FAMILIA, SALDO, SALDO_DOLAR , USUARIO  ) 
@@ -207,24 +218,30 @@ export class EstadoResultadosRepository {
         replacements: { 
           fecha_periodo_anterior: fechaAnteriorStr,
           usuario,
-          tipo_egp: tipoEgp
+          tipo_egp: tipoEgpPeriodo
         } 
       });
 
-      // Consulta final para obtener los resultados
+      // Consulta final para obtener los resultados con cálculo de variación
       const finalQuery = `
         SELECT   PA.NOMBRE,   P.FAMILIA,   P.NOMBRE as nombre_cuenta,   P.POSICION,'Nuevo Sol' as moneda,   P.ORDEN,     
-        ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_actual  THEN EG.SALDO ELSE 0 END),0) AS SALDO2, 
-        ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_anterior  THEN EG.SALDO ELSE 0 END),0) AS SALDO1       
+        ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_actual  THEN EG.SALDO ELSE 0 END),0) AS SALDO_ACTUAL, 
+        ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_anterior  THEN EG.SALDO ELSE 0 END),0) AS SALDO_ANTERIOR,
+        ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_actual  THEN EG.SALDO ELSE 0 END),0) - 
+        ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_anterior  THEN EG.SALDO ELSE 0 END),0) AS VARIACION,
+        PA.FAMILIA as FAMILIA_PADRE
         FROM ${conjunto}.POSICION_EGP P (NOLOCK)
         INNER JOIN ${conjunto}.POSICION_EGP PA (NOLOCK)   ON PA.TIPO = P.TIPO AND PA.FAMILIA = P.FAMILIA_PADRE 
         LEFT OUTER JOIN ${conjunto}.EGP EG (NOLOCK)   ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA AND EG.USUARIO = :usuario          
         WHERE P.TIPO= :tipo_egp
-        GROUP BY PA.NOMBRE,P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN   
+        GROUP BY PA.NOMBRE,PA.FAMILIA,P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN   
         UNION ALL   
         SELECT   NULL,   P.FAMILIA,   P.NOMBRE as nombre_cuenta,   P.POSICION, 'Nuevo Sol' ,   P.ORDEN, 
-        ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_actual THEN EG.SALDO ELSE 0 END),0) AS SALDO2,
-        ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_anterior THEN EG.SALDO ELSE 0 END),0) AS SALDO1   
+        ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_actual THEN EG.SALDO ELSE 0 END),0) AS SALDO_ACTUAL,
+        ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_anterior THEN EG.SALDO ELSE 0 END),0) AS SALDO_ANTERIOR,
+        ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_actual THEN EG.SALDO ELSE 0 END),0) - 
+        ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_anterior THEN EG.SALDO ELSE 0 END),0) AS VARIACION,
+        NULL as FAMILIA_PADRE
         FROM ${conjunto}.POSICION_EGP P (NOLOCK)
         LEFT OUTER JOIN ${conjunto}.EGP EG (NOLOCK)   ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA AND EG.USUARIO = :usuario        
         WHERE P.FAMILIA_PADRE IS NULL AND P.AGRUPA = 'N'   AND P.TIPO= :tipo_egp                         
@@ -236,7 +253,7 @@ export class EstadoResultadosRepository {
       const [results] = await exactusSequelize.query(finalQuery, { 
         replacements: { 
           fecha_periodo_actual: fechaActual,
-          fecha_periodo_anterior: fechaAnteriorStr,
+          fecha_periodo_anterior: fechaAnterior,
           usuario,
           tipo_egp: tipoEgp,
           offset,
@@ -244,25 +261,29 @@ export class EstadoResultadosRepository {
         } 
       });
 
+      // Generar estructura de reporte
+      const estructuraReporte = this.generarEstructuraReporte(conjunto, fechaActual, fechaAnterior);
+      
+      // Mapear resultados con jerarquía y formateo
+      const datosReporte = this.mapearResultadosConJerarquia(results as any[], fechaActual, fechaAnterior, tipoEgp);
+      
+      // Calcular totales
+      const totales = await this.calcularTotales(conjunto, usuario, tipoEgp, fechaActual, fechaAnterior);
+      
+      // Validar balance
+      const validacionBalance = await this.validarBalance(conjunto, usuario, tipoEgp, fechaActual, fechaAnterior);
+      
       // Limpiar tabla temporal
       await exactusSequelize.query(`DROP TABLE IF EXISTS ${conjunto}.R_XML_8DDC9208B6470F8`);
 
-      return (results as any[]).map((row: any) => ({
-        cuenta_contable: row.nombre_cuenta || '',
-        fecha_balance: new Date(fechaActual),
-        saldo_inicial: row.SALDO1 || 0,
-        nombre_cuenta: row.nombre_cuenta || '',
-        fecha_inicio: new Date(fechaAnteriorStr || fechaActual),
-        fecha_cuenta: new Date(fechaActual),
-        saldo_final: row.SALDO2 || 0,
-        tiporeporte: tipoEgp,
-        posicion: row.POSICION || '',
-        caracter: '',
-        moneda: row.moneda || 'Nuevo Sol',
-        padre: row.NOMBRE || '',
-        orden: row.ORDEN || 0,
-        mes: fechaActual ? fechaActual.split('-')[1] || '' : ''
-      }));
+      // Combinar todos los resultados
+      const resultadosCompletos = [...estructuraReporte, ...datosReporte, ...totales];
+      
+      // Registrar ejecución
+      const tiempoEjecucion = Date.now() - inicioEjecucion;
+      await this.registrarEjecucion(conjunto, usuario, fechaActual, fechaAnterior, resultadosCompletos.length, tiempoEjecucion);
+
+      return resultadosCompletos;
     } catch (error) {
       console.error('Error al obtener estado de resultados:', error);
       throw new Error(`Error al obtener estado de resultados: ${error}`);
@@ -282,5 +303,308 @@ export class EstadoResultadosRepository {
       console.error('Error al obtener total de registros:', error);
       throw new Error(`Error al obtener total de registros: ${error}`);
     }
+  }
+
+  // Métodos auxiliares para cumplir con los requerimientos
+
+  private calcularFechaAnterior(fecha: string): string {
+    const fechaObj = new Date(fecha);
+    fechaObj.setMonth(fechaObj.getMonth() - 1);
+    return fechaObj.toISOString().split('T')[0] || '';
+  }
+
+  private formatearNumero(valor: number): string {
+    if (valor === 0) return '0.00';
+    if (valor < 0) return `(${Math.abs(valor).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`;
+    return valor.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  private formatearVariacion(valor: number): string {
+    if (valor === 0) return '0.00';
+    if (valor < 0) return `(${Math.abs(valor).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`;
+    return `+${valor.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+
+  private calcularNivelJerarquia(familiaPadre: string): number {
+    if (!familiaPadre) return 0;
+    return familiaPadre.split('.').length - 1;
+  }
+
+  private generarEstructuraReporte(
+    conjunto: string, 
+    fechaActual: string, 
+    fechaAnterior: string
+  ): EstadoResultados[] {
+    const encabezado: EstadoResultados[] = [
+      {
+        cuenta_contable: '',
+        fecha_balance: new Date(),
+        saldo_inicial: 0,
+        nombre_cuenta: 'EMPRESA XYZ S.A.',
+        fecha_inicio: new Date(),
+        fecha_cuenta: new Date(),
+        saldo_final: 0,
+        tiporeporte: 'HEADER',
+        posicion: 'HEADER',
+        caracter: '',
+        moneda: '',
+        padre: '',
+        orden: 0,
+        mes: '',
+        esEncabezado: true,
+        saldo_inicial_formateado: '',
+        saldo_final_formateado: '',
+        variacion_formateada: ''
+      },
+      {
+        cuenta_contable: '',
+        fecha_balance: new Date(),
+        saldo_inicial: 0,
+        nombre_cuenta: 'ESTADO DE RESULTADOS COMPARATIVO',
+        fecha_inicio: new Date(),
+        fecha_cuenta: new Date(),
+        saldo_final: 0,
+        tiporeporte: 'TITLE',
+        posicion: 'TITLE',
+        caracter: '',
+        moneda: '',
+        padre: '',
+        orden: 0,
+        mes: '',
+        esEncabezado: true,
+        saldo_inicial_formateado: '',
+        saldo_final_formateado: '',
+        variacion_formateada: ''
+      },
+      {
+        cuenta_contable: '',
+        fecha_balance: new Date(),
+        saldo_inicial: 0,
+        nombre_cuenta: `Período: ${fechaAnterior} vs ${fechaActual}`,
+        fecha_inicio: new Date(),
+        fecha_cuenta: new Date(),
+        saldo_final: 0,
+        tiporeporte: 'PERIOD',
+        posicion: 'PERIOD',
+        caracter: '',
+        moneda: 'Nuevos Soles',
+        padre: '',
+        orden: 0,
+        mes: '',
+        esEncabezado: true,
+        saldo_inicial_formateado: '',
+        saldo_final_formateado: '',
+        variacion_formateada: ''
+      }
+    ];
+    
+    return encabezado;
+  }
+
+  private async calcularTotales(
+    conjunto: string,
+    usuario: string,
+    tipoEgp: string,
+    fechaActual: string,
+    fechaAnterior: string
+  ): Promise<EstadoResultados[]> {
+    try {
+      const totalesQuery = `
+        SELECT 
+          'TOTAL' as PADRE_NOMBRE,
+          'TOTAL' as FAMILIA,
+          'TOTAL INGRESOS' as CONCEPTO,
+          'TOTAL_INGRESOS' as POSICION,
+          'Nuevo Sol' as MONEDA,
+          999 as ORDEN,
+          ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_actual THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ACTUAL,
+          ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_anterior THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ANTERIOR
+        FROM ${conjunto}.EGP EG (NOLOCK)
+        INNER JOIN ${conjunto}.POSICION_EGP P (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA
+        WHERE EG.USUARIO = :usuario 
+          AND EG.TIPO = :tipo_egp
+          AND P.POSICION = 'INGRESOS'
+        
+        UNION ALL
+        
+        SELECT 
+          'TOTAL' as PADRE_NOMBRE,
+          'TOTAL' as FAMILIA,
+          'TOTAL EGRESOS' as CONCEPTO,
+          'TOTAL_EGRESOS' as POSICION,
+          'Nuevo Sol' as MONEDA,
+          998 as ORDEN,
+          ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_actual THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ACTUAL,
+          ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_anterior THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ANTERIOR
+        FROM ${conjunto}.EGP EG (NOLOCK)
+        INNER JOIN ${conjunto}.POSICION_EGP P (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA
+        WHERE EG.USUARIO = :usuario 
+          AND EG.TIPO = :tipo_egp
+          AND P.POSICION = 'EGRESOS'
+        
+        UNION ALL
+        
+        SELECT 
+          'TOTAL' as PADRE_NOMBRE,
+          'TOTAL' as FAMILIA,
+          'UTILIDAD NETA' as CONCEPTO,
+          'TOTAL_RESULTADO' as POSICION,
+          'Nuevo Sol' as MONEDA,
+          997 as ORDEN,
+          ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_actual THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ACTUAL,
+          ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_anterior THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ANTERIOR
+        FROM ${conjunto}.EGP EG (NOLOCK)
+        INNER JOIN ${conjunto}.POSICION_EGP P (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA
+        WHERE EG.USUARIO = :usuario 
+          AND EG.TIPO = :tipo_egp
+          AND P.POSICION IN ('INGRESOS', 'EGRESOS')
+      `;
+      
+      const [results] = await exactusSequelize.query(totalesQuery, {
+        replacements: { 
+          usuario, 
+          tipo_egp: tipoEgp, 
+          fecha_periodo_actual: fechaActual, 
+          fecha_periodo_anterior: fechaAnterior 
+        }
+      });
+      
+      return (results as any[]).map((row: any) => {
+        const variacion = (row.SALDO_ACTUAL || 0) - (row.SALDO_ANTERIOR || 0);
+        return {
+          cuenta_contable: row.CONCEPTO || '',
+          fecha_balance: new Date(fechaActual),
+          saldo_inicial: row.SALDO_ANTERIOR || 0,
+          nombre_cuenta: row.CONCEPTO || '',
+          fecha_inicio: new Date(fechaAnterior),
+          fecha_cuenta: new Date(fechaActual),
+          saldo_final: row.SALDO_ACTUAL || 0,
+          tiporeporte: tipoEgp,
+          posicion: row.POSICION || '',
+          caracter: '',
+          moneda: 'Nuevo Sol',
+          padre: row.PADRE_NOMBRE || '',
+          orden: row.ORDEN || 0,
+          mes: fechaActual ? fechaActual.split('-')[1] || '' : '',
+          variacion: variacion,
+          esTotal: true,
+          saldo_inicial_formateado: this.formatearNumero(row.SALDO_ANTERIOR || 0),
+          saldo_final_formateado: this.formatearNumero(row.SALDO_ACTUAL || 0),
+          variacion_formateada: this.formatearVariacion(variacion)
+        };
+      });
+    } catch (error) {
+      console.error('Error al calcular totales:', error);
+      return [];
+    }
+  }
+
+  async validarBalance(
+    conjunto: string,
+    usuario: string,
+    tipoEgp: string,
+    fechaActual: string,
+    fechaAnterior: string
+  ): Promise<ValidacionBalance> {
+    try {
+      const balanceQuery = `
+        SELECT 
+          SUM(CASE WHEN P.POSICION = 'INGRESOS' THEN 
+            CASE EG.PERIODO WHEN :fecha_periodo_actual THEN EG.SALDO ELSE 0 END 
+          ELSE 0 END) as TOTAL_INGRESOS_ACTUAL,
+          SUM(CASE WHEN P.POSICION = 'EGRESOS' THEN 
+            CASE EG.PERIODO WHEN :fecha_periodo_actual THEN EG.SALDO ELSE 0 END 
+          ELSE 0 END) as TOTAL_EGRESOS_ACTUAL
+        FROM ${conjunto}.EGP EG (NOLOCK)
+        INNER JOIN ${conjunto}.POSICION_EGP P (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA
+        WHERE EG.USUARIO = :usuario AND EG.TIPO = :tipo_egp
+      `;
+      
+      const [results] = await exactusSequelize.query(balanceQuery, {
+        replacements: { usuario, tipo_egp: tipoEgp, fecha_periodo_actual: fechaActual, fecha_periodo_anterior: fechaAnterior }
+      });
+      
+      const totalIngresos = (results as any[])[0]?.TOTAL_INGRESOS_ACTUAL || 0;
+      const totalEgresos = (results as any[])[0]?.TOTAL_EGRESOS_ACTUAL || 0;
+      const utilidad = totalIngresos - totalEgresos;
+      
+      return {
+        valido: Math.abs(utilidad) < 0.01, // Tolerancia de 1 centavo
+        mensaje: `Balance: Ingresos ${this.formatearNumero(totalIngresos)} - Egresos ${this.formatearNumero(totalEgresos)} = Utilidad ${this.formatearNumero(utilidad)}`,
+        totalIngresos,
+        totalEgresos,
+        utilidad
+      };
+    } catch (error) {
+      return { 
+        valido: false, 
+        mensaje: `Error en validación: ${error}`,
+        totalIngresos: 0,
+        totalEgresos: 0,
+        utilidad: 0
+      };
+    }
+  }
+
+  private async registrarEjecucion(
+    conjunto: string,
+    usuario: string,
+    fechaActual: string,
+    fechaAnterior: string,
+    registrosProcesados: number,
+    tiempoEjecucion: number
+  ): Promise<void> {
+    try {
+      const logQuery = `
+        INSERT INTO ${conjunto}.LOG_REPORTES (
+          USUARIO, REPORTE, FECHA_EJECUCION, PERIODO_ACTUAL, PERIODO_ANTERIOR, 
+          REGISTROS_PROCESADOS, TIEMPO_EJECUCION, ESTADO
+        ) VALUES (
+          :usuario, 'CO003320-BASIC', GETDATE(), :fechaActual, :fechaAnterior,
+          :registrosProcesados, :tiempoEjecucion, 'EXITOSO'
+        )
+      `;
+      
+      await exactusSequelize.query(logQuery, {
+        replacements: { usuario, fechaActual, fechaAnterior, registrosProcesados, tiempoEjecucion }
+      });
+    } catch (error) {
+      console.error('Error al registrar ejecución:', error);
+    }
+  }
+
+  private mapearResultadosConJerarquia(
+    results: any[], 
+    fechaActual: string, 
+    fechaAnterior: string, 
+    tipoEgp: string
+  ): EstadoResultados[] {
+    return results.map((row: any) => {
+      const nivel = this.calcularNivelJerarquia(row.FAMILIA_PADRE);
+      const indentacion = '  '.repeat(nivel);
+      const variacion = (row.SALDO2 || 0) - (row.SALDO1 || 0);
+      
+      return {
+        cuenta_contable: row.nombre_cuenta || '',
+        fecha_balance: new Date(fechaActual),
+        saldo_inicial: row.SALDO1 || 0,
+        nombre_cuenta: `${indentacion}${row.nombre_cuenta || ''}`,
+        fecha_inicio: new Date(fechaAnterior),
+        fecha_cuenta: new Date(fechaActual),
+        saldo_final: row.SALDO2 || 0,
+        tiporeporte: tipoEgp,
+        posicion: row.POSICION || '',
+        caracter: nivel > 0 ? 'SUBCUENTA' : 'CUENTA',
+        moneda: 'Nuevo Sol',
+        padre: row.NOMBRE || '',
+        orden: row.ORDEN || 0,
+        mes: fechaActual ? fechaActual.split('-')[1] || '' : '',
+        variacion: variacion,
+        nivel: nivel,
+        saldo_inicial_formateado: this.formatearNumero(row.SALDO1 || 0),
+        saldo_final_formateado: this.formatearNumero(row.SALDO2 || 0),
+        variacion_formateada: this.formatearVariacion(variacion)
+      };
+    });
   }
 }

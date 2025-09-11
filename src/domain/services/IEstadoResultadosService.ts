@@ -1,4 +1,4 @@
-import { EstadoResultados, FiltrosEstadoResultados, TipoEgp, PeriodoContable } from '../entities/EstadoResultados';
+import { EstadoResultados, FiltrosEstadoResultados, TipoEgp, PeriodoContable, ValidacionBalance } from '../entities/EstadoResultados';
 
 export interface IEstadoResultadosService {
   getTiposEgp(conjunto: string, usuario: string): Promise<TipoEgp[]>;
@@ -11,4 +11,5 @@ export interface IEstadoResultadosService {
     pageSize?: number
   ): Promise<EstadoResultados[]>;
   getTotalRecords(conjunto: string, usuario: string, filtros: FiltrosEstadoResultados): Promise<number>;
+  validarBalance(conjunto: string, usuario: string, filtros: FiltrosEstadoResultados): Promise<ValidacionBalance>;
 }
