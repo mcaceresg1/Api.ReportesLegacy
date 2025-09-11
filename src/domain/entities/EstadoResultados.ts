@@ -82,6 +82,8 @@ export interface PeriodoContable {
   descripcion: string;
   contabilidad: string;
   estado: string;
+  fechaInicial?: string;
+  fechaFinal?: string;
 }
 
 export interface EstadoResultadosResponse {

@@ -70,14 +70,42 @@ async function testDataGeneration() {
     
     console.log('📊 Datos finales:', finalData);
 
-    // Mostrar algunos registros de ejemplo
+    // Mostrar algunos registros de ejemplo de EGP
     const [sampleData] = await exactusSequelize.query(`
       SELECT TOP 10 * FROM JBRTRA.EGP 
       WHERE USUARIO = 'ADMPQUES' 
       ORDER BY PERIODO, TIPO, FAMILIA
     `);
     
-    console.log('📋 Registros de ejemplo:', sampleData);
+    console.log('📋 Registros de ejemplo EGP:', sampleData);
+
+    // Verificar datos en periodo_contable
+    console.log('🔍 Verificando datos en periodo_contable...');
+    const [periodosData] = await exactusSequelize.query(`
+      SELECT COUNT(*) as TotalPeriodos, contabilidad, estado
+      FROM JBRTRA.periodo_contable 
+      GROUP BY contabilidad, estado
+    `);
+    
+    console.log('📊 Períodos contables:', periodosData);
+
+    // Verificar períodos para la fecha específica 2011-03-12
+    const [periodoEspecifico] = await exactusSequelize.query(`
+      SELECT * FROM JBRTRA.periodo_contable 
+      WHERE fecha_final = '2011-03-12' 
+        AND contabilidad = 'F'
+    `);
+    
+    console.log('📅 Período para 2011-03-12:', periodoEspecifico);
+
+    // Mostrar algunos períodos contables de ejemplo
+    const [periodosEjemplo] = await exactusSequelize.query(`
+      SELECT TOP 10 * FROM JBRTRA.periodo_contable 
+      WHERE contabilidad = 'F' 
+      ORDER BY fecha_final DESC
+    `);
+    
+    console.log('📋 Períodos de ejemplo:', periodosEjemplo);
 
   } catch (error) {
     console.error('❌ Error:', error);

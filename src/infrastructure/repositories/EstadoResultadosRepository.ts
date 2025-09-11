@@ -42,21 +42,32 @@ export class EstadoResultadosRepository {
 
   async getPeriodosContables(conjunto: string, fecha: string): Promise<PeriodoContable[]> {
     try {
+      // Convertir fecha de formato YYYY/MM/DD a YYYY-MM-DD
+      const fechaFormateada = fecha.replace(/\//g, '-');
+      
       const query = `
-        SELECT descripcion, contabilidad, estado 
-        FROM ${conjunto}.periodo_contable (NOLOCK)                                   
+        SELECT 
+          descripcion, 
+          contabilidad, 
+          estado,
+          fecha_inicial,
+          fecha_final
+        FROM JBRTRA.periodo_contable (NOLOCK)                                   
         WHERE fecha_final = :fecha
-        AND contabilidad = 'F'
+          AND contabilidad = 'F'
+        ORDER BY fecha_final DESC
       `;
 
       const [results] = await exactusSequelize.query(query, { 
-        replacements: { fecha } 
+        replacements: { fecha: fechaFormateada } 
       });
       
       return (results as any[]).map((row: any) => ({
         descripcion: row.descripcion || '',
         contabilidad: row.contabilidad || '',
-        estado: row.estado || ''
+        estado: row.estado || '',
+        fechaInicial: row.fecha_inicial || '',
+        fechaFinal: row.fecha_final || ''
       }));
     } catch (error) {
       console.error('Error al obtener períodos contables:', error);

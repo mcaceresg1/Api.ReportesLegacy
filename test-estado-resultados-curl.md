@@ -263,6 +263,8 @@ curl -X POST "http://localhost:3000/api/estado-resultados/EMP001/exportar-pdf" \
 4. **Conjunto**: Verifica que el conjunto "EMP001" exista en tu base de datos
 5. **Usuario**: Asegúrate de que el usuario tenga permisos para ejecutar reportes
 6. **Datos de Prueba**: Si obtienes arrays vacíos, ejecuta el script de generación de datos
+7. **Formato de Fecha**: Para períodos contables, usa formato YYYY-MM-DD (ej: 2011-03-12)
+8. **Esquema de Base de Datos**: Las tablas están en el esquema JBRTRA, no en el conjunto
 
 ## Configuración de Datos de Prueba
 
@@ -289,11 +291,59 @@ FROM JBRTRA.EGP
 WHERE USUARIO = 'ADMPQUES'
 GROUP BY TIPO, USUARIO;
 
--- Ver algunos registros de ejemplo
+-- Ver algunos registros de ejemplo de EGP
 SELECT TOP 10 * FROM JBRTRA.EGP 
 WHERE USUARIO = 'ADMPQUES' 
 ORDER BY PERIODO, TIPO, FAMILIA;
+
+-- Verificar datos en periodo_contable
+SELECT COUNT(*) as TotalPeriodos, contabilidad, estado
+FROM JBRTRA.periodo_contable 
+GROUP BY contabilidad, estado;
+
+-- Verificar períodos para una fecha específica
+SELECT * FROM JBRTRA.periodo_contable 
+WHERE fecha_final = '2011-03-12' 
+  AND contabilidad = 'F';
+
+-- Ver algunos períodos contables de ejemplo
+SELECT TOP 10 * FROM JBRTRA.periodo_contable 
+WHERE contabilidad = 'F' 
+ORDER BY fecha_final DESC;
 ```
+
+## Troubleshooting
+
+### Problema: Arrays Vacíos en Respuestas
+
+**Síntomas:**
+- `GET /tipos-egp` devuelve `{"success": true, "data": []}`
+- `GET /periodos-contables` devuelve `{"success": true, "data": []}`
+
+**Causas Posibles:**
+1. **Datos faltantes**: Las tablas `JBRTRA.EGP` o `JBRTRA.periodo_contable` están vacías
+2. **Esquema incorrecto**: Las consultas buscan en el esquema correcto
+3. **Formato de fecha**: La fecha no coincide con el formato esperado
+4. **Usuario incorrecto**: El usuario no tiene datos asociados
+
+**Soluciones:**
+1. **Ejecutar script de generación de datos**:
+   ```bash
+   node test-data-generation.js
+   ```
+
+2. **Verificar datos en base de datos**:
+   ```sql
+   -- Verificar EGP
+   SELECT COUNT(*) FROM JBRTRA.EGP WHERE USUARIO = 'ADMPQUES';
+   
+   -- Verificar períodos contables
+   SELECT COUNT(*) FROM JBRTRA.periodo_contable WHERE contabilidad = 'F';
+   ```
+
+3. **Usar formato de fecha correcto**:
+   - ✅ Correcto: `2011-03-12`
+   - ❌ Incorrecto: `2011/03/12`
 
 ## Pruebas Recomendadas
 

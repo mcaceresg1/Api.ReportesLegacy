@@ -226,11 +226,26 @@ FROM (
 ) VISTA 
 GROUP BY TIPO, FAMILIA;
 
--- Verificar datos insertados
+-- Verificar datos insertados en EGP
 SELECT COUNT(*) as TotalRegistros, TIPO, USUARIO
 FROM JBRTRA.EGP 
 WHERE USUARIO = 'ADMPQUES'
 GROUP BY TIPO, USUARIO;
 
--- Mostrar algunos registros de ejemplo
+-- Mostrar algunos registros de ejemplo de EGP
 SELECT TOP 10 * FROM JBRTRA.EGP WHERE USUARIO = 'ADMPQUES' ORDER BY PERIODO, TIPO, FAMILIA;
+
+-- Verificar datos en periodo_contable
+SELECT COUNT(*) as TotalPeriodos, contabilidad, estado
+FROM JBRTRA.periodo_contable 
+GROUP BY contabilidad, estado;
+
+-- Mostrar algunos períodos contables de ejemplo
+SELECT TOP 10 * FROM JBRTRA.periodo_contable 
+WHERE contabilidad = 'F' 
+ORDER BY fecha_final DESC;
+
+-- Verificar períodos para la fecha específica 2011-03-12
+SELECT * FROM JBRTRA.periodo_contable 
+WHERE fecha_final = '2011-03-12' 
+  AND contabilidad = 'F';
