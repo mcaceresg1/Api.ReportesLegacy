@@ -84,85 +84,103 @@ export class EstadoResultadosRepository {
     pageSize: number = 20
   ): Promise<any[]> {
     const inicioEjecucion = Date.now();
+    const maxRetries = 2;
+    let lastError: Error | null = null;
     
-    try {
-      // Validar parámetros requeridos
-      if (!conjunto || !usuario || !filtros.fecha) {
-        throw new Error('Conjunto, usuario y fecha son requeridos');
-      }
-
-      const fechaActual = filtros.fecha!;
-      const fechaAnterior = this.calcularFechaAnterior(fechaActual);
-      const tipoEgp = filtros.tipoEgp || 'GYPPQ';
-
-      console.log(`🔍 [REPOSITORY] Iniciando proceso de Estado de Resultados...`);
-      console.log(`🔍 [REPOSITORY] Parámetros: conjunto=${conjunto}, usuario=${usuario}, fechaActual=${fechaActual}, fechaAnterior=${fechaAnterior}, tipoEgp=${tipoEgp}`);
-
-      // Paso 1: Cargar datos EGP para fecha actual
-      await this.cargarDatosEGP(conjunto, usuario, fechaActual, tipoEgp);
-      
-      // Paso 2: Cargar datos EGP para fecha anterior
-      await this.cargarDatosEGP(conjunto, usuario, fechaAnterior, tipoEgp);
-
-      // Paso 3: Consulta optimizada basada en el query estándar
-      const queryPrincipal = `
-        SELECT 
-          PA.NOMBRE AS nombre_cuenta,
-          P.FAMILIA,
-          P.NOMBRE AS concepto,
-          P.POSICION,
-          P.ORDEN,
-          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_actual THEN EG.SALDO ELSE 0 END), 0) AS saldo_final,
-          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_anterior THEN EG.SALDO ELSE 0 END), 0) AS saldo_inicial
-        FROM ${conjunto}.POSICION_EGP P (NOLOCK)
-        INNER JOIN ${conjunto}.POSICION_EGP PA (NOLOCK) ON PA.TIPO = P.TIPO AND PA.FAMILIA = P.FAMILIA_PADRE
-        LEFT OUTER JOIN ${conjunto}.EGP EG (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA AND EG.USUARIO = :usuario
-        WHERE P.TIPO = :tipo_egp
-        GROUP BY PA.NOMBRE, P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN
-
-        UNION ALL
-
-        SELECT 
-          NULL AS nombre_cuenta,
-          P.FAMILIA,
-          P.NOMBRE AS concepto,
-          P.POSICION,
-          P.ORDEN,
-          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_actual THEN EG.SALDO ELSE 0 END), 0) AS saldo_final,
-          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_anterior THEN EG.SALDO ELSE 0 END), 0) AS saldo_inicial
-        FROM ${conjunto}.POSICION_EGP P (NOLOCK)
-        LEFT OUTER JOIN ${conjunto}.EGP EG (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA AND EG.USUARIO = :usuario
-        WHERE P.FAMILIA_PADRE IS NULL AND P.AGRUPA = 'N' AND P.TIPO = :tipo_egp
-        GROUP BY P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN
-        ORDER BY 4, 6
-      `;
-
-      console.log(`🔍 [REPOSITORY] Ejecutando consulta principal...`);
-      
-      const [results] = await exactusSequelize.query(queryPrincipal, {
-        replacements: {
-          fecha_actual: fechaActual,
-          fecha_anterior: fechaAnterior,
-          usuario: usuario,
-          tipo_egp: tipoEgp
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`🔍 [REPOSITORY] Intento ${attempt}/${maxRetries} - Iniciando proceso de Estado de Resultados...`);
+        
+        // Validar parámetros requeridos
+        if (!conjunto || !usuario || !filtros.fecha) {
+          throw new Error('Conjunto, usuario y fecha son requeridos');
         }
-      });
 
-      console.log(`🔍 [REPOSITORY] Consulta completada. Resultados: ${results ? (results as any[]).length : 0}`);
+        const fechaActual = filtros.fecha!;
+        const fechaAnterior = this.calcularFechaAnterior(fechaActual);
+        const tipoEgp = filtros.tipoEgp || 'GYPPQ';
 
-      // Mapear resultados simplificados - solo 3 campos
-      const datosReporte = this.mapearResultadosSimplificados(results ? (results as any[]) : []);
-      
-      const tiempoEjecucion = Date.now() - inicioEjecucion;
-      console.log(`✅ [REPOSITORY] getEstadoResultados completado en ${tiempoEjecucion}ms`);
-      
-      return datosReporte;
+        console.log(`🔍 [REPOSITORY] Parámetros: conjunto=${conjunto}, usuario=${usuario}, fechaActual=${fechaActual}, fechaAnterior=${fechaAnterior}, tipoEgp=${tipoEgp}`);
 
-    } catch (error) {
-      const tiempoEjecucion = Date.now() - inicioEjecucion;
-      console.error(`❌ [REPOSITORY] Error después de ${tiempoEjecucion}ms:`, error);
-      throw new Error(`Error al obtener estado de resultados: ${error}`);
+        // Paso 1: Cargar datos EGP para fecha actual
+        await this.cargarDatosEGPConRetry(conjunto, usuario, fechaActual, tipoEgp);
+        
+        // Paso 2: Cargar datos EGP para fecha anterior
+        await this.cargarDatosEGPConRetry(conjunto, usuario, fechaAnterior, tipoEgp);
+
+        // Paso 3: Consulta optimizada basada en el query estándar
+        const queryPrincipal = `
+          SELECT 
+            PA.NOMBRE AS nombre_cuenta,
+            P.FAMILIA,
+            P.NOMBRE AS concepto,
+            P.POSICION,
+            P.ORDEN,
+            ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_actual THEN EG.SALDO ELSE 0 END), 0) AS saldo_final,
+            ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_anterior THEN EG.SALDO ELSE 0 END), 0) AS saldo_inicial
+          FROM ${conjunto}.POSICION_EGP P (NOLOCK)
+          INNER JOIN ${conjunto}.POSICION_EGP PA (NOLOCK) ON PA.TIPO = P.TIPO AND PA.FAMILIA = P.FAMILIA_PADRE
+          LEFT OUTER JOIN ${conjunto}.EGP EG (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA AND EG.USUARIO = :usuario
+          WHERE P.TIPO = :tipo_egp
+          GROUP BY PA.NOMBRE, P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN
+
+          UNION ALL
+
+          SELECT 
+            NULL AS nombre_cuenta,
+            P.FAMILIA,
+            P.NOMBRE AS concepto,
+            P.POSICION,
+            P.ORDEN,
+            ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_actual THEN EG.SALDO ELSE 0 END), 0) AS saldo_final,
+            ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_anterior THEN EG.SALDO ELSE 0 END), 0) AS saldo_inicial
+          FROM ${conjunto}.POSICION_EGP P (NOLOCK)
+          LEFT OUTER JOIN ${conjunto}.EGP EG (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA AND EG.USUARIO = :usuario
+          WHERE P.FAMILIA_PADRE IS NULL AND P.AGRUPA = 'N' AND P.TIPO = :tipo_egp
+          GROUP BY P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN
+          ORDER BY 4, 6
+        `;
+
+        console.log(`🔍 [REPOSITORY] Ejecutando consulta principal...`);
+        
+        const [results] = await exactusSequelize.query(queryPrincipal, {
+          replacements: {
+            fecha_actual: fechaActual,
+            fecha_anterior: fechaAnterior,
+            usuario: usuario,
+            tipo_egp: tipoEgp
+          }
+        });
+
+        console.log(`🔍 [REPOSITORY] Consulta completada. Resultados: ${results ? (results as any[]).length : 0}`);
+
+        // Mapear resultados simplificados - solo 3 campos
+        const datosReporte = this.mapearResultadosSimplificados(results ? (results as any[]) : []);
+        
+        const tiempoEjecucion = Date.now() - inicioEjecucion;
+        console.log(`✅ [REPOSITORY] getEstadoResultados completado en ${tiempoEjecucion}ms`);
+        
+        return datosReporte;
+
+      } catch (error: any) {
+        lastError = error;
+        const tiempoEjecucion = Date.now() - inicioEjecucion;
+        
+        if (error.message && error.message.includes('Timeout') && attempt < maxRetries) {
+          console.warn(`⚠️ [REPOSITORY] Timeout en intento ${attempt}, reintentando en 5 segundos...`);
+          await new Promise(resolve => setTimeout(resolve, 5000)); // Esperar 5 segundos antes del retry
+          continue;
+        }
+        
+        console.error(`❌ [REPOSITORY] Error después de ${tiempoEjecucion}ms en intento ${attempt}:`, error);
+        
+        if (attempt === maxRetries) {
+          throw new Error(`Error al obtener estado de resultados después de ${maxRetries} intentos: ${error}`);
+        }
+      }
     }
+    
+    throw lastError || new Error('Error desconocido en getEstadoResultados');
   }
 
   async getTotalRecords(conjunto: string, usuario: string, filtros: FiltrosEstadoResultados): Promise<number> {
@@ -409,21 +427,61 @@ export class EstadoResultadosRepository {
     }));
   }
 
+  private async cargarDatosEGPConRetry(conjunto: string, usuario: string, fecha: string, tipoEgp: string): Promise<void> {
+    const maxRetries = 2;
+    let lastError: Error | null = null;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`🔍 [REPOSITORY] Cargando datos EGP para fecha: ${fecha} (intento ${attempt}/${maxRetries})`);
+        await this.cargarDatosEGP(conjunto, usuario, fecha, tipoEgp);
+        return; // Si es exitoso, salir del loop
+      } catch (error: any) {
+        lastError = error;
+        if (error.message && error.message.includes('Timeout') && attempt < maxRetries) {
+          console.warn(`⚠️ [REPOSITORY] Timeout cargando EGP para ${fecha}, reintentando en 3 segundos...`);
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          continue;
+        }
+        throw error; // Si no es timeout o es el último intento, lanzar el error
+      }
+    }
+    
+    throw lastError || new Error('Error desconocido cargando datos EGP');
+  }
+
   private async cargarDatosEGP(conjunto: string, usuario: string, fecha: string, tipoEgp: string): Promise<void> {
     try {
       console.log(`🔍 [REPOSITORY] Cargando datos EGP para fecha: ${fecha}`);
       
-      // Query optimizado para cargar datos EGP
+      // Verificar si ya existen datos para esta fecha y usuario
+      const queryVerificar = `
+        SELECT COUNT(*) as total 
+        FROM ${conjunto}.EGP (NOLOCK) 
+        WHERE PERIODO = :fecha AND USUARIO = :usuario AND TIPO = :tipo_egp
+      `;
+      
+      const [verificacion] = await exactusSequelize.query(queryVerificar, {
+        replacements: { fecha, usuario, tipo_egp: tipoEgp }
+      });
+      
+      const totalExistentes = verificacion ? (verificacion as any[])[0]?.total || 0 : 0;
+      if (totalExistentes > 0) {
+        console.log(`✅ [REPOSITORY] Datos EGP ya existen para fecha ${fecha} (${totalExistentes} registros), omitiendo carga`);
+        return;
+      }
+      
+      // Query optimizado para cargar datos EGP con hints de performance
       const queryCargarEGP = `
-        INSERT INTO ${conjunto}.EGP (PERIODO, TIPO, FAMILIA, SALDO, SALDO_DOLAR, USUARIO)
-        SELECT 
-          :fecha,
-          TIPO,
-          FAMILIA,
-          SUM(SALDO_LOCAL) AS SALDO_LOCAL,
-          SUM(SALDO_DOLAR) AS SALDO_DOLAR,
-          :usuario
-        FROM (
+          INSERT INTO ${conjunto}.EGP (PERIODO, TIPO, FAMILIA, SALDO, SALDO_DOLAR, USUARIO)
+          SELECT 
+            :fecha,
+            TIPO,
+            FAMILIA,
+            SUM(SALDO_LOCAL) AS SALDO_LOCAL,
+            SUM(SALDO_DOLAR) AS SALDO_DOLAR,
+            :usuario
+          FROM (
           SELECT 
             E.TIPO,
             E.FAMILIA,
