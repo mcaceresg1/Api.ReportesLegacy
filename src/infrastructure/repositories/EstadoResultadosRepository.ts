@@ -100,7 +100,7 @@ export class EstadoResultadosRepository {
       // Paso 3: Cargar datos EGP para período anterior
       await this.cargarDatosEGP(fechaAnterior, tipoEgp, usuario);
 
-      // Paso 4: Ejecutar query principal estándar
+      // Paso 4: Ejecutar query principal estándar (usando nombres de columnas correctos)
       const queryPrincipal = `
         SELECT 
           PA.NOMBRE AS PADRE_NOMBRE,
@@ -109,8 +109,8 @@ export class EstadoResultadosRepository {
           P.POSICION,
           'Nuevo Sol' AS MONEDA,
           P.ORDEN,
-          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_actual THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ACTUAL,
-          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_anterior THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ANTERIOR,
+          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_actual THEN EG.SALDO ELSE 0 END), 0) AS SALDO2,
+          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_anterior THEN EG.SALDO ELSE 0 END), 0) AS SALDO1,
           (ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_actual THEN EG.SALDO ELSE 0 END), 0) - 
            ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_anterior THEN EG.SALDO ELSE 0 END), 0)) AS VARIACION,
           P.FAMILIA_PADRE
@@ -129,8 +129,8 @@ export class EstadoResultadosRepository {
           P.POSICION,
           'Nuevo Sol' AS MONEDA,
           P.ORDEN,
-          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_actual THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ACTUAL,
-          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_anterior THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ANTERIOR,
+          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_actual THEN EG.SALDO ELSE 0 END), 0) AS SALDO2,
+          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_anterior THEN EG.SALDO ELSE 0 END), 0) AS SALDO1,
           (ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_actual THEN EG.SALDO ELSE 0 END), 0) - 
            ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_anterior THEN EG.SALDO ELSE 0 END), 0)) AS VARIACION,
           P.FAMILIA_PADRE
@@ -143,6 +143,7 @@ export class EstadoResultadosRepository {
       `;
 
       console.log(`🔍 [REPOSITORY] Ejecutando query principal estándar...`);
+      console.log(`🔍 [REPOSITORY] Parámetros: fecha_actual=${fechaActual}, fecha_anterior=${fechaAnterior}, usuario=${usuario}, tipo_egp=${tipoEgp}`);
       
       const [results] = await exactusSequelize.query(queryPrincipal, {
         replacements: {
@@ -154,6 +155,10 @@ export class EstadoResultadosRepository {
       });
 
       console.log(`🔍 [REPOSITORY] Query principal completado. Resultados: ${results ? (results as any[]).length : 0}`);
+      
+      if (results && (results as any[]).length > 0) {
+        console.log(`🔍 [REPOSITORY] Primer resultado:`, (results as any[])[0]);
+      }
 
       // Mapear resultados con jerarquía
       const datosReporte = this.mapearResultadosConJerarquia(results ? (results as any[]) : [], fechaActual, fechaAnterior, tipoEgp);
@@ -170,6 +175,7 @@ export class EstadoResultadosRepository {
     } catch (error) {
       const tiempoEjecucion = Date.now() - inicioEjecucion;
       console.error(`❌ [REPOSITORY] Error después de ${tiempoEjecucion}ms:`, error);
+      console.error(`❌ [REPOSITORY] Stack trace:`, error instanceof Error ? error.stack : 'No stack trace available');
       
       // Si falla, devolver datos mock para testing
       console.log(`🔄 [REPOSITORY] Devolviendo datos mock para testing...`);
