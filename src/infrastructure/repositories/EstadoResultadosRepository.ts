@@ -1,6 +1,7 @@
 import { injectable } from 'inversify';
 import { exactusSequelize } from '../database/config/exactus-database'
 import { EstadoResultados, FiltrosEstadoResultados, TipoEgp, PeriodoContable, ValidacionBalance, LogEjecucion } from '../../domain/entities/EstadoResultados';
+import { DynamicModelFactory } from '../database/models/DynamicModel';
 
 @injectable()
 export class EstadoResultadosRepository {
@@ -81,7 +82,7 @@ export class EstadoResultadosRepository {
     filtros: FiltrosEstadoResultados,
     page: number = 1,
     pageSize: number = 20
-  ): Promise<EstadoResultados[]> {
+  ): Promise<any[]> {
     const inicioEjecucion = Date.now();
     
     try {
@@ -94,31 +95,54 @@ export class EstadoResultadosRepository {
       const fechaAnterior = this.calcularFechaAnterior(fechaActual);
       const tipoEgp = filtros.tipoEgp || 'GYPPQ';
 
-      console.log(`🔍 [REPOSITORY] Iniciando consulta con diagnóstico...`);
-      console.log(`🔍 [REPOSITORY] Parámetros: usuario=${usuario}, fechaActual=${fechaActual}, fechaAnterior=${fechaAnterior}, tipoEgp=${tipoEgp}`);
+      console.log(`🔍 [REPOSITORY] Iniciando proceso de Estado de Resultados...`);
+      console.log(`🔍 [REPOSITORY] Parámetros: conjunto=${conjunto}, usuario=${usuario}, fechaActual=${fechaActual}, fechaAnterior=${fechaAnterior}, tipoEgp=${tipoEgp}`);
 
-      // Primero, diagnosticar qué datos existen
-      await this.diagnosticarDatosEGP(usuario, fechaActual, fechaAnterior, tipoEgp);
+      // Paso 1: Cargar datos EGP para fecha actual
+      await this.cargarDatosEGP(conjunto, usuario, fechaActual, tipoEgp);
+      
+      // Paso 2: Cargar datos EGP para fecha anterior
+      await this.cargarDatosEGP(conjunto, usuario, fechaAnterior, tipoEgp);
 
-      // Consulta simplificada que retorna solo los 3 campos requeridos
-      const ultraSimpleQuery = `
-        SELECT TOP 50
-          P.NOMBRE AS nombre_cuenta,
-          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_periodo_anterior THEN EG.SALDO ELSE 0 END), 0) AS saldo_inicial,
-          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_periodo_actual THEN EG.SALDO ELSE 0 END), 0) AS saldo_final
-        FROM JBRTRA.POSICION_EGP P (NOLOCK)   
-        LEFT JOIN JBRTRA.EGP EG (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA AND EG.USUARIO = :usuario
+      // Paso 3: Consulta optimizada basada en el query estándar
+      const queryPrincipal = `
+        SELECT 
+          PA.NOMBRE AS nombre_cuenta,
+          P.FAMILIA,
+          P.NOMBRE AS concepto,
+          P.POSICION,
+          P.ORDEN,
+          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_actual THEN EG.SALDO ELSE 0 END), 0) AS saldo_final,
+          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_anterior THEN EG.SALDO ELSE 0 END), 0) AS saldo_inicial
+        FROM ${conjunto}.POSICION_EGP P (NOLOCK)
+        INNER JOIN ${conjunto}.POSICION_EGP PA (NOLOCK) ON PA.TIPO = P.TIPO AND PA.FAMILIA = P.FAMILIA_PADRE
+        LEFT OUTER JOIN ${conjunto}.EGP EG (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA AND EG.USUARIO = :usuario
         WHERE P.TIPO = :tipo_egp
-        GROUP BY P.NOMBRE
-        ORDER BY P.ORDEN
+        GROUP BY PA.NOMBRE, P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN
+
+        UNION ALL
+
+        SELECT 
+          NULL AS nombre_cuenta,
+          P.FAMILIA,
+          P.NOMBRE AS concepto,
+          P.POSICION,
+          P.ORDEN,
+          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_actual THEN EG.SALDO ELSE 0 END), 0) AS saldo_final,
+          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_anterior THEN EG.SALDO ELSE 0 END), 0) AS saldo_inicial
+        FROM ${conjunto}.POSICION_EGP P (NOLOCK)
+        LEFT OUTER JOIN ${conjunto}.EGP EG (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA AND EG.USUARIO = :usuario
+        WHERE P.FAMILIA_PADRE IS NULL AND P.AGRUPA = 'N' AND P.TIPO = :tipo_egp
+        GROUP BY P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN
+        ORDER BY 4, 6
       `;
 
       console.log(`🔍 [REPOSITORY] Ejecutando consulta principal...`);
       
-      const [results] = await exactusSequelize.query(ultraSimpleQuery, {
+      const [results] = await exactusSequelize.query(queryPrincipal, {
         replacements: {
-          fecha_periodo_actual: fechaActual,
-          fecha_periodo_anterior: fechaAnterior,
+          fecha_actual: fechaActual,
+          fecha_anterior: fechaAnterior,
           usuario: usuario,
           tipo_egp: tipoEgp
         }
@@ -129,20 +153,15 @@ export class EstadoResultadosRepository {
       // Mapear resultados simplificados - solo 3 campos
       const datosReporte = this.mapearResultadosSimplificados(results ? (results as any[]) : []);
       
-      const resultadoFinal = datosReporte;
-      
       const tiempoEjecucion = Date.now() - inicioEjecucion;
       console.log(`✅ [REPOSITORY] getEstadoResultados completado en ${tiempoEjecucion}ms`);
       
-      return resultadoFinal;
+      return datosReporte;
 
     } catch (error) {
       const tiempoEjecucion = Date.now() - inicioEjecucion;
       console.error(`❌ [REPOSITORY] Error después de ${tiempoEjecucion}ms:`, error);
-      
-      // Si falla la consulta simple, devolver datos mock para testing
-      console.log(`🔄 [REPOSITORY] Devolviendo datos mock para testing...`);
-      return this.getDatosMock(filtros.fecha!);
+      throw new Error(`Error al obtener estado de resultados: ${error}`);
     }
   }
 
@@ -390,10 +409,131 @@ export class EstadoResultadosRepository {
     }));
   }
 
+  private async cargarDatosEGP(conjunto: string, usuario: string, fecha: string, tipoEgp: string): Promise<void> {
+    try {
+      console.log(`🔍 [REPOSITORY] Cargando datos EGP para fecha: ${fecha}`);
+      
+      // Query optimizado para cargar datos EGP
+      const queryCargarEGP = `
+        INSERT INTO ${conjunto}.EGP (PERIODO, TIPO, FAMILIA, SALDO, SALDO_DOLAR, USUARIO)
+        SELECT 
+          :fecha,
+          TIPO,
+          FAMILIA,
+          SUM(SALDO_LOCAL) AS SALDO_LOCAL,
+          SUM(SALDO_DOLAR) AS SALDO_DOLAR,
+          :usuario
+        FROM (
+          SELECT 
+            E.TIPO,
+            E.FAMILIA,
+            V.CREDITO_LOCAL - V.DEBITO_LOCAL AS SALDO_LOCAL,
+            V.CREDITO_DOLAR - V.DEBITO_DOLAR AS SALDO_DOLAR
+          FROM (
+            -- Saldos fiscales
+            SELECT 
+              m.centro_costo,
+              m.cuenta_contable,
+              CASE WHEN m.saldo_fisc_local > 0 THEN ABS(m.saldo_fisc_local) ELSE 0 END AS debito_local,
+              CASE WHEN m.saldo_fisc_local < 0 THEN ABS(m.saldo_fisc_local) ELSE 0 END AS credito_local,
+              CASE WHEN m.saldo_fisc_dolar > 0 THEN ABS(m.saldo_fisc_dolar) ELSE 0 END AS debito_dolar,
+              CASE WHEN m.saldo_fisc_dolar < 0 THEN ABS(m.saldo_fisc_dolar) ELSE 0 END AS credito_dolar
+            FROM ${conjunto}.saldo m (NOLOCK)
+            INNER JOIN (
+              SELECT m.centro_costo, m.cuenta_contable, MAX(m.fecha) AS fecha
+              FROM ${conjunto}.saldo m (NOLOCK)
+              WHERE m.fecha <= :fecha
+              GROUP BY m.centro_costo, m.cuenta_contable
+            ) smax ON (m.centro_costo = smax.centro_costo AND m.cuenta_contable = smax.cuenta_contable AND m.fecha = smax.fecha)
+            WHERE 1 = 1
+            
+            UNION ALL
+            
+            -- Movimientos del diario
+            SELECT 
+              m.centro_costo,
+              m.cuenta_contable,
+              COALESCE(m.debito_local, 0) AS debito_local,
+              COALESCE(m.credito_local, 0) AS credito_local,
+              COALESCE(m.debito_dolar, 0) AS debito_dolar,
+              COALESCE(m.credito_dolar, 0) AS credito_dolar
+            FROM ${conjunto}.asiento_de_diario am (NOLOCK)
+            INNER JOIN ${conjunto}.diario m (NOLOCK) ON (am.asiento = m.asiento)
+            WHERE am.fecha <= :fecha
+              AND contabilidad IN ('F', 'A')
+          ) V
+          INNER JOIN ${conjunto}.EGP_CUENTAS_DET E (NOLOCK) ON (E.CUENTA_CONTABLE = V.CUENTA_CONTABLE)
+          WHERE E.TIPO = :tipo_egp
+            AND NOT EXISTS (
+              SELECT 1 FROM ${conjunto}.EGP_CENTROS_CUENTAS X (NOLOCK)
+              WHERE E.TIPO = X.TIPO AND E.FAMILIA = X.FAMILIA AND E.CUENTA_CONTABLE_ORIGINAL = X.CUENTA_CONTABLE
+            )
+          
+          UNION ALL
+          
+          SELECT 
+            E.TIPO,
+            E.FAMILIA,
+            V.CREDITO_LOCAL - V.DEBITO_LOCAL,
+            V.CREDITO_DOLAR - V.DEBITO_DOLAR
+          FROM (
+            -- Saldos fiscales con centro de costo
+            SELECT 
+              m.centro_costo,
+              m.cuenta_contable,
+              CASE WHEN m.saldo_fisc_local > 0 THEN ABS(m.saldo_fisc_local) ELSE 0 END AS debito_local,
+              CASE WHEN m.saldo_fisc_local < 0 THEN ABS(m.saldo_fisc_local) ELSE 0 END AS credito_local,
+              CASE WHEN m.saldo_fisc_dolar > 0 THEN ABS(m.saldo_fisc_dolar) ELSE 0 END AS debito_dolar,
+              CASE WHEN m.saldo_fisc_dolar < 0 THEN ABS(m.saldo_fisc_dolar) ELSE 0 END AS credito_dolar
+            FROM ${conjunto}.saldo m (NOLOCK)
+            INNER JOIN (
+              SELECT m.centro_costo, m.cuenta_contable, MAX(m.fecha) AS fecha
+              FROM ${conjunto}.saldo m (NOLOCK)
+              WHERE m.fecha <= :fecha
+              GROUP BY m.centro_costo, m.cuenta_contable
+            ) smax ON (m.centro_costo = smax.centro_costo AND m.cuenta_contable = smax.cuenta_contable AND m.fecha = smax.fecha)
+            WHERE 1 = 1
+            
+            UNION ALL
+            
+            -- Movimientos del diario con centro de costo
+            SELECT 
+              m.centro_costo,
+              m.cuenta_contable,
+              COALESCE(m.debito_local, 0) AS debito_local,
+              COALESCE(m.credito_local, 0) AS credito_local,
+              COALESCE(m.debito_dolar, 0) AS debito_dolar,
+              COALESCE(m.credito_dolar, 0) AS credito_dolar
+            FROM ${conjunto}.asiento_de_diario am (NOLOCK)
+            INNER JOIN ${conjunto}.diario m (NOLOCK) ON (am.asiento = m.asiento)
+            WHERE am.fecha <= :fecha
+              AND contabilidad IN ('F', 'A')
+          ) V
+          INNER JOIN ${conjunto}.EGP_CENTROS_CUENTAS_DET E (NOLOCK) ON (E.CUENTA_CONTABLE = V.CUENTA_CONTABLE AND E.CENTRO_COSTO = V.CENTRO_COSTO)
+          WHERE E.TIPO = :tipo_egp
+        ) VISTA
+        GROUP BY TIPO, FAMILIA
+      `;
+
+      await exactusSequelize.query(queryCargarEGP, {
+        replacements: {
+          fecha: fecha,
+          tipo_egp: tipoEgp,
+          usuario: usuario
+        }
+      });
+
+      console.log(`✅ [REPOSITORY] Datos EGP cargados para fecha: ${fecha}`);
+    } catch (error) {
+      console.error(`Error al cargar datos EGP para fecha ${fecha}:`, error);
+      throw new Error(`Error al cargar datos EGP: ${error}`);
+    }
+  }
+
   private mapearResultadosSimplificados(results: any[]): any[] {
     // Mapeo ultra-simplificado - solo 3 campos requeridos
     return results.map((row: any) => ({
-      nombre_cuenta: row.nombre_cuenta || '',
+      nombre_cuenta: row.nombre_cuenta || row.concepto || '',
       saldo_inicial: row.saldo_inicial || 0,
       saldo_final: row.saldo_final || 0
     }));
