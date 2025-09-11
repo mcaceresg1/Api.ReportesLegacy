@@ -89,42 +89,39 @@ export interface GNPrestamoCuentaCorriente {
 }
 
 export interface GNPrestamo {
-  ESQUEMA: string
-DNI: string
-APELLIDOS_NOMBRES: string
-FECHA_INGRESO_EMPLEADO: string
-PUESTO: string
-SEDE: string
-CENTRO_COSTO: string
-DESCRIPCION_CC: string
-NUM_MOVIMIENTO: number
-COD_TIPO_MOVIMIENTO: string
-TIPO_MOVIMIENTO: string
-MONEDA: string
-NUMERO_NOMINA: number
-NOMINA_MES: string
-NUMERO_CUOTA_DESCONTADA: number
-MONTO_CUOTA_DESCONTADA: number
-MONTO_CUOTA_DESCONTADA_DOLAR: number
-ESTADO_CUOTA_DESCONTADA: string
-MONTO_LOCAL: number
-MONTO_ABONADO_CUOTA: number
-SALDO_CUOTA: number
-MONTO_ABONADO: number
-FECHA_INGRESO: string
-NUM_CUOTAS: number
-SALDO_LOCAL: number
-CODIGO_ESTADO_PRESTAMO: string
-ESTADO_PRESTAMO: string
-DIFERENCIA: number
-ESTADO_SALDO: string
-FECHA_CREACION_SISTEMA: string
-ESTADO_EMPLEADO: string
-FECHA_SALIDA: string
+  ESQUEMA: string;
+  DNI: string;
+  APELLIDOS_NOMBRES: string;
+  FECHA_INGRESO_EMPLEADO: string;
+  PUESTO: string;
+  SEDE: string;
+  CENTRO_COSTO: string;
+  DESCRIPCION_CC: string;
+  NUM_MOVIMIENTO: number;
+  COD_TIPO_MOVIMIENTO: string;
+  TIPO_MOVIMIENTO: string;
+  MONEDA: string;
+  NUMERO_NOMINA: number;
+  NOMINA_MES: string;
+  NUMERO_CUOTA_DESCONTADA: number;
+  MONTO_CUOTA_DESCONTADA: number;
+  MONTO_CUOTA_DESCONTADA_DOLAR: number;
+  ESTADO_CUOTA_DESCONTADA: string;
+  MONTO_LOCAL: number;
+  MONTO_ABONADO_CUOTA: number;
+  SALDO_CUOTA: number;
+  MONTO_ABONADO: number;
+  FECHA_INGRESO: string;
+  NUM_CUOTAS: number;
+  SALDO_LOCAL: number;
+  CODIGO_ESTADO_PRESTAMO: string;
+  ESTADO_PRESTAMO: string;
+  DIFERENCIA: number;
+  ESTADO_SALDO: string;
+  FECHA_CREACION_SISTEMA: string;
+  ESTADO_EMPLEADO: string;
+  FECHA_SALIDA: string;
 }
-
-
-
 
 export interface FiltrosReporteRolDeVacaciones {
   fecha_inicio: string;
@@ -136,7 +133,7 @@ export interface FiltrosReporteRolDeVacaciones {
 
 export interface FiltrosReportePrestamoCtaCte {
   cod_empleado: string;
-  naturaleza: string
+  naturaleza: string;
 }
 
 export interface FiltrosReporteAnualizado {
@@ -144,10 +141,9 @@ export interface FiltrosReporteAnualizado {
   filtro: "N" | "P";
   codigo_nomina: number;
   periodo: number;
-  centro_costo: string
-  area: string
-  activo: number
-
+  centro_costo: string;
+  area: string;
+  activo: number;
 }
 
 export interface FiltrosReporteAccionesDePersonal {
@@ -161,24 +157,24 @@ export interface FiltrosReporteContratos {
 }
 
 export interface FiltrosReportePrestamos {
-  cod_empleado: string
-  num_nomina: number
-  tipo_prestamo: string,
-  estado_prestamo: string
-  numero_nomina: number
-  estado_empleado: string
-  estado_cuota: string
+  cod_empleado: string;
+  num_nomina: number;
+  tipo_prestamo: string;
+  estado_prestamo: string;
+  numero_nomina: number;
+  estado_empleado: string;
+  estado_cuota: string;
 }
 
 export interface FiltrosBoletaDePago {
-  num_nomina: number
-  cod_empleado: string
+  num_nomina: number;
+  cod_empleado: string;
 }
 
 export interface RespuestaReportePrestamos {
-  success: boolean
-  message: string
-  data: GNPrestamo[]
+  success: boolean;
+  message: string;
+  data: GNPrestamo[];
 }
 
 export interface RespuestaReporteAnualizado {
@@ -216,16 +212,22 @@ export interface RespuestaReporteContratos {
 }
 
 export interface RespuestaReporteBoletasDePago {
-  success: boolean
-  message: string
+  success: boolean;
+  message: string;
   data: {
-    periodo_planilla: any
-    compania: any
-    boleta: any,
-    horas_dias: any,
-    ingresos: any,
-    aportes: any,
-    descuentos: any,
-    goce_real: any
-  }
+    periodo_planilla: any;
+    compania: any;
+    boleta: any;
+    horas_dias: any;
+    ingresos: any;
+    aportes: any;
+    descuentos: any;
+    goce_real: any;
+  };
+}
+
+export interface ExportarAccionesDePersonalExcelParams {
+  fecha_accion_inicio: string;
+  fecha_accion_fin: string;
+  cod_empleado: string;
 }

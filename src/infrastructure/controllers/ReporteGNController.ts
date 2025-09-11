@@ -10,6 +10,7 @@ import { DeleteUsuarioCommand } from "../../application/commands/usuario/DeleteU
 import { GetAllUsuariosQuery } from "../../application/queries/usuario/GetAllUsuariosQuery";
 import { GetUsuarioByIdQuery } from "../../application/queries/usuario/GetUsuarioByIdQuery";
 import { IReporteGNService } from "../../domain/services/IReporteGNService";
+import { ExportarAccionesDePersonalExcelParams } from "../../domain/entities/ReporteGN";
 
 /**
  * @swagger
@@ -587,6 +588,52 @@ export class ReporteGNController {
         success: false,
         message: "Error al obtener prestamo de cuenta corriente.",
         error: error instanceof Error ? error.message : "Error desconocido",
+      });
+    }
+  }
+
+  /**
+   * Exporta el reporte a Excel
+   */
+  async exportarExcel(req: Request, res: Response): Promise<void> {
+    try {
+      const { conjunto } = req.params;
+      const filtros: ExportarAccionesDePersonalExcelParams = {
+        cod_empleado: req.query["id_usuario"] as string,
+        fecha_accion_inicio: req.query["fecha_accion_inicio"] as string,
+        fecha_accion_fin: req.query["fecha_accion_fin"] as string,
+      };
+
+      if (!conjunto) {
+        res.status(400).json({
+          success: false,
+          message: "El parámetro conjunto es requerido",
+        });
+        return;
+      }
+
+      const buffer = await this.reporteGNService.exportarExcel(
+        conjunto,
+        filtros
+      );
+
+      res.setHeader(
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      );
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="libro-diario-asientos-${conjunto}.xlsx"`
+      );
+      res.setHeader("Content-Length", buffer.length.toString());
+
+      res.send(buffer);
+    } catch (error) {
+      console.error("Error exportando Excel:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error interno del servidor",
+        error: error instanceof Error ? error.message : "Unknown error",
       });
     }
   }

@@ -24,6 +24,7 @@ import {
 import { IReporteGNRepository } from "../../domain/repositories/IReporteGNRepository";
 import { exactusSequelize } from "../database/config/exactus-database";
 import { QueryTypes } from "sequelize";
+import * as XLSX from "xlsx";
 
 @injectable()
 export class ReporteGNRepository implements IReporteGNRepository {
@@ -342,7 +343,7 @@ WHERE e.empleado = ec.empleado AND UPPER( ec.empleado) LIKE :cod_empleado`;
   async getAccionesDePersonal(
     conjunto: string,
     filtros: FiltrosReporteAccionesDePersonal
-  ): Promise<RespuestaReporteAccionesDePersonal | undefined> {
+  ): Promise<RespuestaReporteAccionesDePersonal> {
     try {
       const { cod_empleado, fecha_accion_fin, fecha_accion_inicio } = filtros;
       const query = `
@@ -401,39 +402,171 @@ AND UPPER( ax.empleado ) LIKE :cod_empleado  ORDER BY 1 ASC
       throw error;
     }
   }
+
   async exportarExcel(conjunto: string, filtros: any): Promise<Buffer> {
     try {
-      console.log(`Generando excel de acciones personal para conjunto ${conjunto}`);
-      const fechaInicio = filtros.reporte.fechaInicio;
-      const fechaFin = filtros.reporte.fechaFin;
-      const codigoEmpleado = filtros.reporte.codigoEmpleado;
-      const filtrosReporte = { fecha_accion_inicio: fechaInicio, fecha_accion_fin: fechaFin, cod_empleado: codigoEmpleado }
-      const resultado = await this.getAccionesDePersonal(conjunto, filtrosReporte);
-      const excelData = resultado.map(item => (
-        {
-          "numero_accion": Number(item.number_accion),
-          "descripcion_accion": item.descripcion_accion || '',
-          "estado_accion": item.estado_accion || '',
-          "fecha": item.fecha ? new Date(item.fecha),
-          "empleado": "08303169",
-          "nombre": "De Paz Cornelio Jose Luis",
-          "fecha_rige": "2020-02-29T00:00:00.000Z", "fecha_vence": null,
-          "puesto": null,
-          "plaza": null,
-          "salario_promedio": null,
-          "salario_diario_int": null,
-          "departamento": null
-          , "centro_costo": null,v
-          "nomina": null, 
-          "dias_accion": null,
-           "saldo": 0,
-            "numero_accion_cuenta": null,
-             "regimen_vacacional": null,
-              "descripcion": "CESADO", 
-              "RowPointer": "5B20A4DE-DB4A-4B20-9191-313E5D29DB16",
-                v "origen": "24971"
-        }))
-    } catch (error) { }
+      console.log(
+        `Generando Excel de acciones de personal para conjunto ${conjunto}`
+      );
+
+      // Extraer filtros
+      const fechaInicio = filtros?.reporte.fechaInicio;
+      const fechaFin = filtros?.reporte.fechaFin;
+      const codigoEmpleado = filtros?.reporte.codigoEmpleado;
+
+      const filtrosReporte = {
+        fecha_accion_inicio: fechaInicio,
+        fecha_accion_fin: fechaFin,
+        cod_empleado: codigoEmpleado,
+      };
+
+      // Obtener los datos
+      const result = await this.getAccionesDePersonal(
+        conjunto,
+        filtrosReporte
+      );
+
+      if (result.success) {
+        console.error("Error al generar Excel de acciones de personal.");
+        throw new Error("Error al generar archivo Excel");
+      }
+      // Preparar los datos para Excel
+      const excelData = result.data.map((item) => ({
+        "Número Acción": Number(item.numero_accion),
+        "Descripción Acción": item.descripcion_accion || "",
+        "Estado Acción": item.estado_accion || "",
+        Fecha: item.fecha
+          ? new Date(item.fecha).toLocaleDateString("es-ES")
+          : "",
+        Empleado: item.empleado || "08303169",
+        Nombre: item.nombre || "De Paz Cornelio Jose Luis",
+        "Fecha Rige": item.fecha_rige
+          ? new Date(item.fecha_rige).toLocaleDateString("es-ES")
+          : "",
+        "Fecha Vence": item.fecha_vence
+          ? new Date(item.fecha_vence).toLocaleDateString("es-ES")
+          : "",
+        Puesto: item.puesto || "",
+        Plaza: item.plaza || "",
+        "Salario Promedio": item.salario_promedio || 0,
+        "Salario Diario Int": item.salario_diario_int || 0,
+        Departamento: item.departamento || "",
+        "Centro Costo": item.centro_costo || "",
+        Nómina: item.nomina || "",
+        "Días Acción": item.dias_accion || 0,
+        Saldo: item.saldo || 0,
+        "Número Acción Cuenta": item.numero_accion_cuenta || "",
+        "Régimen Vacacional": item.regimen_vacacional || "",
+        Descripción: item.descripcion || "",
+        Origen: item.origen || "",
+        "Tipo Fila": "DATA",
+      }));
+
+      // Calcular totales (ejemplo: sumar salarios y días de acción)
+      const totalSalarioPromedio = result.data
+        .filter((item) => item.salario_promedio)
+        .reduce((sum, item) => sum + (item.salario_promedio || 0), 0);
+
+      const totalSalarioDiarioInt = result.data
+        .filter((item) => item.salario_diario_int)
+        .reduce((sum, item) => sum + (item.salario_diario_int || 0), 0);
+
+      const totalDiasAccion = result.data
+        .filter((item) => item.dias_accion)
+        .reduce((sum, item) => sum + (item.dias_accion || 0), 0);
+
+      const totalSaldo = result.data
+        .filter((item) => item.saldo)
+        .reduce((sum, item) => sum + (item.saldo || 0), 0);
+
+      // Agregar fila de totales
+      const totalRow = {
+        "Número Acción": "",
+        "Descripción Acción": "",
+        "Estado Acción": "",
+        Fecha: "",
+        Empleado: "",
+        Nombre: "",
+        "Fecha Rige": "",
+        "Fecha Vence": "",
+        Puesto: "",
+        Plaza: "TOTAL GENERAL",
+        "Salario Promedio": totalSalarioPromedio,
+        "Salario Diario Int": totalSalarioDiarioInt,
+        Departamento: "",
+        "Centro Costo": "",
+        Nómina: "",
+        "Días Acción": totalDiasAccion,
+        Saldo: totalSaldo,
+        "Número Acción Cuenta": "",
+        "Régimen Vacacional": "",
+        Descripción: "",
+        Origen: "",
+        "Tipo Fila": "TOTAL",
+      };
+
+      // Fila vacía antes del total
+      const emptyRow = Object.keys(totalRow).reduce((acc, key) => {
+        acc[key] = "";
+        return acc;
+      }, {} as any);
+
+      // Combinar datos
+      const finalData = [...excelData, emptyRow, totalRow];
+
+      // Crear workbook
+      const workbook = XLSX.utils.book_new();
+
+      // Crear worksheet
+      const worksheet = XLSX.utils.json_to_sheet(finalData);
+
+      // Configurar anchos de columnas (ajustar según necesidad)
+      worksheet["!cols"] = [
+        { wch: 15 }, // Número Acción
+        { wch: 30 }, // Descripción Acción
+        { wch: 20 }, // Estado Acción
+        { wch: 15 }, // Fecha
+        { wch: 15 }, // Empleado
+        { wch: 30 }, // Nombre
+        { wch: 15 }, // Fecha Rige
+        { wch: 15 }, // Fecha Vence
+        { wch: 20 }, // Puesto
+        { wch: 20 }, // Plaza
+        { wch: 20 }, // Salario Promedio
+        { wch: 20 }, // Salario Diario Int
+        { wch: 20 }, // Departamento
+        { wch: 20 }, // Centro Costo
+        { wch: 20 }, // Nómina
+        { wch: 15 }, // Días Acción
+        { wch: 15 }, // Saldo
+        { wch: 25 }, // Número Acción Cuenta
+        { wch: 25 }, // Régimen Vacacional
+        { wch: 30 }, // Descripción
+        { wch: 20 }, // Origen
+        { wch: 15 }, // Tipo Fila
+      ];
+
+      // Agregar hoja al workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Acciones de Personal");
+
+      // Generar buffer
+      const excelBuffer = XLSX.write(workbook, {
+        type: "buffer",
+        bookType: "xlsx",
+        compression: true,
+      });
+
+      console.log(
+        "Archivo Excel de acciones de personal generado exitosamente"
+      );
+      return excelBuffer;
+    } catch (error) {
+      console.error("Error al generar Excel de acciones de personal:", error);
+      throw new Error(
+        `Error al generar archivo Excel: ${
+          error instanceof Error ? error.message : "Error desconocido"
+        }`
+      );
+    }
   }
 }
-

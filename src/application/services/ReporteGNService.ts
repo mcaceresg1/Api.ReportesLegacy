@@ -2,6 +2,7 @@ import { inject, injectable } from "inversify";
 import { IReporteGNService } from "../../domain/services/IReporteGNService";
 import { IReporteGNRepository } from "../../domain/repositories/IReporteGNRepository";
 import {
+  ExportarAccionesDePersonalExcelParams,
   FiltrosBoletaDePago,
   FiltrosReporteAccionesDePersonal,
   FiltrosReporteAnualizado,
@@ -67,5 +68,23 @@ export class ReporteGNService implements IReporteGNService {
     filtros: FiltrosBoletaDePago
   ): Promise<RespuestaReporteBoletasDePago | undefined> {
     return this.reporteGNRepository.getBoletaDePago(conjunto, filtros);
+  }
+
+  async exportarExcel(
+    conjunto: string,
+    filtros: ExportarAccionesDePersonalExcelParams
+  ): Promise<Buffer> {
+    try {
+      console.log(`Exportando Excel para conjunto: ${conjunto}`, filtros);
+      const buffer = await this.reporteGNRepository.exportarExcel(
+        conjunto,
+        filtros
+      );
+      console.log(`Excel exportado: ${buffer.length} bytes`);
+      return buffer;
+    } catch (error) {
+      console.error("Error en servicio al exportar Excel:", error);
+      throw error;
+    }
   }
 }

@@ -1,4 +1,5 @@
 import {
+  ExportarAccionesDePersonalExcelParams,
   FiltrosBoletaDePago,
   FiltrosReporteAccionesDePersonal,
   FiltrosReporteAnualizado,
@@ -50,4 +51,9 @@ export interface IReporteGNService {
     conjunto: string,
     filtros: FiltrosBoletaDePago
   ): Promise<RespuestaReporteBoletasDePago | undefined>;
+
+  exportarExcel(
+    conjunto: string,
+    filtros: ExportarAccionesDePersonalExcelParams
+  ): Promise<Buffer>;
 }
