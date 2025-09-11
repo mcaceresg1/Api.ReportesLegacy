@@ -1,42 +1,34 @@
-// Verificar si el handler está registrado en el CqrsService
-const fs = require('fs');
-const path = require('path');
+// Script para verificar los handlers registrados
+const { container } = require("./dist/infrastructure/container/container");
+const { CqrsService } = require("./dist/infrastructure/cqrs/CqrsService");
 
-console.log('🔍 Verificando configuración de handlers...');
+console.log("🔍 Verificando configuración de handlers...");
 
-// Leer el archivo CqrsService compilado
-const cqrsServicePath = './dist/infrastructure/cqrs/CqrsService.js';
-if (fs.existsSync(cqrsServicePath)) {
-  const content = fs.readFileSync(cqrsServicePath, 'utf8');
-  
-  // Verificar si el handler está registrado
-  const hasHandler = content.includes('ObtenerLibroDiarioAsientosQuery');
-  console.log('🔍 Handler ObtenerLibroDiarioAsientosQuery en CqrsService:', hasHandler ? '✅ Encontrado' : '❌ No encontrado');
-  
-  // Verificar si el handler está inyectado
-  const hasInjection = content.includes('ObtenerLibroDiarioAsientosHandler');
-  console.log('🔍 Inyección ObtenerLibroDiarioAsientosHandler:', hasInjection ? '✅ Encontrado' : '❌ No encontrado');
-  
-  // Mostrar líneas relevantes
-  const lines = content.split('\n');
-  const relevantLines = lines.filter(line => 
-    line.includes('ObtenerLibroDiarioAsientos') || 
-    line.includes('libro-diario-asientos')
+try {
+  // Obtener el CqrsService
+  const cqrsService = container.get("CqrsService");
+  console.log("✅ CqrsService obtenido correctamente");
+
+  // Obtener el QueryBus
+  const queryBus = cqrsService.getQueryBus();
+  console.log("✅ QueryBus obtenido correctamente");
+
+  // Verificar handlers registrados
+  console.log("📋 Handlers registrados:");
+  console.log(
+    "QueryBus handlers:",
+    queryBus.handlers ? Array.from(queryBus.handlers.keys()) : "No disponible"
   );
-  
-  console.log('📋 Líneas relevantes:');
-  relevantLines.forEach(line => console.log('  ', line.trim()));
-  
-} else {
-  console.log('❌ Archivo CqrsService.js no encontrado');
-}
 
-// Verificar el archivo de tipos
-const typesPath = './dist/infrastructure/container/types.js';
-if (fs.existsSync(typesPath)) {
-  const content = fs.readFileSync(typesPath, 'utf8');
-  const hasType = content.includes('ObtenerLibroDiarioAsientosHandler');
-  console.log('🔍 Tipo ObtenerLibroDiarioAsientosHandler en types.js:', hasType ? '✅ Encontrado' : '❌ No encontrado');
-} else {
-  console.log('❌ Archivo types.js no encontrado');
+  // Verificar si el handler específico está registrado
+  const handler = queryBus.handlers
+    ? queryBus.handlers.get("ObtenerLibroDiarioAsientosQuery")
+    : null;
+  console.log(
+    "🔍 Handler ObtenerLibroDiarioAsientosQuery:",
+    handler ? "✅ Registrado" : "❌ No registrado"
+  );
+} catch (error) {
+  console.error("❌ Error:", error.message);
+  console.error("Stack:", error.stack);
 }
