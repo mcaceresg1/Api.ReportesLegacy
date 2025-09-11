@@ -1,0 +1,50 @@
+### Libro Diario Asientos - API Tests
+### Base URL: http://localhost:3000
+### Authorization: Bearer [tu-token]
+
+### 1. Health Check
+GET http://localhost:3000/api/libro-diario-asientos/health
+Content-Type: application/json
+
+### 2. Obtener Filtros Disponibles
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/filtros
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW5pc3RyYWRvciIsImVtYWlsIjoiYWRtaW5AYWRtaW4uY29tIiwicm9sSWQiOjEsImlhdCI6MTc1NzU0Njc3MiwiZXhwIjoxNzU3NTUwMzcyfQ.lNycUnjVZbzRL4MRJXqxibqHecW8KES63aa7HJKhH5E
+
+### 3. Generar Reporte (POST) - Sin Filtros
+POST http://localhost:3000/api/libro-diario-asientos/ASFSAC/generar
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW5pc3RyYWRvciIsImVtYWlsIjoiYWRtaW5AYWRtaW4uY29tIiwicm9sSWQiOjEsImlhdCI6MTc1NzU0Njc3MiwiZXhwIjoxNzU3NTUwMzcyfQ.lNycUnjVZbzRL4MRJXqxibqHecW8KES63aa7HJKhH5E
+
+### 4. Generar Reporte (POST) - Con Filtros
+POST http://localhost:3000/api/libro-diario-asientos/ASFSAC/generar?asientoDesde=0700000480&asientoHasta=0700000490&fechaDesde=2024-01-01&fechaHasta=2024-12-31&claseAsiento=N&origen=01&contabilidad=F
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW5pc3RyYWRvciIsImVtYWlsIjoiYWRtaW5AYWRtaW4uY29tIiwicm9sSWQiOjEsImlhdCI6MTc1NzU0Njc3MiwiZXhwIjoxNzU3NTUwMzcyfQ.lNycUnjVZbzRL4MRJXqxibqHecW8KES63aa7HJKhH5E
+
+### 5. Obtener Asientos (GET) - Paginado
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/obtener?page=1&limit=20
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW5pc3RyYWRvciIsImVtYWlsIjoiYWRtaW5AYWRtaW4uY29tIiwicm9sSWQiOjEsImlhdCI6MTc1NzU0Njc3MiwiZXhwIjoxNzU3NTUwMzcyfQ.lNycUnjVZbzRL4MRJXqxibqHecW8KES63aa7HJKhH5E
+
+### 6. Obtener Asientos (GET) - Con Filtros
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/obtener?page=1&limit=10&asientoDesde=0700000480&asientoHasta=0700000490&fechaDesde=2024-01-01&fechaHasta=2024-12-31&claseAsiento=N&origen=01&contabilidad=F
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW5pc3RyYWRvciIsImVtYWlsIjoiYWRtaW5AYWRtaW4uY29tIiwicm9sSWQiOjEsImlhdCI6MTc1NzU0Njc3MiwiZXhwIjoxNzU3NTUwMzcyfQ.lNycUnjVZbzRL4MRJXqxibqHecW8KES63aa7HJKhH5E
+
+### 7. Exportar a Excel
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/exportar/excel?asientoDesde=0700000480&asientoHasta=0700000490&fechaDesde=2024-01-01&fechaHasta=2024-12-31&claseAsiento=N&origen=01&contabilidad=F&limit=1000
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW5pc3RyYWRvciIsImVtYWlsIjoiYWRtaW5AYWRtaW4uY29tIiwicm9sSWQiOjEsImlhdCI6MTc1NzU0Njc3MiwiZXhwIjoxNzU3NTUwMzcyfQ.lNycUnjVZbzRL4MRJXqxibqHecW8KES63aa7HJKhH5E
+
+### 8. Exportar a PDF
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/exportar/pdf?asientoDesde=0700000480&asientoHasta=0700000490&fechaDesde=2024-01-01&fechaHasta=2024-12-31&claseAsiento=N&origen=01&contabilidad=F&limit=1000
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW5pc3RyYWRvciIsImVtYWlsIjoiYWRtaW5AYWRtaW4uY29tIiwicm9sSWQiOjEsImlhdCI6MTc1NzU0Njc3MiwiZXhwIjoxNzU3NTUwMzcyfQ.lNycUnjVZbzRL4MRJXqxibqHecW8KES63aa7HJKhH5E
+
+### 9. Test con Asiento Específico (basado en el query original)
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/obtener?asientoDesde=0700000483&asientoHasta=0700000483&page=1&limit=20
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW5pc3RyYWRvciIsImVtYWlsIjoiYWRtaW5AYWRtaW4uY29tIiwicm9sSWQiOjEsImlhdCI6MTc1NzU0Njc3MiwiZXhwIjoxNzU3NTUwMzcyfQ.lNycUnjVZbzRL4MRJXqxibqHecW8KES63aa7HJKhH5E
+
+### 10. Test de Filtros Múltiples
+GET http://localhost:3000/api/libro-diario-asientos/ASFSAC/obtener?page=1&limit=5&tipoAsientoDesde=N&tipoAsientoHasta=N&paqueteDesde=001&paqueteHasta=999&contabilidad=F&contabilidad=C
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW5pc3RyYWRvciIsImVtYWlsIjoiYWRtaW5AYWRtaW4uY29tIiwicm9sSWQiOjEsImlhdCI6MTc1NzU0Njc3MiwiZXhwIjoxNzU3NTUwMzcyfQ.lNycUnjVZbzRL4MRJXqxibqHecW8KES63aa7HJKhH5E

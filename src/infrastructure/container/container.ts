@@ -35,6 +35,7 @@ import { IReporteHmisRepository } from "../../domain/repositories/IReporteHmisRe
 import { IReporteGenericoSaldosRepository } from "../../domain/repositories/IReporteGenericoSaldosRepository";
 import { IReporteGenericoSaldosService } from "../../domain/services/IReporteGenericoSaldosService";
 import { ILibroMayorAsientosService } from "../../domain/services/ILibroMayorAsientosService";
+import { ILibroDiarioAsientosService } from "../../domain/services/ILibroDiarioAsientosService";
 import { ILibroMayorService } from "../../domain/services/ILibroMayorService";
 import { IEstadoSituacionFinancieraService } from "../../domain/services/IEstadoSituacionFinancieraService";
 import { IEstadoResultadosService } from "../../domain/services/IEstadoResultadosService";
@@ -101,6 +102,7 @@ import { MovimientoContableAgrupadoRepository } from "../repositories/Movimiento
 import { SaldoPromediosRepository } from "../repositories/SaldoPromediosRepository";
 import { BalanceComprobacionRepository } from "../repositories/BalanceComprobacionRepository";
 import { LibroMayorAsientosRepository } from "../repositories/LibroMayorAsientosRepository";
+import { LibroDiarioAsientosRepository } from "../repositories/LibroDiarioAsientosRepository";
 import { LibroMayorRepository } from "../repositories/LibroMayorRepository";
 import { EstadoSituacionFinancieraRepository } from "../repositories/EstadoSituacionFinancieraRepository";
 import { EstadoResultadosRepository } from "../repositories/EstadoResultadosRepository";
@@ -131,6 +133,7 @@ import { ReporteMovimientosContablesAgrupadosService } from "../../application/s
 import { SaldoPromediosService } from "../../application/services/SaldoPromediosService";
 import { BalanceComprobacionService } from "../../application/services/BalanceComprobacionService";
 import { LibroMayorAsientosService } from "../../application/services/LibroMayorAsientosService";
+import { LibroDiarioAsientosService } from "../../application/services/LibroDiarioAsientosService";
 import { LibroMayorService } from "../../application/services/LibroMayorService";
 import { EstadoSituacionFinancieraService } from "../../application/services/EstadoSituacionFinancieraService";
 import { EstadoResultadosService } from "../../application/services/EstadoResultadosService";
@@ -169,6 +172,7 @@ import { SaldoPromediosController } from "../controllers/SaldoPromediosControlle
 import { BalanceComprobacionController } from "../controllers/BalanceComprobacionController";
 import { BalanceComprobacionRoutes } from "../routes/BalanceComprobacionRoutes";
 import { LibroMayorAsientosController } from "../controllers/LibroMayorAsientosController";
+import { LibroDiarioAsientosController } from "../controllers/LibroDiarioAsientosController";
 import { LibroMayorController } from "../controllers/LibroMayorController";
 import { EstadoSituacionFinancieraController } from "../controllers/EstadoSituacionFinancieraController";
 import { EstadoResultadosController } from "../controllers/EstadoResultadosController";
@@ -220,6 +224,11 @@ import { ObtenerLibroMayorAsientosHandler } from "../../application/handlers/lib
 import { GenerarLibroMayorAsientosHandler } from "../../application/handlers/libro-mayor-asientos/GenerarLibroMayorAsientosHandler";
 import { ExportarLibroMayorAsientosExcelHandler } from "../../application/handlers/libro-mayor-asientos/ExportarLibroMayorAsientosExcelHandler";
 import { ObtenerFiltrosLibroMayorAsientosHandler } from "../../application/handlers/libro-mayor-asientos/ObtenerFiltrosLibroMayorAsientosHandler";
+
+// Libro Diario Asientos Handlers
+import { ObtenerLibroDiarioAsientosHandler } from "../../application/handlers/libro-diario-asientos/ObtenerLibroDiarioAsientosHandler";
+import { GenerarLibroDiarioAsientosHandler } from "../../application/handlers/libro-diario-asientos/GenerarLibroDiarioAsientosHandler";
+import { ObtenerFiltrosLibroDiarioAsientosHandler } from "../../application/handlers/libro-diario-asientos/ObtenerFiltrosLibroDiarioAsientosHandler";
 
 
 // CQRS Service
@@ -332,6 +341,9 @@ container
   .bind<LibroMayorAsientosRepository>("LibroMayorAsientosRepository")
   .to(LibroMayorAsientosRepository);
 container
+  .bind<LibroDiarioAsientosRepository>("LibroDiarioAsientosRepository")
+  .to(LibroDiarioAsientosRepository);
+container
   .bind<LibroMayorRepository>("LibroMayorRepository")
   .to(LibroMayorRepository);
 container
@@ -429,6 +441,9 @@ container
 container
   .bind<ILibroMayorAsientosService>("ILibroMayorAsientosService")
   .to(LibroMayorAsientosService);
+container
+  .bind<ILibroDiarioAsientosService>("ILibroDiarioAsientosService")
+  .to(LibroDiarioAsientosService);
 container.bind<ILibroMayorService>("ILibroMayorService").to(LibroMayorService);
 container
   .bind<IEstadoSituacionFinancieraService>("IEstadoSituacionFinancieraService")
@@ -542,6 +557,9 @@ container.bind<ClipperController>("ClipperController").to(ClipperController);
 container
   .bind<LibroMayorAsientosController>("LibroMayorAsientosController")
   .to(LibroMayorAsientosController);
+container
+  .bind<LibroDiarioAsientosController>("LibroDiarioAsientosController")
+  .to(LibroDiarioAsientosController);
 container
   .bind<LibroMayorController>("LibroMayorController")
   .to(LibroMayorController);
@@ -680,6 +698,19 @@ container
     "ObtenerFiltrosLibroMayorAsientosHandler"
   )
   .to(ObtenerFiltrosLibroMayorAsientosHandler);
+
+// Libro Diario Asientos Handlers
+container
+  .bind<ObtenerLibroDiarioAsientosHandler>("ObtenerLibroDiarioAsientosHandler")
+  .to(ObtenerLibroDiarioAsientosHandler);
+container
+  .bind<GenerarLibroDiarioAsientosHandler>("GenerarLibroDiarioAsientosHandler")
+  .to(GenerarLibroDiarioAsientosHandler);
+container
+  .bind<ObtenerFiltrosLibroDiarioAsientosHandler>(
+    "ObtenerFiltrosLibroDiarioAsientosHandler"
+  )
+  .to(ObtenerFiltrosLibroDiarioAsientosHandler);
 
 
 // Balance Comprobación Clipper - No necesita handlers CQRS, usa servicio directamente

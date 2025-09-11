@@ -133,7 +133,7 @@ export class BalanceComprobacionRepository
 
       // Consulta optimizada para mejor rendimiento - versión simplificada
       const query = `
-        INSERT INTO ${conjunto}.R_XML_8DDC5522302C179 (
+        INSERT INTO ${conjunto}.R_XML_8DDC5522302C179 (  
           CUENTA_CONTABLE,
           DESCRIPCION,
           CUENTA1, DESC1,
@@ -214,7 +214,7 @@ export class BalanceComprobacionRepository
             SUM(ISNULL(debito_dolar, 0)) AS DEBITO_DOLAR,
             SUM(ISNULL(credito_local, 0)) AS CREDITO_LOCAL,
             SUM(ISNULL(credito_dolar, 0)) AS CREDITO_DOLAR
-          FROM (
+        FROM (   
             -- Saldos iniciales simplificados
             SELECT 
               m.cuenta_contable,
@@ -225,7 +225,7 @@ export class BalanceComprobacionRepository
             FROM ${conjunto}.saldo m
             WHERE m.fecha <= ?
             
-            UNION ALL
+            UNION ALL    	
             
             -- Movimientos del periodo simplificados
             SELECT 
@@ -268,7 +268,7 @@ export class BalanceComprobacionRepository
 
       await exactusSequelize.query(query, {
         replacements: [
-          tipoReporte,
+        tipoReporte,
           fechaFinStr,        // Saldos hasta fecha fin
           fechaInicioStr,     // Asientos desde fecha inicio
           fechaFinStr,        // Asientos hasta fecha fin
