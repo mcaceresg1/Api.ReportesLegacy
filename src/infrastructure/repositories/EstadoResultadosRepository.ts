@@ -9,20 +9,15 @@ export class EstadoResultadosRepository {
     try {
       const query = `
         SELECT DISTINCT 
-          E.TIPO,
-          CASE 
-            WHEN E.TIPO = 'GYPPQ' THEN 'GYPPQ - Estado de Resultados Comparativo'
-            WHEN E.TIPO = 'GYPPA' THEN 'GYPPA - Estado de Resultados Anual'
-            WHEN E.TIPO = 'GYPPB' THEN 'GYPPB - Estado de Resultados Básico'
-            ELSE E.TIPO + ' - Tipo de Reporte'
-          END as DESCRIPCION,
-          'Q' as QRP
-        FROM JBRTRA.EGP E (NOLOCK)
-        WHERE E.USUARIO = :usuario
-          AND E.TIPO NOT IN ('10.1', '10.2')
-          AND (E.TIPO NOT LIKE '320%' OR E.TIPO = '320')
-          AND (E.TIPO NOT LIKE '324%' OR E.TIPO = '324')
-        ORDER BY E.TIPO
+          T.TIPO,
+          T.DESCRIPCION,
+          T.QRP
+        FROM JBRTRA.TIPO_EGP T (NOLOCK)
+        INNER JOIN JBRTRA.USUARIO_EGP U (NOLOCK) ON T.TIPO = U.TIPO AND U.USUARIO = :usuario
+        WHERE T.TIPO NOT IN ('10.1', '10.2')
+          AND (T.TIPO NOT LIKE '320%' OR T.TIPO = '320')
+          AND (T.TIPO NOT LIKE '324%' OR T.TIPO = '324')
+        ORDER BY T.TIPO
       `;
 
       const [results] = await exactusSequelize.query(query, { 
@@ -94,43 +89,81 @@ export class EstadoResultadosRepository {
       const fechaAnterior = this.calcularFechaAnterior(fechaActual);
       const tipoEgp = filtros.tipoEgp || 'GYPPQ';
 
-      console.log(`🔍 [REPOSITORY] Iniciando consulta ULTRA-SIMPLE para evitar timeout...`);
+      console.log(`🔍 [REPOSITORY] Iniciando proceso estándar de Estado de Resultados...`);
 
-      // Consulta ultra-simplificada - solo datos básicos sin JOINs complejos
-      const ultraSimpleQuery = `
-        SELECT TOP 50
+      // Paso 1: Crear tabla temporal
+      await this.crearTablaTemporal();
+
+      // Paso 2: Cargar datos EGP para período actual
+      await this.cargarDatosEGP(fechaActual, tipoEgp, usuario);
+
+      // Paso 3: Cargar datos EGP para período anterior
+      await this.cargarDatosEGP(fechaAnterior, tipoEgp, usuario);
+
+      // Paso 4: Ejecutar query principal estándar
+      const queryPrincipal = `
+        SELECT 
+          PA.NOMBRE AS PADRE_NOMBRE,
           P.FAMILIA,
           P.NOMBRE AS CONCEPTO,
           P.POSICION,
+          'Nuevo Sol' AS MONEDA,
           P.ORDEN,
-          P.FAMILIA_PADRE,
-          0 AS SALDO_ACTUAL,
-          0 AS SALDO_ANTERIOR,
-          0 AS VARIACION
+          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_actual THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ACTUAL,
+          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_anterior THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ANTERIOR,
+          (ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_actual THEN EG.SALDO ELSE 0 END), 0) - 
+           ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_anterior THEN EG.SALDO ELSE 0 END), 0)) AS VARIACION,
+          P.FAMILIA_PADRE
         FROM JBRTRA.POSICION_EGP P (NOLOCK)
+        INNER JOIN JBRTRA.POSICION_EGP PA (NOLOCK) ON PA.TIPO = P.TIPO AND PA.FAMILIA = P.FAMILIA_PADRE
+        LEFT OUTER JOIN JBRTRA.EGP EG (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA AND EG.USUARIO = :usuario
         WHERE P.TIPO = :tipo_egp
-        ORDER BY P.POSICION, P.ORDEN
+        GROUP BY PA.NOMBRE, P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN, P.FAMILIA_PADRE
+        
+        UNION ALL
+        
+        SELECT 
+          NULL AS PADRE_NOMBRE,
+          P.FAMILIA,
+          P.NOMBRE AS CONCEPTO,
+          P.POSICION,
+          'Nuevo Sol' AS MONEDA,
+          P.ORDEN,
+          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_actual THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ACTUAL,
+          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_anterior THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ANTERIOR,
+          (ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_actual THEN EG.SALDO ELSE 0 END), 0) - 
+           ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_anterior THEN EG.SALDO ELSE 0 END), 0)) AS VARIACION,
+          P.FAMILIA_PADRE
+        FROM JBRTRA.POSICION_EGP P (NOLOCK)
+        LEFT OUTER JOIN JBRTRA.EGP EG (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA AND EG.USUARIO = :usuario
+        WHERE P.FAMILIA_PADRE IS NULL AND P.AGRUPA = 'N' AND P.TIPO = :tipo_egp
+        GROUP BY P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN, P.FAMILIA_PADRE
+        
+        ORDER BY POSICION, ORDEN
       `;
 
-      console.log(`🔍 [REPOSITORY] Ejecutando consulta ultra-simple...`);
+      console.log(`🔍 [REPOSITORY] Ejecutando query principal estándar...`);
       
-      const [results] = await exactusSequelize.query(ultraSimpleQuery, {
+      const [results] = await exactusSequelize.query(queryPrincipal, {
         replacements: {
+          fecha_actual: fechaActual,
+          fecha_anterior: fechaAnterior,
+          usuario: usuario,
           tipo_egp: tipoEgp
         }
       });
 
-      console.log(`🔍 [REPOSITORY] Consulta ultra-simple completada. Resultados: ${results ? (results as any[]).length : 0}`);
+      console.log(`🔍 [REPOSITORY] Query principal completado. Resultados: ${results ? (results as any[]).length : 0}`);
 
-      // Mapear resultados básicos
-      const datosReporte = this.mapearResultadosBasicos(results ? (results as any[]) : [], fechaActual, fechaAnterior, tipoEgp);
+      // Mapear resultados con jerarquía
+      const datosReporte = this.mapearResultadosConJerarquia(results ? (results as any[]) : [], fechaActual, fechaAnterior, tipoEgp);
       
-      // Solo agregar encabezado básico
+      // Agregar encabezado
       const estructuraReporte = this.generarEstructuraReporte(conjunto, fechaActual, fechaAnterior);
       const resultadoFinal = [...estructuraReporte, ...datosReporte];
       
       const tiempoEjecucion = Date.now() - inicioEjecucion;
-      console.log(`✅ [REPOSITORY] getEstadoResultados ultra-simple completado en ${tiempoEjecucion}ms`);
+      console.log(`✅ [REPOSITORY] getEstadoResultados estándar completado en ${tiempoEjecucion}ms`);
       
       return resultadoFinal;
 
@@ -138,7 +171,7 @@ export class EstadoResultadosRepository {
       const tiempoEjecucion = Date.now() - inicioEjecucion;
       console.error(`❌ [REPOSITORY] Error después de ${tiempoEjecucion}ms:`, error);
       
-      // Si falla la consulta simple, devolver datos mock para testing
+      // Si falla, devolver datos mock para testing
       console.log(`🔄 [REPOSITORY] Devolviendo datos mock para testing...`);
       return this.getDatosMock(filtros.fecha!);
     }
@@ -168,6 +201,157 @@ export class EstadoResultadosRepository {
     const fechaObj = new Date(fecha);
     fechaObj.setMonth(fechaObj.getMonth() - 1);
     return fechaObj.toISOString().split('T')[0] || '';
+  }
+
+  private async crearTablaTemporal(): Promise<void> {
+    try {
+      const query = `
+        IF OBJECT_ID('JBRTRA.R_XML_8DDC9208B6470F8', 'U') IS NOT NULL
+          DROP TABLE JBRTRA.R_XML_8DDC9208B6470F8;
+        
+        CREATE TABLE JBRTRA.R_XML_8DDC9208B6470F8 (
+          cuenta_contable VARCHAR(254),
+          fecha_balance DATETIME,
+          saldo_inicial DECIMAL(32,12),
+          nombre_cuenta VARCHAR(254),
+          fecha_inicio DATETIME,
+          fecha_cuenta DATETIME,
+          saldo_final DECIMAL(32,12),
+          tiporeporte VARCHAR(254),
+          posicion VARCHAR(254),
+          caracter VARCHAR(254),
+          moneda VARCHAR(254),
+          padre VARCHAR(254),
+          orden DECIMAL(32,12),
+          mes VARCHAR(254),
+          ROW_ORDER_BY INT NOT NULL IDENTITY PRIMARY KEY
+        )
+      `;
+
+      await exactusSequelize.query(query);
+      console.log(`✅ [REPOSITORY] Tabla temporal creada exitosamente`);
+    } catch (error) {
+      console.error('Error al crear tabla temporal:', error);
+      throw new Error(`Error al crear tabla temporal: ${error}`);
+    }
+  }
+
+  private async cargarDatosEGP(fecha: string, tipoEgp: string, usuario: string): Promise<void> {
+    try {
+      const query = `
+        INSERT INTO JBRTRA.EGP (PERIODO, TIPO, FAMILIA, SALDO, SALDO_DOLAR, USUARIO)
+        SELECT 
+          :fecha,
+          TIPO,
+          FAMILIA,
+          SUM(SALDO_LOCAL),
+          SUM(SALDO_DOLAR),
+          :usuario
+        FROM (
+          SELECT 
+            E.TIPO,
+            E.FAMILIA,
+            V.CREDITO_LOCAL - V.DEBITO_LOCAL AS SALDO_LOCAL,
+            V.CREDITO_DOLAR - V.DEBITO_DOLAR AS SALDO_DOLAR
+          FROM (
+            -- Saldos fiscales
+            SELECT 
+              m.centro_costo,
+              m.cuenta_contable,
+              CASE WHEN m.saldo_fisc_local > 0 THEN ABS(m.saldo_fisc_local) ELSE 0 END AS debito_local,
+              CASE WHEN m.saldo_fisc_local < 0 THEN ABS(m.saldo_fisc_local) ELSE 0 END AS credito_local,
+              CASE WHEN m.saldo_fisc_dolar > 0 THEN ABS(m.saldo_fisc_dolar) ELSE 0 END AS debito_dolar,
+              CASE WHEN m.saldo_fisc_dolar < 0 THEN ABS(m.saldo_fisc_dolar) ELSE 0 END AS credito_dolar
+            FROM JBRTRA.saldo m (NOLOCK)
+            INNER JOIN (
+              SELECT m.centro_costo, m.cuenta_contable, MAX(m.fecha) AS fecha
+              FROM JBRTRA.saldo m (NOLOCK)
+              WHERE m.fecha <= :fecha
+              GROUP BY m.centro_costo, m.cuenta_contable
+            ) smax ON (m.centro_costo = smax.centro_costo AND m.cuenta_contable = smax.cuenta_contable AND m.fecha = smax.fecha)
+            WHERE 1 = 1
+            
+            UNION ALL
+            
+            -- Movimientos del diario
+            SELECT 
+              m.centro_costo,
+              m.cuenta_contable,
+              COALESCE(m.debito_local, 0) AS debito_local,
+              COALESCE(m.credito_local, 0) AS credito_local,
+              COALESCE(m.debito_dolar, 0) AS debito_dolar,
+              COALESCE(m.credito_dolar, 0) AS credito_dolar
+            FROM JBRTRA.asiento_de_diario am (NOLOCK)
+            INNER JOIN JBRTRA.diario m (NOLOCK) ON (am.asiento = m.asiento)
+            WHERE am.fecha <= :fecha
+              AND contabilidad IN ('F', 'A')
+          ) V
+          INNER JOIN JBRTRA.EGP_CUENTAS_DET E (NOLOCK) ON (E.CUENTA_CONTABLE = V.CUENTA_CONTABLE)
+          WHERE E.TIPO = :tipo_egp
+            AND NOT EXISTS (
+              SELECT 1 FROM JBRTRA.EGP_CENTROS_CUENTAS X (NOLOCK)
+              WHERE E.TIPO = X.TIPO AND E.FAMILIA = X.FAMILIA AND E.CUENTA_CONTABLE_ORIGINAL = X.CUENTA_CONTABLE
+            )
+          
+          UNION ALL
+          
+          SELECT 
+            E.TIPO,
+            E.FAMILIA,
+            V.CREDITO_LOCAL - V.DEBITO_LOCAL,
+            V.CREDITO_DOLAR - V.DEBITO_DOLAR
+          FROM (
+            -- Saldos fiscales con centro de costo
+            SELECT 
+              m.centro_costo,
+              m.cuenta_contable,
+              CASE WHEN m.saldo_fisc_local > 0 THEN ABS(m.saldo_fisc_local) ELSE 0 END AS debito_local,
+              CASE WHEN m.saldo_fisc_local < 0 THEN ABS(m.saldo_fisc_local) ELSE 0 END AS credito_local,
+              CASE WHEN m.saldo_fisc_dolar > 0 THEN ABS(m.saldo_fisc_dolar) ELSE 0 END AS debito_dolar,
+              CASE WHEN m.saldo_fisc_dolar < 0 THEN ABS(m.saldo_fisc_dolar) ELSE 0 END AS credito_dolar
+            FROM JBRTRA.saldo m (NOLOCK)
+            INNER JOIN (
+              SELECT m.centro_costo, m.cuenta_contable, MAX(m.fecha) AS fecha
+              FROM JBRTRA.saldo m (NOLOCK)
+              WHERE m.fecha <= :fecha
+              GROUP BY m.centro_costo, m.cuenta_contable
+            ) smax ON (m.centro_costo = smax.centro_costo AND m.cuenta_contable = smax.cuenta_contable AND m.fecha = smax.fecha)
+            WHERE 1 = 1
+            
+            UNION ALL
+            
+            -- Movimientos del diario con centro de costo
+            SELECT 
+              m.centro_costo,
+              m.cuenta_contable,
+              COALESCE(m.debito_local, 0) AS debito_local,
+              COALESCE(m.credito_local, 0) AS credito_local,
+              COALESCE(m.debito_dolar, 0) AS debito_dolar,
+              COALESCE(m.credito_dolar, 0) AS credito_dolar
+            FROM JBRTRA.asiento_de_diario am (NOLOCK)
+            INNER JOIN JBRTRA.diario m (NOLOCK) ON (am.asiento = m.asiento)
+            WHERE am.fecha <= :fecha
+              AND contabilidad IN ('F', 'A')
+          ) V
+          INNER JOIN JBRTRA.EGP_CENTROS_CUENTAS_DET E (NOLOCK) ON (E.CUENTA_CONTABLE = V.CUENTA_CONTABLE AND E.CENTRO_COSTO = V.CENTRO_COSTO)
+          WHERE E.TIPO = :tipo_egp
+        ) VISTA
+        GROUP BY TIPO, FAMILIA
+      `;
+
+      await exactusSequelize.query(query, {
+        replacements: {
+          fecha: fecha,
+          tipo_egp: tipoEgp,
+          usuario: usuario
+        }
+      });
+
+      console.log(`✅ [REPOSITORY] Datos EGP cargados para fecha: ${fecha}`);
+    } catch (error) {
+      console.error(`Error al cargar datos EGP para fecha ${fecha}:`, error);
+      throw new Error(`Error al cargar datos EGP: ${error}`);
+    }
   }
 
   // Métodos de formateo eliminados - se manejarán en el frontend
