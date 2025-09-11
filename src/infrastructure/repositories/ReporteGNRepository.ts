@@ -1,4 +1,4 @@
-import { injectable } from "inversify";
+import { injectable } from 'inversify';
 import {
   FiltrosBoletaDePago,
   FiltrosReporteAccionesDePersonal,
@@ -20,23 +20,23 @@ import {
   RespuestaReportePrestamoCtaCte,
   RespuestaReportePrestamos,
   RespuestaReporteRolDeVacaciones,
-} from "../../domain/entities/ReporteGN";
-import { IReporteGNRepository } from "../../domain/repositories/IReporteGNRepository";
-import { exactusSequelize } from "../database/config/exactus-database";
-import { QueryTypes } from "sequelize";
-import * as XLSX from "xlsx";
+} from '../../domain/entities/ReporteGN';
+import { IReporteGNRepository } from '../../domain/repositories/IReporteGNRepository';
+import { exactusSequelize } from '../database/config/exactus-database';
+import { QueryTypes } from 'sequelize';
+import * as XLSX from 'xlsx';
 
 @injectable()
 export class ReporteGNRepository implements IReporteGNRepository {
   async getReporteAnualizado(
     conjunto: string,
-    filtros: FiltrosReporteAnualizado
+    filtros: FiltrosReporteAnualizado,
   ): Promise<RespuestaReporteAnualizado | undefined> {
     const { codigo_nomina, centro_costo, area, cod_empleado, activo, periodo } =
       filtros;
     try {
       const query =
-        filtros.filtro === "N"
+        filtros.filtro === 'N'
           ? `
       exec dbo.PA_ERP_CN_DATOSANUALIZADO;1 :conjunto,:codigo_nomina,:centro_costo,:area,:cod_empleado, :activo,'N':periodo
       `
@@ -57,17 +57,17 @@ export class ReporteGNRepository implements IReporteGNRepository {
       })) as GNReporteAnualizado[];
       return {
         data: data?.[0],
-        message: "Reporte anualizado generado exitosamente",
+        message: 'Reporte anualizado generado exitosamente',
         success: true,
       };
     } catch (error) {
-      console.error("Error al obtener el reporte anualizado:", error);
+      console.error('Error al obtener el reporte anualizado:', error);
       throw error;
     }
   }
   async getPrestamoCtaCte(
     conjunto: string,
-    filtros: FiltrosReportePrestamoCtaCte
+    filtros: FiltrosReportePrestamoCtaCte,
   ): Promise<RespuestaReportePrestamoCtaCte | undefined> {
     try {
       const { cod_empleado, naturaleza } = filtros;
@@ -91,19 +91,19 @@ AND  	M.empleado = :cod_empleado AND  	TM.naturaleza = :naturaleza   ORDER BY 1 
         data,
         success: true,
         message:
-          "Reporte de prestamo de cuenta corriente generado exitosamente",
+          'Reporte de prestamo de cuenta corriente generado exitosamente',
       };
     } catch (error) {
       console.error(
-        "Error al obtener el reporte de prestamo de cuenta corriente:",
-        error
+        'Error al obtener el reporte de prestamo de cuenta corriente:',
+        error,
       );
       throw error;
     }
   }
   async getRolDeVacaciones(
     conjunto: string,
-    filtros: FiltrosReporteRolDeVacaciones
+    filtros: FiltrosReporteRolDeVacaciones,
   ): Promise<RespuestaReporteRolDeVacaciones | undefined> {
     try {
       const {
@@ -174,7 +174,7 @@ AND  	M.empleado = :cod_empleado AND  	TM.naturaleza = :naturaleza   ORDER BY 1 
       const totalPaginas = Math.ceil(total / registrosPorPagina);
       return {
         success: true,
-        message: "Reporte de vacaciones generado exitosamente",
+        message: 'Reporte de vacaciones generado exitosamente',
         totalRegistros: total,
         totalPaginas,
         paginaActual: pagina,
@@ -182,13 +182,13 @@ AND  	M.empleado = :cod_empleado AND  	TM.naturaleza = :naturaleza   ORDER BY 1 
         data: data as GNRolDeVacaciones[],
       };
     } catch (err) {
-      console.error("Error en getReportePaginado:", err);
+      console.error('Error en getReportePaginado:', err);
       throw err;
     }
   }
   async getContratos(
     conjunto: string,
-    filtros: FiltrosReporteContratos
+    filtros: FiltrosReporteContratos,
   ): Promise<RespuestaReporteContratos | undefined> {
     try {
       const { cod_empleado } = filtros;
@@ -207,17 +207,17 @@ WHERE e.empleado = ec.empleado AND UPPER( ec.empleado) LIKE :cod_empleado`;
       return {
         data,
         success: true,
-        message: "Reporte de contratos generado exitosamente",
+        message: 'Reporte de contratos generado exitosamente',
       };
     } catch (error) {
-      console.error("Error al obtener los contratos:", error);
+      console.error('Error al obtener los contratos:', error);
       throw error;
     }
   }
 
   async getPrestamos(
     conjunto: string,
-    filtros: FiltrosReportePrestamos
+    filtros: FiltrosReportePrestamos,
   ): Promise<RespuestaReportePrestamos | undefined> {
     try {
       const {
@@ -249,17 +249,17 @@ WHERE e.empleado = ec.empleado AND UPPER( ec.empleado) LIKE :cod_empleado`;
       return {
         data,
         success: true,
-        message: "Reporte de acciones de personal generado exitosamente",
+        message: 'Reporte de acciones de personal generado exitosamente',
       };
     } catch (error) {
-      console.error("Error al obtener las acciones de personal:", error);
+      console.error('Error al obtener las acciones de personal:', error);
       throw error;
     }
   }
 
   async getBoletaDePago(
     conjunto: string,
-    filtros: FiltrosBoletaDePago
+    filtros: FiltrosBoletaDePago,
   ): Promise<RespuestaReporteBoletasDePago | undefined> {
     try {
       const { cod_empleado, num_nomina } = filtros;
@@ -332,17 +332,17 @@ WHERE e.empleado = ec.empleado AND UPPER( ec.empleado) LIKE :cod_empleado`;
           goce_real: goceReal?.[0],
         },
         success: true,
-        message: "Reporte de acciones de personal generado exitosamente",
+        message: 'Reporte de acciones de personal generado exitosamente',
       };
     } catch (error) {
-      console.error("Error al obtener las acciones de personal:", error);
+      console.error('Error al obtener las acciones de personal:', error);
       throw error;
     }
   }
 
   async getAccionesDePersonal(
     conjunto: string,
-    filtros: FiltrosReporteAccionesDePersonal
+    filtros: FiltrosReporteAccionesDePersonal,
   ): Promise<RespuestaReporteAccionesDePersonal> {
     try {
       const { cod_empleado, fecha_accion_fin, fecha_accion_inicio } = filtros;
@@ -395,178 +395,478 @@ AND UPPER( ax.empleado ) LIKE :cod_empleado  ORDER BY 1 ASC
       return {
         data,
         success: true,
-        message: "Reporte de acciones de personal generado exitosamente",
+        message: 'Reporte de acciones de personal generado exitosamente',
       };
     } catch (error) {
-      console.error("Error al obtener las acciones de personal:", error);
+      console.error('Error al obtener las acciones de personal:', error);
       throw error;
     }
   }
 
-  async exportarExcel(conjunto: string, filtros: any): Promise<Buffer> {
-    try {
-      console.log(
-        `Generando Excel de acciones de personal para conjunto ${conjunto}`
-      );
+  async exportarContratosExcel(
+    conjunto: string,
+    filtros: FiltrosReporteContratos,
+  ): Promise<Buffer> {
+    const result = await this.getContratos(conjunto, filtros);
 
-      // Extraer filtros
-      const fechaInicio = filtros?.reporte.fechaInicio;
-      const fechaFin = filtros?.reporte.fechaFin;
-      const codigoEmpleado = filtros?.reporte.codigoEmpleado;
-
-      const filtrosReporte = {
-        fecha_accion_inicio: fechaInicio,
-        fecha_accion_fin: fechaFin,
-        cod_empleado: codigoEmpleado,
-      };
-
-      // Obtener los datos
-      const result = await this.getAccionesDePersonal(
-        conjunto,
-        filtrosReporte
-      );
-
-      if (result.success) {
-        console.error("Error al generar Excel de acciones de personal.");
-        throw new Error("Error al generar archivo Excel");
-      }
-      // Preparar los datos para Excel
-      const excelData = result.data.map((item) => ({
-        "Número Acción": Number(item.numero_accion),
-        "Descripción Acción": item.descripcion_accion || "",
-        "Estado Acción": item.estado_accion || "",
-        Fecha: item.fecha
-          ? new Date(item.fecha).toLocaleDateString("es-ES")
-          : "",
-        Empleado: item.empleado || "08303169",
-        Nombre: item.nombre || "De Paz Cornelio Jose Luis",
-        "Fecha Rige": item.fecha_rige
-          ? new Date(item.fecha_rige).toLocaleDateString("es-ES")
-          : "",
-        "Fecha Vence": item.fecha_vence
-          ? new Date(item.fecha_vence).toLocaleDateString("es-ES")
-          : "",
-        Puesto: item.puesto || "",
-        Plaza: item.plaza || "",
-        "Salario Promedio": item.salario_promedio || 0,
-        "Salario Diario Int": item.salario_diario_int || 0,
-        Departamento: item.departamento || "",
-        "Centro Costo": item.centro_costo || "",
-        Nómina: item.nomina || "",
-        "Días Acción": item.dias_accion || 0,
-        Saldo: item.saldo || 0,
-        "Número Acción Cuenta": item.numero_accion_cuenta || "",
-        "Régimen Vacacional": item.regimen_vacacional || "",
-        Descripción: item.descripcion || "",
-        Origen: item.origen || "",
-        "Tipo Fila": "DATA",
-      }));
-
-      // Calcular totales (ejemplo: sumar salarios y días de acción)
-      const totalSalarioPromedio = result.data
-        .filter((item) => item.salario_promedio)
-        .reduce((sum, item) => sum + (item.salario_promedio || 0), 0);
-
-      const totalSalarioDiarioInt = result.data
-        .filter((item) => item.salario_diario_int)
-        .reduce((sum, item) => sum + (item.salario_diario_int || 0), 0);
-
-      const totalDiasAccion = result.data
-        .filter((item) => item.dias_accion)
-        .reduce((sum, item) => sum + (item.dias_accion || 0), 0);
-
-      const totalSaldo = result.data
-        .filter((item) => item.saldo)
-        .reduce((sum, item) => sum + (item.saldo || 0), 0);
-
-      // Agregar fila de totales
-      const totalRow = {
-        "Número Acción": "",
-        "Descripción Acción": "",
-        "Estado Acción": "",
-        Fecha: "",
-        Empleado: "",
-        Nombre: "",
-        "Fecha Rige": "",
-        "Fecha Vence": "",
-        Puesto: "",
-        Plaza: "TOTAL GENERAL",
-        "Salario Promedio": totalSalarioPromedio,
-        "Salario Diario Int": totalSalarioDiarioInt,
-        Departamento: "",
-        "Centro Costo": "",
-        Nómina: "",
-        "Días Acción": totalDiasAccion,
-        Saldo: totalSaldo,
-        "Número Acción Cuenta": "",
-        "Régimen Vacacional": "",
-        Descripción: "",
-        Origen: "",
-        "Tipo Fila": "TOTAL",
-      };
-
-      // Fila vacía antes del total
-      const emptyRow = Object.keys(totalRow).reduce((acc, key) => {
-        acc[key] = "";
-        return acc;
-      }, {} as any);
-
-      // Combinar datos
-      const finalData = [...excelData, emptyRow, totalRow];
-
-      // Crear workbook
-      const workbook = XLSX.utils.book_new();
-
-      // Crear worksheet
-      const worksheet = XLSX.utils.json_to_sheet(finalData);
-
-      // Configurar anchos de columnas (ajustar según necesidad)
-      worksheet["!cols"] = [
-        { wch: 15 }, // Número Acción
-        { wch: 30 }, // Descripción Acción
-        { wch: 20 }, // Estado Acción
-        { wch: 15 }, // Fecha
-        { wch: 15 }, // Empleado
-        { wch: 30 }, // Nombre
-        { wch: 15 }, // Fecha Rige
-        { wch: 15 }, // Fecha Vence
-        { wch: 20 }, // Puesto
-        { wch: 20 }, // Plaza
-        { wch: 20 }, // Salario Promedio
-        { wch: 20 }, // Salario Diario Int
-        { wch: 20 }, // Departamento
-        { wch: 20 }, // Centro Costo
-        { wch: 20 }, // Nómina
-        { wch: 15 }, // Días Acción
-        { wch: 15 }, // Saldo
-        { wch: 25 }, // Número Acción Cuenta
-        { wch: 25 }, // Régimen Vacacional
-        { wch: 30 }, // Descripción
-        { wch: 20 }, // Origen
-        { wch: 15 }, // Tipo Fila
-      ];
-
-      // Agregar hoja al workbook
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Acciones de Personal");
-
-      // Generar buffer
-      const excelBuffer = XLSX.write(workbook, {
-        type: "buffer",
-        bookType: "xlsx",
-        compression: true,
-      });
-
-      console.log(
-        "Archivo Excel de acciones de personal generado exitosamente"
-      );
-      return excelBuffer;
-    } catch (error) {
-      console.error("Error al generar Excel de acciones de personal:", error);
-      throw new Error(
-        `Error al generar archivo Excel: ${
-          error instanceof Error ? error.message : "Error desconocido"
-        }`
-      );
+    if (!result || !result.success || !result.data) {
+      throw new Error('No se pudo obtener el reporte');
     }
+
+    const excelData = result.data.map((c: GNContrato) => ({
+      Empleado: c.empleado,
+      Nombre: c.nombre,
+      'Tipo Contrato': c.tipo_contrato,
+      'Fecha Inicio': c.fecha_inicio
+        ? new Date(c.fecha_inicio).toLocaleDateString('es-ES')
+        : '',
+      'Fecha Finalización': c.fecha_finalizacion
+        ? new Date(c.fecha_finalizacion).toLocaleDateString('es-ES')
+        : '',
+      'Estado Contrato': c.estado_contrato,
+    }));
+
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    worksheet['!cols'] = [
+      { wch: 15 },
+      { wch: 30 },
+      { wch: 20 },
+      { wch: 15 },
+      { wch: 20 },
+      { wch: 20 },
+    ];
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Contratos');
+
+    return XLSX.write(workbook, {
+      type: 'buffer',
+      bookType: 'xlsx',
+      compression: true,
+    });
+  }
+
+  async exportarRolDeVacacionesExcel(
+    conjunto: string,
+    filtros: FiltrosReporteRolDeVacaciones,
+  ): Promise<Buffer> {
+    const result = await this.getRolDeVacaciones(conjunto, filtros);
+
+    if (!result || !result.success || !result.data) {
+      throw new Error('No se pudo obtener el reporte');
+    }
+
+    const excelData = result.data.map((r: GNRolDeVacaciones) => ({
+      Empleado: r.empleado,
+      Nombre: r.nombre,
+      'Fecha Inicio': r.fecha_inicio
+        ? new Date(r.fecha_inicio).toLocaleDateString('es-ES')
+        : '',
+      'Fecha Fin': r.fecha_fin
+        ? new Date(r.fecha_fin).toLocaleDateString('es-ES')
+        : '',
+      Duración: r.duracion,
+      'Tipo Vacación': r.tipo_vacacion,
+    }));
+
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    worksheet['!cols'] = [
+      { wch: 15 },
+      { wch: 30 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 10 },
+      { wch: 20 },
+    ];
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Rol de Vacaciones');
+
+    return XLSX.write(workbook, {
+      type: 'buffer',
+      bookType: 'xlsx',
+      compression: true,
+    });
+  }
+
+  async exportarAnualizadoExcel(
+    conjunto: string,
+    filtros: FiltrosReporteAnualizado,
+  ): Promise<Buffer> {
+    const result = await this.getReporteAnualizado(conjunto, filtros);
+
+    if (!result || !result.success || !result.data) {
+      throw new Error('No se pudo obtener el reporte');
+    }
+    const data = result.data ? [result.data] : [];
+
+    const excelData = data.map((a: GNReporteAnualizado) => ({
+      Esquema: a.esquema,
+      Código: a.codigo,
+      Nómina: a.nomina,
+      Empleado: a.empleado,
+      'Fecha Ingreso': a.fecha_ingreso
+        ? new Date(a.fecha_ingreso).toLocaleDateString('es-ES')
+        : '',
+      'Fecha Salida': a.fecha_salida
+        ? new Date(a.fecha_salida).toLocaleDateString('es-ES')
+        : '',
+      'Centro Costo': a.centro_costo,
+      Sede: a.sede,
+      Puesto: a.puesto,
+      Essalud: a.essalud,
+      AFP: a.afp,
+      CUSPP: a.cuspp,
+      Estado: a.estado,
+    }));
+
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    worksheet['!cols'] = [
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 20 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 20 },
+      { wch: 15 },
+      { wch: 20 },
+      { wch: 15 },
+      { wch: 10 },
+      { wch: 15 },
+      { wch: 15 },
+    ];
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Anualizado');
+
+    return XLSX.write(workbook, {
+      type: 'buffer',
+      bookType: 'xlsx',
+      compression: true,
+    });
+  }
+
+  async exportarPrestamoCtaCteExcel(
+    conjunto: string,
+    filtros: FiltrosReportePrestamoCtaCte,
+  ): Promise<Buffer> {
+    const result = await this.getPrestamoCtaCte(conjunto, filtros);
+
+    if (!result || !result.success || !result.data) {
+      throw new Error('No se pudo obtener el reporte');
+    }
+
+    const excelData = result.data.map((p: GNPrestamoCuentaCorriente) => ({
+      'N° Movimiento': p.num_movimiento,
+      'Fecha Ingreso': p.fecha_ingreso
+        ? new Date(p.fecha_ingreso).toLocaleDateString('es-ES')
+        : '',
+      'Forma Pago': p.forma_pago,
+      Estado: p.estado,
+      'Tipo Movimiento': p.tipo_movimiento,
+      Descripción: p.descripcion,
+      'N° Cuotas': p.numero_cuotas,
+      Moneda: p.moneda,
+      'Tasa Interés': p.tasa_interes,
+      'Monto Local': p.monto_local,
+      'Monto Dólar': p.monto_dolar,
+      'Saldo Local': p.saldo_local,
+      'Saldo Dólar': p.saldo_dolar,
+      'Monto Interés Local': p.monto_int_local,
+      'Monto Interés Dólar': p.monto_int_dolar,
+      'Saldo Interés Local': p.saldo_int_local,
+      'Saldo Interés Dólar': p.saldo_int_dolar,
+      'Última Modificación': p.fch_ult_modific
+        ? new Date(p.fch_ult_modific).toLocaleDateString('es-ES')
+        : '',
+      Documento: p.documento,
+      Observaciones: p.observaciones,
+      Empleado: p.empleado,
+    }));
+
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    worksheet['!cols'] = [
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 10 },
+      { wch: 20 },
+      { wch: 30 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 30 },
+      { wch: 30 },
+      { wch: 20 },
+    ];
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Prestamos Cta Cte');
+
+    return XLSX.write(workbook, {
+      type: 'buffer',
+      bookType: 'xlsx',
+      compression: true,
+    });
+  }
+
+  async exportarAccionesDePersonalExcel(
+    conjunto: string,
+    filtros: FiltrosReporteAccionesDePersonal,
+  ): Promise<Buffer> {
+    const result = await this.getAccionesDePersonal(conjunto, filtros);
+
+    if (!result.success || !result.data) {
+      throw new Error('No se pudo obtener el reporte de Acciones de Personal');
+    }
+
+    // Preparar data para Excel
+    const excelData = result.data.map((item: GNAccionDePersonal) => ({
+      'Número Acción': item.numero_accion,
+      'Descripción Acción': item.descripcion_accion || '',
+      'Estado Acción': item.estado_accion || '',
+      Fecha: item.fecha ? new Date(item.fecha).toLocaleDateString('es-ES') : '',
+      Empleado: item.empleado,
+      Nombre: item.nombre,
+      'Fecha Rige': item.fecha_rige
+        ? new Date(item.fecha_rige).toLocaleDateString('es-ES')
+        : '',
+      'Fecha Vence': item.fecha_vence
+        ? new Date(item.fecha_vence).toLocaleDateString('es-ES')
+        : '',
+      Puesto: item.puesto,
+      Plaza: item.plaza,
+      'Salario Promedio': item.salario_promedio,
+      'Salario Diario Int': item.salario_diario_int,
+      Departamento: item.departamento,
+      'Centro Costo': item.centro_costo,
+      Nómina: item.nomina,
+      'Días Acción': item.dias_accion,
+      Saldo: item.saldo,
+      'Número Acción Cuenta': item.numero_accion_cuenta,
+      'Régimen Vacacional': item.regimen_vacacional,
+      Descripción: item.descripcion,
+      Origen: item.origen,
+    }));
+
+    // Totales
+    const totalSalarioPromedio = result.data.reduce(
+      (sum, i) => sum + (i.salario_promedio || 0),
+      0,
+    );
+    const totalSalarioDiarioInt = result.data.reduce(
+      (sum, i) => sum + (i.salario_diario_int || 0),
+      0,
+    );
+    const totalDiasAccion = result.data.reduce(
+      (sum, i) => sum + (i.dias_accion || 0),
+      0,
+    );
+    const totalSaldo = result.data.reduce((sum, i) => sum + (i.saldo || 0), 0);
+
+    const totalRow: any = {
+      'Número Acción': '',
+      'Descripción Acción': '',
+      'Estado Acción': '',
+      Fecha: '',
+      Empleado: '',
+      Nombre: '',
+      'Fecha Rige': '',
+      'Fecha Vence': '',
+      Puesto: '',
+      Plaza: 'TOTAL GENERAL',
+      'Salario Promedio': totalSalarioPromedio,
+      'Salario Diario Int': totalSalarioDiarioInt,
+      Departamento: '',
+      'Centro Costo': '',
+      Nómina: '',
+      'Días Acción': totalDiasAccion,
+      Saldo: totalSaldo,
+      'Número Acción Cuenta': '',
+      'Régimen Vacacional': '',
+      Descripción: '',
+      Origen: '',
+    };
+
+    // Insertar fila vacía + totales
+    const emptyRow = Object.fromEntries(
+      Object.keys(totalRow).map((k) => [k, '']),
+    );
+    const finalData = [...excelData, emptyRow, totalRow];
+
+    // Crear Excel
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(finalData);
+
+    worksheet['!cols'] = [
+      { wch: 15 },
+      { wch: 30 },
+      { wch: 20 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 30 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 20 },
+      { wch: 20 },
+      { wch: 20 },
+      { wch: 20 },
+      { wch: 20 },
+      { wch: 20 },
+      { wch: 20 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 25 },
+      { wch: 25 },
+      { wch: 30 },
+      { wch: 20 },
+    ];
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Acciones de Personal');
+
+    return XLSX.write(workbook, {
+      type: 'buffer',
+      bookType: 'xlsx',
+      compression: true,
+    });
+  }
+
+  async exportarPrestamosExcel(
+    conjunto: string,
+    filtros: FiltrosReportePrestamos,
+  ): Promise<Buffer> {
+    const result = await this.getPrestamos(conjunto, filtros);
+
+    if (!result?.success || !result.data) {
+      throw new Error('No se pudo obtener el reporte de préstamos');
+    }
+
+    const excelData = result.data.map((item) => ({
+      ESQUEMA: item.ESQUEMA,
+      DNI: item.DNI,
+      'Apellidos y Nombres': item.APELLIDOS_NOMBRES,
+      'Fecha Ingreso Empleado': item.FECHA_INGRESO_EMPLEADO,
+      Puesto: item.PUESTO,
+      Sede: item.SEDE,
+      'Centro Costo': item.CENTRO_COSTO,
+      'Descripción CC': item.DESCRIPCION_CC,
+      'N° Movimiento': item.NUM_MOVIMIENTO,
+      'Cod. Tipo Movimiento': item.COD_TIPO_MOVIMIENTO,
+      'Tipo Movimiento': item.TIPO_MOVIMIENTO,
+      Moneda: item.MONEDA,
+      'N° Nómina': item.NUMERO_NOMINA,
+      'Nómina Mes': item.NOMINA_MES,
+      'N° Cuota Desc.': item.NUMERO_CUOTA_DESCONTADA,
+      'Monto Desc. (S/)': item.MONTO_CUOTA_DESCONTADA,
+      'Monto Desc. ($)': item.MONTO_CUOTA_DESCONTADA_DOLAR,
+      'Estado Cuota': item.ESTADO_CUOTA_DESCONTADA,
+      'Monto Local': item.MONTO_LOCAL,
+      'Monto Abonado Cuota': item.MONTO_ABONADO_CUOTA,
+      'Saldo Cuota': item.SALDO_CUOTA,
+      'Monto Abonado': item.MONTO_ABONADO,
+      'Fecha Ingreso': item.FECHA_INGRESO,
+      'N° Cuotas': item.NUM_CUOTAS,
+      'Saldo Local': item.SALDO_LOCAL,
+      'Cod. Estado Préstamo': item.CODIGO_ESTADO_PRESTAMO,
+      'Estado Préstamo': item.ESTADO_PRESTAMO,
+      Diferencia: item.DIFERENCIA,
+      'Estado Saldo': item.ESTADO_SALDO,
+      'Fecha Creación Sistema': item.FECHA_CREACION_SISTEMA,
+      'Estado Empleado': item.ESTADO_EMPLEADO,
+      'Fecha Salida': item.FECHA_SALIDA,
+    }));
+
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+    if (excelData.length === 0) {
+      throw new Error('No hay datos para exportar');
+    }
+
+    worksheet['!cols'] = Object.keys(excelData[0]!).map(() => ({ wch: 20 }));
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Préstamos');
+
+    return XLSX.write(workbook, {
+      type: 'buffer',
+      bookType: 'xlsx',
+      compression: true,
+    });
+  }
+
+  async exportarBoletaDePagoExcel(
+    conjunto: string,
+    filtros: FiltrosBoletaDePago,
+  ): Promise<Buffer> {
+    const result = await this.getBoletaDePago(conjunto, filtros);
+
+    if (!result?.success || !result.data) {
+      throw new Error('No se pudo obtener la Boleta de Pago');
+    }
+
+    const {
+      periodo_planilla,
+      compania,
+      boleta,
+      horas_dias,
+      ingresos,
+      aportes,
+      descuentos,
+      goce_real,
+    } = result.data;
+
+    // Preparamos cada sección en hojas separadas
+    const workbook = XLSX.utils.book_new();
+
+    if (periodo_planilla) {
+      const wsPeriodo = XLSX.utils.json_to_sheet([periodo_planilla]);
+      XLSX.utils.book_append_sheet(workbook, wsPeriodo, 'Periodo Planilla');
+    }
+
+    if (compania) {
+      const wsCompania = XLSX.utils.json_to_sheet([compania]);
+      XLSX.utils.book_append_sheet(workbook, wsCompania, 'Compañía');
+    }
+
+    if (boleta) {
+      const wsBoleta = XLSX.utils.json_to_sheet([boleta]);
+      XLSX.utils.book_append_sheet(workbook, wsBoleta, 'Boleta');
+    }
+
+    if (horas_dias) {
+      const wsHoras = XLSX.utils.json_to_sheet([horas_dias]);
+      XLSX.utils.book_append_sheet(workbook, wsHoras, 'Horas y Días');
+    }
+
+    if (ingresos) {
+      const wsIngresos = XLSX.utils.json_to_sheet([ingresos]);
+      XLSX.utils.book_append_sheet(workbook, wsIngresos, 'Ingresos');
+    }
+
+    if (aportes) {
+      const wsAportes = XLSX.utils.json_to_sheet([aportes]);
+      XLSX.utils.book_append_sheet(workbook, wsAportes, 'Aportes');
+    }
+
+    if (descuentos) {
+      const wsDescuentos = XLSX.utils.json_to_sheet([descuentos]);
+      XLSX.utils.book_append_sheet(workbook, wsDescuentos, 'Descuentos');
+    }
+
+    if (goce_real) {
+      const wsGoce = XLSX.utils.json_to_sheet([goce_real]);
+      XLSX.utils.book_append_sheet(workbook, wsGoce, 'Goce Real');
+    }
+
+    return XLSX.write(workbook, {
+      type: 'buffer',
+      bookType: 'xlsx',
+      compression: true,
+    });
   }
 }
