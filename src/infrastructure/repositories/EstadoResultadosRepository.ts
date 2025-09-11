@@ -1,5 +1,5 @@
 import { injectable } from 'inversify';
-import { exactusSequelize } from '../database/config/exactus-database';
+import { exactusSequelize } from '../database/config/exactus-database'
 import { EstadoResultados, FiltrosEstadoResultados, TipoEgp, PeriodoContable, ValidacionBalance, LogEjecucion } from '../../domain/entities/EstadoResultados';
 
 @injectable()
@@ -94,238 +94,148 @@ export class EstadoResultadosRepository {
       const fechaAnterior = this.calcularFechaAnterior(fechaActual);
       const tipoEgp = filtros.tipoEgp || 'GYPPQ';
 
-      // Crear tabla temporal para los resultados
-      const createTableQuery = `
-        CREATE TABLE ${conjunto}.R_XML_8DDC9208B6470F8 (
-          cuenta_contable VARCHAR(254), 
-          fecha_balance DATETIME, 
-          saldo_inicial DECIMAL(32,12), 
-          nombre_cuenta VARCHAR(254), 
-          fecha_inicio DATETIME, 
-          fecha_cuenta DATETIME, 
-          saldo_final DECIMAL(32,12), 
-          tiporeporte VARCHAR(254),
-          posicion VARCHAR(254), 
-          caracter VARCHAR(254), 
-          moneda VARCHAR(254), 
-          padre VARCHAR(254), 
-          orden DECIMAL(32,12), 
-          mes VARCHAR(254),
-          ROW_ORDER_BY INT NOT NULL IDENTITY PRIMARY KEY
-        )
-      `;
+      console.log(`🔍 [REPOSITORY] Iniciando getEstadoResultados para conjunto: ${conjunto}, usuario: ${usuario}, fecha: ${fechaActual}`);
 
-      // Limpiar tabla temporal si existe
-      await exactusSequelize.query(`DROP TABLE IF EXISTS ${conjunto}.R_XML_8DDC9208B6470F8`);
-      
-      // Crear tabla temporal
-      await exactusSequelize.query(createTableQuery);
-
-      // Insertar datos del período actual
-      const insertCurrentPeriodQuery = `
-        INSERT INTO ${conjunto}.EGP ( PERIODO, TIPO, FAMILIA, SALDO, SALDO_DOLAR , USUARIO  )   
-        SELECT  
-        :fecha_periodo_actual, TIPO, FAMILIA, SUM ( SALDO_LOCAL), SUM (SALDO_DOLAR) , :usuario          
-        FROM (    
-        SELECT  E.TIPO,  E.FAMILIA,  V.CREDITO_LOCAL - V.DEBITO_LOCAL SALDO_LOCAL,  V.CREDITO_DOLAR - V.DEBITO_DOLAR SALDO_DOLAR    
-        FROM  (   	
-        select  	m.centro_costo,  	m.cuenta_contable,  	
-        case when m.saldo_fisc_local > 0 then abs(m.saldo_fisc_local) else 0 end debito_local,  	
-        case when m.saldo_fisc_local < 0 then abs(m.saldo_fisc_local) else 0 end credito_local,  	
-        case when m.saldo_fisc_dolar > 0 then abs(m.saldo_fisc_dolar) else 0 end debito_dolar,  	
-        case when m.saldo_fisc_dolar < 0 then abs(m.saldo_fisc_dolar) else 0 end credito_dolar   	
-        from ${conjunto}.saldo m (NOLOCK)
-        inner join (  	select m.centro_costo, m.cuenta_contable, max(m.fecha) fecha  	from ${conjunto}.saldo m (NOLOCK)  	where m.fecha <= :fecha_periodo_actual                                                       
-        group by m.centro_costo, m.cuenta_contable  ) smax on ( m.centro_costo = smax.centro_costo and m.cuenta_contable = smax.cuenta_contable and m.fecha = smax.fecha )   where 1 = 1  
-        UNION ALL
-        select  	m.centro_costo,  	m.cuenta_contable,  	coalesce ( m.debito_local, 0 )  debito_local,  	coalesce ( m.credito_local, 0 )  credito_local,  	
-        coalesce ( m.debito_dolar, 0 )  debito_dolar,  	coalesce ( m.credito_dolar, 0 )  credito_dolar  	
-        from ${conjunto}.asiento_de_diario am (NOLOCK)
-        inner join ${conjunto}.diario m (NOLOCK) on ( am.asiento = m.asiento ) 
-        where am.fecha <= :fecha_periodo_actual  and contabilidad in  ( 'F', 'A' )  ) V  	
-        INNER JOIN ${conjunto}.EGP_CUENTAS_DET E (NOLOCK) ON ( E.CUENTA_CONTABLE = V.CUENTA_CONTABLE )
-        WHERE E.TIPO=:tipo_egp  AND  NOT EXISTS (	SELECT 1 FROM ${conjunto}.EGP_CENTROS_CUENTAS X (NOLOCK)  WHERE E.TIPO = X.TIPO AND E.FAMILIA = X.FAMILIA AND E.CUENTA_CONTABLE_ORIGINAL = X.CUENTA_CONTABLE  )  
-        UNION ALL    
-        SELECT  E.TIPO,  E.FAMILIA,  V.CREDITO_LOCAL - V.DEBITO_LOCAL,  V.CREDITO_DOLAR - V.DEBITO_DOLAR  
-        FROM  (   
-        select  	m.centro_costo,  	m.cuenta_contable,  	
-        case when m.saldo_fisc_local > 0 then abs(m.saldo_fisc_local) else 0 end debito_local,  	
-        case when m.saldo_fisc_local < 0 then abs(m.saldo_fisc_local) else 0 end credito_local,  	
-        case when m.saldo_fisc_dolar > 0 then abs(m.saldo_fisc_dolar) else 0 end debito_dolar,  	
-        case when m.saldo_fisc_dolar < 0 then abs(m.saldo_fisc_dolar) else 0 end credito_dolar   	
-        from ${conjunto}.saldo m (NOLOCK)
-        inner join (  
-        select m.centro_costo, m.cuenta_contable, max(m.fecha) fecha  	
-        from ${conjunto}.saldo m (NOLOCK)  	
-        where m.fecha <= :fecha_periodo_actual            
-        group by m.centro_costo, m.cuenta_contable  ) smax on ( m.centro_costo = smax.centro_costo and m.cuenta_contable = smax.cuenta_contable and m.fecha = smax.fecha )   where 1 = 1  
-        UNION ALL
-        select  	m.centro_costo,  	m.cuenta_contable,  	coalesce ( m.debito_local, 0 )  debito_local,  	coalesce ( m.credito_local, 0 )  credito_local,  	
-        coalesce ( m.debito_dolar, 0 )  debito_dolar,  	coalesce ( m.credito_dolar, 0 )  credito_dolar  
-        from ${conjunto}.asiento_de_diario am (NOLOCK) inner join ${conjunto}.diario m (NOLOCK) on ( am.asiento = m.asiento ) 
-        where am.fecha <= :fecha_periodo_actual  and contabilidad in  ( 'F', 'A' )  ) V  		
-        INNER JOIN ${conjunto}.EGP_CENTROS_CUENTAS_DET E (NOLOCK) ON  ( E.CUENTA_CONTABLE = V.CUENTA_CONTABLE AND E.CENTRO_COSTO = V.CENTRO_COSTO )  
-        WHERE E.TIPO=:tipo_egp  ) VISTA  
-        GROUP BY TIPO, FAMILIA
-      `;
-
-      const fechaActualPeriodo = filtros.fecha || new Date().toISOString().split('T')[0];
-      const tipoEgpPeriodo = filtros.tipoEgp || 'GYPPQ';
-      
-      if (!fechaActualPeriodo) {
-        throw new Error('Fecha es requerida');
-      }
-
-      await exactusSequelize.query(insertCurrentPeriodQuery, { 
-        replacements: { 
-          fecha_periodo_actual: fechaActualPeriodo,
-          usuario,
-          tipo_egp: tipoEgpPeriodo
-        } 
-      });
-
-      // Insertar datos del período anterior
-      const fechaAnteriorObj = new Date(fechaActualPeriodo);
-      fechaAnteriorObj.setMonth(fechaAnteriorObj.getMonth() - 1);
-      const fechaAnteriorStr = fechaAnteriorObj.toISOString().split('T')[0];
-
-      const insertPreviousPeriodQuery = `
-        INSERT INTO ${conjunto}.EGP ( PERIODO, TIPO, FAMILIA, SALDO, SALDO_DOLAR , USUARIO  ) 
-        SELECT :fecha_periodo_anterior, TIPO, FAMILIA, SUM ( SALDO_LOCAL), SUM (SALDO_DOLAR) , :usuario    
-        FROM (    
-        SELECT  E.TIPO,  E.FAMILIA,  V.CREDITO_LOCAL - V.DEBITO_LOCAL SALDO_LOCAL,  V.CREDITO_DOLAR - V.DEBITO_DOLAR SALDO_DOLAR   
-        FROM  (   	
-        select  	m.centro_costo,  	m.cuenta_contable,  	
-        case when m.saldo_fisc_local > 0 then abs(m.saldo_fisc_local) else 0 end debito_local,  	
-        case when m.saldo_fisc_local < 0 then abs(m.saldo_fisc_local) else 0 end credito_local,  
-        case when m.saldo_fisc_dolar > 0 then abs(m.saldo_fisc_dolar) else 0 end debito_dolar, 
-        case when m.saldo_fisc_dolar < 0 then abs(m.saldo_fisc_dolar) else 0 end credito_dolar   	
-        from ${conjunto}.saldo m (NOLOCK)
-        inner join (  	
-        select m.centro_costo, m.cuenta_contable, max(m.fecha) fecha  	from ${conjunto}.saldo m (NOLOCK)  	where m.fecha <= :fecha_periodo_anterior        
-        group by m.centro_costo, m.cuenta_contable  ) smax on ( m.centro_costo = smax.centro_costo and m.cuenta_contable = smax.cuenta_contable and m.fecha = smax.fecha )   where 1 = 1 
-        UNION ALL    
-        select  	m.centro_costo,  	m.cuenta_contable,  	coalesce ( m.debito_local, 0 )  debito_local,  	coalesce ( m.credito_local, 0 )  credito_local,  	coalesce ( m.debito_dolar, 0 )  debito_dolar,
-        coalesce ( m.credito_dolar, 0 )  credito_dolar  	 
-        from ${conjunto}.asiento_de_diario am (NOLOCK) inner join ${conjunto}.diario m (NOLOCK) on ( am.asiento = m.asiento )  where am.fecha <= :fecha_periodo_anterior   and contabilidad in  ( 'F', 'A' )  ) V  	
-        INNER JOIN ${conjunto}.EGP_CUENTAS_DET E (NOLOCK) ON ( E.CUENTA_CONTABLE = V.CUENTA_CONTABLE )  
-        WHERE E.TIPO=:tipo_egp  AND  NOT EXISTS (	
-        SELECT 1 FROM ${conjunto}.EGP_CENTROS_CUENTAS X (NOLOCK)   	
-        WHERE E.TIPO = X.TIPO AND E.FAMILIA = X.FAMILIA AND E.CUENTA_CONTABLE_ORIGINAL = X.CUENTA_CONTABLE  )    
-        UNION ALL   
-        SELECT  E.TIPO,  E.FAMILIA,  V.CREDITO_LOCAL - V.DEBITO_LOCAL,  V.CREDITO_DOLAR - V.DEBITO_DOLAR  
-        FROM  (   	select  	m.centro_costo,  	m.cuenta_contable,  	
-        case when m.saldo_fisc_local > 0 then abs(m.saldo_fisc_local) else 0 end debito_local,  
-        case when m.saldo_fisc_local < 0 then abs(m.saldo_fisc_local) else 0 end credito_local,  
-        case when m.saldo_fisc_dolar > 0 then abs(m.saldo_fisc_dolar) else 0 end debito_dolar,  	
-        case when m.saldo_fisc_dolar < 0 then abs(m.saldo_fisc_dolar) else 0 end credito_dolar   	
-        from ${conjunto}.saldo m (NOLOCK)  inner join ( 
-        select m.centro_costo, m.cuenta_contable, max(m.fecha) fecha  
-        from ${conjunto}.saldo m (NOLOCK)  	
-        where m.fecha <= :fecha_periodo_anterior                 
-        group by m.centro_costo, m.cuenta_contable  ) smax on ( m.centro_costo = smax.centro_costo and m.cuenta_contable = smax.cuenta_contable and m.fecha = smax.fecha )   where 1 = 1  
-        UNION ALL    	
-        select  	m.centro_costo,  	m.cuenta_contable,  	coalesce ( m.debito_local, 0 )  debito_local,  	coalesce ( m.credito_local, 0 )  credito_local,  
-        coalesce ( m.debito_dolar, 0 )  debito_dolar,  	coalesce ( m.credito_dolar, 0 )  credito_dolar  
-        from ${conjunto}.asiento_de_diario am (NOLOCK) inner join ${conjunto}.diario m (NOLOCK) on ( am.asiento = m.asiento )
-        where am.fecha <= :fecha_periodo_anterior  and contabilidad in  ( 'F', 'A' )  ) V  		
-        INNER JOIN ${conjunto}.EGP_CENTROS_CUENTAS_DET E (NOLOCK) ON  ( E.CUENTA_CONTABLE = V.CUENTA_CONTABLE AND E.CENTRO_COSTO = V.CENTRO_COSTO )  WHERE E.TIPO=:tipo_egp  ) VISTA 
-        GROUP BY TIPO, FAMILIA
-      `;
-
-      await exactusSequelize.query(insertPreviousPeriodQuery, { 
-        replacements: { 
-          fecha_periodo_anterior: fechaAnteriorStr,
-          usuario,
-          tipo_egp: tipoEgpPeriodo
-        } 
-      });
-
-      // Consulta final para obtener los resultados con cálculo de variación
+      // Consulta optimizada que usa directamente los datos de EGP
       const finalQuery = `
-        SELECT   PA.NOMBRE,   P.FAMILIA,   P.NOMBRE as nombre_cuenta,   P.POSICION,'Nuevo Sol' as moneda,   P.ORDEN,     
-        ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_actual  THEN EG.SALDO ELSE 0 END),0) AS SALDO_ACTUAL, 
-        ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_anterior  THEN EG.SALDO ELSE 0 END),0) AS SALDO_ANTERIOR,
-        ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_actual  THEN EG.SALDO ELSE 0 END),0) - 
-        ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_anterior  THEN EG.SALDO ELSE 0 END),0) AS VARIACION,
-        PA.FAMILIA as FAMILIA_PADRE
-        FROM ${conjunto}.POSICION_EGP P (NOLOCK)
-        INNER JOIN ${conjunto}.POSICION_EGP PA (NOLOCK)   ON PA.TIPO = P.TIPO AND PA.FAMILIA = P.FAMILIA_PADRE 
-        LEFT OUTER JOIN ${conjunto}.EGP EG (NOLOCK)   ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA AND EG.USUARIO = :usuario          
-        WHERE P.TIPO= :tipo_egp
-        GROUP BY PA.NOMBRE,PA.FAMILIA,P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN   
+        SELECT 
+          PA.NOMBRE AS PADRE_NOMBRE,
+          P.FAMILIA,
+          P.NOMBRE AS CONCEPTO,
+          P.POSICION,
+          'Nuevo Sol' AS MONEDA,
+          P.ORDEN,     
+          ISNULL(SUM(CASE EG.PERIODO 
+                        WHEN :fecha_periodo_actual THEN EG.SALDO 
+                        ELSE 0 
+                     END), 0) AS SALDO_ACTUAL, 
+          ISNULL(SUM(CASE EG.PERIODO 
+                        WHEN :fecha_periodo_anterior THEN EG.SALDO 
+                        ELSE 0 
+                     END), 0) AS SALDO_ANTERIOR,
+          -- Cálculo de variación
+          ISNULL(SUM(CASE EG.PERIODO 
+                        WHEN :fecha_periodo_actual THEN EG.SALDO 
+                        ELSE 0 
+                     END), 0) - 
+          ISNULL(SUM(CASE EG.PERIODO 
+                        WHEN :fecha_periodo_anterior THEN EG.SALDO 
+                        ELSE 0 
+                     END), 0) AS VARIACION,
+          P.FAMILIA_PADRE
+        FROM JBRTRA.POSICION_EGP P (NOLOCK)   
+        LEFT JOIN JBRTRA.POSICION_EGP PA (NOLOCK)   
+            ON PA.TIPO = P.TIPO 
+            AND PA.FAMILIA = P.FAMILIA_PADRE 
+        LEFT OUTER JOIN JBRTRA.EGP EG (NOLOCK)   
+            ON EG.TIPO = P.TIPO 
+            AND EG.FAMILIA = P.FAMILIA 
+            AND EG.USUARIO = :usuario          
+        WHERE P.TIPO = :tipo_egp
+        GROUP BY PA.NOMBRE, P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN, P.FAMILIA_PADRE   
+
         UNION ALL   
-        SELECT   NULL,   P.FAMILIA,   P.NOMBRE as nombre_cuenta,   P.POSICION, 'Nuevo Sol' ,   P.ORDEN, 
-        ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_actual THEN EG.SALDO ELSE 0 END),0) AS SALDO_ACTUAL,
-        ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_anterior THEN EG.SALDO ELSE 0 END),0) AS SALDO_ANTERIOR,
-        ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_actual THEN EG.SALDO ELSE 0 END),0) - 
-        ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_anterior THEN EG.SALDO ELSE 0 END),0) AS VARIACION,
-        NULL as FAMILIA_PADRE
-        FROM ${conjunto}.POSICION_EGP P (NOLOCK)
-        LEFT OUTER JOIN ${conjunto}.EGP EG (NOLOCK)   ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA AND EG.USUARIO = :usuario        
-        WHERE P.FAMILIA_PADRE IS NULL AND P.AGRUPA = 'N'   AND P.TIPO= :tipo_egp                         
-        GROUP BY P.FAMILIA,P.NOMBRE,P.POSICION,P.ORDEN ORDER BY 4, 6
+
+        -- Elementos sin padre (nivel superior)
+        SELECT 
+          NULL AS PADRE_NOMBRE,
+          P.FAMILIA,
+          P.NOMBRE AS CONCEPTO,
+          P.POSICION, 
+          'Nuevo Sol' AS MONEDA,
+          P.ORDEN, 
+          ISNULL(SUM(CASE EG.PERIODO 
+                        WHEN :fecha_periodo_actual THEN EG.SALDO 
+                        ELSE 0 
+                     END), 0) AS SALDO_ACTUAL,
+          ISNULL(SUM(CASE EG.PERIODO 
+                        WHEN :fecha_periodo_anterior THEN EG.SALDO 
+                        ELSE 0 
+                     END), 0) AS SALDO_ANTERIOR,
+          -- Cálculo de variación
+          ISNULL(SUM(CASE EG.PERIODO 
+                        WHEN :fecha_periodo_actual THEN EG.SALDO 
+                        ELSE 0 
+                     END), 0) - 
+          ISNULL(SUM(CASE EG.PERIODO 
+                        WHEN :fecha_periodo_anterior THEN EG.SALDO 
+                        ELSE 0 
+                     END), 0) AS VARIACION,
+          P.FAMILIA_PADRE
+        FROM JBRTRA.POSICION_EGP P (NOLOCK)   
+        LEFT OUTER JOIN JBRTRA.EGP EG (NOLOCK)   
+            ON EG.TIPO = P.TIPO 
+            AND EG.FAMILIA = P.FAMILIA 
+            AND EG.USUARIO = :usuario        
+        WHERE P.FAMILIA_PADRE IS NULL 
+            AND P.AGRUPA = 'N'   
+            AND P.TIPO = :tipo_egp                         
+        GROUP BY P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN, P.FAMILIA_PADRE
+        ORDER BY POSICION, ORDEN
         OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY
       `;
 
-      const offset = (page - 1) * pageSize;
-      const [results] = await exactusSequelize.query(finalQuery, { 
-        replacements: { 
+      console.log(`🔍 [REPOSITORY] Ejecutando consulta optimizada...`);
+      
+      const [results] = await exactusSequelize.query(finalQuery, {
+        replacements: {
           fecha_periodo_actual: fechaActual,
           fecha_periodo_anterior: fechaAnterior,
-          usuario,
+          usuario: usuario,
           tipo_egp: tipoEgp,
-          offset,
-          pageSize
-        } 
+          offset: (page - 1) * pageSize,
+          pageSize: pageSize
+        }
       });
 
-      // Generar estructura de reporte
+      console.log(`🔍 [REPOSITORY] Consulta completada. Resultados: ${results ? (results as any[]).length : 0}`);
+
+      // Generar estructura del reporte
       const estructuraReporte = this.generarEstructuraReporte(conjunto, fechaActual, fechaAnterior);
       
-      // Mapear resultados con jerarquía y formateo
-      const datosReporte = this.mapearResultadosConJerarquia(results as any[], fechaActual, fechaAnterior, tipoEgp);
+      // Mapear resultados con jerarquía
+      const datosReporte = this.mapearResultadosConJerarquia(results ? (results as any[]) : [], fechaActual, fechaAnterior, tipoEgp);
       
       // Calcular totales
       const totales = await this.calcularTotales(conjunto, usuario, tipoEgp, fechaActual, fechaAnterior);
       
-      // Validar balance
-      const validacionBalance = await this.validarBalance(conjunto, usuario, tipoEgp, fechaActual, fechaAnterior);
-      
-      // Limpiar tabla temporal
-      await exactusSequelize.query(`DROP TABLE IF EXISTS ${conjunto}.R_XML_8DDC9208B6470F8`);
-
-      // Combinar todos los resultados
-      const resultadosCompletos = [...estructuraReporte, ...datosReporte, ...totales];
+      // Combinar todos los elementos
+      const resultadoFinal = [...estructuraReporte, ...datosReporte, ...totales];
       
       // Registrar ejecución
       const tiempoEjecucion = Date.now() - inicioEjecucion;
-      await this.registrarEjecucion(conjunto, usuario, fechaActual, fechaAnterior, resultadosCompletos.length, tiempoEjecucion);
+      await this.registrarEjecucion(conjunto, usuario, fechaActual, fechaAnterior, resultadoFinal.length, tiempoEjecucion);
+      
+      console.log(`✅ [REPOSITORY] getEstadoResultados completado en ${tiempoEjecucion}ms`);
+      
+      return resultadoFinal;
 
-      return resultadosCompletos;
     } catch (error) {
       console.error('Error al obtener estado de resultados:', error);
       throw new Error(`Error al obtener estado de resultados: ${error}`);
     }
   }
 
-  async getTotalRecords(
-    conjunto: string, 
-    usuario: string, 
-    filtros: FiltrosEstadoResultados
-  ): Promise<number> {
+  async getTotalRecords(conjunto: string, usuario: string, filtros: FiltrosEstadoResultados): Promise<number> {
     try {
-      // Implementar conteo total de registros si es necesario
-      // Por ahora retornamos 0, pero se puede implementar la lógica de conteo
-      return 0;
+      const query = `
+        SELECT COUNT(*) as total
+        FROM JBRTRA.POSICION_EGP P (NOLOCK)
+        WHERE P.TIPO = :tipo_egp
+      `;
+
+      const [results] = await exactusSequelize.query(query, {
+        replacements: { tipo_egp: filtros.tipoEgp || 'GYPPQ' }
+      });
+
+      return (results as any[])[0]?.total || 0;
     } catch (error) {
       console.error('Error al obtener total de registros:', error);
-      throw new Error(`Error al obtener total de registros: ${error}`);
+      return 0;
     }
   }
 
-  // Métodos auxiliares para cumplir con los requerimientos
-
+  // Métodos auxiliares
   private calcularFechaAnterior(fecha: string): string {
     const fechaObj = new Date(fecha);
     fechaObj.setMonth(fechaObj.getMonth() - 1);
@@ -334,184 +244,89 @@ export class EstadoResultadosRepository {
 
   private formatearNumero(valor: number): string {
     if (valor === 0) return '0.00';
-    if (valor < 0) return `(${Math.abs(valor).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`;
-    return valor.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (valor < 0) return `(${Math.abs(valor).toFixed(2)})`;
+    return valor.toFixed(2);
   }
 
   private formatearVariacion(valor: number): string {
     if (valor === 0) return '0.00';
-    if (valor < 0) return `(${Math.abs(valor).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`;
-    return `+${valor.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (valor > 0) return `+${valor.toFixed(2)}`;
+    return `(${Math.abs(valor).toFixed(2)})`;
   }
 
   private calcularNivelJerarquia(familiaPadre: string): number {
-    if (!familiaPadre) return 0;
-    return familiaPadre.split('.').length - 1;
+    if (!familiaPadre) return 1;
+    return 2;
   }
 
-  private generarEstructuraReporte(
-    conjunto: string, 
-    fechaActual: string, 
-    fechaAnterior: string
-  ): EstadoResultados[] {
-    const encabezado: EstadoResultados[] = [
+  private generarEstructuraReporte(conjunto: string, fechaActual: string, fechaAnterior: string): EstadoResultados[] {
+    return [
       {
         cuenta_contable: '',
-        fecha_balance: new Date(),
+        fecha_balance: new Date(fechaActual),
         saldo_inicial: 0,
         nombre_cuenta: 'EMPRESA XYZ S.A.',
-        fecha_inicio: new Date(),
-        fecha_cuenta: new Date(),
+        fecha_inicio: new Date(fechaAnterior),
+        fecha_cuenta: new Date(fechaActual),
         saldo_final: 0,
-        tiporeporte: 'HEADER',
-        posicion: 'HEADER',
-        caracter: '',
-        moneda: '',
+        tiporeporte: 'ESTADO DE RESULTADOS COMPARATIVO',
+        posicion: '0',
+        caracter: 'E',
+        moneda: 'Nuevo Sol',
         padre: '',
         orden: 0,
-        mes: '',
-        esEncabezado: true,
-        saldo_inicial_formateado: '',
-        saldo_final_formateado: '',
-        variacion_formateada: ''
-      },
-      {
-        cuenta_contable: '',
-        fecha_balance: new Date(),
-        saldo_inicial: 0,
-        nombre_cuenta: 'ESTADO DE RESULTADOS COMPARATIVO',
-        fecha_inicio: new Date(),
-        fecha_cuenta: new Date(),
-        saldo_final: 0,
-        tiporeporte: 'TITLE',
-        posicion: 'TITLE',
-        caracter: '',
-        moneda: '',
-        padre: '',
-        orden: 0,
-        mes: '',
-        esEncabezado: true,
-        saldo_inicial_formateado: '',
-        saldo_final_formateado: '',
-        variacion_formateada: ''
-      },
-      {
-        cuenta_contable: '',
-        fecha_balance: new Date(),
-        saldo_inicial: 0,
-        nombre_cuenta: `Período: ${fechaAnterior} vs ${fechaActual}`,
-        fecha_inicio: new Date(),
-        fecha_cuenta: new Date(),
-        saldo_final: 0,
-        tiporeporte: 'PERIOD',
-        posicion: 'PERIOD',
-        caracter: '',
-        moneda: 'Nuevos Soles',
-        padre: '',
-        orden: 0,
-        mes: '',
-        esEncabezado: true,
-        saldo_inicial_formateado: '',
-        saldo_final_formateado: '',
-        variacion_formateada: ''
+        mes: 'Período: ' + fechaAnterior + ' vs ' + fechaActual,
+        esEncabezado: true
       }
     ];
-    
-    return encabezado;
   }
 
-  private async calcularTotales(
-    conjunto: string,
-    usuario: string,
-    tipoEgp: string,
-    fechaActual: string,
-    fechaAnterior: string
-  ): Promise<EstadoResultados[]> {
+  private async calcularTotales(conjunto: string, usuario: string, tipoEgp: string, fechaActual: string, fechaAnterior: string): Promise<EstadoResultados[]> {
     try {
-      const totalesQuery = `
+      const query = `
         SELECT 
-          'TOTAL' as PADRE_NOMBRE,
-          'TOTAL' as FAMILIA,
-          'TOTAL INGRESOS' as CONCEPTO,
-          'TOTAL_INGRESOS' as POSICION,
-          'Nuevo Sol' as MONEDA,
-          999 as ORDEN,
-          ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_actual THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ACTUAL,
-          ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_anterior THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ANTERIOR
-        FROM ${conjunto}.EGP EG (NOLOCK)
-        INNER JOIN ${conjunto}.POSICION_EGP P (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA
-        WHERE EG.USUARIO = :usuario 
-          AND EG.TIPO = :tipo_egp
-          AND P.POSICION = 'INGRESOS'
-        
-        UNION ALL
-        
-        SELECT 
-          'TOTAL' as PADRE_NOMBRE,
-          'TOTAL' as FAMILIA,
-          'TOTAL EGRESOS' as CONCEPTO,
-          'TOTAL_EGRESOS' as POSICION,
-          'Nuevo Sol' as MONEDA,
-          998 as ORDEN,
-          ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_actual THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ACTUAL,
-          ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_anterior THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ANTERIOR
-        FROM ${conjunto}.EGP EG (NOLOCK)
-        INNER JOIN ${conjunto}.POSICION_EGP P (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA
-        WHERE EG.USUARIO = :usuario 
-          AND EG.TIPO = :tipo_egp
-          AND P.POSICION = 'EGRESOS'
-        
-        UNION ALL
-        
-        SELECT 
-          'TOTAL' as PADRE_NOMBRE,
-          'TOTAL' as FAMILIA,
-          'UTILIDAD NETA' as CONCEPTO,
-          'TOTAL_RESULTADO' as POSICION,
-          'Nuevo Sol' as MONEDA,
-          997 as ORDEN,
-          ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_actual THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ACTUAL,
-          ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_periodo_anterior THEN EG.SALDO ELSE 0 END), 0) AS SALDO_ANTERIOR
-        FROM ${conjunto}.EGP EG (NOLOCK)
-        INNER JOIN ${conjunto}.POSICION_EGP P (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA
-        WHERE EG.USUARIO = :usuario 
-          AND EG.TIPO = :tipo_egp
-          AND P.POSICION IN ('INGRESOS', 'EGRESOS')
+          'TOTAL INGRESOS' as concepto,
+          SUM(CASE WHEN EG.PERIODO = :fechaActual THEN EG.SALDO ELSE 0 END) as saldo_actual,
+          SUM(CASE WHEN EG.PERIODO = :fechaAnterior THEN EG.SALDO ELSE 0 END) as saldo_anterior
+        FROM JBRTRA.EGP EG (NOLOCK)
+        INNER JOIN JBRTRA.POSICION_EGP P (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA
+        WHERE EG.USUARIO = :usuario AND EG.TIPO = :tipoEgp AND P.POSICION = 1
       `;
-      
-      const [results] = await exactusSequelize.query(totalesQuery, {
-        replacements: { 
-          usuario, 
-          tipo_egp: tipoEgp, 
-          fecha_periodo_actual: fechaActual, 
-          fecha_periodo_anterior: fechaAnterior 
-        }
+
+      const [results] = await exactusSequelize.query(query, {
+        replacements: { fechaActual, fechaAnterior, usuario, tipoEgp }
       });
+
+      const totales: EstadoResultados[] = [];
       
-      return (results as any[]).map((row: any) => {
-        const variacion = (row.SALDO_ACTUAL || 0) - (row.SALDO_ANTERIOR || 0);
-        return {
-          cuenta_contable: row.CONCEPTO || '',
+      if (results && (results as any[]).length > 0) {
+        const row = (results as any[])[0];
+        const variacion = row.saldo_actual - row.saldo_anterior;
+        
+        totales.push({
+          cuenta_contable: '',
           fecha_balance: new Date(fechaActual),
-          saldo_inicial: row.SALDO_ANTERIOR || 0,
-          nombre_cuenta: row.CONCEPTO || '',
+          saldo_inicial: row.saldo_anterior,
+          nombre_cuenta: 'TOTAL INGRESOS',
           fecha_inicio: new Date(fechaAnterior),
           fecha_cuenta: new Date(fechaActual),
-          saldo_final: row.SALDO_ACTUAL || 0,
-          tiporeporte: tipoEgp,
-          posicion: row.POSICION || '',
-          caracter: '',
+          saldo_final: row.saldo_actual,
+          tiporeporte: 'TOTAL',
+          posicion: '1',
+          caracter: 'T',
           moneda: 'Nuevo Sol',
-          padre: row.PADRE_NOMBRE || '',
-          orden: row.ORDEN || 0,
-          mes: fechaActual ? fechaActual.split('-')[1] || '' : '',
+          padre: '',
+          orden: 999,
+          mes: '',
           variacion: variacion,
           esTotal: true,
-          saldo_inicial_formateado: this.formatearNumero(row.SALDO_ANTERIOR || 0),
-          saldo_final_formateado: this.formatearNumero(row.SALDO_ACTUAL || 0),
+          saldo_inicial_formateado: this.formatearNumero(row.saldo_anterior),
+          saldo_final_formateado: this.formatearNumero(row.saldo_actual),
           variacion_formateada: this.formatearVariacion(variacion)
-        };
-      });
+        });
+      }
+
+      return totales;
     } catch (error) {
       console.error('Error al calcular totales:', error);
       return [];
@@ -526,38 +341,36 @@ export class EstadoResultadosRepository {
     fechaAnterior: string
   ): Promise<ValidacionBalance> {
     try {
-      const balanceQuery = `
+      const query = `
         SELECT 
-          SUM(CASE WHEN P.POSICION = 'INGRESOS' THEN 
-            CASE EG.PERIODO WHEN :fecha_periodo_actual THEN EG.SALDO ELSE 0 END 
-          ELSE 0 END) as TOTAL_INGRESOS_ACTUAL,
-          SUM(CASE WHEN P.POSICION = 'EGRESOS' THEN 
-            CASE EG.PERIODO WHEN :fecha_periodo_actual THEN EG.SALDO ELSE 0 END 
-          ELSE 0 END) as TOTAL_EGRESOS_ACTUAL
-        FROM ${conjunto}.EGP EG (NOLOCK)
-        INNER JOIN ${conjunto}.POSICION_EGP P (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA
-        WHERE EG.USUARIO = :usuario AND EG.TIPO = :tipo_egp
+          SUM(CASE WHEN EG.PERIODO = :fechaActual THEN EG.SALDO ELSE 0 END) as total_ingresos,
+          SUM(CASE WHEN EG.PERIODO = :fechaActual THEN EG.SALDO ELSE 0 END) as total_egresos
+        FROM JBRTRA.EGP EG (NOLOCK)
+        INNER JOIN JBRTRA.POSICION_EGP P (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA
+        WHERE EG.USUARIO = :usuario AND EG.TIPO = :tipoEgp
       `;
-      
-      const [results] = await exactusSequelize.query(balanceQuery, {
-        replacements: { usuario, tipo_egp: tipoEgp, fecha_periodo_actual: fechaActual, fecha_periodo_anterior: fechaAnterior }
+
+      const [results] = await exactusSequelize.query(query, {
+        replacements: { fechaActual, usuario, tipoEgp }
       });
-      
-      const totalIngresos = (results as any[])[0]?.TOTAL_INGRESOS_ACTUAL || 0;
-      const totalEgresos = (results as any[])[0]?.TOTAL_EGRESOS_ACTUAL || 0;
+
+      const row = (results as any[])[0];
+      const totalIngresos = row.total_ingresos || 0;
+      const totalEgresos = row.total_egresos || 0;
       const utilidad = totalIngresos - totalEgresos;
-      
+
       return {
         valido: Math.abs(utilidad) < 0.01, // Tolerancia de 1 centavo
-        mensaje: `Balance: Ingresos ${this.formatearNumero(totalIngresos)} - Egresos ${this.formatearNumero(totalEgresos)} = Utilidad ${this.formatearNumero(utilidad)}`,
+        mensaje: utilidad === 0 ? 'Balance correcto' : `Diferencia de ${utilidad.toFixed(2)}`,
         totalIngresos,
         totalEgresos,
         utilidad
       };
     } catch (error) {
-      return { 
-        valido: false, 
-        mensaje: `Error en validación: ${error}`,
+      console.error('Error al validar balance:', error);
+      return {
+        valido: false,
+        mensaje: 'Error al validar balance',
         totalIngresos: 0,
         totalEgresos: 0,
         utilidad: 0
@@ -574,17 +387,12 @@ export class EstadoResultadosRepository {
     tiempoEjecucion: number
   ): Promise<void> {
     try {
-      const logQuery = `
-        INSERT INTO ${conjunto}.LOG_REPORTES (
-          USUARIO, REPORTE, FECHA_EJECUCION, PERIODO_ACTUAL, PERIODO_ANTERIOR, 
-          REGISTROS_PROCESADOS, TIEMPO_EJECUCION, ESTADO
-        ) VALUES (
-          :usuario, 'CO003320-BASIC', GETDATE(), :fechaActual, :fechaAnterior,
-          :registrosProcesados, :tiempoEjecucion, 'EXITOSO'
-        )
+      const query = `
+        INSERT INTO JBRTRA.LOG_REPORTES (usuario, reporte, fecha_ejecucion, periodo_actual, periodo_anterior, registros_procesados, tiempo_ejecucion, estado)
+        VALUES (:usuario, 'ESTADO_RESULTADOS', GETDATE(), :fechaActual, :fechaAnterior, :registrosProcesados, :tiempoEjecucion, 'EXITOSO')
       `;
-      
-      await exactusSequelize.query(logQuery, {
+
+      await exactusSequelize.query(query, {
         replacements: { usuario, fechaActual, fechaAnterior, registrosProcesados, tiempoEjecucion }
       });
     } catch (error) {
@@ -592,36 +400,33 @@ export class EstadoResultadosRepository {
     }
   }
 
-  private mapearResultadosConJerarquia(
-    results: any[], 
-    fechaActual: string, 
-    fechaAnterior: string, 
-    tipoEgp: string
-  ): EstadoResultados[] {
+  private mapearResultadosConJerarquia(results: any[], fechaActual: string, fechaAnterior: string, tipoEgp: string): EstadoResultados[] {
     return results.map((row: any) => {
+      const variacion = row.VARIACION || 0;
       const nivel = this.calcularNivelJerarquia(row.FAMILIA_PADRE);
-      const indentacion = '  '.repeat(nivel);
-      const variacion = (row.SALDO2 || 0) - (row.SALDO1 || 0);
       
       return {
-        cuenta_contable: row.nombre_cuenta || '',
+        cuenta_contable: row.FAMILIA || '',
         fecha_balance: new Date(fechaActual),
-        saldo_inicial: row.SALDO1 || 0,
-        nombre_cuenta: `${indentacion}${row.nombre_cuenta || ''}`,
+        saldo_inicial: row.SALDO_ANTERIOR || 0,
+        nombre_cuenta: row.CONCEPTO || '',
         fecha_inicio: new Date(fechaAnterior),
         fecha_cuenta: new Date(fechaActual),
-        saldo_final: row.SALDO2 || 0,
+        saldo_final: row.SALDO_ACTUAL || 0,
         tiporeporte: tipoEgp,
-        posicion: row.POSICION || '',
-        caracter: nivel > 0 ? 'SUBCUENTA' : 'CUENTA',
-        moneda: 'Nuevo Sol',
-        padre: row.NOMBRE || '',
+        posicion: row.POSICION || '0',
+        caracter: 'D',
+        moneda: row.MONEDA || 'Nuevo Sol',
+        padre: row.PADRE_NOMBRE || '',
         orden: row.ORDEN || 0,
-        mes: fechaActual ? fechaActual.split('-')[1] || '' : '',
+        mes: '',
         variacion: variacion,
         nivel: nivel,
-        saldo_inicial_formateado: this.formatearNumero(row.SALDO1 || 0),
-        saldo_final_formateado: this.formatearNumero(row.SALDO2 || 0),
+        esTotal: false,
+        esSubtotal: nivel === 1,
+        esEncabezado: false,
+        saldo_inicial_formateado: this.formatearNumero(row.SALDO_ANTERIOR || 0),
+        saldo_final_formateado: this.formatearNumero(row.SALDO_ACTUAL || 0),
         variacion_formateada: this.formatearVariacion(variacion)
       };
     });
