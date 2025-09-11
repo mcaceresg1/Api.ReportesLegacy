@@ -191,6 +191,39 @@ queryBus.register(
   exportarBalanceComprobacionExcelHandler
 );
 
+// Libro Diario Asientos Handlers
+console.log("🔧 Registrando handlers de Libro Diario Asientos manualmente...");
+const obtenerLibroDiarioAsientosHandler = container.get(
+  "ObtenerLibroDiarioAsientosHandler"
+) as any;
+const generarLibroDiarioAsientosHandler = container.get(
+  "GenerarLibroDiarioAsientosHandler"
+) as any;
+const obtenerFiltrosLibroDiarioAsientosHandler = container.get(
+  "ObtenerFiltrosLibroDiarioAsientosHandler"
+) as any;
+
+console.log(
+  "🔍 Handler ObtenerLibroDiarioAsientosHandler:",
+  obtenerLibroDiarioAsientosHandler
+);
+
+queryBus.register(
+  "ObtenerLibroDiarioAsientosQuery",
+  obtenerLibroDiarioAsientosHandler
+);
+console.log("✅ ObtenerLibroDiarioAsientosQuery registrado manualmente");
+queryBus.register(
+  "GenerarLibroDiarioAsientosQuery",
+  generarLibroDiarioAsientosHandler
+);
+console.log("✅ GenerarLibroDiarioAsientosQuery registrado manualmente");
+queryBus.register(
+  "ObtenerFiltrosLibroDiarioAsientosQuery",
+  obtenerFiltrosLibroDiarioAsientosHandler
+);
+console.log("✅ ObtenerFiltrosLibroDiarioAsientosQuery registrado manualmente");
+
 // Balance Comprobación Clipper - No necesita handlers CQRS, usa servicio directamente
 
 console.log("✅ Handlers registrados manualmente");
