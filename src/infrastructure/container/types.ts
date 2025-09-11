@@ -137,4 +137,21 @@ export const TYPES = {
   GananciasPerdidasClipperRepository: "GananciasPerdidasClipperRepository",
   GananciasPerdidasClipperService: "GananciasPerdidasClipperService",
   GananciasPerdidasClipperController: "GananciasPerdidasClipperController",
+
+  // Análisis de Cuentas Clipper
+  IAnalisisCuentasClipperRepository: "IAnalisisCuentasClipperRepository",
+  IAnalisisCuentasClipperService: "IAnalisisCuentasClipperService",
+  AnalisisCuentasClipperRepository: "AnalisisCuentasClipperRepository",
+  AnalisisCuentasClipperService: "AnalisisCuentasClipperService",
+  AnalisisCuentasClipperController: "AnalisisCuentasClipperController",
+  AnalisisCuentasClipperRoutes: "AnalisisCuentasClipperRoutes",
+
+  // Análisis de Cuentas por Rango Clipper
+  IAnalisisCuentasRangoClipperRepository:
+    "IAnalisisCuentasRangoClipperRepository",
+  IAnalisisCuentasRangoClipperService: "IAnalisisCuentasRangoClipperService",
+  AnalisisCuentasRangoClipperService: "AnalisisCuentasRangoClipperService",
+  AnalisisCuentasRangoClipperController:
+    "AnalisisCuentasRangoClipperController",
+  AnalisisCuentasRangoClipperRoutes: "AnalisisCuentasRangoClipperRoutes",
 };

@@ -23,8 +23,5 @@ export function createGananciasPerdidasClipperRoutes(): Router {
     controller.obtenerGananciasPerdidasClipper(req, res)
   );
 
-  // Ruta de información del endpoint
-  router.get("/info", (req, res) => controller.obtenerInfo(req, res));
-
   return router;
 }

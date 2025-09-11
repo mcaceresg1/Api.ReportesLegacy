@@ -1,0 +1,44 @@
+### Test Análisis de Cuentas Clipper por Fechas
+### Endpoint: GET /api/analisis-cuentas-clipper/fechas
+
+# Test 1: Análisis por fechas - Caso exitoso
+GET http://localhost:3000/api/analisis-cuentas-clipper/fechas?baseDatos=bdclipperGPC&fechaDesde=01/01/2000&fechaHasta=31/12/2000
+Authorization: Bearer {{token}}
+
+###
+
+# Test 2: Análisis por fechas - Error de validación (fechaDesde faltante)
+GET http://localhost:3000/api/analisis-cuentas-clipper/fechas?baseDatos=bdclipperGPC&fechaHasta=31/12/2000
+Authorization: Bearer {{token}}
+
+###
+
+# Test 3: Análisis por fechas - Error de validación (fechaHasta faltante)
+GET http://localhost:3000/api/analisis-cuentas-clipper/fechas?baseDatos=bdclipperGPC&fechaDesde=01/01/2000
+Authorization: Bearer {{token}}
+
+###
+
+# Test 4: Análisis por fechas - Error de validación (baseDatos faltante)
+GET http://localhost:3000/api/analisis-cuentas-clipper/fechas?fechaDesde=01/01/2000&fechaHasta=31/12/2000
+Authorization: Bearer {{token}}
+
+###
+
+# Test 5: Análisis por fechas - Error de formato de fecha
+GET http://localhost:3000/api/analisis-cuentas-clipper/fechas?baseDatos=bdclipperGPC&fechaDesde=2000-01-01&fechaHasta=2000-12-31
+Authorization: Bearer {{token}}
+
+###
+
+# Test 6: Análisis por fechas - Rango de fechas inválido (fechaDesde > fechaHasta)
+GET http://localhost:3000/api/analisis-cuentas-clipper/fechas?baseDatos=bdclipperGPC&fechaDesde=31/12/2000&fechaHasta=01/01/2000
+Authorization: Bearer {{token}}
+
+###
+
+# Test 7: Análisis por fechas - Diferente base de datos
+GET http://localhost:3000/api/analisis-cuentas-clipper/fechas?baseDatos=bdclipperGPC1&fechaDesde=01/01/2000&fechaHasta=31/12/2000
+Authorization: Bearer {{token}}
+
+###
