@@ -523,28 +523,34 @@ export class EstadoResultadosRepository {
   }
 
   private mapearResultadosConJerarquia(results: any[], fechaActual: string, fechaAnterior: string, tipoEgp: string): EstadoResultados[] {
-    // Optimización: mapeo directo sin cálculos innecesarios
-    return results.map((row: any) => ({
-      cuenta_contable: row.FAMILIA || '',
-      fecha_balance: new Date(fechaActual),
-      saldo_inicial: row.SALDO_ANTERIOR || 0,
-      nombre_cuenta: row.CONCEPTO || '',
-      fecha_inicio: new Date(fechaAnterior),
-      fecha_cuenta: new Date(fechaActual),
-      saldo_final: row.SALDO_ACTUAL || 0,
-      tiporeporte: tipoEgp,
-      posicion: row.POSICION || '0',
-      caracter: 'D',
-      moneda: 'Nuevo Sol',
-      padre: row.PADRE_NOMBRE || '',
-      orden: row.ORDEN || 0,
-      mes: '',
-      variacion: row.VARIACION || 0,
-      nivel: row.FAMILIA_PADRE ? 2 : 1,
-      esTotal: false,
-      esSubtotal: !row.FAMILIA_PADRE,
-      esEncabezado: false
-    }));
+    // Mapeo correcto según el query estándar
+    return results.map((row: any) => {
+      const saldoActual = row.SALDO_ACTUAL || row.SALDO2 || 0;
+      const saldoAnterior = row.SALDO_ANTERIOR || row.SALDO1 || 0;
+      const variacion = saldoActual - saldoAnterior;
+      
+      return {
+        cuenta_contable: row.FAMILIA || '',
+        fecha_balance: new Date(fechaActual),
+        saldo_inicial: saldoAnterior,
+        nombre_cuenta: row.CONCEPTO || '',
+        fecha_inicio: new Date(fechaAnterior),
+        fecha_cuenta: new Date(fechaActual),
+        saldo_final: saldoActual,
+        tiporeporte: tipoEgp,
+        posicion: row.POSICION || '0',
+        caracter: 'D',
+        moneda: row.MONEDA || 'Nuevo Sol',
+        padre: row.PADRE_NOMBRE || '',
+        orden: row.ORDEN || 0,
+        mes: '',
+        variacion: variacion,
+        nivel: row.PADRE_NOMBRE ? 2 : 1,
+        esTotal: false,
+        esSubtotal: !row.PADRE_NOMBRE,
+        esEncabezado: false
+      };
+    });
   }
 
   private mapearResultadosBasicos(results: any[], fechaActual: string, fechaAnterior: string, tipoEgp: string): EstadoResultados[] {
