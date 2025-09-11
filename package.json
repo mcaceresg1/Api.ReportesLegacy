@@ -5,10 +5,10 @@
   "scripts": {
     "build": "tsc",
     "start": "node --max-old-space-size=8192 dist/index.js",
-    "start:dev": "set NODE_ENV=development && set SWAGGER_SERVER_URL=http://192.168.90.73:3000 && set SWAGGER_SERVER_DESCRIPTION=Servidor de desarrollo (producción) && tsx src/index.ts",
+    "start:dev": "set NODE_ENV=development && set SWAGGER_SERVER_URL=http://192.168.90.73:300 && set SWAGGER_SERVER_DESCRIPTION=Servidor de desarrollo (producción) && tsx src/index.ts",
     "start:prod": "set NODE_ENV=production && node --max-old-space-size=8192 dist/index.js",
     "dev": "set NODE_ENV=development && set SWAGGER_SERVER_URL=http://192.168.90.73:3000 && set SWAGGER_SERVER_DESCRIPTION=Servidor de desarrollo (producción) && tsx src/index.ts",
-    "dev:watch": "set NODE_ENV=development && set SWAGGER_SERVER_URL=http://192.168.90.73:3000 && set SWAGGER_SERVER_DESCRIPTION=Servidor de desarrollo (producción) && nodemon --exec tsx src/index.ts",
+    "dev:watch": "set NODE_ENV=development && set SWAGGER_SERVER_URL=http://192.168.90.73:3001 && set SWAGGER_SERVER_DESCRIPTION=Servidor de desarrollo (producción) && nodemon --exec tsx src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
