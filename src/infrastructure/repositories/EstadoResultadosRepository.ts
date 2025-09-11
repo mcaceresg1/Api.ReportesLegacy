@@ -128,46 +128,39 @@ export class EstadoResultadosRepository {
       await this.cargarDatosEGP(fechaAnterior, tipoEgp, usuario);
       console.log(`✅ [REPOSITORY] Paso 3 completado`);
 
-      // Paso 4: Ejecutar query principal estándar (usando nombres de columnas correctos)
+      // Paso 4: Ejecutar query principal estándar (usando el query exacto que me proporcionaste)
       const queryPrincipal = `
         SELECT 
-          PA.NOMBRE AS PADRE_NOMBRE,
+          PA.NOMBRE,
           P.FAMILIA,
-          P.NOMBRE AS CONCEPTO,
+          P.NOMBRE,
           P.POSICION,
-          'Nuevo Sol' AS MONEDA,
-          P.ORDEN,     
-          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_actual THEN EG.SALDO ELSE 0 END), 0) AS SALDO2,
-          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_anterior THEN EG.SALDO ELSE 0 END), 0) AS SALDO1,
-          (ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_actual THEN EG.SALDO ELSE 0 END), 0) - 
-           ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_anterior THEN EG.SALDO ELSE 0 END), 0)) AS VARIACION,
-          P.FAMILIA_PADRE
-        FROM JBRTRA.POSICION_EGP P (NOLOCK)   
-        INNER JOIN JBRTRA.POSICION_EGP PA (NOLOCK) ON PA.TIPO = P.TIPO AND PA.FAMILIA = P.FAMILIA_PADRE
-        LEFT OUTER JOIN JBRTRA.EGP EG (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA AND EG.USUARIO = :usuario
-        WHERE P.TIPO = :tipo_egp
-        GROUP BY PA.NOMBRE, P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN, P.FAMILIA_PADRE   
-
-        UNION ALL   
-
-        SELECT 
-          NULL AS PADRE_NOMBRE,
-          P.FAMILIA,
-          P.NOMBRE AS CONCEPTO,
-          P.POSICION, 
-          'Nuevo Sol' AS MONEDA,
-          P.ORDEN, 
-          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_actual THEN EG.SALDO ELSE 0 END), 0) AS SALDO2,
-          ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_anterior THEN EG.SALDO ELSE 0 END), 0) AS SALDO1,
-          (ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_actual THEN EG.SALDO ELSE 0 END), 0) - 
-           ISNULL(SUM(CASE WHEN EG.PERIODO = :fecha_anterior THEN EG.SALDO ELSE 0 END), 0)) AS VARIACION,
-          P.FAMILIA_PADRE
-        FROM JBRTRA.POSICION_EGP P (NOLOCK)   
-        LEFT OUTER JOIN JBRTRA.EGP EG (NOLOCK) ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA AND EG.USUARIO = :usuario
-        WHERE P.FAMILIA_PADRE IS NULL AND P.AGRUPA = 'N' AND P.TIPO = :tipo_egp
-        GROUP BY P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN, P.FAMILIA_PADRE
+          'Nuevo Sol',
+          P.ORDEN,
+          ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_actual THEN EG.SALDO ELSE 0 END),0) AS SALDO2,
+          ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_anterior THEN EG.SALDO ELSE 0 END),0) AS SALDO1
+        FROM JBRTRA.POSICION_EGP P
+        INNER JOIN JBRTRA.POSICION_EGP PA ON PA.TIPO = P.TIPO AND PA.FAMILIA = P.FAMILIA_PADRE
+        LEFT OUTER JOIN JBRTRA.EGP EG ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA AND EG.USUARIO = :usuario
+        WHERE P.TIPO= :tipo_egp
+        GROUP BY PA.NOMBRE,P.FAMILIA, P.NOMBRE, P.POSICION, P.ORDEN
         
-        ORDER BY POSICION, ORDEN
+        UNION ALL
+        
+        SELECT 
+          NULL,
+          P.FAMILIA,
+          P.NOMBRE,
+          P.POSICION,
+          'Nuevo Sol',
+          P.ORDEN,
+          ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_actual THEN EG.SALDO ELSE 0 END),0) AS SALDO2,
+          ISNULL(SUM(CASE EG.PERIODO WHEN :fecha_anterior THEN EG.SALDO ELSE 0 END),0) AS SALDO1
+        FROM JBRTRA.POSICION_EGP P
+        LEFT OUTER JOIN JBRTRA.EGP EG ON EG.TIPO = P.TIPO AND EG.FAMILIA = P.FAMILIA AND EG.USUARIO = :usuario
+        WHERE P.FAMILIA_PADRE IS NULL AND P.AGRUPA = 'N' AND P.TIPO= :tipo_egp
+        GROUP BY P.FAMILIA,P.NOMBRE,P.POSICION,P.ORDEN
+        ORDER BY 4, 6
       `;
 
       console.log(`🔍 [REPOSITORY] Paso 4: Ejecutando query principal estándar...`);
@@ -557,24 +550,24 @@ export class EstadoResultadosRepository {
   }
 
   private mapearResultadosConJerarquia(results: any[], fechaActual: string, fechaAnterior: string, tipoEgp: string): EstadoResultados[] {
-    // Mapeo correcto según el query estándar
+    // Mapeo correcto según el query estándar (usando nombres de columnas exactos)
     return results.map((row: any) => {
-      const saldoActual = row.SALDO_ACTUAL || row.SALDO2 || 0;
-      const saldoAnterior = row.SALDO_ANTERIOR || row.SALDO1 || 0;
+      const saldoActual = row.SALDO2 || 0;
+      const saldoAnterior = row.SALDO1 || 0;
       const variacion = saldoActual - saldoAnterior;
       
       return {
         cuenta_contable: row.FAMILIA || '',
         fecha_balance: new Date(fechaActual),
         saldo_inicial: saldoAnterior,
-        nombre_cuenta: row.CONCEPTO || '',
+        nombre_cuenta: row.NOMBRE || '',
         fecha_inicio: new Date(fechaAnterior),
         fecha_cuenta: new Date(fechaActual),
         saldo_final: saldoActual,
         tiporeporte: tipoEgp,
         posicion: row.POSICION || '0',
         caracter: 'D',
-        moneda: row.MONEDA || 'Nuevo Sol',
+        moneda: 'Nuevo Sol',
         padre: row.PADRE_NOMBRE || '',
         orden: row.ORDEN || 0,
         mes: '',
