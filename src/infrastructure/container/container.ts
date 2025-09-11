@@ -230,7 +230,6 @@ import { ObtenerLibroDiarioAsientosHandler } from "../../application/handlers/li
 import { GenerarLibroDiarioAsientosHandler } from "../../application/handlers/libro-diario-asientos/GenerarLibroDiarioAsientosHandler";
 import { ObtenerFiltrosLibroDiarioAsientosHandler } from "../../application/handlers/libro-diario-asientos/ObtenerFiltrosLibroDiarioAsientosHandler";
 
-
 // CQRS Service
 import { CqrsService } from "../cqrs/CqrsService";
 
@@ -601,8 +600,8 @@ container
 // BalanceComprobacionClipperRoutes se instancia directamente en app.ts
 
 // CQRS Buses
-container.bind<ICommandBus>("ICommandBus").to(CommandBus);
-container.bind<IQueryBus>("IQueryBus").to(QueryBus);
+container.bind<ICommandBus>("ICommandBus").to(CommandBus).inSingletonScope();
+container.bind<IQueryBus>("IQueryBus").to(QueryBus).inSingletonScope();
 
 // Command Handlers
 container
@@ -711,7 +710,6 @@ container
     "ObtenerFiltrosLibroDiarioAsientosHandler"
   )
   .to(ObtenerFiltrosLibroDiarioAsientosHandler);
-
 
 // Balance Comprobación Clipper - No necesita handlers CQRS, usa servicio directamente
 
