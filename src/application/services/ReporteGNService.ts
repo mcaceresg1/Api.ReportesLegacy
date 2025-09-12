@@ -69,12 +69,15 @@ export class ReporteGNService implements IReporteGNService {
     return this.reporteGNRepository.getBoletaDePago(conjunto, filtros);
   }
 
-    // ====== 📑 Exportaciones a Excel ======
+  // ====== 📑 Exportaciones a Excel ======
   async exportarAccionesDePersonalExcel(
     conjunto: string,
     filtros: FiltrosReporteAccionesDePersonal
   ): Promise<Buffer> {
-    return this.reporteGNRepository.exportarAccionesDePersonalExcel(conjunto, filtros);
+    return this.reporteGNRepository.exportarAccionesDePersonalExcel(
+      conjunto,
+      filtros
+    );
   }
 
   async exportarContratosExcel(
@@ -88,7 +91,10 @@ export class ReporteGNService implements IReporteGNService {
     conjunto: string,
     filtros: FiltrosReporteRolDeVacaciones
   ): Promise<Buffer> {
-    return this.reporteGNRepository.exportarRolDeVacacionesExcel(conjunto, filtros);
+    return this.reporteGNRepository.exportarRolDeVacacionesExcel(
+      conjunto,
+      filtros
+    );
   }
 
   async exportarAnualizadoExcel(
@@ -109,13 +115,19 @@ export class ReporteGNService implements IReporteGNService {
     conjunto: string,
     filtros: FiltrosReportePrestamoCtaCte
   ): Promise<Buffer> {
-    return this.reporteGNRepository.exportarPrestamoCtaCteExcel(conjunto, filtros);
+    return this.reporteGNRepository.exportarPrestamoCtaCteExcel(
+      conjunto,
+      filtros
+    );
   }
 
   async exportarBoletaDePagoExcel(
     conjunto: string,
     filtros: FiltrosBoletaDePago
   ): Promise<Buffer> {
-    return this.reporteGNRepository.exportarBoletaDePagoExcel(conjunto, filtros);
+    return this.reporteGNRepository.exportarBoletaDePagoExcel(
+      conjunto,
+      filtros
+    );
   }
 }

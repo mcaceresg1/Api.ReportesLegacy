@@ -16,76 +16,76 @@ import {
   RespuestaReportePrestamoCtaCte,
   RespuestaReportePrestamos,
   RespuestaReporteRolDeVacaciones,
-} from '../entities/ReporteGN';
+} from "../entities/ReporteGN";
 
 export interface IReporteGNRepository {
   getAccionesDePersonal(
     conjunto: string,
-    filtros: FiltrosReporteAccionesDePersonal,
+    filtros: FiltrosReporteAccionesDePersonal
   ): Promise<RespuestaReporteAccionesDePersonal | undefined>;
 
   getContratos(
     conjunto: string,
-    filtros: FiltrosReporteContratos,
+    filtros: FiltrosReporteContratos
   ): Promise<RespuestaReporteContratos | undefined>;
 
   getPrestamos(
     conjunto: string,
-    filtros: FiltrosReportePrestamos,
+    filtros: FiltrosReportePrestamos
   ): Promise<RespuestaReportePrestamos | undefined>;
 
   getRolDeVacaciones(
     conjunto: string,
-    filtros: FiltrosReporteRolDeVacaciones,
+    filtros: FiltrosReporteRolDeVacaciones
   ): Promise<RespuestaReporteRolDeVacaciones | undefined>;
 
   getPrestamoCtaCte(
     conjunto: string,
-    filtros: FiltrosReportePrestamoCtaCte,
+    filtros: FiltrosReportePrestamoCtaCte
   ): Promise<RespuestaReportePrestamoCtaCte | undefined>;
 
   getReporteAnualizado(
     conjunto: string,
-    filtros: FiltrosReporteAnualizado,
+    filtros: FiltrosReporteAnualizado
   ): Promise<RespuestaReporteAnualizado | undefined>;
 
   getBoletaDePago(
     conjunto: string,
-    filtros: FiltrosBoletaDePago,
+    filtros: FiltrosBoletaDePago
   ): Promise<RespuestaReporteBoletasDePago | undefined>;
 
   exportarAccionesDePersonalExcel(
     conjunto: string,
-    filtros: FiltrosReporteAccionesDePersonal,
+    filtros: FiltrosReporteAccionesDePersonal
   ): Promise<Buffer>;
 
   exportarContratosExcel(
     conjunto: string,
-    filtros: FiltrosReporteContratos,
+    filtros: FiltrosReporteContratos
   ): Promise<Buffer>;
 
   exportarPrestamosExcel(
     conjunto: string,
-    filtros: FiltrosReportePrestamos,
+    filtros: FiltrosReportePrestamos
   ): Promise<Buffer>;
 
   exportarRolDeVacacionesExcel(
     conjunto: string,
-    filtros: FiltrosReporteRolDeVacaciones,
+    filtros: FiltrosReporteRolDeVacaciones
   ): Promise<Buffer>;
 
   exportarPrestamoCtaCteExcel(
     conjunto: string,
-    filtros: FiltrosReportePrestamoCtaCte,
+    filtros: FiltrosReportePrestamoCtaCte
   ): Promise<Buffer>;
 
   exportarAnualizadoExcel(
     conjunto: string,
-    filtros: FiltrosReporteAnualizado,
+    filtros: FiltrosReporteAnualizado
   ): Promise<Buffer>;
 
   exportarBoletaDePagoExcel(
     conjunto: string,
-    filtros: FiltrosBoletaDePago,
+    filtros: FiltrosBoletaDePago
   ): Promise<Buffer>;
 }

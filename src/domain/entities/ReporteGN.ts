@@ -133,7 +133,7 @@ export interface FiltrosReporteRolDeVacaciones {
 
 export interface FiltrosReportePrestamoCtaCte {
   cod_empleado: string;
-  naturaleza: string;
+  // naturaleza: string;
 }
 
 export interface FiltrosReporteAnualizado {

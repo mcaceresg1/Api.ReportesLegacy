@@ -1,16 +1,16 @@
-import { injectable, inject } from 'inversify';
-import { Request, Response } from 'express';
-import { IUsuarioService } from '../../domain/services/IUsuarioService';
-import { ICommandBus } from '../../domain/cqrs/ICommandBus';
-import { IQueryBus } from '../../domain/cqrs/IQueryBus';
-import { UsuarioCreate, UsuarioUpdate } from '../../domain/entities/Usuario';
-import { CreateUsuarioCommand } from '../../application/commands/usuario/CreateUsuarioCommand';
-import { UpdateUsuarioCommand } from '../../application/commands/usuario/UpdateUsuarioCommand';
-import { DeleteUsuarioCommand } from '../../application/commands/usuario/DeleteUsuarioCommand';
-import { GetAllUsuariosQuery } from '../../application/queries/usuario/GetAllUsuariosQuery';
-import { GetUsuarioByIdQuery } from '../../application/queries/usuario/GetUsuarioByIdQuery';
-import { IReporteGNService } from '../../domain/services/IReporteGNService';
-import { ExportarAccionesDePersonalExcelParams } from '../../domain/entities/ReporteGN';
+import { injectable, inject } from "inversify";
+import { Request, Response } from "express";
+import { IUsuarioService } from "../../domain/services/IUsuarioService";
+import { ICommandBus } from "../../domain/cqrs/ICommandBus";
+import { IQueryBus } from "../../domain/cqrs/IQueryBus";
+import { UsuarioCreate, UsuarioUpdate } from "../../domain/entities/Usuario";
+import { CreateUsuarioCommand } from "../../application/commands/usuario/CreateUsuarioCommand";
+import { UpdateUsuarioCommand } from "../../application/commands/usuario/UpdateUsuarioCommand";
+import { DeleteUsuarioCommand } from "../../application/commands/usuario/DeleteUsuarioCommand";
+import { GetAllUsuariosQuery } from "../../application/queries/usuario/GetAllUsuariosQuery";
+import { GetUsuarioByIdQuery } from "../../application/queries/usuario/GetUsuarioByIdQuery";
+import { IReporteGNService } from "../../domain/services/IReporteGNService";
+import { ExportarAccionesDePersonalExcelParams } from "../../domain/entities/ReporteGN";
 
 /**
  * @swagger
@@ -187,7 +187,7 @@ import { ExportarAccionesDePersonalExcelParams } from '../../domain/entities/Rep
 @injectable()
 export class ReporteGNController {
   constructor(
-    @inject('IReporteGNService') private reporteGNService: IReporteGNService,
+    @inject("IReporteGNService") private reporteGNService: IReporteGNService
   ) {}
 
   /**
@@ -247,7 +247,7 @@ export class ReporteGNController {
       if (!conjunto) {
         res.status(400).json({
           success: false,
-          message: 'El parámetro conjunto es requerido',
+          message: "El parámetro conjunto es requerido",
         });
         return;
       }
@@ -258,7 +258,7 @@ export class ReporteGNController {
           fecha_accion_inicio: fecha_accion_inicio as string,
           fecha_accion_fin: fecha_accion_fin as string,
           cod_empleado: id_usuario as string,
-        },
+        }
       );
       res.json({
         success: acciones?.success,
@@ -268,8 +268,8 @@ export class ReporteGNController {
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: 'Error al obtener acciones de personal.',
-        error: error instanceof Error ? error.message : 'Error desconocido',
+        message: "Error al obtener acciones de personal.",
+        error: error instanceof Error ? error.message : "Error desconocido",
       });
     }
   }
@@ -322,7 +322,7 @@ export class ReporteGNController {
       if (!conjunto) {
         res.status(400).json({
           success: false,
-          message: 'El parámetro conjunto es requerido',
+          message: "El parámetro conjunto es requerido",
         });
         return;
       }
@@ -338,8 +338,8 @@ export class ReporteGNController {
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: 'Error al obtener contratos.',
-        error: error instanceof Error ? error.message : 'Error desconocido',
+        message: "Error al obtener contratos.",
+        error: error instanceof Error ? error.message : "Error desconocido",
       });
     }
   }
@@ -434,7 +434,7 @@ export class ReporteGNController {
       if (!conjunto) {
         res.status(400).json({
           success: false,
-          message: 'El parámetro conjunto es requerido',
+          message: "El parámetro conjunto es requerido",
         });
         return;
       }
@@ -447,7 +447,7 @@ export class ReporteGNController {
           registrosPorPagina: registrosPorPagina as unknown as number,
           fecha_inicio: fecha_inicio as string,
           cod_empleado: id_usuario as string,
-        },
+        }
       );
       res.json({
         success: rolDeVacaciones?.success,
@@ -457,8 +457,8 @@ export class ReporteGNController {
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: 'Error al obtener rol de vacaciones.',
-        error: error instanceof Error ? error.message : 'Error desconocido',
+        message: "Error al obtener rol de vacaciones.",
+        error: error instanceof Error ? error.message : "Error desconocido",
       });
     }
   }
@@ -526,7 +526,7 @@ export class ReporteGNController {
       if (!conjunto) {
         res.status(400).json({
           success: false,
-          message: 'El parámetro conjunto es requerido',
+          message: "El parámetro conjunto es requerido",
         });
         return;
       }
@@ -535,13 +535,13 @@ export class ReporteGNController {
         conjunto,
         {
           cod_empleado: id_usuario as string,
-          filtro: tipo as 'N' | 'P',
+          filtro: tipo as "N" | "P",
           codigo_nomina: codigo_nomina as unknown as number,
           periodo: periodo as unknown as number,
-          centro_costo: '',
-          area: '',
+          centro_costo: "",
+          area: "",
           activo: 1,
-        },
+        }
       );
       res.json({
         success: anualizado?.success,
@@ -551,8 +551,8 @@ export class ReporteGNController {
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: 'Error al obtener anualizado.',
-        error: error instanceof Error ? error.message : 'Error desconocido',
+        message: "Error al obtener anualizado.",
+        error: error instanceof Error ? error.message : "Error desconocido",
       });
     }
   }
@@ -600,13 +600,17 @@ export class ReporteGNController {
    */
   async getPrestamoCtaCte(req: Request, res: Response): Promise<void> {
     try {
-      const { conjunto, cta_cte } = req.query;
+      const { conjunto } = req.params;
+      const { cta_cte } = req.query;
+
+      console.log("🔍 [CONTROLLER] getPrestamoCtaCte - conjunto:", conjunto);
+      console.log("🔍 [CONTROLLER] getPrestamoCtaCte - cta_cte:", cta_cte);
+
       const prestamoCtaCte = await this.reporteGNService.getPrestamoCtaCte(
         conjunto as string,
         {
           cod_empleado: cta_cte as string,
-          naturaleza: 'C',
-        },
+        }
       );
       res.json({
         success: prestamoCtaCte?.success,
@@ -616,8 +620,8 @@ export class ReporteGNController {
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: 'Error al obtener prestamo de cuenta corriente.',
-        error: error instanceof Error ? error.message : 'Error desconocido',
+        message: "Error al obtener prestamo de cuenta corriente.",
+        error: error instanceof Error ? error.message : "Error desconocido",
       });
     }
   }
@@ -675,32 +679,32 @@ export class ReporteGNController {
       const { conjunto } = req.params;
 
       const filtros = {
-        cod_empleado: req.query['id_usuario'] as string,
-        num_nomina: parseInt(req.query['num_nomina'] as string, 10),
-        numero_nomina: parseInt(req.query['numero_nomina'] as string, 10),
-        tipo_prestamo: req.query['tipo_prestamo'] as string,
-        estado_prestamo: req.query['estado_prestamo'] as string,
-        estado_empleado: req.query['estado_empleado'] as string,
-        estado_cuota: req.query['estado_cuota'] as string,
+        cod_empleado: req.query["id_usuario"] as string,
+        num_nomina: parseInt(req.query["num_nomina"] as string, 10),
+        numero_nomina: parseInt(req.query["numero_nomina"] as string, 10),
+        tipo_prestamo: req.query["tipo_prestamo"] as string,
+        estado_prestamo: req.query["estado_prestamo"] as string,
+        estado_empleado: req.query["estado_empleado"] as string,
+        estado_cuota: req.query["estado_cuota"] as string,
       };
 
       if (!conjunto) {
         res.status(400).json({
           success: false,
-          message: 'El parámetro conjunto es requerido',
+          message: "El parámetro conjunto es requerido",
         });
         return;
       }
 
       const prestamos = await this.reporteGNService.getPrestamos(
         conjunto,
-        filtros,
+        filtros
       );
       res.json(prestamos);
     } catch (err) {
       res.status(500).json({
         success: false,
-        message: 'Error al obtener préstamos',
+        message: "Error al obtener préstamos",
         error: err,
       });
     }
@@ -740,27 +744,27 @@ export class ReporteGNController {
     try {
       const { conjunto } = req.params;
       const filtros = {
-        cod_empleado: req.query['id_usuario'] as string,
-        num_nomina: parseInt(req.query['num_nomina'] as string, 10),
+        cod_empleado: req.query["id_usuario"] as string,
+        num_nomina: parseInt(req.query["num_nomina"] as string, 10),
       };
 
       if (!conjunto) {
         res.status(400).json({
           success: false,
-          message: 'El parámetro conjunto es requerido',
+          message: "El parámetro conjunto es requerido",
         });
         return;
       }
 
       const boleta = await this.reporteGNService.getBoletaDePago(
         conjunto,
-        filtros,
+        filtros
       );
       res.json(boleta);
     } catch (err) {
       res.status(500).json({
         success: false,
-        message: 'Error al obtener boleta de pago',
+        message: "Error al obtener boleta de pago",
         error: err,
       });
     }
@@ -806,20 +810,20 @@ export class ReporteGNController {
    */
   async exportarAccionesDePersonalExcel(
     req: Request,
-    res: Response,
+    res: Response
   ): Promise<void> {
     try {
       const { conjunto } = req.params;
       const filtros = {
-        fecha_accion_inicio: req.query['fecha_accion_inicio'] as string,
-        fecha_accion_fin: req.query['fecha_accion_fin'] as string,
-        cod_empleado: req.query['id_usuario'] as string,
+        fecha_accion_inicio: req.query["fecha_accion_inicio"] as string,
+        fecha_accion_fin: req.query["fecha_accion_fin"] as string,
+        cod_empleado: req.query["id_usuario"] as string,
       };
 
       if (!conjunto) {
         res.status(400).json({
           success: false,
-          message: 'El parámetro conjunto es requerido',
+          message: "El parámetro conjunto es requerido",
         });
         return;
       }
@@ -827,21 +831,21 @@ export class ReporteGNController {
       const buffer =
         await this.reporteGNService.exportarAccionesDePersonalExcel(
           conjunto,
-          filtros,
+          filtros
         );
       res.setHeader(
-        'Content-Type',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       );
       res.setHeader(
-        'Content-Disposition',
-        `attachment; filename="acciones-personal-${conjunto}.xlsx"`,
+        "Content-Disposition",
+        `attachment; filename="acciones-personal-${conjunto}.xlsx"`
       );
       res.send(buffer);
     } catch (err) {
       res.status(500).json({
         success: false,
-        message: 'Error exportando Acciones de Personal',
+        message: "Error exportando Acciones de Personal",
         error: err,
       });
     }
@@ -875,33 +879,33 @@ export class ReporteGNController {
   async exportarContratosExcel(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto } = req.params;
-      const filtros = { cod_empleado: req.query['id_usuario'] as string };
+      const filtros = { cod_empleado: req.query["id_usuario"] as string };
 
       if (!conjunto) {
         res.status(400).json({
           success: false,
-          message: 'El parámetro conjunto es requerido',
+          message: "El parámetro conjunto es requerido",
         });
         return;
       }
 
       const buffer = await this.reporteGNService.exportarContratosExcel(
         conjunto,
-        filtros,
+        filtros
       );
       res.setHeader(
-        'Content-Type',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       );
       res.setHeader(
-        'Content-Disposition',
-        `attachment; filename="contratos-${conjunto}.xlsx"`,
+        "Content-Disposition",
+        `attachment; filename="contratos-${conjunto}.xlsx"`
       );
       res.send(buffer);
     } catch (err) {
       res.status(500).json({
         success: false,
-        message: 'Error exportando Contratos',
+        message: "Error exportando Contratos",
         error: err,
       });
     }
@@ -961,44 +965,44 @@ export class ReporteGNController {
    */
   async exportarRolDeVacacionesExcel(
     req: Request,
-    res: Response,
+    res: Response
   ): Promise<void> {
     try {
       const { conjunto } = req.params;
       const filtros = {
-        fecha_inicio: req.query['fecha_inicio'] as string,
-        fecha_fin: req.query['fecha_fin'] as string,
-        cod_empleado: req.query['id_usuario'] as string,
-        pagina: parseInt(req.query['pagina'] as string, 10) || 1,
+        fecha_inicio: req.query["fecha_inicio"] as string,
+        fecha_fin: req.query["fecha_fin"] as string,
+        cod_empleado: req.query["id_usuario"] as string,
+        pagina: parseInt(req.query["pagina"] as string, 10) || 1,
         registrosPorPagina:
-          parseInt(req.query['registrosPorPagina'] as string, 10) || 1000,
+          parseInt(req.query["registrosPorPagina"] as string, 10) || 1000,
       };
 
       if (!conjunto) {
         res.status(400).json({
           success: false,
-          message: 'El parámetro conjunto es requerido',
+          message: "El parámetro conjunto es requerido",
         });
         return;
       }
 
       const buffer = await this.reporteGNService.exportarRolDeVacacionesExcel(
         conjunto,
-        filtros,
+        filtros
       );
       res.setHeader(
-        'Content-Type',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       );
       res.setHeader(
-        'Content-Disposition',
-        `attachment; filename="rol-vacaciones-${conjunto}.xlsx"`,
+        "Content-Disposition",
+        `attachment; filename="rol-vacaciones-${conjunto}.xlsx"`
       );
       res.send(buffer);
     } catch (err) {
       res.status(500).json({
         success: false,
-        message: 'Error exportando Rol de Vacaciones',
+        message: "Error exportando Rol de Vacaciones",
         error: err,
       });
     }
@@ -1057,40 +1061,40 @@ export class ReporteGNController {
     try {
       const { conjunto } = req.params;
       const filtros = {
-        cod_empleado: req.query['id_usuario'] as string,
-        filtro: req.query['tipo'] as 'N' | 'P',
-        codigo_nomina: parseInt(req.query['codigo_nomina'] as string, 10),
-        periodo: parseInt(req.query['periodo'] as string, 10),
-        centro_costo: '',
-        area: '',
+        cod_empleado: req.query["id_usuario"] as string,
+        filtro: req.query["tipo"] as "N" | "P",
+        codigo_nomina: parseInt(req.query["codigo_nomina"] as string, 10),
+        periodo: parseInt(req.query["periodo"] as string, 10),
+        centro_costo: "",
+        area: "",
         activo: 1,
       };
 
       if (!conjunto) {
         res.status(400).json({
           success: false,
-          message: 'El parámetro conjunto es requerido',
+          message: "El parámetro conjunto es requerido",
         });
         return;
       }
 
       const buffer = await this.reporteGNService.exportarAnualizadoExcel(
         conjunto,
-        filtros,
+        filtros
       );
       res.setHeader(
-        'Content-Type',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       );
       res.setHeader(
-        'Content-Disposition',
-        `attachment; filename="anualizado-${conjunto}.xlsx"`,
+        "Content-Disposition",
+        `attachment; filename="anualizado-${conjunto}.xlsx"`
       );
       res.send(buffer);
     } catch (err) {
       res.status(500).json({
         success: false,
-        message: 'Error exportando Anualizado',
+        message: "Error exportando Anualizado",
         error: err,
       });
     }
@@ -1162,40 +1166,40 @@ export class ReporteGNController {
     try {
       const { conjunto } = req.params;
       const filtros = {
-        cod_empleado: req.query['id_usuario'] as string,
-        num_nomina: parseInt(req.query['num_nomina'] as string, 10),
-        numero_nomina: parseInt(req.query['numero_nomina'] as string, 10),
-        tipo_prestamo: req.query['tipo_prestamo'] as string,
-        estado_prestamo: req.query['estado_prestamo'] as string,
-        estado_empleado: req.query['estado_empleado'] as string,
-        estado_cuota: req.query['estado_cuota'] as string,
+        cod_empleado: req.query["id_usuario"] as string,
+        num_nomina: parseInt(req.query["num_nomina"] as string, 10),
+        numero_nomina: parseInt(req.query["numero_nomina"] as string, 10),
+        tipo_prestamo: req.query["tipo_prestamo"] as string,
+        estado_prestamo: req.query["estado_prestamo"] as string,
+        estado_empleado: req.query["estado_empleado"] as string,
+        estado_cuota: req.query["estado_cuota"] as string,
       };
 
       if (!conjunto) {
         res.status(400).json({
           success: false,
-          message: 'El parámetro conjunto es requerido',
+          message: "El parámetro conjunto es requerido",
         });
         return;
       }
 
       const buffer = await this.reporteGNService.exportarPrestamosExcel(
         conjunto,
-        filtros,
+        filtros
       );
       res.setHeader(
-        'Content-Type',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       );
       res.setHeader(
-        'Content-Disposition',
-        `attachment; filename="prestamos-${conjunto}.xlsx"`,
+        "Content-Disposition",
+        `attachment; filename="prestamos-${conjunto}.xlsx"`
       );
       res.send(buffer);
     } catch (err) {
       res.status(500).json({
         success: false,
-        message: 'Error exportando Préstamos',
+        message: "Error exportando Préstamos",
         error: err,
       });
     }
@@ -1245,35 +1249,35 @@ export class ReporteGNController {
     try {
       const { conjunto } = req.params;
       const filtros = {
-        cod_empleado: req.query['id_usuario'] as string,
-        num_nomina: parseInt(req.query['num_nomina'] as string, 10),
+        cod_empleado: req.query["id_usuario"] as string,
+        num_nomina: parseInt(req.query["num_nomina"] as string, 10),
       };
 
       if (!conjunto) {
         res.status(400).json({
           success: false,
-          message: 'El parámetro conjunto es requerido',
+          message: "El parámetro conjunto es requerido",
         });
         return;
       }
 
       const buffer = await this.reporteGNService.exportarBoletaDePagoExcel(
         conjunto,
-        filtros,
+        filtros
       );
       res.setHeader(
-        'Content-Type',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       );
       res.setHeader(
-        'Content-Disposition',
-        `attachment; filename="boleta-${conjunto}.xlsx"`,
+        "Content-Disposition",
+        `attachment; filename="boleta-${conjunto}.xlsx"`
       );
       res.send(buffer);
     } catch (err) {
       res.status(500).json({
         success: false,
-        message: 'Error exportando Boleta de Pago',
+        message: "Error exportando Boleta de Pago",
         error: err,
       });
     }
@@ -1322,40 +1326,40 @@ export class ReporteGNController {
    */
   async exportarPrestamoCtaCteExcel(
     req: Request,
-    res: Response,
+    res: Response
   ): Promise<void> {
     try {
       const { conjunto } = req.params;
       const filtros = {
-        cod_empleado: req.query['id_usuario'] as string,
-        naturaleza: 'C',
+        cod_empleado: req.query["id_usuario"] as string,
+        naturaleza: "C",
       };
 
       if (!conjunto) {
         res.status(400).json({
           success: false,
-          message: 'El parámetro conjunto es requerido',
+          message: "El parámetro conjunto es requerido",
         });
         return;
       }
 
       const buffer = await this.reporteGNService.exportarPrestamoCtaCteExcel(
         conjunto,
-        filtros,
+        filtros
       );
       res.setHeader(
-        'Content-Type',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       );
       res.setHeader(
-        'Content-Disposition',
-        `attachment; filename="prestamo-cta-cte-${conjunto}.xlsx"`,
+        "Content-Disposition",
+        `attachment; filename="prestamo-cta-cte-${conjunto}.xlsx"`
       );
       res.send(buffer);
     } catch (err) {
       res.status(500).json({
         success: false,
-        message: 'Error exportando Préstamo Cta Cte',
+        message: "Error exportando Préstamo Cta Cte",
         error: err,
       });
     }
