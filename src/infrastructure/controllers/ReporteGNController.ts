@@ -772,7 +772,7 @@ export class ReporteGNController {
 
   /**
    * @swagger
-   * /api/reporte-gn/acciones-de-personal/excel/:conjunto:
+   * /api/reporte-gn/acciones-de-personal/excel/{conjunto}:
    *   get:
    *     summary: Obtener todas las acciones de personal
    *     tags: [Reportes Gestión de Nómina - Exportaciones]
@@ -849,7 +849,7 @@ export class ReporteGNController {
 
   /**
    * @swagger
-   * /api/reporte-gn/contratos/excel/:conjunto:
+   * /api/reporte-gn/contratos/excel/{conjunto}:
    *   get:
    *     summary: Obtener todos los contratos
    *     tags: [Reportes Gestión de Nómina - Exportaciones]
