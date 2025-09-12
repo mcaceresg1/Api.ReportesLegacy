@@ -113,7 +113,8 @@ AND  	M.empleado = :cod_empleado AND  	TM.naturaleza = :naturaleza   ORDER BY 1 
         pagina,
         registrosPorPagina,
       } = filtros;
-      const offset = (pagina - 1) * registrosPorPagina;
+      const offset = (pagina - 1) * registrosPorPagina;   
+      const limit = registrosPorPagina;
 
       const totalQuery = `
       SELECT COUNT(*) as total
@@ -141,6 +142,7 @@ AND  	M.empleado = :cod_empleado AND  	TM.naturaleza = :naturaleza   ORDER BY 1 
         },
       });
       const total = parseInt(totalResult?.total, 10);
+      
       const paginatedQuery = `
       SELECT *
       FROM (
@@ -158,7 +160,7 @@ AND  	M.empleado = :cod_empleado AND  	TM.naturaleza = :naturaleza   ORDER BY 1 
     AND e.empleado >= :cod_empleado 
       ) as reporte
       ORDER BY empleado ASC
-      OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
+      OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
     `;
 
       const [data] = await exactusSequelize.query(paginatedQuery, {
