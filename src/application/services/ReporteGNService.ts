@@ -1,3 +1,5 @@
+
+import { injectable, inject } from 'inversify';
 import {
   ExportarAccionesDePersonalExcelParams,
   FiltrosBoletaDePago,
@@ -16,6 +18,7 @@ import {
   RespuestaReporteRolDeVacaciones,
 } from "../../domain/entities/ReporteGN";
 
+@injectable()
 export interface IReporteGNService {
   getAccionesDePersonal(
     conjunto: string,
