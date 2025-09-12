@@ -228,6 +228,7 @@ import { ObtenerFiltrosLibroMayorAsientosHandler } from "../../application/handl
 // Libro Diario Asientos Handlers
 import { ObtenerLibroDiarioAsientosHandler } from "../../application/handlers/libro-diario-asientos/ObtenerLibroDiarioAsientosHandler";
 import { GenerarLibroDiarioAsientosHandler } from "../../application/handlers/libro-diario-asientos/GenerarLibroDiarioAsientosHandler";
+import { ObtenerFiltrosLibroDiarioAsientosHandler } from "../../application/handlers/libro-diario-asientos/ObtenerFiltrosLibroDiarioAsientosHandler";
 
 // CQRS Service
 import { CqrsService } from "../cqrs/CqrsService";
@@ -244,6 +245,11 @@ import { ReporteClipperLibroDiarioRepository } from "../repositories/ReporteClip
 import { IClipperLibroDiarioService } from "../../domain/services/IClipperLibroDiarioService";
 import { ClipperLibroDiarioService } from "../../application/services/ClipperLibroDiarioService";
 import { ClipperLibroDiarioController } from "../controllers/ClipperLibroDiarioController";
+import { IClipperLibroCajaRepository } from "../../domain/repositories/IClipperLibroCajaRepository";
+import { ReporteClipperLibroCajaRepository } from "../repositories/ReporteClipperLibroCajaRepository";
+import { IClipperLibroCajaService } from "../../domain/services/IClipperLibroCajaService";
+import { ClipperLibroCajaService } from "../../application/services/ClipperLibroCajaService";
+import { ClipperLibroCajaController } from "../controllers/ClipperLibroCajaController";
 import { ICacheService } from "../../domain/services/ICacheService";
 import { CacheService } from "../../application/services/CacheService";
 import { ClipperLibroDiarioCacheService } from "../../application/services/ClipperLibroDiarioCacheService";
@@ -380,6 +386,9 @@ container
   .bind<IClipperLibroDiarioRepository>("IClipperLibroDiarioRepository")
   .to(ReporteClipperLibroDiarioRepository);
 container
+  .bind<IClipperLibroCajaRepository>("IClipperLibroCajaRepository")
+  .to(ReporteClipperLibroCajaRepository);
+container
   .bind<IBalanceComprobacionClipperRepository>(
     "IBalanceComprobacionClipperRepository"
   )
@@ -472,6 +481,9 @@ container
 container
   .bind<IClipperLibroDiarioService>("IClipperLibroDiarioService")
   .to(ClipperLibroDiarioService);
+container
+  .bind<IClipperLibroCajaService>("IClipperLibroCajaService")
+  .to(ClipperLibroCajaService);
 container
   .bind<IBalanceComprobacionClipperService>(
     "IBalanceComprobacionClipperService"
@@ -589,6 +601,9 @@ container
   .bind<ClipperLibroDiarioController>("ClipperLibroDiarioController")
   .to(ClipperLibroDiarioController);
 container
+  .bind<ClipperLibroCajaController>("ClipperLibroCajaController")
+  .to(ClipperLibroCajaController);
+container
   .bind<BalanceComprobacionClipperController>(
     "BalanceComprobacionClipperController"
   )
@@ -599,8 +614,8 @@ container
 // BalanceComprobacionClipperRoutes se instancia directamente en app.ts
 
 // CQRS Buses
-container.bind<ICommandBus>("ICommandBus").to(CommandBus);
-container.bind<IQueryBus>("IQueryBus").to(QueryBus);
+container.bind<ICommandBus>("ICommandBus").to(CommandBus).inSingletonScope();
+container.bind<IQueryBus>("IQueryBus").to(QueryBus).inSingletonScope();
 
 // Command Handlers
 container
@@ -704,6 +719,11 @@ container
 container
   .bind<GenerarLibroDiarioAsientosHandler>("GenerarLibroDiarioAsientosHandler")
   .to(GenerarLibroDiarioAsientosHandler);
+container
+  .bind<ObtenerFiltrosLibroDiarioAsientosHandler>(
+    "ObtenerFiltrosLibroDiarioAsientosHandler"
+  )
+  .to(ObtenerFiltrosLibroDiarioAsientosHandler);
 
 // Balance Comprobación Clipper - No necesita handlers CQRS, usa servicio directamente
 
@@ -713,6 +733,14 @@ import { GananciasPerdidasClipperRepository } from "../repositories/GananciasPer
 import { IGananciasPerdidasClipperService } from "../../domain/services/IGananciasPerdidasClipperService";
 import { GananciasPerdidasClipperService } from "../../application/services/GananciasPerdidasClipperService";
 import { GananciasPerdidasClipperController } from "../controllers/GananciasPerdidasClipperController";
+
+// Análisis de Cuentas Clipper
+import { IAnalisisCuentasClipperRepository } from "../../domain/repositories/IAnalisisCuentasClipperRepository";
+import { AnalisisCuentasClipperRepository } from "../repositories/AnalisisCuentasClipperRepository";
+import { IAnalisisCuentasClipperService } from "../../domain/services/IAnalisisCuentasClipperService";
+import { AnalisisCuentasClipperService } from "../../application/services/AnalisisCuentasClipperService";
+import { AnalisisCuentasClipperController } from "../controllers/AnalisisCuentasClipperController";
+import { AnalisisCuentasClipperRoutes } from "../routes/AnalisisCuentasClipperRoutes";
 
 // Ganancias y Pérdidas Clipper - Repositorio
 container
@@ -732,6 +760,26 @@ container
     "GananciasPerdidasClipperController"
   )
   .to(GananciasPerdidasClipperController);
+
+// Análisis de Cuentas Clipper - Repositorio
+container
+  .bind<IAnalisisCuentasClipperRepository>("IAnalisisCuentasClipperRepository")
+  .to(AnalisisCuentasClipperRepository);
+
+// Análisis de Cuentas Clipper - Servicio
+container
+  .bind<IAnalisisCuentasClipperService>("IAnalisisCuentasClipperService")
+  .to(AnalisisCuentasClipperService);
+
+// Análisis de Cuentas Clipper - Controlador
+container
+  .bind<AnalisisCuentasClipperController>("AnalisisCuentasClipperController")
+  .to(AnalisisCuentasClipperController);
+
+// Análisis de Cuentas Clipper - Rutas
+container
+  .bind<AnalisisCuentasClipperRoutes>("AnalisisCuentasClipperRoutes")
+  .to(AnalisisCuentasClipperRoutes);
 
 // CQRS Service
 container.bind<CqrsService>("CqrsService").to(CqrsService);

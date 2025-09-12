@@ -1,5 +1,5 @@
-import { injectable, inject } from 'inversify';
-import { IDatabaseService } from '../../domain/services/IDatabaseService';
+import { injectable } from 'inversify';
+import { exactusSequelize } from '../database/config/exactus-database';
 import { 
   EstadoSituacionFinanciera, 
   FiltrosEstadoSituacionFinanciera, 
@@ -13,13 +13,9 @@ import {
   ExportarEstadoSituacionFinancieraExcelParams,
   ExportarEstadoSituacionFinancieraPDFParams
 } from '../../domain/entities/EstadoSituacionFinanciera';
-import { TYPES } from '../container/types';
 
 @injectable()
 export class EstadoSituacionFinancieraRepository {
-  constructor(
-    @inject(TYPES.IDatabaseService) private databaseService: IDatabaseService
-  ) {}
 
   /**
    * Obtiene los tipos de balance disponibles
@@ -32,18 +28,20 @@ export class EstadoSituacionFinancieraRepository {
           T.TIPO as tipo,
           T.DESCRIPCION as descripcion,
           T.QRP as qrp
-        FROM ${conjunto}.TIPO_BALANCE T
-        INNER JOIN ${conjunto}.USUARIO_BALANCE U ON T.TIPO = U.TIPO AND U.USUARIO = @usuario
+        FROM ${conjunto}.TIPO_BALANCE T (NOLOCK)
+        INNER JOIN ${conjunto}.USUARIO_BALANCE U (NOLOCK) ON T.TIPO = U.TIPO AND U.USUARIO = :usuario
         WHERE 1 = 1 
           AND (T.TIPO NOT LIKE '301%' OR T.TIPO = '301')
         ORDER BY 1
       `;
 
-      const result = await this.databaseService.ejecutarQuery(query);
+      const [results] = await exactusSequelize.query(query, { 
+        replacements: { usuario } 
+      });
       
       return {
         success: true,
-        data: result.map((row: any) => ({
+        data: (results as any[]).map((row: any) => ({
           tipo: row.tipo,
           descripcion: row.descripcion,
           qrp: row.qrp,
@@ -72,16 +70,18 @@ export class EstadoSituacionFinancieraRepository {
           contabilidad,
           estado,
           fecha_final
-        FROM ${conjunto}.periodo_contable
-        WHERE fecha_final = @fecha
+        FROM ${conjunto}.periodo_contable (NOLOCK)
+        WHERE fecha_final = :fecha
           AND contabilidad = 'F'
       `;
 
-      const result = await this.databaseService.ejecutarQuery(query);
+      const [results] = await exactusSequelize.query(query, { 
+        replacements: { fecha } 
+      });
       
       return {
         success: true,
-        data: result.map((row: any) => ({
+        data: (results as any[]).map((row: any) => ({
           descripcion: row.descripcion,
           contabilidad: row.contabilidad,
           estado: row.estado,
@@ -107,8 +107,8 @@ export class EstadoSituacionFinancieraRepository {
       const { conjunto, fecha, tipoBalance = 'BGFIS', contabilidad = 'F' } = params;
       
       // Limpiar tabla temporal
-      await this.databaseService.ejecutarQuery(`DELETE FROM ${conjunto}.BG WHERE USUARIO = 'ADMPQUES'`);
-      await this.databaseService.ejecutarQuery(`DELETE FROM ${conjunto}.R_XML_8DDC9166B472A25`);
+      await exactusSequelize.query(`DELETE FROM ${conjunto}.BG WHERE USUARIO = 'ADMPQUES'`);
+      await exactusSequelize.query(`DELETE FROM ${conjunto}.R_XML_8DDC9166B472A25`);
 
       // Insertar datos del período actual
       await this.insertarDatosPeriodoActual(conjunto, fecha, tipoBalance, contabilidad);
@@ -122,7 +122,7 @@ export class EstadoSituacionFinancieraRepository {
       return true;
     } catch (error) {
       console.error('Error al generar reporte:', error);
-      throw error;
+      throw new Error(`Error al generar reporte: ${error}`);
     }
   }
 
@@ -149,11 +149,11 @@ export class EstadoSituacionFinancieraRepository {
           CASE WHEN m.saldo_fisc_local < 0 THEN ABS(m.saldo_fisc_local) ELSE 0 END credito_local,
           CASE WHEN m.saldo_fisc_dolar > 0 THEN ABS(m.saldo_fisc_dolar) ELSE 0 END debito_dolar,
           CASE WHEN m.saldo_fisc_dolar < 0 THEN ABS(m.saldo_fisc_dolar) ELSE 0 END credito_dolar
-        FROM ${conjunto}.saldo m
+        FROM ${conjunto}.saldo m (NOLOCK)
         INNER JOIN (
           SELECT m.centro_costo, m.cuenta_contable, MAX(m.fecha) fecha
-          FROM ${conjunto}.saldo m
-          WHERE m.fecha <= @fecha
+          FROM ${conjunto}.saldo m (NOLOCK)
+          WHERE m.fecha <= :fecha
           GROUP BY m.centro_costo, m.cuenta_contable
         ) smax ON (m.centro_costo = smax.centro_costo AND m.cuenta_contable = smax.cuenta_contable AND m.fecha = smax.fecha)
         WHERE 1 = 1
@@ -167,17 +167,19 @@ export class EstadoSituacionFinancieraRepository {
           COALESCE(m.credito_local, 0) credito_local,
           COALESCE(m.debito_dolar, 0) debito_dolar,
           COALESCE(m.credito_dolar, 0) credito_dolar
-        FROM ${conjunto}.asiento_de_diario am
-        INNER JOIN ${conjunto}.diario m ON (am.asiento = m.asiento)
-        WHERE am.fecha <= @fecha 
+        FROM ${conjunto}.asiento_de_diario am (NOLOCK)
+        INNER JOIN ${conjunto}.diario m (NOLOCK) ON (am.asiento = m.asiento)
+        WHERE am.fecha <= :fecha 
           AND contabilidad IN ('F', 'A')
       ) V
-      INNER JOIN ${conjunto}.BG_CUENTAS_DET B ON (B.CUENTA_CONTABLE = V.CUENTA_CONTABLE)
-      WHERE B.TIPO = @tipoBalance AND B.FAMILIA_DESTINO IS NULL
+      INNER JOIN ${conjunto}.BG_CUENTAS_DET B (NOLOCK) ON (B.CUENTA_CONTABLE = V.CUENTA_CONTABLE)
+      WHERE B.TIPO = :tipoBalance AND B.FAMILIA_DESTINO IS NULL
       GROUP BY B.TIPO, B.FAMILIA
     `;
 
-    await this.databaseService.ejecutarQuery(querySinFamilia);
+    await exactusSequelize.query(querySinFamilia, { 
+      replacements: { fecha, tipoBalance } 
+    });
 
     // Insertar datos con familia destino
     const queryConFamilia = `
@@ -214,11 +216,11 @@ export class EstadoSituacionFinancieraRepository {
             CASE WHEN m.saldo_fisc_local < 0 THEN ABS(m.saldo_fisc_local) ELSE 0 END credito_local,
             CASE WHEN m.saldo_fisc_dolar > 0 THEN ABS(m.saldo_fisc_dolar) ELSE 0 END debito_dolar,
             CASE WHEN m.saldo_fisc_dolar < 0 THEN ABS(m.saldo_fisc_dolar) ELSE 0 END credito_dolar
-          FROM ${conjunto}.saldo m
+          FROM ${conjunto}.saldo m (NOLOCK)
           INNER JOIN (
             SELECT m.centro_costo, m.cuenta_contable, MAX(m.fecha) fecha
-            FROM ${conjunto}.saldo m
-            WHERE m.fecha <= @fecha
+            FROM ${conjunto}.saldo m (NOLOCK)
+            WHERE m.fecha <= :fecha
             GROUP BY m.centro_costo, m.cuenta_contable
           ) smax ON (m.centro_costo = smax.centro_costo AND m.cuenta_contable = smax.cuenta_contable AND m.fecha = smax.fecha)
           WHERE 1 = 1
@@ -232,20 +234,22 @@ export class EstadoSituacionFinancieraRepository {
             COALESCE(m.credito_local, 0) credito_local,
             COALESCE(m.debito_dolar, 0) debito_dolar,
             COALESCE(m.credito_dolar, 0) credito_dolar
-          FROM ${conjunto}.asiento_de_diario am
-          INNER JOIN ${conjunto}.diario m ON (am.asiento = m.asiento)
-          WHERE am.fecha <= @fecha 
+          FROM ${conjunto}.asiento_de_diario am (NOLOCK)
+          INNER JOIN ${conjunto}.diario m (NOLOCK) ON (am.asiento = m.asiento)
+          WHERE am.fecha <= :fecha 
             AND contabilidad IN ('F', 'A')
         ) V
-        INNER JOIN ${conjunto}.BG_CUENTAS_DET B ON (B.CUENTA_CONTABLE = V.CUENTA_CONTABLE)
-        LEFT OUTER JOIN ${conjunto}.GRUPO_EXCEPCION_BG GEB ON (GEB.GRUPO_EXCEPCION = B.GRUPO_EXCEPCION)
-        WHERE B.TIPO = @tipoBalance AND B.FAMILIA_DESTINO IS NOT NULL
+        INNER JOIN ${conjunto}.BG_CUENTAS_DET B (NOLOCK) ON (B.CUENTA_CONTABLE = V.CUENTA_CONTABLE)
+        LEFT OUTER JOIN ${conjunto}.GRUPO_EXCEPCION_BG GEB (NOLOCK) ON (GEB.GRUPO_EXCEPCION = B.GRUPO_EXCEPCION)
+        WHERE B.TIPO = :tipoBalance AND B.FAMILIA_DESTINO IS NOT NULL
         GROUP BY B.TIPO, B.FAMILIA, B.FAMILIA_DESTINO, 
                  COALESCE(GEB.SALDO_EXCEPCION, CASE B.SALDO_NORMAL WHEN 'D' THEN 'A' ELSE 'D' END), B.GRUPO_EXCEPCION
       ) VISTA
     `;
 
-    await this.databaseService.ejecutarQuery(queryConFamilia);
+    await exactusSequelize.query(queryConFamilia, { 
+      replacements: { fecha, tipoBalance } 
+    });
   }
 
   /**
@@ -276,11 +280,11 @@ export class EstadoSituacionFinancieraRepository {
           CASE WHEN m.saldo_fisc_local < 0 THEN ABS(m.saldo_fisc_local) ELSE 0 END credito_local,
           CASE WHEN m.saldo_fisc_dolar > 0 THEN ABS(m.saldo_fisc_dolar) ELSE 0 END debito_dolar,
           CASE WHEN m.saldo_fisc_dolar < 0 THEN ABS(m.saldo_fisc_dolar) ELSE 0 END credito_dolar
-        FROM ${conjunto}.saldo m
+        FROM ${conjunto}.saldo m (NOLOCK)
         INNER JOIN (
           SELECT m.centro_costo, m.cuenta_contable, MAX(m.fecha) fecha
-          FROM ${conjunto}.saldo m
-          WHERE m.fecha <= @fechaAnterior
+          FROM ${conjunto}.saldo m (NOLOCK)
+          WHERE m.fecha <= :fechaAnterior
           GROUP BY m.centro_costo, m.cuenta_contable
         ) smax ON (m.centro_costo = smax.centro_costo AND m.cuenta_contable = smax.cuenta_contable AND m.fecha = smax.fecha)
         WHERE 1 = 1
@@ -294,17 +298,19 @@ export class EstadoSituacionFinancieraRepository {
           COALESCE(m.credito_local, 0) credito_local,
           COALESCE(m.debito_dolar, 0) debito_dolar,
           COALESCE(m.credito_dolar, 0) credito_dolar
-        FROM ${conjunto}.asiento_de_diario am
-        INNER JOIN ${conjunto}.diario m ON (am.asiento = m.asiento)
-        WHERE am.fecha <= @fechaAnterior 
+        FROM ${conjunto}.asiento_de_diario am (NOLOCK)
+        INNER JOIN ${conjunto}.diario m (NOLOCK) ON (am.asiento = m.asiento)
+        WHERE am.fecha <= :fechaAnterior 
           AND contabilidad IN ('F', 'A')
       ) V
-      INNER JOIN ${conjunto}.BG_CUENTAS_DET B ON (B.CUENTA_CONTABLE = V.CUENTA_CONTABLE)
-      WHERE B.TIPO = @tipoBalance AND B.FAMILIA_DESTINO IS NULL
+      INNER JOIN ${conjunto}.BG_CUENTAS_DET B (NOLOCK) ON (B.CUENTA_CONTABLE = V.CUENTA_CONTABLE)
+      WHERE B.TIPO = :tipoBalance AND B.FAMILIA_DESTINO IS NULL
       GROUP BY B.TIPO, B.FAMILIA
     `;
 
-    await this.databaseService.ejecutarQuery(querySinFamiliaAnt);
+    await exactusSequelize.query(querySinFamiliaAnt, { 
+      replacements: { fechaAnterior: fechaAnteriorStr, tipoBalance } 
+    });
 
     // Insertar datos con familia destino para período anterior
     const queryConFamiliaAnt = `
@@ -341,11 +347,11 @@ export class EstadoSituacionFinancieraRepository {
             CASE WHEN m.saldo_fisc_local < 0 THEN ABS(m.saldo_fisc_local) ELSE 0 END credito_local,
             CASE WHEN m.saldo_fisc_dolar > 0 THEN ABS(m.saldo_fisc_dolar) ELSE 0 END debito_dolar,
             CASE WHEN m.saldo_fisc_dolar < 0 THEN ABS(m.saldo_fisc_dolar) ELSE 0 END credito_dolar
-          FROM ${conjunto}.saldo m
+          FROM ${conjunto}.saldo m (NOLOCK)
           INNER JOIN (
             SELECT m.centro_costo, m.cuenta_contable, MAX(m.fecha) fecha
-            FROM ${conjunto}.saldo m
-            WHERE m.fecha <= @fechaAnterior
+            FROM ${conjunto}.saldo m (NOLOCK)
+            WHERE m.fecha <= :fechaAnterior
             GROUP BY m.centro_costo, m.cuenta_contable
           ) smax ON (m.centro_costo = smax.centro_costo AND m.cuenta_contable = smax.cuenta_contable AND m.fecha = smax.fecha)
           WHERE 1 = 1
@@ -359,20 +365,22 @@ export class EstadoSituacionFinancieraRepository {
             COALESCE(m.credito_local, 0) credito_local,
             COALESCE(m.debito_dolar, 0) debito_dolar,
             COALESCE(m.credito_dolar, 0) credito_dolar
-          FROM ${conjunto}.asiento_de_diario am
-          INNER JOIN ${conjunto}.diario m ON (am.asiento = m.asiento)
-          WHERE am.fecha <= @fechaAnterior 
+          FROM ${conjunto}.asiento_de_diario am (NOLOCK)
+          INNER JOIN ${conjunto}.diario m (NOLOCK) ON (am.asiento = m.asiento)
+          WHERE am.fecha <= :fechaAnterior 
             AND contabilidad IN ('F', 'A')
         ) V
-        INNER JOIN ${conjunto}.BG_CUENTAS_DET B ON (B.CUENTA_CONTABLE = V.CUENTA_CONTABLE)
-        LEFT OUTER JOIN ${conjunto}.GRUPO_EXCEPCION_BG GEB ON (GEB.GRUPO_EXCEPCION = B.GRUPO_EXCEPCION)
-        WHERE B.TIPO = @tipoBalance AND B.FAMILIA_DESTINO IS NOT NULL
+        INNER JOIN ${conjunto}.BG_CUENTAS_DET B (NOLOCK) ON (B.CUENTA_CONTABLE = V.CUENTA_CONTABLE)
+        LEFT OUTER JOIN ${conjunto}.GRUPO_EXCEPCION_BG GEB (NOLOCK) ON (GEB.GRUPO_EXCEPCION = B.GRUPO_EXCEPCION)
+        WHERE B.TIPO = :tipoBalance AND B.FAMILIA_DESTINO IS NOT NULL
         GROUP BY B.TIPO, B.FAMILIA, B.FAMILIA_DESTINO, 
                  COALESCE(GEB.SALDO_EXCEPCION, CASE B.SALDO_NORMAL WHEN 'D' THEN 'A' ELSE 'D' END), B.GRUPO_EXCEPCION
       ) VISTA
     `;
 
-    await this.databaseService.ejecutarQuery(queryConFamiliaAnt);
+    await exactusSequelize.query(queryConFamiliaAnt, { 
+      replacements: { fechaAnterior: fechaAnteriorStr, tipoBalance } 
+    });
   }
 
   /**
@@ -396,11 +404,11 @@ export class EstadoSituacionFinancieraRepository {
         SUM(ISNULL(CASE P.NATURALEZA WHEN 'P' THEN -1 ELSE 1 END * B.MONTO_ANT, 0)),
         SUM(ISNULL(CASE P.NATURALEZA WHEN 'P' THEN -1 ELSE 1 END * B.MONTO_DOL_ANT, 0)),
         P.FAMILIA
-      FROM ${conjunto}.POSICION_BG P
-      INNER JOIN ${conjunto}.POSICION_BG PA ON P.FAMILIA_PADRE = PA.FAMILIA AND P.TIPO = PA.TIPO
-      LEFT OUTER JOIN ${conjunto}.BG B ON P.TIPO = B.TIPO AND P.FAMILIA = B.FAMILIA 
-        AND B.USUARIO = 'ADMPQUES' AND B.TIPO = @tipoBalance
-      WHERE P.AGRUPA = 'N' AND P.TIPO = @tipoBalance
+      FROM ${conjunto}.POSICION_BG P (NOLOCK)
+      INNER JOIN ${conjunto}.POSICION_BG PA (NOLOCK) ON P.FAMILIA_PADRE = PA.FAMILIA AND P.TIPO = PA.TIPO
+      LEFT OUTER JOIN ${conjunto}.BG B (NOLOCK) ON P.TIPO = B.TIPO AND P.FAMILIA = B.FAMILIA 
+        AND B.USUARIO = 'ADMPQUES' AND B.TIPO = :tipoBalance
+      WHERE P.AGRUPA = 'N' AND P.TIPO = :tipoBalance
       GROUP BY P.NOMBRE, P.POSICION, P.ORDEN, P.NATURALEZA, P.AGRUPA, PA.NOMBRE, P.FAMILIA
       
       UNION ALL
@@ -417,14 +425,16 @@ export class EstadoSituacionFinancieraRepository {
         SUM(ISNULL(CASE P.NATURALEZA WHEN 'P' THEN -1 ELSE 1 END * B.MONTO_ANT, 0)),
         SUM(ISNULL(CASE P.NATURALEZA WHEN 'P' THEN -1 ELSE 1 END * B.MONTO_DOL_ANT, 0)),
         P.FAMILIA
-      FROM ${conjunto}.POSICION_BG P
-      LEFT OUTER JOIN ${conjunto}.BG B ON P.TIPO = B.TIPO AND P.FAMILIA = B.FAMILIA 
-        AND B.USUARIO = 'ADMPQUES' AND B.TIPO = @tipoBalance
-      WHERE P.FAMILIA_PADRE IS NULL AND P.AGRUPA = 'N' AND P.TIPO = @tipoBalance
+      FROM ${conjunto}.POSICION_BG P (NOLOCK)
+      LEFT OUTER JOIN ${conjunto}.BG B (NOLOCK) ON P.TIPO = B.TIPO AND P.FAMILIA = B.FAMILIA 
+        AND B.USUARIO = 'ADMPQUES' AND B.TIPO = :tipoBalance
+      WHERE P.FAMILIA_PADRE IS NULL AND P.AGRUPA = 'N' AND P.TIPO = :tipoBalance
       GROUP BY P.NOMBRE, P.POSICION, P.AGRUPA, P.ORDEN, P.NATURALEZA, P.FAMILIA
     `;
 
-    await this.databaseService.ejecutarQuery(query);
+    await exactusSequelize.query(query, { 
+      replacements: { tipoBalance } 
+    });
   }
 
   /**
@@ -454,28 +464,28 @@ export class EstadoSituacionFinancieraRepository {
           ISNULL(saldo, 0) as saldo,
           fecha,
           ISNULL(total, 0) as total
-        FROM ${conjunto}.R_XML_8DDC9166B472A25
+        FROM ${conjunto}.R_XML_8DDC9166B472A25 (NOLOCK)
         ORDER BY ROW_ORDER_BY
-        OFFSET @offset ROWS
-        FETCH NEXT @limit ROWS ONLY
+        OFFSET :offset ROWS
+        FETCH NEXT :limit ROWS ONLY
       `;
 
       const countQuery = `
         SELECT COUNT(*) as total
-        FROM ${conjunto}.R_XML_8DDC9166B472A25
+        FROM ${conjunto}.R_XML_8DDC9166B472A25 (NOLOCK)
       `;
 
       const [data, countResult] = await Promise.all([
-        this.databaseService.ejecutarQuery(query),
-        this.databaseService.ejecutarQuery(countQuery)
+        exactusSequelize.query(query, { replacements: { offset, limit } }),
+        exactusSequelize.query(countQuery)
       ]);
 
-      const total = countResult[0]?.total || 0;
+      const total = (countResult[0] as any[])[0]?.total || 0;
       const totalPages = Math.ceil(total / limit);
 
       return {
         success: true,
-        data: data.map((row: any) => ({
+        data: (data[0] as any[]).map((row: any) => ({
           activo: row.nombre || '',
           activo_saldo_ant: row.saldo_ant || 0,
           activo_saldo: row.saldo || 0,
@@ -554,18 +564,18 @@ export class EstadoSituacionFinancieraRepository {
           ISNULL(saldo, 0) as saldo,
           fecha,
           ISNULL(total, 0) as total
-        FROM ${conjunto}.R_XML_8DDC9166B472A25
+        FROM ${conjunto}.R_XML_8DDC9166B472A25 (NOLOCK)
         ORDER BY ROW_ORDER_BY
       `;
 
-      const data = await this.databaseService.ejecutarQuery(query);
+      const [results] = await exactusSequelize.query(query);
       
       // Aquí se implementaría la lógica para generar el archivo Excel
       // Por ahora retornamos un buffer vacío
       return Buffer.from('Excel export placeholder');
     } catch (error) {
       console.error('Error al exportar Excel:', error);
-      throw error;
+      throw new Error(`Error al exportar Excel: ${error}`);
     }
   }
 
@@ -597,18 +607,18 @@ export class EstadoSituacionFinancieraRepository {
           ISNULL(saldo, 0) as saldo,
           fecha,
           ISNULL(total, 0) as total
-        FROM ${conjunto}.R_XML_8DDC9166B472A25
+        FROM ${conjunto}.R_XML_8DDC9166B472A25 (NOLOCK)
         ORDER BY ROW_ORDER_BY
       `;
 
-      const data = await this.databaseService.ejecutarQuery(query);
+      const [results] = await exactusSequelize.query(query);
       
       // Aquí se implementaría la lógica para generar el archivo PDF
       // Por ahora retornamos un buffer vacío
       return Buffer.from('PDF export placeholder');
     } catch (error) {
       console.error('Error al exportar PDF:', error);
-      throw error;
+      throw new Error(`Error al exportar PDF: ${error}`);
     }
   }
 }

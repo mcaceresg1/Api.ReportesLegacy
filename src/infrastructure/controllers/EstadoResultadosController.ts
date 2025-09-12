@@ -219,6 +219,11 @@ export class EstadoResultadosController {
         this.estadoResultadosService.getTotalRecords(conjunto!, usuario!, filtros)
       ]);
 
+      // Obtener validación de balance si está disponible
+      const validacionBalance = estadoResultados.length > 0 ? 
+        await this.estadoResultadosService.validarBalance(conjunto!, usuario!, filtros) : 
+        undefined;
+
       const response: EstadoResultadosResponse = {
         success: true,
         data: estadoResultados,
@@ -227,7 +232,8 @@ export class EstadoResultadosController {
           pageSize,
           totalRecords,
           totalPages: Math.ceil(totalRecords / pageSize)
-        }
+        },
+        validacionBalance
       };
 
       res.json(response);

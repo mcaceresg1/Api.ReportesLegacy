@@ -6,35 +6,135 @@ import {
   LibroDiarioAsientosResponse,
   GenerarLibroDiarioAsientosParams,
   ExportarLibroDiarioAsientosExcelParams,
+  FiltrosDisponibles,
 } from "../../domain/entities/LibroDiarioAsientos";
 
+/**
+ * Repositorio para Libro Diario Asientos
+ * Maneja el acceso a datos para el reporte de Libro Diario Asientos
+ */
 @injectable()
 export class LibroDiarioAsientosRepository {
 
   /**
-   * Obtiene los filtros disponibles (asientos, tipos de asiento y paquetes)
+   * Obtiene los filtros disponibles para el reporte
    */
-  async obtenerFiltros(conjunto: string): Promise<{ asiento: string; tipoAsiento: string; paquete: string }[]> {
+  async obtenerFiltros(conjunto: string): Promise<FiltrosDisponibles> {
     try {
-      const query = `
-        SELECT DISTINCT 
-          A.asiento,
-          A.tipo_asiento as tipoAsiento,
-          A.paquete
-        FROM ${conjunto}.asiento_de_diario A (NOLOCK)
-        INNER JOIN ${conjunto}.paquete P (NOLOCK) ON A.paquete = P.paquete
-        WHERE A.asiento IS NOT NULL 
-          AND A.tipo_asiento IS NOT NULL
-          AND A.paquete IS NOT NULL
-        ORDER BY A.asiento, A.tipo_asiento, A.paquete
+      // Obtener asientos disponibles
+      const asientosQuery = `
+        SELECT DISTINCT asiento
+        FROM ${conjunto}.asiento_de_diario (NOLOCK)
+        WHERE asiento IS NOT NULL
+        ORDER BY asiento
       `;
 
-      const [results] = await exactusSequelize.query(query);
-      return (results as any[]).map((row: any) => ({
-        asiento: row.asiento,
-        tipoAsiento: row.tipoAsiento,
-        paquete: row.paquete,
-      }));
+      // Obtener tipos de asiento disponibles
+      const tiposAsientoQuery = `
+        SELECT DISTINCT tipo_asiento, 
+               CASE 
+                 WHEN tipo_asiento = 'N' THEN 'Normal'
+                 WHEN tipo_asiento = 'A' THEN 'Ajuste'
+                 WHEN tipo_asiento = 'C' THEN 'Cierre'
+                 ELSE tipo_asiento
+               END as descripcion
+        FROM ${conjunto}.asiento_de_diario (NOLOCK)
+        WHERE tipo_asiento IS NOT NULL
+        ORDER BY tipo_asiento
+      `;
+
+      // Obtener clases de asiento (tipos de asiento con descripción)
+      const clasesAsientoQuery = `
+        SELECT DISTINCT tipo_asiento as clase,
+               CASE 
+                 WHEN tipo_asiento = 'N' THEN 'Normal'
+                 WHEN tipo_asiento = 'A' THEN 'Ajuste'
+                 WHEN tipo_asiento = 'C' THEN 'Cierre'
+                 ELSE tipo_asiento
+               END as descripcion
+        FROM ${conjunto}.asiento_de_diario (NOLOCK)
+        WHERE tipo_asiento IS NOT NULL
+        ORDER BY tipo_asiento
+      `;
+
+      // Obtener orígenes disponibles
+      const origenesQuery = `
+        SELECT DISTINCT origen,
+               CASE 
+                 WHEN origen = '01' THEN 'Manual'
+                 WHEN origen = '02' THEN 'Importado'
+                 WHEN origen = '03' THEN 'Sistema'
+                 ELSE origen
+               END as descripcion
+        FROM ${conjunto}.asiento_de_diario (NOLOCK)
+        WHERE origen IS NOT NULL
+        ORDER BY origen
+      `;
+
+      // Obtener paquetes disponibles
+      const paquetesQuery = `
+        SELECT DISTINCT A.paquete, P.descripcion
+        FROM ${conjunto}.asiento_de_diario A (NOLOCK)
+        INNER JOIN ${conjunto}.paquete P (NOLOCK) ON A.paquete = P.paquete
+        WHERE A.paquete IS NOT NULL
+        ORDER BY A.paquete
+      `;
+
+      // Obtener contabilidades disponibles
+      const contabilidadesQuery = `
+        SELECT DISTINCT contabilidad,
+               CASE 
+                 WHEN contabilidad = 'F' THEN 'Fiscal'
+                 WHEN contabilidad = 'C' THEN 'Corporativa'
+                 ELSE contabilidad
+               END as descripcion
+        FROM ${conjunto}.asiento_de_diario (NOLOCK)
+        WHERE contabilidad IS NOT NULL
+        ORDER BY contabilidad
+      `;
+
+      // Obtener documentos globales disponibles
+      const documentosGlobalesQuery = `
+        SELECT DISTINCT documento_global
+        FROM ${conjunto}.asiento_de_diario (NOLOCK)
+        WHERE documento_global IS NOT NULL
+        ORDER BY documento_global
+      `;
+
+      const [asientos] = await exactusSequelize.query(asientosQuery);
+      const [tiposAsiento] = await exactusSequelize.query(tiposAsientoQuery);
+      const [clasesAsiento] = await exactusSequelize.query(clasesAsientoQuery);
+      const [origenes] = await exactusSequelize.query(origenesQuery);
+      const [paquetes] = await exactusSequelize.query(paquetesQuery);
+      const [contabilidades] = await exactusSequelize.query(contabilidadesQuery);
+      const [documentosGlobales] = await exactusSequelize.query(documentosGlobalesQuery);
+
+      return {
+        asientos: (asientos as any[]).map(row => ({ asiento: row.asiento })),
+        tiposAsiento: (tiposAsiento as any[]).map(row => ({ 
+          tipoAsiento: row.tipo_asiento, 
+          descripcion: row.descripcion 
+        })),
+        clasesAsiento: (clasesAsiento as any[]).map(row => ({ 
+          clase: row.clase, 
+          descripcion: row.descripcion 
+        })),
+        origenes: (origenes as any[]).map(row => ({ 
+          origen: row.origen, 
+          descripcion: row.descripcion 
+        })),
+        paquetes: (paquetes as any[]).map(row => ({ 
+          paquete: row.paquete, 
+          descripcion: row.descripcion 
+        })),
+        contabilidades: (contabilidades as any[]).map(row => ({ 
+          codigo: row.contabilidad, 
+          descripcion: row.descripcion 
+        })),
+        documentosGlobales: (documentosGlobales as any[]).map(row => ({ 
+          documento: row.documento_global 
+        }))
+      };
     } catch (error) {
       console.error('Error obteniendo filtros de libro diario asientos:', error);
       throw new Error(`Error al obtener filtros: ${error}`);
@@ -50,35 +150,76 @@ export class LibroDiarioAsientosRepository {
   ): Promise<LibroDiarioAsientos[]> {
     try {
       let whereClause = "WHERE 1=1";
-      const params: any[] = [];
+      const replacements: any = {};
 
-      if (filtros.asiento) {
-        whereClause += " AND A.asiento = ?";
-        params.push(filtros.asiento);
+      // Aplicar filtros
+      if (filtros.asientoDesde) {
+        whereClause += " AND A.asiento >= :asientoDesde";
+        replacements.asientoDesde = filtros.asientoDesde;
       }
 
-      if (filtros.tipoAsiento) {
-        whereClause += " AND A.tipo_asiento = ?";
-        params.push(filtros.tipoAsiento);
+      if (filtros.asientoHasta) {
+        whereClause += " AND A.asiento <= :asientoHasta";
+        replacements.asientoHasta = filtros.asientoHasta;
       }
 
-      if (filtros.paquete) {
-        whereClause += " AND A.paquete = ?";
-        params.push(filtros.paquete);
+      if (filtros.tipoAsientoDesde) {
+        whereClause += " AND A.tipo_asiento >= :tipoAsientoDesde";
+        replacements.tipoAsientoDesde = filtros.tipoAsientoDesde;
+      }
+
+      if (filtros.tipoAsientoHasta) {
+        whereClause += " AND A.tipo_asiento <= :tipoAsientoHasta";
+        replacements.tipoAsientoHasta = filtros.tipoAsientoHasta;
       }
 
       if (filtros.fechaDesde) {
-        whereClause += " AND A.fecha >= ?";
-        params.push(filtros.fechaDesde);
+        whereClause += " AND A.fecha >= :fechaDesde";
+        replacements.fechaDesde = filtros.fechaDesde;
       }
 
       if (filtros.fechaHasta) {
-        whereClause += " AND A.fecha <= ?";
-        params.push(filtros.fechaHasta);
+        whereClause += " AND A.fecha <= :fechaHasta";
+        replacements.fechaHasta = filtros.fechaHasta;
+      }
+
+      if (filtros.claseAsiento && filtros.claseAsiento.length > 0) {
+        whereClause += " AND A.tipo_asiento IN (:claseAsiento)";
+        replacements.claseAsiento = filtros.claseAsiento;
+      }
+
+      if (filtros.origen && filtros.origen.length > 0) {
+        whereClause += " AND A.origen IN (:origen)";
+        replacements.origen = filtros.origen;
+      }
+
+      if (filtros.paqueteDesde) {
+        whereClause += " AND A.paquete >= :paqueteDesde";
+        replacements.paqueteDesde = filtros.paqueteDesde;
+      }
+
+      if (filtros.paqueteHasta) {
+        whereClause += " AND A.paquete <= :paqueteHasta";
+        replacements.paqueteHasta = filtros.paqueteHasta;
+      }
+
+      if (filtros.contabilidad && filtros.contabilidad.length > 0) {
+        whereClause += " AND A.contabilidad IN (:contabilidad)";
+        replacements.contabilidad = filtros.contabilidad;
+      }
+
+      if (filtros.documentoGlobalDesde) {
+        whereClause += " AND A.documento_global >= :documentoGlobalDesde";
+        replacements.documentoGlobalDesde = filtros.documentoGlobalDesde;
+      }
+
+      if (filtros.documentoGlobalHasta) {
+        whereClause += " AND A.documento_global <= :documentoGlobalHasta";
+        replacements.documentoGlobalHasta = filtros.documentoGlobalHasta;
       }
 
       const query = `
-        SELECT
+        SELECT 
           A.asiento,
           A.paquete,
           P.descripcion,
@@ -90,19 +231,36 @@ export class LibroDiarioAsientosRepository {
           A.total_debito_loc,
           A.total_credito_loc,
           A.total_control_loc,
-          A.total_debito_loc - A.total_credito_loc as diferencia_local,
+          (A.total_debito_loc - A.total_credito_loc) as diferencia_local,
           A.total_debito_dol,
           A.total_credito_dol,
           A.total_control_dol,
-          A.total_debito_dol - A.total_credito_dol as diferencia_dolar
+          (A.total_debito_dol - A.total_credito_dol) as diferencia_dolar
         FROM ${conjunto}.asiento_de_diario A (NOLOCK)
         INNER JOIN ${conjunto}.paquete P (NOLOCK) ON A.paquete = P.paquete
         ${whereClause}
-        ORDER BY A.asiento ASC
+        ORDER BY A.asiento ASC, A.fecha ASC
       `;
 
-      const [results] = await exactusSequelize.query(query, { replacements: params });
-      return results as LibroDiarioAsientos[];
+      const [results] = await exactusSequelize.query(query, { replacements });
+      return (results as any[]).map((row: any) => ({
+        asiento: row.asiento,
+        paquete: row.paquete,
+        descripcion: row.descripcion,
+        contabilidad: row.contabilidad,
+        tipo_asiento: row.tipo_asiento,
+        fecha: new Date(row.fecha),
+        origen: row.origen,
+        documento_global: row.documento_global,
+        total_debito_loc: parseFloat(row.total_debito_loc) || 0,
+        total_credito_loc: parseFloat(row.total_credito_loc) || 0,
+        total_control_loc: parseFloat(row.total_control_loc) || 0,
+        diferencia_local: parseFloat(row.diferencia_local) || 0,
+        total_debito_dol: parseFloat(row.total_debito_dol) || 0,
+        total_credito_dol: parseFloat(row.total_credito_dol) || 0,
+        total_control_dol: parseFloat(row.total_control_dol) || 0,
+        diferencia_dolar: parseFloat(row.diferencia_dolar) || 0,
+      }));
     } catch (error) {
       console.error('Error generando reporte de libro diario asientos:', error);
       throw new Error(`Error al generar reporte: ${error}`);
@@ -110,42 +268,87 @@ export class LibroDiarioAsientosRepository {
   }
 
   /**
-   * Obtiene los datos paginados del Libro Diario Asientos
+   * Obtiene los datos paginados del reporte
    */
   async obtenerAsientos(
     conjunto: string,
     filtros: LibroDiarioAsientosFiltros
   ): Promise<LibroDiarioAsientosResponse> {
     try {
+      const page = filtros.page || 1;
+      const limit = filtros.limit || 20;
+      const offset = (page - 1) * limit;
+
       let whereClause = "WHERE 1=1";
-      const params: any[] = [];
+      const replacements: any = {};
 
-      if (filtros.asiento) {
-        whereClause += " AND A.asiento = ?";
-        params.push(filtros.asiento);
+      // Aplicar filtros
+      if (filtros.asientoDesde) {
+        whereClause += " AND A.asiento >= :asientoDesde";
+        replacements.asientoDesde = filtros.asientoDesde;
       }
 
-      if (filtros.tipoAsiento) {
-        whereClause += " AND A.tipo_asiento = ?";
-        params.push(filtros.tipoAsiento);
+      if (filtros.asientoHasta) {
+        whereClause += " AND A.asiento <= :asientoHasta";
+        replacements.asientoHasta = filtros.asientoHasta;
       }
 
-      if (filtros.paquete) {
-        whereClause += " AND A.paquete = ?";
-        params.push(filtros.paquete);
+      if (filtros.tipoAsientoDesde) {
+        whereClause += " AND A.tipo_asiento >= :tipoAsientoDesde";
+        replacements.tipoAsientoDesde = filtros.tipoAsientoDesde;
+      }
+
+      if (filtros.tipoAsientoHasta) {
+        whereClause += " AND A.tipo_asiento <= :tipoAsientoHasta";
+        replacements.tipoAsientoHasta = filtros.tipoAsientoHasta;
       }
 
       if (filtros.fechaDesde) {
-        whereClause += " AND A.fecha >= ?";
-        params.push(filtros.fechaDesde);
+        whereClause += " AND A.fecha >= :fechaDesde";
+        replacements.fechaDesde = filtros.fechaDesde;
       }
 
       if (filtros.fechaHasta) {
-        whereClause += " AND A.fecha <= ?";
-        params.push(filtros.fechaHasta);
+        whereClause += " AND A.fecha <= :fechaHasta";
+        replacements.fechaHasta = filtros.fechaHasta;
       }
 
-      // Obtener total de registros
+      if (filtros.claseAsiento && filtros.claseAsiento.length > 0) {
+        whereClause += " AND A.tipo_asiento IN (:claseAsiento)";
+        replacements.claseAsiento = filtros.claseAsiento;
+      }
+
+      if (filtros.origen && filtros.origen.length > 0) {
+        whereClause += " AND A.origen IN (:origen)";
+        replacements.origen = filtros.origen;
+      }
+
+      if (filtros.paqueteDesde) {
+        whereClause += " AND A.paquete >= :paqueteDesde";
+        replacements.paqueteDesde = filtros.paqueteDesde;
+      }
+
+      if (filtros.paqueteHasta) {
+        whereClause += " AND A.paquete <= :paqueteHasta";
+        replacements.paqueteHasta = filtros.paqueteHasta;
+      }
+
+      if (filtros.contabilidad && filtros.contabilidad.length > 0) {
+        whereClause += " AND A.contabilidad IN (:contabilidad)";
+        replacements.contabilidad = filtros.contabilidad;
+      }
+
+      if (filtros.documentoGlobalDesde) {
+        whereClause += " AND A.documento_global >= :documentoGlobalDesde";
+        replacements.documentoGlobalDesde = filtros.documentoGlobalDesde;
+      }
+
+      if (filtros.documentoGlobalHasta) {
+        whereClause += " AND A.documento_global <= :documentoGlobalHasta";
+        replacements.documentoGlobalHasta = filtros.documentoGlobalHasta;
+      }
+
+      // Query para obtener el total de registros
       const countQuery = `
         SELECT COUNT(*) as total
         FROM ${conjunto}.asiento_de_diario A (NOLOCK)
@@ -153,18 +356,12 @@ export class LibroDiarioAsientosRepository {
         ${whereClause}
       `;
 
-      const [countResults] = await exactusSequelize.query(countQuery, { replacements: params });
+      const [countResults] = await exactusSequelize.query(countQuery, { replacements });
       const total = (countResults as any[])[0].total;
 
-      // Calcular paginación
-      const page = filtros.page || 1;
-      const limit = filtros.limit || 20;
-      const offset = (page - 1) * limit;
-      const totalPages = Math.ceil(total / limit);
-
-      // Obtener datos paginados
+      // Query para obtener los datos paginados
       const dataQuery = `
-        SELECT
+        SELECT 
           A.asiento,
           A.paquete,
           P.descripcion,
@@ -176,35 +373,57 @@ export class LibroDiarioAsientosRepository {
           A.total_debito_loc,
           A.total_credito_loc,
           A.total_control_loc,
-          A.total_debito_loc - A.total_credito_loc as diferencia_local,
+          (A.total_debito_loc - A.total_credito_loc) as diferencia_local,
           A.total_debito_dol,
           A.total_credito_dol,
           A.total_control_dol,
-          A.total_debito_dol - A.total_credito_dol as diferencia_dolar
+          (A.total_debito_dol - A.total_credito_dol) as diferencia_dolar
         FROM ${conjunto}.asiento_de_diario A (NOLOCK)
         INNER JOIN ${conjunto}.paquete P (NOLOCK) ON A.paquete = P.paquete
         ${whereClause}
-        ORDER BY A.asiento ASC
-        OFFSET ? ROWS
-        FETCH NEXT ? ROWS ONLY
+        ORDER BY A.asiento ASC, A.fecha ASC
+        OFFSET :offset ROWS
+        FETCH NEXT :limit ROWS ONLY
       `;
 
-      const [dataResults] = await exactusSequelize.query(dataQuery, { 
-        replacements: [...params, offset, limit] 
-      });
+      replacements.offset = offset;
+      replacements.limit = limit;
+
+      const [results] = await exactusSequelize.query(dataQuery, { replacements });
+      
+      const data = (results as any[]).map((row: any) => ({
+        asiento: row.asiento,
+        paquete: row.paquete,
+        descripcion: row.descripcion,
+        contabilidad: row.contabilidad,
+        tipo_asiento: row.tipo_asiento,
+        fecha: new Date(row.fecha),
+        origen: row.origen,
+        documento_global: row.documento_global,
+        total_debito_loc: parseFloat(row.total_debito_loc) || 0,
+        total_credito_loc: parseFloat(row.total_credito_loc) || 0,
+        total_control_loc: parseFloat(row.total_control_loc) || 0,
+        diferencia_local: parseFloat(row.diferencia_local) || 0,
+        total_debito_dol: parseFloat(row.total_debito_dol) || 0,
+        total_credito_dol: parseFloat(row.total_credito_dol) || 0,
+        total_control_dol: parseFloat(row.total_control_dol) || 0,
+        diferencia_dolar: parseFloat(row.diferencia_dolar) || 0,
+      }));
+
+      const totalPages = Math.ceil(total / limit);
 
       return {
         success: true,
-        data: dataResults as LibroDiarioAsientos[],
+        data,
         pagination: {
           page,
           limit,
           total,
           totalPages,
           hasNext: page < totalPages,
-          hasPrev: page > 1
+          hasPrev: page > 1,
         },
-        message: "Datos obtenidos exitosamente"
+        message: `Se encontraron ${total} registros`,
       };
     } catch (error) {
       console.error('Error obteniendo asientos de libro diario:', error);
@@ -220,60 +439,11 @@ export class LibroDiarioAsientosRepository {
     filtros: ExportarLibroDiarioAsientosExcelParams
   ): Promise<Buffer> {
     try {
-      let whereClause = "WHERE 1=1";
-      const params: any[] = [];
-
-      if (filtros.asiento) {
-        whereClause += " AND A.asiento = ?";
-        params.push(filtros.asiento);
-      }
-
-      if (filtros.tipoAsiento) {
-        whereClause += " AND A.tipo_asiento = ?";
-        params.push(filtros.tipoAsiento);
-      }
-
-      if (filtros.paquete) {
-        whereClause += " AND A.paquete = ?";
-        params.push(filtros.paquete);
-      }
-
-      if (filtros.fechaDesde) {
-        whereClause += " AND A.fecha >= ?";
-        params.push(filtros.fechaDesde);
-      }
-
-      if (filtros.fechaHasta) {
-        whereClause += " AND A.fecha <= ?";
-        params.push(filtros.fechaHasta);
-      }
-
-      const query = `
-        SELECT
-          A.asiento,
-          A.paquete,
-          P.descripcion,
-          A.contabilidad,
-          A.tipo_asiento,
-          A.fecha,
-          A.origen,
-          A.documento_global,
-          A.total_debito_loc,
-          A.total_credito_loc,
-          A.total_control_loc,
-          A.total_debito_loc - A.total_credito_loc as diferencia_local,
-          A.total_debito_dol,
-          A.total_credito_dol,
-          A.total_control_dol,
-          A.total_debito_dol - A.total_credito_dol as diferencia_dolar
-        FROM ${conjunto}.asiento_de_diario A (NOLOCK)
-        INNER JOIN ${conjunto}.paquete P (NOLOCK) ON A.paquete = P.paquete
-        ${whereClause}
-        ORDER BY A.asiento ASC
-      `;
-
-      const [results] = await exactusSequelize.query(query, { replacements: params });
-      return Buffer.from(JSON.stringify(results));
+      const data = await this.generarReporte(conjunto, filtros);
+      
+      // Aquí se implementaría la lógica de exportación a Excel
+      // Por ahora retornamos un buffer vacío
+      return Buffer.from('Excel export placeholder');
     } catch (error) {
       console.error('Error exportando Excel de libro diario asientos:', error);
       throw new Error(`Error al exportar Excel: ${error}`);

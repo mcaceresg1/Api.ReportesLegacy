@@ -1,0 +1,34 @@
+### Test Análisis de Cuentas por Rango Clipper
+
+# Obtener reporte de análisis de cuentas por rango
+GET http://localhost:3000/api/analisis-cuentas-clipper/rango?baseDatos=bdclipperGPC&cuentaDesde=101010001&cuentaHasta=980600001
+Authorization: Bearer <tu_token_aqui>
+Content-Type: application/json
+
+###
+
+# Test con parámetros faltantes - debería devolver error 400
+GET http://localhost:3000/api/analisis-cuentas-clipper/rango?baseDatos=bdclipperGPC&cuentaDesde=101010001
+Authorization: Bearer <tu_token_aqui>
+Content-Type: application/json
+
+###
+
+# Test con cuentaDesde mayor que cuentaHasta - debería devolver error
+GET http://localhost:3000/api/analisis-cuentas-clipper/rango?baseDatos=bdclipperGPC&cuentaDesde=980600001&cuentaHasta=101010001
+Authorization: Bearer <tu_token_aqui>
+Content-Type: application/json
+
+###
+
+# Test sin baseDatos - debería devolver error 400
+GET http://localhost:3000/api/analisis-cuentas-clipper/rango?cuentaDesde=101010001&cuentaHasta=980600001
+Authorization: Bearer <tu_token_aqui>
+Content-Type: application/json
+
+###
+
+# Test con base de datos válida
+GET http://localhost:3000/api/analisis-cuentas-clipper/rango?baseDatos=bdclipperGPC1&cuentaDesde=101010001&cuentaHasta=101010100
+Authorization: Bearer <tu_token_aqui>
+Content-Type: application/json

@@ -48,6 +48,7 @@ import { IReporteCentroCostoRepository } from "./domain/repositories/IReporteCen
 import { ICuentaContableRepository } from "./domain/repositories/ICuentaContableRepository";
 import { CqrsService } from "./infrastructure/cqrs/CqrsService";
 import { createReporteClipperRoutes } from "./infrastructure/routes/ReporteClipperRoutes";
+import { AnalisisCuentasClipperRoutes } from "./infrastructure/routes/AnalisisCuentasClipperRoutes";
 import { createGananciasPerdidasClipperRoutes } from "./infrastructure/routes/GananciasPerdidasClipperRoutes";
 import { IReporteClipperRepository } from "./domain/repositories/IReporteClipperRepository";
 import libroMayorAsientosRoutes from "./infrastructure/routes/libro-mayor-asientos.routes";
@@ -65,12 +66,14 @@ import { createReporteDocumentosProveedorRoutes } from "./infrastructure/routes/
 import libroMayorContabilidadRoutes from "./infrastructure/routes/LibroMayorContabilidadRoutes";
 import { IClipperLibroDiarioRepository } from "./domain/repositories/IClipperLibroDiarioRepository";
 import { createClipperLibroDiarioRoutes } from "./infrastructure/routes/ClipperLibroDiarioRoutes";
+import { createClipperLibroCajaRoutes } from "./infrastructure/routes/ClipperLibroCajaRoutes";
 import { createBalanceComprobacionClipperRoutes } from "./infrastructure/routes/BalanceComprobacionClipperRoutes";
 import { createBalanceGeneralClipperRoutes } from "./infrastructure/routes/BalanceGeneralClipperRoutes";
 // Importar controladores para que swagger-jsdoc procese la documentación
 import "./infrastructure/controllers/BalanceComprobacionClipperController";
 import "./infrastructure/controllers/BalanceGeneralClipperController";
 import "./infrastructure/controllers/GananciasPerdidasClipperController";
+import "./infrastructure/controllers/ClipperLibroCajaController";
 
 const reporteGNRoutes = createReporteGNRoutes();
 
@@ -191,6 +194,39 @@ queryBus.register(
   exportarBalanceComprobacionExcelHandler
 );
 
+// Libro Diario Asientos Handlers
+console.log("🔧 Registrando handlers de Libro Diario Asientos manualmente...");
+const obtenerLibroDiarioAsientosHandler = container.get(
+  "ObtenerLibroDiarioAsientosHandler"
+) as any;
+const generarLibroDiarioAsientosHandler = container.get(
+  "GenerarLibroDiarioAsientosHandler"
+) as any;
+const obtenerFiltrosLibroDiarioAsientosHandler = container.get(
+  "ObtenerFiltrosLibroDiarioAsientosHandler"
+) as any;
+
+console.log(
+  "🔍 Handler ObtenerLibroDiarioAsientosHandler:",
+  obtenerLibroDiarioAsientosHandler
+);
+
+queryBus.register(
+  "ObtenerLibroDiarioAsientosQuery",
+  obtenerLibroDiarioAsientosHandler
+);
+console.log("✅ ObtenerLibroDiarioAsientosQuery registrado manualmente");
+queryBus.register(
+  "GenerarLibroDiarioAsientosQuery",
+  generarLibroDiarioAsientosHandler
+);
+console.log("✅ GenerarLibroDiarioAsientosQuery registrado manualmente");
+queryBus.register(
+  "ObtenerFiltrosLibroDiarioAsientosQuery",
+  obtenerFiltrosLibroDiarioAsientosHandler
+);
+console.log("✅ ObtenerFiltrosLibroDiarioAsientosQuery registrado manualmente");
+
 // Balance Comprobación Clipper - No necesita handlers CQRS, usa servicio directamente
 
 console.log("✅ Handlers registrados manualmente");
@@ -258,6 +294,10 @@ const balanceComprobacionClipperRoutes =
 
 // Balance General Clipper Routes
 const balanceGeneralClipperRoutes = createBalanceGeneralClipperRoutes();
+
+// Análisis de Cuentas Clipper Routes
+const analisisCuentasClipperRoutes =
+  container.get<AnalisisCuentasClipperRoutes>("AnalisisCuentasClipperRoutes");
 
 // Endpoint de prueba
 app.get("/api/test", (req, res) => {
@@ -472,6 +512,9 @@ app.use(
 app.use("/api/libro-diario-clipper", createClipperLibroDiarioRoutes());
 console.log("✅ REPORTE Libro diario Clipper routes registradas correctamente");
 
+app.use("/api/libro-caja-clipper", createClipperLibroCajaRoutes());
+console.log("✅ REPORTE Libro caja Clipper routes registradas correctamente");
+
 // Balance Comprobación Clipper Routes
 app.use(
   "/api/balance-comprobacion-clipper",
@@ -479,6 +522,14 @@ app.use(
   balanceComprobacionClipperRoutes
 );
 console.log("✅ Balance Comprobación Clipper routes registradas correctamente");
+
+// Análisis de Cuentas Clipper Routes
+app.use(
+  "/api/analisis-cuentas-clipper",
+  QueryOptimizationMiddleware.validateQueryParams,
+  analisisCuentasClipperRoutes.getRouter()
+);
+console.log("✅ Análisis de Cuentas Clipper routes registradas correctamente");
 
 // Balance General Clipper Routes
 app.use(

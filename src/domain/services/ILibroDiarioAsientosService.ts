@@ -4,36 +4,37 @@ import {
   LibroDiarioAsientosResponse,
   GenerarLibroDiarioAsientosParams,
   ExportarLibroDiarioAsientosExcelParams,
+  FiltrosDisponibles,
 } from "../entities/LibroDiarioAsientos";
 
 /**
- * Interfaz para el servicio de Libro Diario Asientos
- * Define los contratos para las operaciones del reporte de Libro Diario Asientos
+ * Interfaz del servicio para Libro Diario Asientos
+ * Define los contratos para la lógica de negocio del reporte de Libro Diario Asientos
  */
 export interface ILibroDiarioAsientosService {
   /**
    * Obtiene los filtros disponibles para el reporte
-   * @param conjunto - Código del conjunto contable
-   * @returns Promise con los filtros disponibles
+   * @param conjunto Código del conjunto contable
+   * @returns Filtros disponibles
    */
-  obtenerFiltros(conjunto: string): Promise<{ asiento: string; tipoAsiento: string; paquete: string }[]>;
+  obtenerFiltros(conjunto: string): Promise<FiltrosDisponibles>;
 
   /**
    * Genera el reporte de Libro Diario Asientos
-   * @param conjunto - Código del conjunto contable
-   * @param filtros - Filtros para el reporte
-   * @returns Promise con los datos del reporte
+   * @param conjunto Código del conjunto contable
+   * @param filtros Filtros para la consulta
+   * @returns Respuesta con los datos del reporte
    */
   generarReporte(
     conjunto: string,
     filtros: GenerarLibroDiarioAsientosParams
-  ): Promise<LibroDiarioAsientos[]>;
+  ): Promise<LibroDiarioAsientosResponse>;
 
   /**
-   * Obtiene los datos paginados del Libro Diario Asientos
-   * @param conjunto - Código del conjunto contable
-   * @param filtros - Filtros para el reporte
-   * @returns Promise con la respuesta paginada
+   * Obtiene los datos paginados del reporte
+   * @param conjunto Código del conjunto contable
+   * @param filtros Filtros para la consulta
+   * @returns Respuesta paginada con los datos del reporte
    */
   obtenerAsientos(
     conjunto: string,
@@ -42,11 +43,22 @@ export interface ILibroDiarioAsientosService {
 
   /**
    * Exporta el reporte a Excel
-   * @param conjunto - Código del conjunto contable
-   * @param filtros - Filtros para el reporte
-   * @returns Promise con el buffer del archivo Excel
+   * @param conjunto Código del conjunto contable
+   * @param filtros Filtros para la consulta
+   * @returns Buffer del archivo Excel
    */
   exportarExcel(
+    conjunto: string,
+    filtros: ExportarLibroDiarioAsientosExcelParams
+  ): Promise<Buffer>;
+
+  /**
+   * Exporta el reporte a PDF
+   * @param conjunto Código del conjunto contable
+   * @param filtros Filtros para la consulta
+   * @returns Buffer del archivo PDF
+   */
+  exportarPDF(
     conjunto: string,
     filtros: ExportarLibroDiarioAsientosExcelParams
   ): Promise<Buffer>;

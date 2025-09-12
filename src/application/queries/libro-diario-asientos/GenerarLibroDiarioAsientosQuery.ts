@@ -4,7 +4,6 @@ import { v4 as uuid } from "uuid";
 
 /**
  * Query para generar el reporte de Libro Diario Asientos
- * Implementa el patrón Query del CQRS para operaciones de lectura
  */
 export class GenerarLibroDiarioAsientosQuery implements IQuery {
   readonly queryId = uuid();

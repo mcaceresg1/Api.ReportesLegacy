@@ -14,11 +14,11 @@ export interface LibroDiarioAsientos {
   total_debito_loc: number;
   total_credito_loc: number;
   total_control_loc: number;
-  diferencia_local: number; // total_debito_loc - total_credito_loc
+  diferencia_local: number;
   total_debito_dol: number;
   total_credito_dol: number;
   total_control_dol: number;
-  diferencia_dolar: number; // total_debito_dol - total_credito_dol
+  diferencia_dolar: number;
 }
 
 /**
@@ -26,17 +26,26 @@ export interface LibroDiarioAsientos {
  */
 export interface LibroDiarioAsientosFiltros {
   conjunto: string;
-  asiento?: string;
-  tipoAsiento?: string;
-  paquete?: string;
+  asientoDesde?: string;
+  asientoHasta?: string;
+  tipoAsientoDesde?: string;
+  tipoAsientoHasta?: string;
   fechaDesde?: string;
   fechaHasta?: string;
+  claseAsiento?: string[];
+  origen?: string[];
+  paqueteDesde?: string;
+  paqueteHasta?: string;
+  contabilidad?: string[];
+  documentoGlobalDesde?: string;
+  documentoGlobalHasta?: string;
   page?: number;
   limit?: number;
+  offset?: number;
 }
 
 /**
- * Respuesta paginada para Libro Diario Asientos
+ * Respuesta del reporte de Libro Diario Asientos
  */
 export interface LibroDiarioAsientosResponse {
   success: boolean;
@@ -53,23 +62,53 @@ export interface LibroDiarioAsientosResponse {
 }
 
 /**
- * Parámetros para generar el reporte de Libro Diario Asientos
+ * Parámetros para generar el reporte
  */
 export interface GenerarLibroDiarioAsientosParams {
-  asiento?: string;
-  tipoAsiento?: string;
-  paquete?: string;
+  asientoDesde?: string;
+  asientoHasta?: string;
+  tipoAsientoDesde?: string;
+  tipoAsientoHasta?: string;
   fechaDesde?: string;
   fechaHasta?: string;
+  claseAsiento?: string[];
+  origen?: string[];
+  paqueteDesde?: string;
+  paqueteHasta?: string;
+  contabilidad?: string[];
+  documentoGlobalDesde?: string;
+  documentoGlobalHasta?: string;
 }
 
 /**
  * Parámetros para exportar a Excel
  */
 export interface ExportarLibroDiarioAsientosExcelParams {
-  asiento?: string;
-  tipoAsiento?: string;
-  paquete?: string;
+  asientoDesde?: string;
+  asientoHasta?: string;
+  tipoAsientoDesde?: string;
+  tipoAsientoHasta?: string;
   fechaDesde?: string;
   fechaHasta?: string;
+  claseAsiento?: string[];
+  origen?: string[];
+  paqueteDesde?: string;
+  paqueteHasta?: string;
+  contabilidad?: string[];
+  documentoGlobalDesde?: string;
+  documentoGlobalHasta?: string;
+  limit?: number;
+}
+
+/**
+ * Filtros disponibles para el reporte
+ */
+export interface FiltrosDisponibles {
+  asientos: { asiento: string }[];
+  tiposAsiento: { tipoAsiento: string; descripcion: string }[];
+  clasesAsiento: { clase: string; descripcion: string }[];
+  origenes: { origen: string; descripcion: string }[];
+  paquetes: { paquete: string; descripcion: string }[];
+  contabilidades: { codigo: string; descripcion: string }[];
+  documentosGlobales: { documento: string }[];
 }
