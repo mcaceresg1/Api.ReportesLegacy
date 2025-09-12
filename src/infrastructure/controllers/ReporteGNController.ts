@@ -775,7 +775,7 @@ export class ReporteGNController {
    * /api/reporte-gn/acciones-de-personal/excel/:conjunto:
    *   get:
    *     summary: Obtener todas las acciones de personal
-   *     tags: [Reportes Gestión de Nómina]
+   *     tags: [Reportes Gestión de Nómina - Exportaciones]
    *     security:
    *       - bearerAuth: []
    *     parameters:
@@ -852,7 +852,7 @@ export class ReporteGNController {
    * /api/reporte-gn/contratos/excel/:conjunto:
    *   get:
    *     summary: Obtener todos los contratos
-   *     tags: [Reportes Gestión de Nómina]
+   *     tags: [Reportes Gestión de Nómina - Exportaciones]
    *     security:
    *       - bearerAuth: []
    *     parameters:
