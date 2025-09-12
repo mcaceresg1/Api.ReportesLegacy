@@ -1,7 +1,7 @@
-
-import { injectable, inject } from 'inversify';
+import { inject, injectable } from "inversify";
+import { IReporteGNService } from "../../domain/services/IReporteGNService";
+import { IReporteGNRepository } from "../../domain/repositories/IReporteGNRepository";
 import {
-  ExportarAccionesDePersonalExcelParams,
   FiltrosBoletaDePago,
   FiltrosReporteAccionesDePersonal,
   FiltrosReporteAnualizado,
@@ -9,6 +9,8 @@ import {
   FiltrosReportePrestamoCtaCte,
   FiltrosReportePrestamos,
   FiltrosReporteRolDeVacaciones,
+  GNAccionDePersonal,
+  GNContrato,
   RespuestaReporteAccionesDePersonal,
   RespuestaReporteAnualizado,
   RespuestaReporteBoletasDePago,
@@ -19,74 +21,101 @@ import {
 } from "../../domain/entities/ReporteGN";
 
 @injectable()
-export interface IReporteGNService {
-  getAccionesDePersonal(
+export class ReporteGNService implements IReporteGNService {
+  constructor(
+    @inject("IReporteGNRepository")
+    private reporteGNRepository: IReporteGNRepository
+  ) {}
+  async getAccionesDePersonal(
     conjunto: string,
-    filtros: FiltrosReporteAccionesDePersonal,
-  ): Promise<RespuestaReporteAccionesDePersonal | undefined>;
+    filtros: FiltrosReporteAccionesDePersonal
+  ): Promise<RespuestaReporteAccionesDePersonal | undefined> {
+    return this.reporteGNRepository.getAccionesDePersonal(conjunto, filtros);
+  }
+  async getContratos(
+    conjunto: string,
+    filtros: FiltrosReporteContratos
+  ): Promise<RespuestaReporteContratos | undefined> {
+    return this.reporteGNRepository.getContratos(conjunto, filtros);
+  }
+  async getRolDeVacaciones(
+    conjunto: string,
+    filtros: FiltrosReporteRolDeVacaciones
+  ): Promise<RespuestaReporteRolDeVacaciones | undefined> {
+    return this.reporteGNRepository.getRolDeVacaciones(conjunto, filtros);
+  }
+  async getReporteAnualizado(
+    conjunto: string,
+    filtros: FiltrosReporteAnualizado
+  ): Promise<RespuestaReporteAnualizado | undefined> {
+    return this.reporteGNRepository.getReporteAnualizado(conjunto, filtros);
+  }
+  async getPrestamos(
+    conjunto: string,
+    filtros: FiltrosReportePrestamos
+  ): Promise<RespuestaReportePrestamos | undefined> {
+    return this.reporteGNRepository.getPrestamos(conjunto, filtros);
+  }
+  async getPrestamoCtaCte(
+    conjunto: string,
+    filtros: FiltrosReportePrestamoCtaCte
+  ): Promise<RespuestaReportePrestamoCtaCte | undefined> {
+    return this.reporteGNRepository.getPrestamoCtaCte(conjunto, filtros);
+  }
+  async getBoletaDePago(
+    conjunto: string,
+    filtros: FiltrosBoletaDePago
+  ): Promise<RespuestaReporteBoletasDePago | undefined> {
+    return this.reporteGNRepository.getBoletaDePago(conjunto, filtros);
+  }
 
-  getContratos(
+    // ====== 📑 Exportaciones a Excel ======
+  async exportarAccionesDePersonalExcel(
     conjunto: string,
-    filtros: FiltrosReporteContratos,
-  ): Promise<RespuestaReporteContratos | undefined>;
+    filtros: FiltrosReporteAccionesDePersonal
+  ): Promise<Buffer> {
+    return this.reporteGNRepository.exportarAccionesDePersonalExcel(conjunto, filtros);
+  }
 
-  getPrestamos(
+  async exportarContratosExcel(
     conjunto: string,
-    filtros: FiltrosReportePrestamos,
-  ): Promise<RespuestaReportePrestamos | undefined>;
+    filtros: FiltrosReporteContratos
+  ): Promise<Buffer> {
+    return this.reporteGNRepository.exportarContratosExcel(conjunto, filtros);
+  }
 
-  getRolDeVacaciones(
+  async exportarRolDeVacacionesExcel(
     conjunto: string,
-    filtros: FiltrosReporteRolDeVacaciones,
-  ): Promise<RespuestaReporteRolDeVacaciones | undefined>;
+    filtros: FiltrosReporteRolDeVacaciones
+  ): Promise<Buffer> {
+    return this.reporteGNRepository.exportarRolDeVacacionesExcel(conjunto, filtros);
+  }
 
-  getPrestamoCtaCte(
+  async exportarAnualizadoExcel(
     conjunto: string,
-    filtros: FiltrosReportePrestamoCtaCte,
-  ): Promise<RespuestaReportePrestamoCtaCte | undefined>;
+    filtros: FiltrosReporteAnualizado
+  ): Promise<Buffer> {
+    return this.reporteGNRepository.exportarAnualizadoExcel(conjunto, filtros);
+  }
 
-  getReporteAnualizado(
+  async exportarPrestamosExcel(
     conjunto: string,
-    filtros: FiltrosReporteAnualizado,
-  ): Promise<RespuestaReporteAnualizado | undefined>;
+    filtros: FiltrosReportePrestamos
+  ): Promise<Buffer> {
+    return this.reporteGNRepository.exportarPrestamosExcel(conjunto, filtros);
+  }
 
-  getBoletaDePago(
+  async exportarPrestamoCtaCteExcel(
     conjunto: string,
-    filtros: FiltrosBoletaDePago,
-  ): Promise<RespuestaReporteBoletasDePago | undefined>;
+    filtros: FiltrosReportePrestamoCtaCte
+  ): Promise<Buffer> {
+    return this.reporteGNRepository.exportarPrestamoCtaCteExcel(conjunto, filtros);
+  }
 
-  exportarAccionesDePersonalExcel(
+  async exportarBoletaDePagoExcel(
     conjunto: string,
-    filtros: FiltrosReporteAccionesDePersonal,
-  ): Promise<Buffer>;
-
-  exportarContratosExcel(
-    conjunto: string,
-    filtros: FiltrosReporteContratos,
-  ): Promise<Buffer>;
-
-  exportarRolDeVacacionesExcel(
-    conjunto: string,
-    filtros: FiltrosReporteRolDeVacaciones,
-  ): Promise<Buffer>;
-
-  exportarAnualizadoExcel(
-    conjunto: string,
-    filtros: FiltrosReporteAnualizado,
-  ): Promise<Buffer>;
-
-  exportarPrestamosExcel(
-    conjunto: string,
-    filtros: FiltrosReportePrestamos,
-  ): Promise<Buffer>;
-
-  exportarPrestamoCtaCteExcel(
-    conjunto: string,
-    filtros: FiltrosReportePrestamoCtaCte,
-  ): Promise<Buffer>;
-
-  exportarBoletaDePagoExcel(
-    conjunto: string,
-    filtros: FiltrosBoletaDePago,
-  ): Promise<Buffer>;
+    filtros: FiltrosBoletaDePago
+  ): Promise<Buffer> {
+    return this.reporteGNRepository.exportarBoletaDePagoExcel(conjunto, filtros);
+  }
 }
