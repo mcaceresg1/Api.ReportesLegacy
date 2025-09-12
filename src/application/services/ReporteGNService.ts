@@ -14,7 +14,7 @@ import {
   RespuestaReportePrestamoCtaCte,
   RespuestaReportePrestamos,
   RespuestaReporteRolDeVacaciones,
-} from '../entities/ReporteGN';
+} from "../../domain/entities/ReporteGN";
 
 export interface IReporteGNService {
   getAccionesDePersonal(
