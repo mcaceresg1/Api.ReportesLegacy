@@ -12,6 +12,8 @@ import {
   GNPrestamo,
   GNPrestamoCuentaCorriente,
   GNReporteAnualizado,
+  GNReporteAnualizadoCabecera,
+  GNReporteAnualizadoDetalle,
   GNRolDeVacaciones,
   RespuestaReporteAccionesDePersonal,
   RespuestaReporteAnualizado,
@@ -32,31 +34,64 @@ export class ReporteGNRepository implements IReporteGNRepository {
     conjunto: string,
     filtros: FiltrosReporteAnualizado
   ): Promise<RespuestaReporteAnualizado | undefined> {
-    const { codigo_nomina, centro_costo, area, cod_empleado, activo, periodo } =
+    const { nomina, centro_costo, area, empleado, activo, filtro, pernomi } =
       filtros;
     try {
-      const query =
-        filtros.filtro === "N"
-          ? `
-      exec dbo.PA_ERP_CN_DATOSANUALIZADO;1 :conjunto,:codigo_nomina,:centro_costo,:area,:cod_empleado, :activo,'N':periodo
-      `
-          : `
-      exec dbo.PA_ERP_CN_DATOSANUALIZADO;1 :conjunto,:codigo_nomina,:centro_costo,:area,:cod_empleado, :activo,'P':periodo
+      // Consulta para obtener la cabecera
+      const queryCabecera = `
+        EXEC dbo.PA_ERP_CN_DATOSANUALIZADO
+         ${conjunto},
+         :nomina,
+          :centro_costo,
+           :area,
+          :empleado,
+           :activo,
+           :filtro,
+           :pernomi
       `;
-      const data = (await exactusSequelize.query(query, {
-        type: QueryTypes.SELECT,
-        replacements: {
-          conjunto,
-          codigo_nomina,
-          centro_costo,
-          area,
-          cod_empleado,
-          activo,
-          periodo,
-        },
-      })) as GNReporteAnualizado[];
+
+      // Consulta para obtener el detalle
+      const queryDetalle = `
+        EXEC dbo.PA_ERP_CN_PLANILLAANUALIZADA
+          ${conjunto},
+          :nomina,
+           :centro_costo,
+            :area,
+           :empleado,
+           :activo,
+           :filtro,
+          :pernomi,
+           ''
+      `;
+
+      const replacements = {
+        conjunto,
+        nomina,
+        centro_costo,
+        area,
+        empleado,
+        activo,
+        filtro,
+        pernomi,
+      };
+
+      // Ejecutar ambas consultas en paralelo
+      const [cabeceraData, detalleData] = await Promise.all([
+        exactusSequelize.query(queryCabecera, {
+          type: QueryTypes.SELECT,
+          replacements,
+        }) as Promise<GNReporteAnualizadoCabecera[]>,
+        exactusSequelize.query(queryDetalle, {
+          type: QueryTypes.SELECT,
+          replacements,
+        }) as Promise<GNReporteAnualizadoDetalle[]>,
+      ]);
+
       return {
-        data: data?.[0],
+        data: {
+          cabecera: cabeceraData || [],
+          detalle: detalleData || [],
+        },
         message: "Reporte anualizado generado exitosamente",
         success: true,
       };
@@ -535,46 +570,94 @@ AND UPPER( ax.empleado ) LIKE :cod_empleado  ORDER BY 1 ASC
     if (!result || !result.success || !result.data) {
       throw new Error("No se pudo obtener el reporte");
     }
-    const data = result.data ? [result.data] : [];
-
-    const excelData = data.map((a: GNReporteAnualizado) => ({
-      Esquema: a.esquema,
-      Código: a.codigo,
-      Nómina: a.nomina,
-      Empleado: a.empleado,
-      "Fecha Ingreso": a.fecha_ingreso
-        ? new Date(a.fecha_ingreso).toLocaleDateString("es-ES")
-        : "",
-      "Fecha Salida": a.fecha_salida
-        ? new Date(a.fecha_salida).toLocaleDateString("es-ES")
-        : "",
-      "Centro Costo": a.centro_costo,
-      Sede: a.sede,
-      Puesto: a.puesto,
-      Essalud: a.essalud,
-      AFP: a.afp,
-      CUSPP: a.cuspp,
-      Estado: a.estado,
-    }));
 
     const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-    worksheet["!cols"] = [
-      { wch: 15 },
-      { wch: 15 },
-      { wch: 15 },
-      { wch: 20 },
-      { wch: 15 },
-      { wch: 15 },
-      { wch: 20 },
-      { wch: 15 },
-      { wch: 20 },
-      { wch: 15 },
-      { wch: 10 },
-      { wch: 15 },
-      { wch: 15 },
-    ];
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Anualizado");
+
+    // Hoja de cabecera
+    if (result.data.cabecera && result.data.cabecera.length > 0) {
+      const cabeceraData = result.data.cabecera.map(
+        (a: GNReporteAnualizadoCabecera) => ({
+          Esquema: a.ESQUEMA,
+          Código: a.CODIGO,
+          Nómina: a.NOMINA,
+          Empleado: a.EMPLEADO,
+          "Fecha Ingreso": a.FECHA_INGRESO,
+          "Fecha Salida": a.FECHA_SALIDA,
+          "Centro Costo": a.CENTRO_COSTO,
+          Sede: a.SEDE,
+          Puesto: a.PUESTO,
+          Essalud: a.ESSALUD,
+          AFP: a.AFP,
+          CUSPP: a.CUSPP,
+          Estado: a.ESTADO,
+        })
+      );
+
+      const cabeceraWorksheet = XLSX.utils.json_to_sheet(cabeceraData);
+      cabeceraWorksheet["!cols"] = [
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 20 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 20 },
+        { wch: 15 },
+        { wch: 20 },
+        { wch: 15 },
+        { wch: 10 },
+        { wch: 15 },
+        { wch: 15 },
+      ];
+      XLSX.utils.book_append_sheet(workbook, cabeceraWorksheet, "Cabecera");
+    }
+
+    // Hoja de detalle
+    if (result.data.detalle && result.data.detalle.length > 0) {
+      const detalleData = result.data.detalle.map(
+        (a: GNReporteAnualizadoDetalle) => ({
+          Código: a.CODIGO,
+          "Tipo Concepto": a.TPCONCEP,
+          Concepto: a.CONCEPTO,
+          Descripción: a.DESCR,
+          Ene: a.COL1,
+          Feb: a.COL2,
+          Mar: a.COL3,
+          Abr: a.COL4,
+          May: a.COL5,
+          Jun: a.COL6,
+          Jul: a.COL7,
+          Ago: a.COL8,
+          Sep: a.COL9,
+          Oct: a.COL10,
+          Nov: a.COL11,
+          Dic: a.COL12,
+          Total: a.TOTAL,
+        })
+      );
+
+      const detalleWorksheet = XLSX.utils.json_to_sheet(detalleData);
+      detalleWorksheet["!cols"] = [
+        { wch: 15 }, // Código
+        { wch: 15 }, // Tipo Concepto
+        { wch: 20 }, // Concepto
+        { wch: 30 }, // Descripción
+        { wch: 12 }, // Ene
+        { wch: 12 }, // Feb
+        { wch: 12 }, // Mar
+        { wch: 12 }, // Abr
+        { wch: 12 }, // May
+        { wch: 12 }, // Jun
+        { wch: 12 }, // Jul
+        { wch: 12 }, // Ago
+        { wch: 12 }, // Sep
+        { wch: 12 }, // Oct
+        { wch: 12 }, // Nov
+        { wch: 12 }, // Dic
+        { wch: 15 }, // Total
+      ];
+      XLSX.utils.book_append_sheet(workbook, detalleWorksheet, "Detalle");
+    }
 
     return XLSX.write(workbook, {
       type: "buffer",

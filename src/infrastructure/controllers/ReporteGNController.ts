@@ -181,6 +181,72 @@ import { ExportarAccionesDePersonalExcelParams } from "../../domain/entities/Rep
  *           type: string
  *         estado:
  *           type: string
+ *     GNReporteAnualizadoCabecera:
+ *       type: object
+ *       properties:
+ *         ESQUEMA:
+ *           type: string
+ *         CODIGO:
+ *           type: string
+ *         NOMINA:
+ *           type: string
+ *         EMPLEADO:
+ *           type: string
+ *         FECHA_INGRESO:
+ *           type: string
+ *         FECHA_SALIDA:
+ *           type: string
+ *         CENTRO_COSTO:
+ *           type: string
+ *         SEDE:
+ *           type: string
+ *         PUESTO:
+ *           type: string
+ *         ESSALUD:
+ *           type: string
+ *         AFP:
+ *           type: string
+ *         CUSPP:
+ *           type: string
+ *         ESTADO:
+ *           type: string
+ *     GNReporteAnualizadoDetalle:
+ *       type: object
+ *       properties:
+ *         CODIGO:
+ *           type: string
+ *         TPCONCEP:
+ *           type: string
+ *         CONCEPTO:
+ *           type: string
+ *         DESCR:
+ *           type: string
+ *         COL1:
+ *           type: number
+ *         COL2:
+ *           type: number
+ *         COL3:
+ *           type: number
+ *         COL4:
+ *           type: number
+ *         COL5:
+ *           type: number
+ *         COL6:
+ *           type: number
+ *         COL7:
+ *           type: number
+ *         COL8:
+ *           type: number
+ *         COL9:
+ *           type: number
+ *         COL10:
+ *           type: number
+ *         COL11:
+ *           type: number
+ *         COL12:
+ *           type: number
+ *         TOTAL:
+ *           type: number
  *
  */
 
@@ -467,7 +533,19 @@ export class ReporteGNController {
    * @swagger
    * /api/reporte-gn/anualizado/{conjunto}:
    *   get:
-   *     summary: Obtener el anualizado
+   *     summary: Obtener reporte anualizado con cabecera y detalle
+   *     description: |
+   *       Obtiene el reporte anualizado con información de cabecera y detalle según el tipo de reporte.
+   *
+   *       **Tipos de reporte:**
+   *       - **N (Nómina)**: Genera reporte por período de nómina específico
+   *       - **P (Período)**: Genera reporte por año específico
+   *
+   *       **Estructura de respuesta:**
+   *       - **Cabecera**: Información del empleado (datos personales, puesto, centro de costo, etc.)
+   *       - **Detalle**: Conceptos con valores mensuales (COL1-COL12) y total anual
+   *
+   *       El parámetro `conjunto` se usa directamente en las consultas SQL para identificar el esquema de la base de datos.
    *     tags: [Reportes Gestion de Nómina]
    *     security:
    *       - bearerAuth: []
@@ -475,32 +553,68 @@ export class ReporteGNController {
    *       - in: path
    *         name: conjunto
    *         required: true
-   *         description: "Nombre del esquema/conjunto"
+   *         description: "Nombre del esquema/conjunto de la base de datos"
    *         schema:
    *           type: string
+   *           example: "FIDPLAN"
+   *           pattern: "^[A-Z0-9_]+$"
    *       - in: query
-   *         name: id_usuario
+   *         name: nomina
    *         required: true
-   *         description: "ID del Usuario"
-   *         schema: { type: string }
+   *         description: "Código de nómina a consultar"
+   *         schema:
+   *           type: string
+   *           example: "E001"
+   *           pattern: "^[A-Z0-9]+$"
    *       - in: query
-   *         name: tipo
-   *         required: true
-   *         description: "Tipo de reporte"
-   *         schema: { type: string }
+   *         name: centro_costo
+   *         required: false
+   *         description: "Centro de costo (opcional, vacío para todos)"
+   *         schema:
+   *           type: string
+   *           example: "01.02.10.01.03"
    *       - in: query
-   *         name: codigo_nomina
-   *         required: true
-   *         description: "Código de nómina"
-   *         schema: { type: number }
+   *         name: area
+   *         required: false
+   *         description: "Área (opcional, vacío para todas)"
+   *         schema:
+   *           type: string
+   *           example: "128"
    *       - in: query
-   *         name: periodo
+   *         name: empleado
    *         required: true
-   *         description: "Período"
-   *         schema: { type: number }
+   *         description: "Código del empleado a consultar"
+   *         schema:
+   *           type: string
+   *           example: "10525894"
+   *           pattern: "^[0-9]+$"
+   *       - in: query
+   *         name: activo
+   *         required: false
+   *         description: "Estado del empleado (1=Activo, 2=Inactivo)"
+   *         schema:
+   *           type: number
+   *           enum: [1, 2]
+   *           default: 2
+   *       - in: query
+   *         name: filtro
+   *         required: true
+   *         description: "Tipo de filtro para el reporte"
+   *         schema:
+   *           type: string
+   *           enum: [N, P]
+   *           example: "N"
+   *       - in: query
+   *         name: pernomi
+   *         required: true
+   *         description: "Período de nómina (para filtro N) o año (para filtro P)"
+   *         schema:
+   *           type: number
+   *           example: 142
+   *           minimum: 1
    *     responses:
    *       200:
-   *         description: Lista de todos los anualizados
+   *         description: Reporte anualizado con cabecera y detalle generado exitosamente
    *         content:
    *           application/json:
    *             schema:
@@ -508,20 +622,93 @@ export class ReporteGNController {
    *               properties:
    *                 success:
    *                   type: boolean
+   *                   example: true
    *                 message:
    *                   type: string
+   *                   example: "Reporte anualizado generado exitosamente"
    *                 data:
-   *                   type: GNReporteAnualizado
-   *
+   *                   type: object
+   *                   properties:
+   *                     cabecera:
+   *                       type: array
+   *                       description: "Información de cabecera del empleado"
+   *                       items:
+   *                         $ref: '#/components/schemas/GNReporteAnualizadoCabecera'
+   *                     detalle:
+   *                       type: array
+   *                       description: "Detalle de conceptos con valores mensuales"
+   *                       items:
+   *                         $ref: '#/components/schemas/GNReporteAnualizadoDetalle'
+   *             example:
+   *               success: true
+   *               message: "Reporte anualizado generado exitosamente"
+   *               data:
+   *                 cabecera:
+   *                   - ESQUEMA: "FIDPLAN"
+   *                     CODIGO: "10525894"
+   *                     NOMINA: "E001 - Empleados Tradicional"
+   *                     EMPLEADO: "JARPI HUAMANCHA LAVINIA"
+   *                     FECHA_INGRESO: "01/09/2006"
+   *                     FECHA_SALIDA: ""
+   *                     CENTRO_COSTO: "01.02.10.01.03 - Sede Callao"
+   *                     SEDE: "128 - Callao"
+   *                     PUESTO: "2549 - Jefe De Ventas"
+   *                     ESSALUD: ""
+   *                     AFP: "AFP PROFUTURO"
+   *                     CUSPP: "580940LJHPM1"
+   *                     ESTADO: "Activo"
+   *                 detalle:
+   *                   - CODIGO: "10525894"
+   *                     TPCONCEP: "I"
+   *                     CONCEPTO: "IAFA"
+   *                     DESCR: "Asignacion Familiar Fija"
+   *                     COL1: 93.00
+   *                     COL2: 93.00
+   *                     COL3: 93.00
+   *                     COL4: 93.00
+   *                     COL5: 93.00
+   *                     COL6: 93.00
+   *                     COL7: 93.00
+   *                     COL8: 93.00
+   *                     COL9: 0.00
+   *                     COL10: 102.50
+   *                     COL11: 102.50
+   *                     COL12: 102.50
+   *                     TOTAL: 1051.50
+   *       400:
+   *         description: Parámetros requeridos faltantes
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: false
+   *                 message:
+   *                   type: string
+   *                   example: "Los parámetros nomina, empleado, filtro y pernomi son requeridos"
    *       401:
    *         description: No autorizado
    *       500:
    *         description: Error interno del servidor
+   *     examples:
+   *       reporte_nomina:
+   *         summary: Reporte por Nómina
+   *         description: Ejemplo de consulta por período de nómina
+   *         value:
+   *           url: "/api/reporte-gn/anualizado/FIDPLAN?nomina=E001&empleado=10525894&filtro=N&pernomi=142"
+   *       reporte_periodo:
+   *         summary: Reporte por Período
+   *         description: Ejemplo de consulta por año
+   *         value:
+   *           url: "/api/reporte-gn/anualizado/FIDPLAN?nomina=E001&empleado=10525894&filtro=P&pernomi=2020"
    */
   async getAnualizado(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto } = req.params;
-      const { id_usuario, tipo, codigo_nomina, periodo } = req.query;
+      const { nomina, centro_costo, area, empleado, activo, filtro, pernomi } =
+        req.query;
 
       if (!conjunto) {
         res.status(400).json({
@@ -531,16 +718,26 @@ export class ReporteGNController {
         return;
       }
 
+      // Validar parámetros requeridos
+      if (!nomina || !empleado || !filtro || !pernomi) {
+        res.status(400).json({
+          success: false,
+          message:
+            "Los parámetros nomina, empleado, filtro y pernomi son requeridos",
+        });
+        return;
+      }
+
       const anualizado = await this.reporteGNService.getReporteAnualizado(
         conjunto,
         {
-          cod_empleado: id_usuario as string,
-          filtro: tipo as "N" | "P",
-          codigo_nomina: codigo_nomina as unknown as number,
-          periodo: periodo as unknown as number,
-          centro_costo: "",
-          area: "",
-          activo: 1,
+          nomina: nomina as string,
+          centro_costo: (centro_costo as string) || "",
+          area: (area as string) || "",
+          empleado: empleado as string,
+          activo: activo ? parseInt(activo as string) : 2,
+          filtro: filtro as "N" | "P",
+          pernomi: parseInt(pernomi as string),
         }
       );
       res.json({
@@ -1012,7 +1209,19 @@ export class ReporteGNController {
    * @swagger
    * /api/reporte-gn/anualizado/excel/{conjunto}:
    *   get:
-   *     summary: Exportar Reporte Anualizado a Excel
+   *     summary: Exportar reporte anualizado a Excel
+   *     description: |
+   *       Exporta el reporte anualizado con cabecera y detalle a un archivo Excel con dos hojas.
+   *
+   *       **Archivo Excel generado:**
+   *       - **Hoja "Cabecera"**: Información del empleado (datos personales, puesto, centro de costo, etc.)
+   *       - **Hoja "Detalle"**: Conceptos con valores mensuales (Ene, Feb, Mar, ..., Dic) y total anual
+   *
+   *       **Tipos de reporte:**
+   *       - **N (Nómina)**: Genera reporte por período de nómina específico
+   *       - **P (Período)**: Genera reporte por año específico
+   *
+   *       El parámetro `conjunto` se usa directamente en las consultas SQL para identificar el esquema de la base de datos.
    *     tags: [Reportes Gestión de Nómina - Exportaciones]
    *     security:
    *       - bearerAuth: []
@@ -1020,55 +1229,108 @@ export class ReporteGNController {
    *       - in: path
    *         name: conjunto
    *         required: true
-   *         description: "Nombre del esquema/conjunto"
-   *         schema: { type: string }
+   *         description: "Nombre del esquema/conjunto de la base de datos"
+   *         schema:
+   *           type: string
+   *           example: "FIDPLAN"
+   *           pattern: "^[A-Z0-9_]+$"
    *       - in: query
-   *         name: id_usuario
+   *         name: nomina
    *         required: true
-   *         description: "Código del empleado"
-   *         schema: { type: string }
+   *         description: "Código de nómina a consultar"
+   *         schema:
+   *           type: string
+   *           example: "E001"
+   *           pattern: "^[A-Z0-9]+$"
    *       - in: query
-   *         name: tipo
+   *         name: centro_costo
+   *         required: false
+   *         description: "Centro de costo (opcional, vacío para todos)"
+   *         schema:
+   *           type: string
+   *           example: "01.02.10.01.03"
+   *       - in: query
+   *         name: area
+   *         required: false
+   *         description: "Área (opcional, vacío para todas)"
+   *         schema:
+   *           type: string
+   *           example: "128"
+   *       - in: query
+   *         name: empleado
    *         required: true
-   *         description: "Tipo de filtro (N = Nómina, P = Persona)"
+   *         description: "Código del empleado a consultar"
+   *         schema:
+   *           type: string
+   *           example: "10525894"
+   *           pattern: "^[0-9]+$"
+   *       - in: query
+   *         name: activo
+   *         required: false
+   *         description: "Estado del empleado (1=Activo, 2=Inactivo)"
+   *         schema:
+   *           type: number
+   *           enum: [1, 2]
+   *           default: 2
+   *       - in: query
+   *         name: filtro
+   *         required: true
+   *         description: "Tipo de filtro para el reporte"
    *         schema:
    *           type: string
    *           enum: [N, P]
+   *           example: "N"
    *       - in: query
-   *         name: codigo_nomina
+   *         name: pernomi
    *         required: true
-   *         description: "Código de la nómina"
-   *         schema: { type: integer }
-   *       - in: query
-   *         name: periodo
-   *         required: true
-   *         description: "Periodo a consultar"
-   *         schema: { type: integer }
+   *         description: "Período de nómina (para filtro N) o año (para filtro P)"
+   *         schema:
+   *           type: number
+   *           example: 142
+   *           minimum: 1
    *     responses:
    *       200:
-   *         description: Archivo Excel generado
+   *         description: Archivo Excel generado exitosamente con dos hojas (Cabecera y Detalle)
    *         content:
    *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
    *             schema:
    *               type: string
    *               format: binary
+   *             example: "Archivo Excel con hojas 'Cabecera' y 'Detalle'"
+   *       400:
+   *         description: Parámetros requeridos faltantes
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: false
+   *                 message:
+   *                   type: string
+   *                   example: "Los parámetros nomina, empleado, filtro y pernomi son requeridos"
    *       401:
    *         description: No autorizado
    *       500:
    *         description: Error interno del servidor
+   *     examples:
+   *       exportar_nomina:
+   *         summary: Exportar por Nómina
+   *         description: Ejemplo de exportación por período de nómina
+   *         value:
+   *           url: "/api/reporte-gn/anualizado/excel/FIDPLAN?nomina=E001&empleado=10525894&filtro=N&pernomi=142"
+   *       exportar_periodo:
+   *         summary: Exportar por Período
+   *         description: Ejemplo de exportación por año
+   *         value:
+   *           url: "/api/reporte-gn/anualizado/excel/FIDPLAN?nomina=E001&empleado=10525894&filtro=P&pernomi=2020"
    */
   async exportarAnualizadoExcel(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto } = req.params;
-      const filtros = {
-        cod_empleado: req.query["id_usuario"] as string,
-        filtro: req.query["tipo"] as "N" | "P",
-        codigo_nomina: parseInt(req.query["codigo_nomina"] as string, 10),
-        periodo: parseInt(req.query["periodo"] as string, 10),
-        centro_costo: "",
-        area: "",
-        activo: 1,
-      };
+      const { nomina, centro_costo, area, empleado, activo, filtro, pernomi } =
+        req.query;
 
       if (!conjunto) {
         res.status(400).json({
@@ -1077,6 +1339,26 @@ export class ReporteGNController {
         });
         return;
       }
+
+      // Validar parámetros requeridos
+      if (!nomina || !empleado || !filtro || !pernomi) {
+        res.status(400).json({
+          success: false,
+          message:
+            "Los parámetros nomina, empleado, filtro y pernomi son requeridos",
+        });
+        return;
+      }
+
+      const filtros = {
+        nomina: nomina as string,
+        centro_costo: (centro_costo as string) || "",
+        area: (area as string) || "",
+        empleado: empleado as string,
+        activo: activo ? parseInt(activo as string) : 2,
+        filtro: filtro as "N" | "P",
+        pernomi: parseInt(pernomi as string),
+      };
 
       const buffer = await this.reporteGNService.exportarAnualizadoExcel(
         conjunto,

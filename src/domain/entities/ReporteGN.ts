@@ -57,6 +57,42 @@ export interface GNReporteAnualizado {
   estado: string;
 }
 
+export interface GNReporteAnualizadoCabecera {
+  ESQUEMA: string;
+  CODIGO: string;
+  NOMINA: string;
+  EMPLEADO: string;
+  FECHA_INGRESO: string;
+  FECHA_SALIDA: string;
+  CENTRO_COSTO: string;
+  SEDE: string;
+  PUESTO: string;
+  ESSALUD: string;
+  AFP: string;
+  CUSPP: string;
+  ESTADO: string;
+}
+
+export interface GNReporteAnualizadoDetalle {
+  CODIGO: string;
+  TPCONCEP: string;
+  CONCEPTO: string;
+  DESCR: string;
+  COL1: number;
+  COL2: number;
+  COL3: number;
+  COL4: number;
+  COL5: number;
+  COL6: number;
+  COL7: number;
+  COL8: number;
+  COL9: number;
+  COL10: number;
+  COL11: number;
+  COL12: number;
+  TOTAL: number;
+}
+
 export interface GNPrestamoCuentaCorriente {
   num_movimiento: number;
   fecha_ingreso: Date;
@@ -137,13 +173,13 @@ export interface FiltrosReportePrestamoCtaCte {
 }
 
 export interface FiltrosReporteAnualizado {
-  cod_empleado: string;
-  filtro: "N" | "P";
-  codigo_nomina: number;
-  periodo: number;
+  nomina: string;
   centro_costo: string;
   area: string;
+  empleado: string;
   activo: number;
+  filtro: "N" | "P";
+  pernomi: number;
 }
 
 export interface FiltrosReporteAccionesDePersonal {
@@ -180,7 +216,10 @@ export interface RespuestaReportePrestamos {
 export interface RespuestaReporteAnualizado {
   success: boolean;
   message: string;
-  data: GNReporteAnualizado | undefined;
+  data: {
+    cabecera: GNReporteAnualizadoCabecera[];
+    detalle: GNReporteAnualizadoDetalle[];
+  };
 }
 
 export interface RespuestaReportePrestamoCtaCte {
