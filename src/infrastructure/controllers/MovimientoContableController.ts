@@ -211,7 +211,7 @@ export class MovimientoContableController {
       const validatedLimit = Math.min(limit, maxLimit);
       const validatedOffset = Math.max(offset, 0);
 
-      const movimientos = await this.movimientoContableRepository.generarReporteMovimientos(
+      const result = await this.movimientoContableRepository.generarReporteMovimientos(
         conjunto,
         usuario,
         new Date(fechaInicio),
@@ -219,22 +219,15 @@ export class MovimientoContableController {
         validatedLimit,
         validatedOffset
       );
-
-      const totalCount = await this.movimientoContableRepository.getMovimientosCount(
-        conjunto,
-        usuario,
-        new Date(fechaInicio),
-        new Date(fechaFin)
-      );
       
       res.json({
         success: true,
-        data: movimientos,
+        data: result.data,
         pagination: {
           limit: validatedLimit,
           offset: validatedOffset,
-          total: totalCount,
-          totalPages: Math.ceil(totalCount / validatedLimit)
+          total: result.total,
+          totalPages: Math.ceil(result.total / validatedLimit)
         },
         message: 'Reporte generado exitosamente'
       });

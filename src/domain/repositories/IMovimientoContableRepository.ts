@@ -8,7 +8,7 @@ export interface IMovimientoContableRepository {
     fechaFin: Date,
     limit?: number,
     offset?: number
-  ): Promise<MovimientoContable[]>;
+  ): Promise<{ data: MovimientoContable[], total: number }>;
   
   obtenerMovimientosPorUsuario(
     conjunto: string,

@@ -13,6 +13,7 @@ export interface IMovimientoContableAgrupadoRepository {
 
   /**
    * Obtiene los movimientos contables agrupados con paginación
+   * Si no se especifica limit, retorna todos los registros
    */
   obtenerMovimientos(filtros: FiltroMovimientoContableAgrupado, limit?: number, offset?: number): Promise<{
     data: MovimientoContableAgrupadoItem[];
@@ -62,6 +63,7 @@ export interface IMovimientoContableAgrupadoRepository {
 
   /**
    * Obtiene lista de NITs completos con paginación
+   * Si no se especifica limit, retorna todos los registros
    */
   obtenerNitsCompletos(conjunto: string, limit?: number, offset?: number, filtro?: string): Promise<{
     data: NitCompleto[];

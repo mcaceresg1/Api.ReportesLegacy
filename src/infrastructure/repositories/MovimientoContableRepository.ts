@@ -16,8 +16,14 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
     fechaFin: Date,
     limit: number = 100,
     offset: number = 0
-  ): Promise<MovimientoContable[]> {
+  ): Promise<{ data: MovimientoContable[], total: number }> {
     try {
+      // Primero limpiar datos anteriores del usuario
+      await exactusSequelize.query(
+        `DELETE FROM ${conjunto}.REPCG_MOV_CUENTA WHERE USUARIO = '${usuario}'`,
+        { type: QueryTypes.DELETE }
+      );
+
       // Query para generar el reporte basado en los queries proporcionados
       const query = `
         INSERT INTO ${conjunto}.REPCG_MOV_CUENTA (
@@ -78,14 +84,14 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
           CC.DESCRIPCION as DESCRIPCION_CUENTA_CONTABLE,
           M.ASIENTO,
           CASE 
-            WHEN M.ORIGEN IN ('CP', 'CB', 'CC', 'CJ', 'IC', 'FA') 
+            WHEN A.ORIGEN IN ('CP', 'CB', 'CC', 'CJ', 'IC', 'FA') 
             THEN SUBSTRING(LTRIM(RTRIM(M.FUENTE)), 1, 3) 
             ELSE '' 
           END as TIPO,
           CASE 
-            WHEN M.ORIGEN IN ('FA') 
+            WHEN A.ORIGEN IN ('FA') 
             THEN SUBSTRING(LTRIM(RTRIM(M.FUENTE)), 5, 20)
-            WHEN M.ORIGEN IN ('CP', 'CB', 'CC', 'CJ', 'IC') 
+            WHEN A.ORIGEN IN ('CP', 'CB', 'CC', 'CJ', 'IC') 
             THEN SUBSTRING(LTRIM(RTRIM(M.FUENTE)), 4, 20)
             ELSE '' 
           END as DOCUMENTO,
@@ -96,8 +102,8 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
           M.CREDITO_DOLAR,
           M.CENTRO_COSTO,
           C.DESCRIPCION as DESCRIPCION_CENTRO_COSTO,
-          M.TIPO_ASIENTO,
-          M.FECHA,
+          A.TIPO_ASIENTO,
+          A.FECHA,
           CASE CC.ACEPTA_DATOS WHEN 'N' THEN 0 ELSE 1 END as ACEPTA_DATOS,
           M.CONSECUTIVO,
           M.NIT,
@@ -109,17 +115,24 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
           M.U_REP_REF
         FROM ${conjunto}.MAYOR M
         INNER JOIN ${conjunto}.ASIENTO_MAYORIZADO A ON M.ASIENTO = A.ASIENTO
-        INNER JOIN ${conjunto}.CUENTA_CONTABLE CC ON CC.CUENTA_CONTABLE = SUBSTRING(M.CUENTA_CONTABLE, 1, 2) + '.0.0.0.000'
         INNER JOIN ${conjunto}.NIT N ON M.NIT = N.NIT
-        INNER JOIN ${conjunto}.CENTRO_COSTO C ON M.CENTRO_COSTO = C.CENTRO_COSTO
-        WHERE M.CONTABILIDAD IN ('F', 'A')
-        AND M.FECHA BETWEEN '${fechaInicio.toISOString()}' AND '${fechaFin.toISOString()}'
+        INNER JOIN ${conjunto}.CUENTA_CONTABLE CC ON CC.CUENTA_CONTABLE = SUBSTRING(M.CUENTA_CONTABLE, 1, 2) + '.0.0.0.000'
+        INNER JOIN ${conjunto}.CENTRO_COSTO C ON C.CENTRO_COSTO = M.CENTRO_COSTO
+        WHERE A.CONTABILIDAD IN ('F', 'A')
+        AND A.FECHA BETWEEN '${fechaInicio.toISOString()}' AND '${fechaFin.toISOString()}'
       `;
 
       // Ejecutar el query de inserción
       await exactusSequelize.query(query, { type: QueryTypes.INSERT });
 
-      // Ahora consultar los datos insertados
+      // Obtener el total de registros
+      const totalResult = await exactusSequelize.query(
+        `SELECT COUNT(*) as total FROM ${conjunto}.REPCG_MOV_CUENTA WHERE USUARIO = '${usuario}'`,
+        { type: QueryTypes.SELECT }
+      );
+      const total = (totalResult[0] as any).total;
+
+      // Consultar los datos con paginación
       const MovimientoContableModel = DynamicModelFactory.createMovimientoContableModel(conjunto);
       const movimientos = await MovimientoContableModel.findAll({
         attributes: [
@@ -137,7 +150,10 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
         offset,
       });
 
-      return movimientos.map(movimiento => movimiento.toJSON() as MovimientoContable);
+      return {
+        data: movimientos.map(movimiento => movimiento.toJSON() as MovimientoContable),
+        total
+      };
     } catch (error) {
       console.error('Error al generar reporte de movimientos:', error);
       throw new Error('Error al generar reporte de movimientos');
@@ -272,7 +288,7 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
       console.log(`Generando Excel de movimientos contables para conjunto ${conjunto}, usuario ${usuario}`);
       
       // Obtener todos los datos sin paginación para el Excel
-      const movimientos = await this.generarReporteMovimientos(
+      const result = await this.generarReporteMovimientos(
         conjunto,
         usuario,
         fechaInicio,
@@ -282,7 +298,7 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
       );
 
       // Preparar los datos para Excel
-      const excelData = movimientos.map(item => ({
+      const excelData = result.data.map(item => ({
         'Usuario': item.USUARIO || '',
         'Cuenta Contable': item.CUENTA_CONTABLE || '',
         'Descripción Cuenta': item.DESCRIPCION_CUENTA_CONTABLE || '',
@@ -307,10 +323,10 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
       }));
 
       // Calcular totales
-      const totalDebitoLocal = movimientos.reduce((sum, item) => sum + (item.DEBITO_LOCAL || 0), 0);
-      const totalDebitoDolar = movimientos.reduce((sum, item) => sum + (item.DEBITO_DOLAR || 0), 0);
-      const totalCreditoLocal = movimientos.reduce((sum, item) => sum + (item.CREDITO_LOCAL || 0), 0);
-      const totalCreditoDolar = movimientos.reduce((sum, item) => sum + (item.CREDITO_DOLAR || 0), 0);
+      const totalDebitoLocal = result.data.reduce((sum, item) => sum + (item.DEBITO_LOCAL || 0), 0);
+      const totalDebitoDolar = result.data.reduce((sum, item) => sum + (item.DEBITO_DOLAR || 0), 0);
+      const totalCreditoLocal = result.data.reduce((sum, item) => sum + (item.CREDITO_LOCAL || 0), 0);
+      const totalCreditoDolar = result.data.reduce((sum, item) => sum + (item.CREDITO_DOLAR || 0), 0);
 
       // Agregar fila de totales
       const totalRow = {

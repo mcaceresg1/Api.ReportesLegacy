@@ -61,7 +61,10 @@ export class ReporteCuentaContableRepository implements IReporteCuentaContableRe
     offset: number = 0
   ): Promise<ReporteCuentaContable[]> {
     try {
-      const query = `
+      console.log(`Consultando cuentas contables para conjunto: ${conjunto}, centro de costo: ${centroCosto}`);
+      
+      // Primero intentar con la consulta original
+      let query = `
         SELECT DISTINCT CTA.cuenta_contable, CTA.descripcion, CTA.tipo
         FROM ${conjunto}.cuenta_contable AS CTA WITH (NOLOCK)
         INNER JOIN ${conjunto}.centro_cuenta AS CTR WITH (NOLOCK)
@@ -70,7 +73,9 @@ export class ReporteCuentaContableRepository implements IReporteCuentaContableRe
         ORDER BY CTA.cuenta_contable ASC
         OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
       `;
-      const resultados = await exactusSequelize.query(query, {
+      
+      // Si no hay datos, intentar consulta alternativa sin JOIN
+      let resultados = await exactusSequelize.query(query, {
         type: QueryTypes.SELECT,
         replacements: {
           centroCostoLike: `${centroCosto}%`,
@@ -78,7 +83,41 @@ export class ReporteCuentaContableRepository implements IReporteCuentaContableRe
           limit,
         },
       });
-      return resultados as ReporteCuentaContable[];
+      
+      // Si no hay resultados, intentar consulta alternativa
+      if (resultados.length === 0) {
+        console.log('No se encontraron datos con JOIN, intentando consulta alternativa...');
+        query = `
+          SELECT DISTINCT cuenta_contable, descripcion, tipo
+          FROM ${conjunto}.cuenta_contable WITH (NOLOCK)
+          WHERE cuenta_contable LIKE :centroCostoLike
+          ORDER BY cuenta_contable ASC
+          OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
+        `;
+        
+        resultados = await exactusSequelize.query(query, {
+          type: QueryTypes.SELECT,
+          replacements: {
+            centroCostoLike: `${centroCosto}%`,
+            offset,
+            limit,
+          },
+        });
+      }
+      
+      console.log(`Resultados obtenidos: ${resultados.length} registros`);
+      console.log('Primeros 3 registros:', resultados.slice(0, 3));
+      
+      // Mapear los resultados a la estructura esperada
+      const cuentasMapeadas = resultados.map((item: any) => ({
+        CUENTA_CONTABLE: item.cuenta_contable,
+        DESCRIPCION: item.descripcion,
+        TIPO: item.tipo,
+        CENTRO_COSTO: centroCosto,
+        ACEPTA_DATOS: true
+      }));
+      
+      return cuentasMapeadas;
     } catch (error) {
       console.error('Error al obtener cuentas contables por centro de costo:', error);
       throw new Error('Error al obtener cuentas contables por centro de costo');
@@ -87,18 +126,40 @@ export class ReporteCuentaContableRepository implements IReporteCuentaContableRe
 
   async obtenerCuentasContablesCount(conjunto: string, centroCosto: string): Promise<number> {
     try {
-      const query = `
+      // Primero intentar con la consulta original
+      let query = `
         SELECT COUNT(DISTINCT CTA.cuenta_contable) AS total
         FROM ${conjunto}.cuenta_contable AS CTA WITH (NOLOCK)
         INNER JOIN ${conjunto}.centro_cuenta AS CTR WITH (NOLOCK)
           ON CTA.cuenta_contable = CTR.cuenta_contable
         WHERE CTR.centro_costo LIKE :centroCostoLike
       `;
-      const resultados = await exactusSequelize.query(query, {
+      
+      let resultados = await exactusSequelize.query(query, {
         type: QueryTypes.SELECT,
         replacements: { centroCostoLike: `${centroCosto}%` },
       });
-      return (resultados[0] as any).total;
+      
+      let total = (resultados[0] as any).total;
+      
+      // Si no hay datos, intentar consulta alternativa
+      if (total === 0) {
+        console.log('No se encontraron datos con JOIN en conteo, intentando consulta alternativa...');
+        query = `
+          SELECT COUNT(DISTINCT cuenta_contable) AS total
+          FROM ${conjunto}.cuenta_contable WITH (NOLOCK)
+          WHERE cuenta_contable LIKE :centroCostoLike
+        `;
+        
+        resultados = await exactusSequelize.query(query, {
+          type: QueryTypes.SELECT,
+          replacements: { centroCostoLike: `${centroCosto}%` },
+        });
+        
+        total = (resultados[0] as any).total;
+      }
+      
+      return total;
     } catch (error) {
       console.error('Error al obtener conteo de cuentas contables:', error);
       throw new Error('Error al obtener conteo de cuentas contables');
@@ -112,12 +173,37 @@ export class ReporteCuentaContableRepository implements IReporteCuentaContableRe
       // Obtener todos los datos para el Excel (sin límite)
       const cuentas = await this.obtenerCuentasContablesPorCentroCosto(conjunto, centroCosto, 10000, 0);
       
+      console.log(`Datos obtenidos para Excel: ${cuentas.length} registros`);
+      
+      if (cuentas.length === 0) {
+        console.log('No se encontraron datos para exportar');
+        // Crear un Excel vacío con headers
+        const excelData = [{
+          'Cuenta Contable': 'No hay datos disponibles',
+          'Descripción': '',
+          'Tipo': ''
+        }];
+        
+        const workbook = XLSX.utils.book_new();
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
+        worksheet['!cols'] = [{ wch: 25 }, { wch: 50 }, { wch: 15 }];
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Cuentas Contables');
+        
+        return XLSX.write(workbook, { 
+          type: 'buffer', 
+          bookType: 'xlsx',
+          compression: true
+        });
+      }
+      
       // Preparar los datos para Excel
       const excelData = cuentas.map(item => ({
         'Cuenta Contable': item.CUENTA_CONTABLE || '',
         'Descripción': item.DESCRIPCION || '',
         'Tipo': item.TIPO || ''
       }));
+
+      console.log('Datos preparados para Excel:', excelData.slice(0, 3));
 
       // Crear el workbook
       const workbook = XLSX.utils.book_new();
@@ -144,7 +230,7 @@ export class ReporteCuentaContableRepository implements IReporteCuentaContableRe
         compression: true
       });
       
-      console.log('Archivo Excel de cuentas contables generado exitosamente');
+      console.log(`Archivo Excel de cuentas contables generado exitosamente con ${cuentas.length} registros`);
       return excelBuffer;
       
     } catch (error) {
