@@ -10,7 +10,8 @@ export class QueryOptimizationMiddleware {
    */
   static validateQueryParams(req: Request, res: Response, next: NextFunction): void {
     // Validar límites de paginación
-    const limit = parseInt(req.query["limit"] as string) || 100;
+    const limitParam = req.query["limit"] as string;
+    const limit = limitParam ? parseInt(limitParam) : undefined;
     const offset = parseInt(req.query["offset"] as string) || 0;
     const page = parseInt(req.query["page"] as string) || 1;
 
@@ -18,13 +19,16 @@ export class QueryOptimizationMiddleware {
     const maxLimit = 1000;
     const maxOffset = 10000;
 
-    if (limit > maxLimit) {
-      res.status(400).json({
-        success: false,
-        message: `El límite máximo permitido es ${maxLimit}`,
-        error: 'LIMIT_EXCEEDED'
-      });
-      return;
+    // Solo validar límite si se especifica
+    if (limit !== undefined) {
+      if (limit > maxLimit) {
+        res.status(400).json({
+          success: false,
+          message: `El límite máximo permitido es ${maxLimit}`,
+          error: 'LIMIT_EXCEEDED'
+        });
+        return;
+      }
     }
 
     if (offset > maxOffset) {
@@ -46,7 +50,9 @@ export class QueryOptimizationMiddleware {
     }
 
     // Agregar parámetros validados al request
-    req.query["limit"] = Math.min(limit, maxLimit).toString();
+    if (limit !== undefined) {
+      req.query["limit"] = Math.min(limit, maxLimit).toString();
+    }
     req.query["offset"] = Math.max(offset, 0).toString();
     req.query["page"] = Math.max(page, 1).toString();
 

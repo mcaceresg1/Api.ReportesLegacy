@@ -80,7 +80,7 @@ export class ReporteGastosDestinoController {
    *         name: limit
    *         schema:
    *           type: integer
-   *           default: 100
+   *         description: Límite de registros (opcional, sin límite si no se especifica)
    *       - in: query
    *         name: offset
    *         schema:
@@ -90,12 +90,15 @@ export class ReporteGastosDestinoController {
   async listar(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto } = req.params;
-      const limit = parseInt((req.query['limit'] as string) || '100', 10);
+      const limitParam = req.query['limit'] as string;
+      const limit = limitParam ? parseInt(limitParam, 10) : undefined;
       const offset = parseInt((req.query['offset'] as string) || '0', 10);
+      
       if (!conjunto) {
         res.status(400).json({ success: false, message: 'conjunto requerido' });
         return;
       }
+      
       const result = await this.repo.listar(conjunto, limit, offset);
       res.json({ success: true, ...result });
     } catch (error) {
@@ -129,7 +132,7 @@ export class ReporteGastosDestinoController {
    *         name: limit
    *         schema:
    *           type: integer
-   *           default: 5000
+   *         description: Límite de registros (opcional, sin límite si no se especifica)
    *       - in: query
    *         name: offset
    *         schema:
@@ -140,12 +143,15 @@ export class ReporteGastosDestinoController {
     try {
       const { conjunto } = req.params;
       const { fechaInicio, fechaFin } = req.query as any;
-      const limit = parseInt((req.query['limit'] as string) || '5000', 10);
+      const limitParam = req.query['limit'] as string;
+      const limit = limitParam ? parseInt(limitParam, 10) : undefined;
       const offset = parseInt((req.query['offset'] as string) || '0', 10);
+      
       if (!conjunto) {
         res.status(400).json({ success: false, message: 'conjunto requerido' });
         return;
       }
+      
       const data = await (this.repo as any).listarDetalle(
         conjunto,
         fechaInicio as string | undefined,
