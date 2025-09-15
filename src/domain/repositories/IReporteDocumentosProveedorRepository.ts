@@ -34,4 +34,16 @@ export interface IReporteDocumentosProveedorRepository {
     fechaInicio?: string | null,
     fechaFin?: string | null
   ): Promise<DocumentosPorPagar[]>;
+
+  /**
+   * Obtiene los documentos de proveedores con filtro de fechas.
+   * @param conjunto Nombre del esquema/base de datos
+   * @param fechaInicio Fecha inicial del rango
+   * @param fechaFin Fecha final del rango
+   */
+  obtenerDocumentos(
+    conjunto: string,
+    fechaInicio: string,
+    fechaFin: string
+  ): Promise<any[]>;
 }

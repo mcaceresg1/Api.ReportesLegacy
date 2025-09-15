@@ -14,14 +14,23 @@ export function createReporteDocumentosProveedorRoutes(
   );
 
   // Ruta para obtener la lista de proveedores filtrados por conjunto
-  router.get('/proveedores/:conjunto', (req, res) => controller.obtenerProveedor(req, res));
-
+  router.get("/proveedores/:conjunto", (req, res) =>
+    controller.obtenerProveedor(req, res)
+  );
 
   // Ruta para obtener el reporte de documentos por proveedor con parámetros en query
-  router.get("/reporte", (req, res) => controller.obtenerReporteDocumentosPorProveedor(req, res));
+  router.get("/reporte", (req, res) =>
+    controller.obtenerReporteDocumentosPorProveedor(req, res)
+  );
 
-  
-  router.get("/documentosPorPagar", (req, res) => controller.obtenerReporteDocumentosPorPagar(req, res));
+  router.get("/documentosPorPagar", (req, res) =>
+    controller.obtenerReporteDocumentosPorPagar(req, res)
+  );
+
+  // Ruta para obtener todos los documentos con filtro de fechas
+  router.get("/obtenerdocumentos", (req, res) =>
+    controller.obtenerDocumentos(req, res)
+  );
 
   return router;
 }

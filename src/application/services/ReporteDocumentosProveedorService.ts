@@ -60,4 +60,19 @@ export class ReporteDocumentosProveedorService
       fechaFin ?? null
     );
   }
+
+  /**
+   * Obtiene los documentos de proveedores con filtro de fechas.
+   */
+  async obtenerDocumentos(
+    conjunto: string,
+    fechaInicio: string,
+    fechaFin: string
+  ): Promise<any[]> {
+    return await this.proveedorRepo.obtenerDocumentos(
+      conjunto,
+      fechaInicio,
+      fechaFin
+    );
+  }
 }

@@ -276,7 +276,10 @@ export class ReporteDocumentosProveedorController {
    *         description: "Error interno del servidor"
    */
 
-  async obtenerReporteDocumentosPorPagar(req: Request, res: Response): Promise<void> {
+  async obtenerReporteDocumentosPorPagar(
+    req: Request,
+    res: Response
+  ): Promise<void> {
     try {
       const { conjunto, proveedor, fechaInicio, fechaFin } = req.query;
 
@@ -331,5 +334,125 @@ export class ReporteDocumentosProveedorController {
       });
     }
   }
-  
+
+  /**
+   * @swagger
+   * /api/documentos-proveedor/obtenerdocumentos:
+   *   get:
+   *     summary: Obtiene todos los documentos de proveedores con filtro de fechas
+   *     tags:
+   *       - Tesoreria y Caja - Documentos Proveedor
+   *     parameters:
+   *       - in: query
+   *         name: conjunto
+   *         schema:
+   *           type: string
+   *         required: true
+   *         description: "Nombre del esquema o base de datos"
+   *       - in: query
+   *         name: fechaInicio
+   *         schema:
+   *           type: string
+   *           format: date
+   *         required: true
+   *         description: "Fecha inicial (YYYY-MM-DD)"
+   *       - in: query
+   *         name: fechaFin
+   *         schema:
+   *           type: string
+   *           format: date
+   *         required: true
+   *         description: "Fecha final (YYYY-MM-DD)"
+   *     responses:
+   *       200:
+   *         description: "Documentos obtenidos correctamente"
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     type: object
+   *                     properties:
+   *                       proveedor:
+   *                         type: string
+   *                       nombre:
+   *                         type: string
+   *                       fecha_vence:
+   *                         type: string
+   *                         format: date
+   *                       tipo:
+   *                         type: string
+   *                       documento:
+   *                         type: string
+   *                       aplicacion:
+   *                         type: string
+   *                       moneda:
+   *                         type: string
+   *                       monto:
+   *                         type: number
+   *       400:
+   *         description: "Parámetros incompletos"
+   *       500:
+   *         description: "Error interno del servidor"
+   */
+  async obtenerDocumentos(req: Request, res: Response): Promise<void> {
+    try {
+      const { conjunto, fechaInicio, fechaFin } = req.query;
+
+      console.log("🔍 [Backend] Parámetros recibidos en obtenerDocumentos:", {
+        conjunto,
+        fechaInicio,
+        fechaFin,
+      });
+
+      if (!conjunto || !fechaInicio || !fechaFin) {
+        console.log("❌ [Backend] Error: parámetros incompletos");
+        res.status(400).json({
+          success: false,
+          message:
+            "Parámetros incompletos. Se requieren conjunto, fechaInicio y fechaFin.",
+        });
+        return;
+      }
+
+      console.log(
+        "📡 [Backend] Llamando al servicio obtenerDocumentos con parámetros:",
+        {
+          conjunto: conjunto as string,
+          fechaInicio: fechaInicio as string,
+          fechaFin: fechaFin as string,
+        }
+      );
+
+      const documentos = await this.reporteService.obtenerDocumentos(
+        conjunto as string,
+        fechaInicio as string,
+        fechaFin as string
+      );
+
+      console.log("📊 [Backend] Documentos obtenidos del servicio:", {
+        cantidad: documentos?.length || 0,
+        primerosElementos: documentos?.slice(0, 2) || [],
+      });
+
+      res.json({
+        success: true,
+        data: documentos,
+      });
+    } catch (error) {
+      console.error(
+        "❌ [Backend] Error en ReporteDocumentosProveedorController.obtenerDocumentos:",
+        error
+      );
+      res.status(500).json({
+        success: false,
+        message: "Error interno del servidor.",
+      });
+    }
+  }
 }

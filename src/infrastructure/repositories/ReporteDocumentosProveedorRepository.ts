@@ -137,6 +137,78 @@ export class ReporteDocumentosProveedorRepository
     }
   }
 
+  /**
+   * Obtiene los documentos de proveedores con filtro de fechas.
+   * @param conjunto Nombre del esquema/base de datos
+   * @param fechaInicio Fecha inicial del rango
+   * @param fechaFin Fecha final del rango
+   */
+  async obtenerDocumentos(
+    conjunto: string,
+    fechaInicio: string,
+    fechaFin: string
+  ): Promise<any[]> {
+    try {
+      console.log("🔍 [Repository] Obteniendo documentos con parámetros:", {
+        conjunto,
+        fechaInicio,
+        fechaFin,
+      });
+
+      const query = `
+        SELECT           
+          dcp.proveedor,
+          pro.nombre,
+          dcp.fecha_vence,
+          dcp.tipo,
+          dcp.documento,
+          dcp.aplicacion,
+          dcp.moneda,
+          dcp.monto       
+        FROM ${conjunto}.documentos_cp dcp        
+        INNER JOIN ${conjunto}.subtipo_doc_cp sdc           
+          ON dcp.tipo = sdc.tipo AND dcp.subtipo = sdc.subtipo      
+        INNER JOIN ${conjunto}.proveedor pro           
+          ON pro.proveedor = dcp.proveedor    
+        INNER JOIN ${conjunto}.condicion_pago cop           
+          ON dcp.condicion_pago = cop.condicion_pago     
+        WHERE dcp.proveedor like '%'     
+          AND dcp.fecha_documento BETWEEN :fechaInicio AND :fechaFin
+        ORDER BY dcp.proveedor ASC
+      `;
+
+      const fechaInicioISO = fechaInicio
+        ? new Date(fechaInicio).toISOString().split("T")[0]
+        : "1900-01-01";
+      const fechaFinISO = fechaFin
+        ? new Date(fechaFin).toISOString().split("T")[0]
+        : "9999-12-31";
+
+      console.log("📋 [Repository] Parámetros procesados:", {
+        fechaInicio: fechaInicioISO,
+        fechaFin: fechaFinISO,
+      });
+
+      const result = await exactusSequelize.query(query, {
+        replacements: {
+          fechaInicio: fechaInicioISO,
+          fechaFin: fechaFinISO,
+        },
+        type: QueryTypes.SELECT,
+      });
+
+      console.log("📊 [Repository] Documentos obtenidos:", {
+        cantidad: result?.length || 0,
+        primerosElementos: result?.slice(0, 2) || [],
+      });
+
+      return result;
+    } catch (error) {
+      console.error("❌ [Repository] Error al obtener documentos:", error);
+      return [];
+    }
+  }
+
   async obtenerReporteDocumentosPorPagar(
     conjunto: string,
     proveedor: string,
