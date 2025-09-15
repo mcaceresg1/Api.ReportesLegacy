@@ -169,7 +169,7 @@ export class MovimientoContableAgrupadoRepository implements IMovimientoContable
 
   async obtenerMovimientos(
     filtros: FiltroMovimientoContableAgrupado, 
-    limit: number = 100, 
+    limit?: number, 
     offset: number = 0
   ): Promise<{ data: MovimientoContableAgrupadoItem[]; total: number }> {
     try {
@@ -186,8 +186,8 @@ export class MovimientoContableAgrupadoRepository implements IMovimientoContable
 
       const total = countResult[0]?.total || 0;
 
-      // Obtener datos paginados
-      const dataQuery = `
+      // Construir consulta de datos con o sin límite
+      let dataQuery = `
         SELECT 
           ISNULL(sNombreMonLocal, '') as sNombreMonLocal,
           ISNULL(sNombreMonDolar, '') as sNombreMonDolar,
@@ -215,9 +215,15 @@ export class MovimientoContableAgrupadoRepository implements IMovimientoContable
           ISNULL(ORDEN, 0) as ORDEN
         FROM ${schema}.R_XML_8DDC5F23E38311C 
         ORDER BY sCuentaContable, sNit, orden, sFuente
-        OFFSET ${offset} ROWS
-        FETCH NEXT ${limit} ROWS ONLY
       `;
+
+      // Aplicar paginación solo si se especifica un límite
+      if (limit && limit > 0) {
+        dataQuery += `
+          OFFSET ${offset} ROWS
+          FETCH NEXT ${limit} ROWS ONLY
+        `;
+      }
 
       const data = await exactusSequelize.query(dataQuery, {
         type: QueryTypes.SELECT
@@ -408,7 +414,7 @@ export class MovimientoContableAgrupadoRepository implements IMovimientoContable
     }
   }
 
-  async obtenerNitsCompletos(conjunto: string, limit: number = 1000, offset: number = 0, filtro?: string): Promise<{
+  async obtenerNitsCompletos(conjunto: string, limit?: number, offset: number = 0, filtro?: string): Promise<{
     data: NitCompleto[];
     total: number;
   }> {
@@ -436,8 +442,8 @@ export class MovimientoContableAgrupadoRepository implements IMovimientoContable
 
       const total = countResult[0]?.total || 0;
 
-      // Consulta para obtener los datos con paginación
-      const dataQuery = `
+      // Construir consulta de datos con o sin límite
+      let dataQuery = `
         SELECT 
           NIT,
           RAZON_SOCIAL,
@@ -447,9 +453,15 @@ export class MovimientoContableAgrupadoRepository implements IMovimientoContable
         FROM ${conjunto}.NIT
         ${whereClause}
         ORDER BY NIT
-        OFFSET ${offset} ROWS
-        FETCH NEXT ${limit} ROWS ONLY
       `;
+
+      // Aplicar paginación solo si se especifica un límite
+      if (limit && limit > 0) {
+        dataQuery += `
+          OFFSET ${offset} ROWS
+          FETCH NEXT ${limit} ROWS ONLY
+        `;
+      }
 
       const data: NitCompleto[] = await exactusSequelize.query(dataQuery, {
         type: QueryTypes.SELECT,

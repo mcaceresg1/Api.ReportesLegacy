@@ -117,8 +117,8 @@ export class MovimientoContableAgrupadoController {
 
       // Parámetros de paginación
       const page = parseInt(req.query['page'] as string) || 1;
-      const limit = Math.min(parseInt(req.query['limit'] as string) || 100, 1000);
-      const offset = (page - 1) * limit;
+      const limit = parseInt(req.query['limit'] as string) || undefined; // Sin límite por defecto
+      const offset = limit ? (page - 1) * limit : 0;
 
       const filtros: FiltroMovimientoContableAgrupado = {
         conjunto,
@@ -154,8 +154,8 @@ export class MovimientoContableAgrupadoController {
           data: resultado.data,
           total: resultado.total,
           pagina: page,
-          porPagina: limit,
-          totalPaginas: Math.ceil(resultado.total / limit)
+          porPagina: limit || 'Sin límite',
+          totalPaginas: limit ? Math.ceil(resultado.total / limit) : 1
         },
         filtros: filtros
       });
@@ -360,10 +360,10 @@ export class MovimientoContableAgrupadoController {
 
       // Parámetros de consulta
       const page = parseInt(req.query['page'] as string) || 1;
-      const limit = parseInt(req.query['limit'] as string) || 1000;
+      const limit = parseInt(req.query['limit'] as string) || undefined; // Sin límite por defecto
       const filtro = req.query['filtro'] as string;
 
-      const offset = (page - 1) * limit;
+      const offset = limit ? (page - 1) * limit : 0;
 
       const resultado = await this.movimientoContableAgrupadoRepository.obtenerNitsCompletos(
         conjunto, 
@@ -372,7 +372,7 @@ export class MovimientoContableAgrupadoController {
         filtro
       );
 
-      const totalPaginas = Math.ceil(resultado.total / limit);
+      const totalPaginas = limit ? Math.ceil(resultado.total / limit) : 1;
 
       res.status(200).json({
         success: true,
@@ -381,7 +381,7 @@ export class MovimientoContableAgrupadoController {
           data: resultado.data,
           total: resultado.total,
           pagina: page,
-          porPagina: limit,
+          porPagina: limit || 'Sin límite',
           totalPaginas
         }
       });
