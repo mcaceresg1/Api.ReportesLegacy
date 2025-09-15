@@ -14,24 +14,30 @@ export class ReporteGastosDestinoRepository implements IReporteGastosDestinoRepo
     return;
   }
 
-  async listar(conjunto: string, limit: number = 100, offset: number = 0): Promise<ReporteGastosDestinoResult> {
+  async listar(conjunto: string, limit?: number, offset: number = 0): Promise<ReporteGastosDestinoResult> {
     const GastosDestinoModel = DynamicModelFactory.createGastosDestinoModel(conjunto);
     const totalRecords = await this.count(conjunto);
 
-    const rows = await (GastosDestinoModel as any).findAll({
+    const queryOptions: any = {
       raw: true,
-      limit,
       offset,
       order: [['FECHA', 'ASC'], ['ASIENTO', 'ASC']],
-    });
+    };
+
+    // Solo aplicar límite si se especifica
+    if (limit && limit > 0) {
+      queryOptions.limit = limit;
+    }
+
+    const rows = await (GastosDestinoModel as any).findAll(queryOptions);
 
     return {
       data: rows as ReporteGastosDestinoItem[],
       pagination: {
-        limit,
+        limit: limit || totalRecords,
         offset,
         totalRecords,
-        hasNextPage: offset + limit < totalRecords,
+        hasNextPage: limit ? offset + limit < totalRecords : false,
       },
     };
   }
@@ -41,7 +47,7 @@ export class ReporteGastosDestinoRepository implements IReporteGastosDestinoRepo
     conjunto: string,
     fechaInicio?: string,
     fechaFin?: string,
-    limit: number = 5000,
+    limit?: number,
     offset: number = 0
   ): Promise<any[]> {
     const whereFecha = fechaInicio && fechaFin ? `
@@ -121,10 +127,13 @@ export class ReporteGastosDestinoRepository implements IReporteGastosDestinoRepo
         ROW_ORDER,
         FECHA,
         CTA_CONTABLE
-      OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
+      ${limit && limit > 0 ? 'OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY' : ''}
     `;
 
-    const replacements: any = { offset, limit };
+    const replacements: any = { offset };
+    if (limit && limit > 0) {
+      replacements.limit = limit;
+    }
     if (fechaInicio && fechaFin) {
       replacements.fi = fechaInicio;
       replacements.ff = fechaFin;
@@ -153,8 +162,8 @@ export class ReporteGastosDestinoRepository implements IReporteGastosDestinoRepo
       const fechaInicio = filtros?.asientos?.fechaInicio;
       const fechaFin = filtros?.asientos?.fechaFin;
       
-      // Obtener todos los datos para el Excel
-      const resultado = await this.listarDetalle(conjunto, fechaInicio, fechaFin, 10000, 0);
+      // Obtener todos los datos para el Excel (sin límite para exportación completa)
+      const resultado = await this.listarDetalle(conjunto, fechaInicio, fechaFin, undefined, 0);
       
       // Preparar los datos para Excel
       const excelData = resultado.map(item => ({
