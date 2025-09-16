@@ -48,6 +48,8 @@ import { IBalanceComprobacionClipperRepository } from "../../domain/repositories
 import { IBalanceGeneralClipperRepository } from "../../domain/repositories/IBalanceGeneralClipperRepository";
 import { IBalanceComprobacionClipperService } from "../../domain/services/IBalanceComprobacionClipperService";
 import { IBalanceGeneralClipperService } from "../../domain/services/IBalanceGeneralClipperService";
+import { ILibroDiarioOficonRepository } from "../../domain/repositories/ILibroDiarioOficonRepository";
+import { ILibroDiarioOficonService } from "../../domain/services/ILibroDiarioOficonService";
 
 import { ICuentaContableRepository } from "../../domain/repositories/ICuentaContableRepository";
 import { IUsuarioService } from "../../domain/services/IUsuarioService";
@@ -113,6 +115,7 @@ import { ReporteGenericoSaldosRepository } from "../repositories/ReporteGenerico
 import { LibroMayorContabilidadRepository } from "../repositories/LibroMayorContabilidadRepository";
 import { BalanceComprobacionClipperRepository } from "../repositories/BalanceComprobacionClipperRepository";
 import { BalanceGeneralClipperRepository } from "../repositories/BalanceGeneralClipperRepository";
+import { LibroDiarioOficonRepository } from "../repositories/LibroDiarioOficonRepository";
 
 import { CuentaContableRepository } from "../repositories/CuentaContableRepository";
 import { UsuarioService } from "../../application/services/UsuarioService";
@@ -144,6 +147,7 @@ import { ReporteGenericoSaldosService } from "../../application/services/Reporte
 import { LibroMayorContabilidadService } from "../../application/services/LibroMayorContabilidadService";
 import { BalanceComprobacionClipperService } from "../../application/services/BalanceComprobacionClipperService";
 import { BalanceGeneralClipperService } from "../../application/services/BalanceGeneralClipperService";
+import { LibroDiarioOficonService } from "../../application/services/LibroDiarioOficonService";
 
 import { DatabaseService } from "../../application/services/DatabaseService";
 
@@ -183,6 +187,8 @@ import { ReporteGenericoSaldosController } from "../controllers/ReporteGenericoS
 import { LibroMayorContabilidadController } from "../controllers/LibroMayorContabilidadController";
 import { BalanceComprobacionClipperController } from "../controllers/BalanceComprobacionClipperController";
 import { BalanceGeneralClipperController } from "../controllers/BalanceGeneralClipperController";
+import { LibroDiarioOficonController } from "../controllers/LibroDiarioOficonController";
+import { LibroDiarioOficonRoutes } from "../routes/LibroDiarioOficonRoutes";
 
 // CQRS implementations
 import { CommandBus } from "../cqrs/CommandBus";
@@ -218,6 +224,10 @@ import { ExportarBalanceComprobacionExcelHandler } from "../../application/handl
 
 // Reporte Genérico de Saldos Handlers
 import { GenerarReporteGenericoSaldosHandler } from "../../application/handlers/reporte-generico-saldos/GenerarReporteGenericoSaldosHandler";
+
+// Libro Diario OFICON Handlers
+import { GenerarReporteLibroDiarioOficonHandler } from "../../application/handlers/libro-diario-oficon/GenerarReporteLibroDiarioOficonHandler";
+import { GetLibroDiarioOficonHandler } from "../../application/handlers/libro-diario-oficon/GetLibroDiarioOficonHandler";
 
 // Libro Mayor Asientos Handlers
 import { ObtenerLibroMayorAsientosHandler } from "../../application/handlers/libro-mayor-asientos/ObtenerLibroMayorAsientosHandler";
@@ -396,6 +406,9 @@ container
 container
   .bind<IBalanceGeneralClipperRepository>("IBalanceGeneralClipperRepository")
   .to(BalanceGeneralClipperRepository);
+container
+  .bind<ILibroDiarioOficonRepository>("ILibroDiarioOficonRepository")
+  .to(LibroDiarioOficonRepository);
 
 // Cache Services
 container.bind<ICacheService>("ICacheService").to(CacheService);
@@ -492,6 +505,9 @@ container
 container
   .bind<IBalanceGeneralClipperService>("IBalanceGeneralClipperService")
   .to(BalanceGeneralClipperService);
+container
+  .bind<ILibroDiarioOficonService>("ILibroDiarioOficonService")
+  .to(LibroDiarioOficonService);
 
 // Controllers
 container.bind<UsuarioController>("UsuarioController").to(UsuarioController);
@@ -611,6 +627,12 @@ container
 container
   .bind<BalanceGeneralClipperController>("BalanceGeneralClipperController")
   .to(BalanceGeneralClipperController);
+container
+  .bind<LibroDiarioOficonController>("LibroDiarioOficonController")
+  .to(LibroDiarioOficonController);
+container
+  .bind<LibroDiarioOficonRoutes>("LibroDiarioOficonRoutes")
+  .to(LibroDiarioOficonRoutes);
 // BalanceComprobacionClipperRoutes se instancia directamente en app.ts
 
 // CQRS Buses
@@ -724,6 +746,16 @@ container
     "ObtenerFiltrosLibroDiarioAsientosHandler"
   )
   .to(ObtenerFiltrosLibroDiarioAsientosHandler);
+
+// Libro Diario OFICON Handlers
+container
+  .bind<GenerarReporteLibroDiarioOficonHandler>(
+    "GenerarReporteLibroDiarioOficonHandler"
+  )
+  .to(GenerarReporteLibroDiarioOficonHandler);
+container
+  .bind<GetLibroDiarioOficonHandler>("GetLibroDiarioOficonHandler")
+  .to(GetLibroDiarioOficonHandler);
 
 // Balance Comprobación Clipper - No necesita handlers CQRS, usa servicio directamente
 

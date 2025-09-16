@@ -69,6 +69,7 @@ import { createClipperLibroDiarioRoutes } from "./infrastructure/routes/ClipperL
 import { createClipperLibroCajaRoutes } from "./infrastructure/routes/ClipperLibroCajaRoutes";
 import { createBalanceComprobacionClipperRoutes } from "./infrastructure/routes/BalanceComprobacionClipperRoutes";
 import { createBalanceGeneralClipperRoutes } from "./infrastructure/routes/BalanceGeneralClipperRoutes";
+import { LibroDiarioOficonRoutes } from "./infrastructure/routes/LibroDiarioOficonRoutes";
 // Importar controladores para que swagger-jsdoc procese la documentación
 import "./infrastructure/controllers/BalanceComprobacionClipperController";
 import "./infrastructure/controllers/BalanceGeneralClipperController";
@@ -298,6 +299,10 @@ const balanceGeneralClipperRoutes = createBalanceGeneralClipperRoutes();
 // Análisis de Cuentas Clipper Routes
 const analisisCuentasClipperRoutes =
   container.get<AnalisisCuentasClipperRoutes>("AnalisisCuentasClipperRoutes");
+
+const libroDiarioOficonRoutes = container.get<LibroDiarioOficonRoutes>(
+  "LibroDiarioOficonRoutes"
+);
 
 // Endpoint de prueba
 app.get("/api/test", (req, res) => {
@@ -546,6 +551,14 @@ app.use(
   createGananciasPerdidasClipperRoutes()
 );
 console.log("✅ Ganancias y Pérdidas Clipper routes registradas correctamente");
+
+// Libro Diario OFICON Routes
+app.use(
+  "/api/libro-diario-oficon",
+  QueryOptimizationMiddleware.validateQueryParams,
+  libroDiarioOficonRoutes.getRouter()
+);
+console.log("✅ Libro Diario OFICON routes registradas correctamente");
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================
 
