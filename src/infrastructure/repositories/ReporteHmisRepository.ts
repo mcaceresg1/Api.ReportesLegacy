@@ -211,6 +211,13 @@ export class ReporteHmisRepository implements IReporteHmisRepository {
           { replacements: { contrato }, type: QueryTypes.SELECT }
         );
 
+      // Validar si el contrato existe
+      if (!informacionContrato || informacionContrato.length === 0) {
+        throw new Error(
+          `No se encontró el contrato '${contrato}' en la base de datos '${dbAlias}'. Verifique que el número de contrato sea correcto.`
+        );
+      }
+
       // 3️⃣ Comisionistas
       const comisionistas = await sequelizeInstance.query<Comisionista>(
         `
