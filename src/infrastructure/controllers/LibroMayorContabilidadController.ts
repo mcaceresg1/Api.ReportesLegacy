@@ -549,7 +549,7 @@ export class LibroMayorContabilidadController {
         dimensionAdicional: req.body.dimensionAdicional,
         page: req.body.page || 1,
         pageSize: req.body.pageSize || 100,
-        limit: req.body.limit || 1000
+        limit: req.body.limit // Sin límite por defecto
       };
 
       if (!filtros.fechaDesde || !filtros.fechaHasta) {

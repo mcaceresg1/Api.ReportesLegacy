@@ -482,7 +482,7 @@ export class LibroMayorContabilidadRepository implements ILibroMayorContabilidad
           (ISNULL(SALDO_DEUDOR, 0) + ISNULL(DEBITO_LOCAL, 0) - ISNULL(CREDITO_LOCAL, 0)) AS 'Total saldo final'
         FROM ${conjunto}.${tableName} 
         ORDER BY FECHA, CONSECUTIVO
-        ${limit ? `OFFSET 0 ROWS FETCH NEXT ${limit} ROWS ONLY` : ''}
+        ${limit && limit > 0 ? `OFFSET 0 ROWS FETCH NEXT ${limit} ROWS ONLY` : ''}
       `;
 
       const [results] = await exactusSequelize.query(selectResultados);
@@ -505,15 +505,20 @@ export class LibroMayorContabilidadRepository implements ILibroMayorContabilidad
     totalPages: number;
   }> {
     try {
-      const { conjunto, limit = 1000, page = 1, pageSize = 100 } = filtros;
+      const { conjunto, limit, page = 1, pageSize = 100 } = filtros;
       const offset = (page - 1) * pageSize;
 
-      // Primero generar el reporte
+      // Primero generar el reporte sin límite
       const data = await this.generarReporte(filtros);
 
-      // Simular paginación (en un caso real, esto se haría en la consulta SQL)
+      // Aplicar paginación solo si se especifica un límite
       const total = data.length;
-      const paginatedData = data.slice(offset, offset + pageSize);
+      let paginatedData = data;
+      
+      if (limit && limit > 0) {
+        paginatedData = data.slice(offset, offset + pageSize);
+      }
+      
       const totalPages = Math.ceil(total / pageSize);
 
       return {
