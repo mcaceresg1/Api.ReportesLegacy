@@ -22,13 +22,124 @@ import { QueryTypes, Sequelize } from "sequelize";
 
 @injectable()
 export class ReporteHmisRepository implements IReporteHmisRepository {
+  // Método para obtener las bases de datos disponibles
+  getAvailableDatabases(): string[] {
+    return Object.keys(hmisDatabases);
+  }
+
+  // Método para validar si una base de datos existe
+  isValidDatabase(dbAlias: string): boolean {
+    return dbAlias in hmisDatabases;
+  }
+
+  // Método para verificar el estado de conexión de todas las bases de datos
+  async verificarConexiones(): Promise<
+    Array<{
+      alias: string;
+      name: string;
+      status: "connected" | "error";
+      error?: string;
+    }>
+  > {
+    const results = [];
+
+    for (const [alias, sequelizeInstance] of Object.entries(hmisDatabases)) {
+      try {
+        await sequelizeInstance.authenticate();
+        results.push({
+          alias,
+          name: this.getDatabaseName(alias),
+          status: "connected" as const,
+        });
+      } catch (error) {
+        results.push({
+          alias,
+          name: this.getDatabaseName(alias),
+          status: "error" as const,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+
+    return results;
+  }
+
+  // Método auxiliar para obtener el nombre de la base de datos
+  private getDatabaseName(alias: string): string {
+    const databaseInfo = {
+      bdhmis: "HMIS Principal",
+      bdhmisAQP: "HMIS Arequipa",
+      bdhmisICA: "HMIS Ica",
+      bdhmisPIURA: "HMIS Piura",
+      bdhmisTACNA: "HMIS Tacna",
+    };
+    return databaseInfo[alias as keyof typeof databaseInfo] || alias;
+  }
+
+  // Método para obtener información detallada de las bases de datos disponibles
+  getDatabasesInfo(): Array<{
+    alias: string;
+    name: string;
+    description: string;
+  }> {
+    const databaseInfo = {
+      bdhmis: {
+        name: "HMIS Principal",
+        description: "Base de datos principal HMIS",
+      },
+      bdhmisAQP: {
+        name: "HMIS Arequipa",
+        description: "Base de datos HMIS - Sede Arequipa",
+      },
+      bdhmisICA: {
+        name: "HMIS Ica",
+        description: "Base de datos HMIS - Sede Ica",
+      },
+      bdhmisPIURA: {
+        name: "HMIS Piura",
+        description: "Base de datos HMIS - Sede Piura",
+      },
+      bdhmisTACNA: {
+        name: "HMIS Tacna",
+        description: "Base de datos HMIS - Sede Tacna",
+      },
+    };
+
+    return this.getAvailableDatabases().map((alias) => ({
+      alias,
+      name: databaseInfo[alias as keyof typeof databaseInfo]?.name || alias,
+      description:
+        databaseInfo[alias as keyof typeof databaseInfo]?.description ||
+        `Base de datos ${alias}`,
+    }));
+  }
+
   async obtenerContratosId(
     dbAlias: keyof typeof hmisDatabases = "bdhmis",
     contrato: string
   ): Promise<HmisReporte[]> {
+    // Validar que la base de datos existe
+    if (!this.isValidDatabase(dbAlias)) {
+      const availableDbs = this.getAvailableDatabases().join(", ");
+      throw new Error(
+        `Base de datos '${dbAlias}' no existe. Bases de datos disponibles: ${availableDbs}`
+      );
+    }
+
     const sequelizeInstance: Sequelize | undefined = hmisDatabases[dbAlias];
     if (!sequelizeInstance) {
       throw new Error(`No existe configuración para la BD alias: ${dbAlias}`);
+    }
+
+    // Validar conexión antes de ejecutar consultas
+    try {
+      await sequelizeInstance.authenticate();
+      console.log(`✅ Conexión exitosa a ${dbAlias}`);
+    } catch (error) {
+      console.error(`❌ Error de conexión a ${dbAlias}:`, error);
+      throw new Error(
+        `No se pudo conectar a la base de datos ${dbAlias}. Verifique la configuración de conexión.`
+      );
     }
 
     try {
@@ -861,9 +972,28 @@ export class ReporteHmisRepository implements IReporteHmisRepository {
     limit: number = 100,
     offset: number = 0
   ): Promise<HmisContratoLista[]> {
+    // Validar que la base de datos existe
+    if (!this.isValidDatabase(dbAlias)) {
+      const availableDbs = this.getAvailableDatabases().join(", ");
+      throw new Error(
+        `Base de datos '${dbAlias}' no existe. Bases de datos disponibles: ${availableDbs}`
+      );
+    }
+
     const sequelizeInstance: Sequelize | undefined = hmisDatabases[dbAlias];
     if (!sequelizeInstance) {
       throw new Error(`No existe configuración para la BD alias: ${dbAlias}`);
+    }
+
+    // Validar conexión antes de ejecutar consultas
+    try {
+      await sequelizeInstance.authenticate();
+      console.log(`✅ Conexión exitosa a ${dbAlias}`);
+    } catch (error) {
+      console.error(`❌ Error de conexión a ${dbAlias}:`, error);
+      throw new Error(
+        `No se pudo conectar a la base de datos ${dbAlias}. Verifique la configuración de conexión.`
+      );
     }
 
     try {

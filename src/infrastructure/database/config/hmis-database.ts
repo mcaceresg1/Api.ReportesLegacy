@@ -32,40 +32,57 @@ const sequelizeHmis = new Sequelize(
 );
 
 const sequelizeHmisAQP = new Sequelize(
-  process.env["HMIS1_DB_NAME"] || "IT2_TEST_AQP",
-  process.env["HMIS1_DB_USER"] || "",
-  process.env["HMIS1_DB_PASSWORD"] || "",
+  process.env["HMIS_AQP_DB_NAME"] || "IT2_TEST_AQP",
+  process.env["HMIS_AQP_DB_USER"] || process.env["HMIS_DB_USER"] || "",
+  process.env["HMIS_AQP_DB_PASSWORD"] || process.env["HMIS_DB_PASSWORD"] || "",
   {
-    host: process.env["HMIS1_DB_HOST"] || "localhost",
+    host:
+      process.env["HMIS_AQP_DB_HOST"] ||
+      process.env["HMIS_DB_HOST"] ||
+      "localhost",
     ...hmisSequelizeOptions,
   }
 );
 
 const sequelizeHmisICA = new Sequelize(
-  process.env["HMIS1_DB_NAME"] || "IT2_TEST_ICA",
-  process.env["HMIS1_DB_USER"] || "",
-  process.env["HMIS1_DB_PASSWORD"] || "",
+  process.env["HMIS_ICA_DB_NAME"] || "IT2_TEST_ICA",
+  process.env["HMIS_ICA_DB_USER"] || process.env["HMIS_DB_USER"] || "",
+  process.env["HMIS_ICA_DB_PASSWORD"] || process.env["HMIS_DB_PASSWORD"] || "",
   {
-    host: process.env["HMIS1_DB_HOST"] || "localhost",
+    host:
+      process.env["HMIS_ICA_DB_HOST"] ||
+      process.env["HMIS_DB_HOST"] ||
+      "localhost",
     ...hmisSequelizeOptions,
   }
 );
+
 const sequelizeHmisPIURA = new Sequelize(
-  process.env["HMIS1_DB_NAME"] || "IT2_TEST_PIURA",
-  process.env["HMIS1_DB_USER"] || "",
-  process.env["HMIS1_DB_PASSWORD"] || "",
+  process.env["HMIS_PIURA_DB_NAME"] || "IT2_TEST_PIURA",
+  process.env["HMIS_PIURA_DB_USER"] || process.env["HMIS_DB_USER"] || "",
+  process.env["HMIS_PIURA_DB_PASSWORD"] ||
+    process.env["HMIS_DB_PASSWORD"] ||
+    "",
   {
-    host: process.env["HMIS1_DB_HOST"] || "localhost",
+    host:
+      process.env["HMIS_PIURA_DB_HOST"] ||
+      process.env["HMIS_DB_HOST"] ||
+      "localhost",
     ...hmisSequelizeOptions,
   }
 );
 
 const sequelizeHmisTACNA = new Sequelize(
-  process.env["HMIS1_DB_NAME"] || "IT2_TEST_TACNA",
-  process.env["HMIS1_DB_USER"] || "",
-  process.env["HMIS1_DB_PASSWORD"] || "",
+  process.env["HMIS_TACNA_DB_NAME"] || "IT2_TEST_TACNA",
+  process.env["HMIS_TACNA_DB_USER"] || process.env["HMIS_DB_USER"] || "",
+  process.env["HMIS_TACNA_DB_PASSWORD"] ||
+    process.env["HMIS_DB_PASSWORD"] ||
+    "",
   {
-    host: process.env["HMIS1_DB_HOST"] || "localhost",
+    host:
+      process.env["HMIS_TACNA_DB_HOST"] ||
+      process.env["HMIS_DB_HOST"] ||
+      "localhost",
     ...hmisSequelizeOptions,
   }
 );
