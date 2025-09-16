@@ -40,9 +40,9 @@ export class ReporteAsientosSinDimensionRepository implements IReporteAsientosSi
         throw new Error(`No se puede conectar a la base de datos del conjunto ${conjunto}`);
       }
       
-      // Usar el método listarDetalle para obtener los datos reales
-      console.log('Llamando a listarDetalle...');
-      const resultado = await this.listarDetalle(conjunto, fechaDesde, fechaHasta, 1000);
+      // Usar el método listarDetalle para obtener los datos reales sin límite
+      console.log('Llamando a listarDetalle sin límite...');
+      const resultado = await this.listarDetalle(conjunto, fechaDesde, fechaHasta);
       
       console.log(`Resultado de listarDetalle:`, resultado);
       console.log(`Tipo de resultado:`, typeof resultado);
@@ -97,24 +97,39 @@ export class ReporteAsientosSinDimensionRepository implements IReporteAsientosSi
     }
   }
 
-  async listarDetalle(conjunto: string, fechaDesde: string, fechaHasta: string, limit: number = 100): Promise<ReporteAsientosSinDimension[]> {
+  async listarDetalle(conjunto: string, fechaDesde: string, fechaHasta: string, limit?: number): Promise<ReporteAsientosSinDimension[]> {
     try {
-      console.log(`listarDetalle llamado con: conjunto=${conjunto}, fechaDesde=${fechaDesde}, fechaHasta=${fechaHasta}, limit=${limit}`);
+      console.log(`listarDetalle llamado con: conjunto=${conjunto}, fechaDesde=${fechaDesde}, fechaHasta=${fechaHasta}, limit=${limit || 'sin límite'}`);
       
       // Query simplificada para evitar problemas de UNION complejos
-      const query = `
-        SELECT TOP (${limit}) 
-          D.ASIENTO, D.CONSECUTIVO, AD.FECHA AS FECHA_ASIENTO, AD.ORIGEN, 
-          AD.USUARIO_CREACION, D.FUENTE, D.REFERENCIA, 
-          ISNULL(D.DEBITO_LOCAL,0) + ISNULL(D.CREDITO_LOCAL,0) AS MONTO_LOCAL,
-          ISNULL(D.DEBITO_DOLAR,0) + ISNULL(D.CREDITO_DOLAR,0) AS MONTO_DOLAR,
-          D.CUENTA_CONTABLE, D.CENTRO_COSTO
-        FROM ${conjunto}.DIARIO D
-        INNER JOIN ${conjunto}.ASIENTO_DE_DIARIO AD ON AD.ASIENTO = D.ASIENTO
-        WHERE AD.FECHA >= :fechaDesde
-          AND AD.FECHA <= :fechaHasta
-        ORDER BY D.ASIENTO, D.CONSECUTIVO
-      `;
+      // Si no se especifica límite, no usar TOP
+      const query = limit 
+        ? `
+          SELECT TOP (${limit}) 
+            D.ASIENTO, D.CONSECUTIVO, AD.FECHA AS FECHA_ASIENTO, AD.ORIGEN, 
+            AD.USUARIO_CREACION, D.FUENTE, D.REFERENCIA, 
+            ISNULL(D.DEBITO_LOCAL,0) + ISNULL(D.CREDITO_LOCAL,0) AS MONTO_LOCAL,
+            ISNULL(D.DEBITO_DOLAR,0) + ISNULL(D.CREDITO_DOLAR,0) AS MONTO_DOLAR,
+            D.CUENTA_CONTABLE, D.CENTRO_COSTO
+          FROM ${conjunto}.DIARIO D
+          INNER JOIN ${conjunto}.ASIENTO_DE_DIARIO AD ON AD.ASIENTO = D.ASIENTO
+          WHERE AD.FECHA >= :fechaDesde
+            AND AD.FECHA <= :fechaHasta
+          ORDER BY D.ASIENTO, D.CONSECUTIVO
+        `
+        : `
+          SELECT 
+            D.ASIENTO, D.CONSECUTIVO, AD.FECHA AS FECHA_ASIENTO, AD.ORIGEN, 
+            AD.USUARIO_CREACION, D.FUENTE, D.REFERENCIA, 
+            ISNULL(D.DEBITO_LOCAL,0) + ISNULL(D.CREDITO_LOCAL,0) AS MONTO_LOCAL,
+            ISNULL(D.DEBITO_DOLAR,0) + ISNULL(D.CREDITO_DOLAR,0) AS MONTO_DOLAR,
+            D.CUENTA_CONTABLE, D.CENTRO_COSTO
+          FROM ${conjunto}.DIARIO D
+          INNER JOIN ${conjunto}.ASIENTO_DE_DIARIO AD ON AD.ASIENTO = D.ASIENTO
+          WHERE AD.FECHA >= :fechaDesde
+            AND AD.FECHA <= :fechaHasta
+          ORDER BY D.ASIENTO, D.CONSECUTIVO
+        `;
 
       console.log('Ejecutando query con parámetros:', { fechaDesde, fechaHasta });
       
@@ -265,8 +280,8 @@ export class ReporteAsientosSinDimensionRepository implements IReporteAsientosSi
     try {
       console.log(`Generando Excel de asientos sin dimensión para conjunto ${conjunto}`);
       
-      // Obtener todos los datos para el Excel
-      const asientos = await this.listarDetalle(conjunto, fechaDesde, fechaHasta, 10000);
+      // Obtener todos los datos para el Excel sin límite
+      const asientos = await this.listarDetalle(conjunto, fechaDesde, fechaHasta);
       
       // Preparar los datos para Excel
       const excelData = asientos.map(item => ({
