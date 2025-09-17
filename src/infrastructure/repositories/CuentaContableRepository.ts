@@ -20,21 +20,67 @@ export class CuentaContableRepository implements ICuentaContableRepository {
     'DESCRIPCION_IFRS'
   ];
 
-  async getCuentasContablesByConjunto(conjunto: string, limit: number = 100, offset: number = 0): Promise<CuentaContable[]> {
+  async getCuentasContablesByConjunto(conjunto: string, page: number = 1, limit: number = 25): Promise<{
+    success: boolean;
+    data: CuentaContable[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+    message: string;
+  }> {
     try {
       // Limpiar caché para asegurar que se use la configuración más reciente
       DynamicModelFactory.clearCache();
+      const offset = (page - 1) * limit;
+      
       const CuentaContableModel = DynamicModelFactory.createCuentaContableModel(conjunto);
+      
+      // Obtener total de registros
+      const total = await CuentaContableModel.count();
+      
+      // Obtener datos paginados
       const cuentasContables = await CuentaContableModel.findAll({
         attributes: this.camposPrincipales,
         order: [['CUENTA_CONTABLE', 'ASC']],
         limit,
         offset,
       });
-      return cuentasContables.map(cuentaContable => cuentaContable.toJSON() as CuentaContable);
+      
+      const totalPages = Math.ceil(total / limit);
+      
+      return {
+        success: true,
+        data: cuentasContables.map(cuentaContable => cuentaContable.toJSON() as CuentaContable),
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1,
+        },
+        message: "Datos obtenidos exitosamente",
+      };
     } catch (error) {
       console.error('Error al obtener cuentas contables por conjunto:', error);
-      throw new Error('Error al obtener cuentas contables por conjunto');
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 25,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
+        message: `Error al obtener cuentas contables por conjunto: ${error}`,
+      };
     }
   }
 
@@ -51,9 +97,32 @@ export class CuentaContableRepository implements ICuentaContableRepository {
     }
   }
 
-  async getCuentasContablesByTipo(conjunto: string, tipo: string, limit: number = 100, offset: number = 0): Promise<CuentaContable[]> {
+  async getCuentasContablesByTipo(conjunto: string, tipo: string, page: number = 1, limit: number = 25): Promise<{
+    success: boolean;
+    data: CuentaContable[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+    message: string;
+  }> {
     try {
+      const offset = (page - 1) * limit;
+      
       const CuentaContableModel = DynamicModelFactory.createCuentaContableModel(conjunto);
+      
+      // Obtener total de registros
+      const total = await CuentaContableModel.count({
+        where: {
+          TIPO: tipo
+        }
+      });
+      
+      // Obtener datos paginados
       const cuentasContables = await CuentaContableModel.findAll({
         attributes: this.camposPrincipales,
         where: {
@@ -63,16 +132,66 @@ export class CuentaContableRepository implements ICuentaContableRepository {
         limit,
         offset,
       });
-      return cuentasContables.map(cuentaContable => cuentaContable.toJSON() as CuentaContable);
+      
+      const totalPages = Math.ceil(total / limit);
+      
+      return {
+        success: true,
+        data: cuentasContables.map(cuentaContable => cuentaContable.toJSON() as CuentaContable),
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1,
+        },
+        message: "Datos obtenidos exitosamente",
+      };
     } catch (error) {
       console.error('Error al obtener cuentas contables por tipo:', error);
-      throw new Error('Error al obtener cuentas contables por tipo');
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 25,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
+        message: `Error al obtener cuentas contables por tipo: ${error}`,
+      };
     }
   }
 
-  async getCuentasContablesActivas(conjunto: string, limit: number = 100, offset: number = 0): Promise<CuentaContable[]> {
+  async getCuentasContablesActivas(conjunto: string, page: number = 1, limit: number = 25): Promise<{
+    success: boolean;
+    data: CuentaContable[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+    message: string;
+  }> {
     try {
+      const offset = (page - 1) * limit;
+      
       const CuentaContableModel = DynamicModelFactory.createCuentaContableModel(conjunto);
+      
+      // Obtener total de registros
+      const total = await CuentaContableModel.count({
+        where: {
+          ACEPTA_DATOS: true
+        }
+      });
+      
+      // Obtener datos paginados
       const cuentasContables = await CuentaContableModel.findAll({
         attributes: this.camposPrincipales,
         where: {
@@ -82,10 +201,37 @@ export class CuentaContableRepository implements ICuentaContableRepository {
         limit,
         offset,
       });
-      return cuentasContables.map(cuentaContable => cuentaContable.toJSON() as CuentaContable);
+      
+      const totalPages = Math.ceil(total / limit);
+      
+      return {
+        success: true,
+        data: cuentasContables.map(cuentaContable => cuentaContable.toJSON() as CuentaContable),
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1,
+        },
+        message: "Datos obtenidos exitosamente",
+      };
     } catch (error) {
       console.error('Error al obtener cuentas contables activas:', error);
-      throw new Error('Error al obtener cuentas contables activas');
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 25,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
+        message: `Error al obtener cuentas contables activas: ${error}`,
+      };
     }
   }
 

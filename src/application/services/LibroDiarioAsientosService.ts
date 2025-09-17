@@ -45,27 +45,27 @@ export class LibroDiarioAsientosService implements ILibroDiarioAsientosService {
     try {
       console.log(`📊 Generando reporte para conjunto: ${conjunto}`, filtros);
       
-      // Generar el reporte completo
-      const data = await this.libroDiarioAsientosRepository.generarReporte(conjunto, filtros);
+      // El repositorio ya retorna el formato estandarizado
+      const response = await this.libroDiarioAsientosRepository.generarReporte(conjunto, filtros);
       
-      console.log(`✅ Reporte generado: ${data.length} registros`);
+      console.log(`✅ Reporte generado: ${response.data.length} registros`);
       
+      return response;
+    } catch (error) {
+      console.error('Error en servicio generarReporte:', error);
       return {
-        success: true,
-        data,
+        success: false,
+        data: [],
         pagination: {
           page: 1,
-          limit: data.length,
-          total: data.length,
-          totalPages: 1,
+          limit: 0,
+          total: 0,
+          totalPages: 0,
           hasNext: false,
           hasPrev: false,
         },
-        message: `Reporte generado exitosamente con ${data.length} registros`,
+        message: `Error al generar reporte: ${error instanceof Error ? error.message : 'Error desconocido'}`
       };
-    } catch (error) {
-      console.error('Error en servicio generarReporte:', error);
-      throw new Error(`Error al generar reporte: ${error}`);
     }
   }
 

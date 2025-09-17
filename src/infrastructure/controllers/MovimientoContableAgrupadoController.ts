@@ -76,17 +76,21 @@ export class MovimientoContableAgrupadoController {
         return;
       }
 
-      const resultado = await this.movimientoContableAgrupadoRepository.generarReporte(filtros);
+      // Parámetros de paginación
+      const page = parseInt(req.body.page as string) || 1;
+      const limit = parseInt(req.body.limit as string) || 25;
+
+      const resultado = await this.movimientoContableAgrupadoRepository.generarReporte(filtros, page, limit);
 
       console.log('=== DEBUG RESULTADO ===');
-      console.log('Total registros:', resultado.length);
-      console.log('Primer registro:', resultado[0] || 'No hay datos');
+      console.log('Total registros:', resultado.pagination.total);
+      console.log('Primer registro:', resultado.data[0] || 'No hay datos');
 
       res.status(200).json({
-        success: true,
-        message: 'Reporte generado exitosamente',
-        data: resultado,
-        total: resultado.length,
+        success: resultado.success,
+        data: resultado.data,
+        pagination: resultado.pagination,
+        message: resultado.message,
         filtros: filtros
       });
 
@@ -117,8 +121,7 @@ export class MovimientoContableAgrupadoController {
 
       // Parámetros de paginación
       const page = parseInt(req.query['page'] as string) || 1;
-      const limit = parseInt(req.query['limit'] as string) || undefined; // Sin límite por defecto
-      const offset = limit ? (page - 1) * limit : 0;
+      const limit = parseInt(req.query['limit'] as string) || 25;
 
       const filtros: FiltroMovimientoContableAgrupado = {
         conjunto,
@@ -143,20 +146,15 @@ export class MovimientoContableAgrupadoController {
 
       const resultado = await this.movimientoContableAgrupadoRepository.obtenerMovimientos(
         filtros, 
-        limit, 
-        offset
+        page, 
+        limit
       );
 
       res.status(200).json({
-        success: true,
-        message: 'Datos obtenidos exitosamente',
-        data: {
-          data: resultado.data,
-          total: resultado.total,
-          pagina: page,
-          porPagina: limit || 'Sin límite',
-          totalPaginas: limit ? Math.ceil(resultado.total / limit) : 1
-        },
+        success: resultado.success,
+        data: resultado.data,
+        pagination: resultado.pagination,
+        message: resultado.message,
         filtros: filtros
       });
 
@@ -360,30 +358,21 @@ export class MovimientoContableAgrupadoController {
 
       // Parámetros de consulta
       const page = parseInt(req.query['page'] as string) || 1;
-      const limit = parseInt(req.query['limit'] as string) || undefined; // Sin límite por defecto
+      const limit = parseInt(req.query['limit'] as string) || 25;
       const filtro = req.query['filtro'] as string;
-
-      const offset = limit ? (page - 1) * limit : 0;
 
       const resultado = await this.movimientoContableAgrupadoRepository.obtenerNitsCompletos(
         conjunto, 
+        page, 
         limit, 
-        offset, 
         filtro
       );
 
-      const totalPaginas = limit ? Math.ceil(resultado.total / limit) : 1;
-
       res.status(200).json({
-        success: true,
-        message: 'NITs obtenidos exitosamente',
-        data: {
-          data: resultado.data,
-          total: resultado.total,
-          pagina: page,
-          porPagina: limit || 'Sin límite',
-          totalPaginas
-        }
+        success: resultado.success,
+        data: resultado.data,
+        pagination: resultado.pagination,
+        message: resultado.message
       });
 
     } catch (error) {

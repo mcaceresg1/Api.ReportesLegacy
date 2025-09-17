@@ -202,6 +202,15 @@ export class LibroMayorAsientosController {
       console.error("Error en generarReporte:", error);
       res.status(500).json({
         success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 0,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
         message: "Error al generar el reporte",
         error: error instanceof Error ? error.message : "Error desconocido",
       });
@@ -301,9 +310,22 @@ export class LibroMayorAsientosController {
       const { conjunto } = req.params;
       const { asiento, tipoAsiento, page, limit } = req.query;
 
+      console.log('=== CONTROLADOR obtenerAsientos ===');
+      console.log('Conjunto:', conjunto);
+      console.log('Query params:', { asiento, tipoAsiento, page, limit });
+
       if (!conjunto) {
         res.status(400).json({
           success: false,
+          data: [],
+          pagination: {
+            page: 1,
+            limit: 0,
+            total: 0,
+            totalPages: 0,
+            hasNext: false,
+            hasPrev: false,
+          },
           message: "El parámetro conjunto es obligatorio",
         });
         return;
@@ -313,9 +335,22 @@ export class LibroMayorAsientosController {
       const pageNum = page ? parseInt(page as string, 10) : 1;
       const limitNum = limit ? parseInt(limit as string, 10) : 25;
 
+      console.log('Paginación procesada:');
+      console.log('- pageNum:', pageNum);
+      console.log('- limitNum:', limitNum);
+
       if (pageNum < 1 || limitNum < 1 || limitNum > 1000) {
         res.status(400).json({
           success: false,
+          data: [],
+          pagination: {
+            page: 1,
+            limit: 0,
+            total: 0,
+            totalPages: 0,
+            hasNext: false,
+            hasPrev: false,
+          },
           message: "La página debe ser >= 1 y el límite debe estar entre 1 y 1000",
         });
         return;
@@ -330,13 +365,29 @@ export class LibroMayorAsientosController {
         limit: limitNum,
       };
 
+      console.log('Filtros preparados:', filtros);
+
       const resultado = await this.libroMayorAsientosService.obtenerAsientos(conjunto, filtros);
+
+      console.log('Resultado del servicio:');
+      console.log('- success:', resultado.success);
+      console.log('- data length:', resultado.data?.length);
+      console.log('- pagination:', resultado.pagination);
 
       res.status(200).json(resultado);
     } catch (error) {
       console.error("Error en obtenerAsientos:", error);
       res.status(500).json({
         success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 0,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
         message: "Error al obtener asientos",
         error: error instanceof Error ? error.message : "Error desconocido",
       });

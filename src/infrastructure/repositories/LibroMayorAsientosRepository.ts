@@ -43,7 +43,19 @@ export class LibroMayorAsientosRepository {
   async generarReporte(
     conjunto: string,
     filtros: GenerarLibroMayorAsientosParams
-  ): Promise<LibroMayorAsientos[]> {
+  ): Promise<{
+    success: boolean;
+    data: LibroMayorAsientos[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+    message: string;
+  }> {
     try {
       let whereClause = "WHERE 1=1";
       const replacements: any = {};
@@ -78,7 +90,7 @@ export class LibroMayorAsientosRepository {
       `;
 
       const [results] = await exactusSequelize.query(query, { replacements });
-      return (results as any[]).map((row: any) => ({
+      const data = (results as any[]).map((row: any) => ({
         asiento: row.asiento,
         contabilidad: row.contabilidad,
         tipo_asiento: row.tipo_asiento,
@@ -91,9 +103,35 @@ export class LibroMayorAsientosRepository {
         exportado: row.exportado,
         tipo_ingreso_mayor: row.tipo_ingreso_mayor,
       }));
+
+      return {
+        success: true,
+        data,
+        pagination: {
+          page: 1,
+          limit: data.length,
+          total: data.length,
+          totalPages: 1,
+          hasNext: false,
+          hasPrev: false,
+        },
+        message: "Reporte generado exitosamente"
+      };
     } catch (error) {
       console.error('Error generando reporte de libro mayor asientos:', error);
-      throw new Error(`Error al generar reporte: ${error}`);
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 0,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
+        message: `Error al generar reporte: ${error instanceof Error ? error.message : 'Error desconocido'}`
+      };
     }
   }
 
@@ -129,10 +167,17 @@ export class LibroMayorAsientosRepository {
       const [countResults] = await exactusSequelize.query(countQuery, { replacements });
       const total = (countResults as any[])[0].total;
 
-      // Aplicar paginación
+      // Aplicar paginación estandarizada
       const page = filtros.page || 1;
       const limit = filtros.limit || 25;
       const offset = (page - 1) * limit;
+
+      console.log('=== REPOSITORIO obtenerAsientos ===');
+      console.log('Filtros recibidos:', filtros);
+      console.log('Paginación calculada:');
+      console.log('- page:', page);
+      console.log('- limit:', limit);
+      console.log('- offset:', offset);
 
       const dataQuery = `
         SELECT 
@@ -154,6 +199,11 @@ export class LibroMayorAsientosRepository {
         FETCH NEXT ${limit} ROWS ONLY
       `;
 
+      console.log('Query SQL ejecutada:');
+      console.log('- Count query:', countQuery);
+      console.log('- Data query:', dataQuery);
+      console.log('- Replacements:', replacements);
+
       const [dataResults] = await exactusSequelize.query(dataQuery, { replacements });
       const asientos = (dataResults as any[]).map((row: any) => ({
         asiento: row.asiento,
@@ -171,6 +221,14 @@ export class LibroMayorAsientosRepository {
 
       const totalPages = Math.ceil(total / limit);
 
+      console.log('Resultados obtenidos:');
+      console.log('- Total registros:', total);
+      console.log('- Registros en página:', asientos.length);
+      console.log('- Total páginas:', totalPages);
+      console.log('- Página actual:', page);
+      console.log('- Has next:', page < totalPages);
+      console.log('- Has prev:', page > 1);
+
       return {
         success: true,
         data: asientos,
@@ -186,7 +244,19 @@ export class LibroMayorAsientosRepository {
       };
     } catch (error) {
       console.error('Error obteniendo asientos de libro mayor:', error);
-      throw new Error(`Error al obtener asientos: ${error}`);
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 0,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
+        message: `Error al obtener asientos: ${error instanceof Error ? error.message : 'Error desconocido'}`
+      };
     }
   }
 

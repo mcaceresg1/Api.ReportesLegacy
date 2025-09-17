@@ -161,8 +161,9 @@ export class DiarioContabilidadRepository implements IDiarioContabilidadReposito
 
   async obtenerDiarioContabilidad(filtros: DiarioContabilidadFiltros): Promise<DiarioContabilidadResponse> {
     try {
+      const page = filtros.page || 1;
       const limit = filtros.limit || 25;
-      const offset = filtros.offset || 0;
+      const offset = (page - 1) * limit;
       const tableName = this.getTableName(filtros.conjunto);
       
       // Construir WHERE clause
@@ -195,6 +196,22 @@ export class DiarioContabilidadRepository implements IDiarioContabilidadReposito
       if (filtros.origen) {
         whereClause += ` AND MODULO = '${filtros.origen}'`;
       }
+
+      // Obtener total de registros
+      const total = await this.obtenerTotalRegistros({
+        conjunto: filtros.conjunto,
+        usuario: filtros.usuario,
+        fechaInicio: filtros.fechaInicio,
+        fechaFin: filtros.fechaFin,
+        contabilidad: filtros.contabilidad || 'F,A',
+        tipoReporte: filtros.tipoReporte || 'Preliminar',
+        cuentaContable: filtros.cuentaContable,
+        centroCosto: filtros.centroCosto,
+        nit: filtros.nit,
+        tipoAsiento: filtros.tipoAsiento,
+        asiento: filtros.asiento,
+        origen: filtros.origen
+      });
 
       // Query principal con paginación
       const query = `
@@ -237,36 +254,37 @@ export class DiarioContabilidadRepository implements IDiarioContabilidadReposito
         type: QueryTypes.SELECT 
       }) as DiarioContabilidad[];
 
-      // Obtener total de registros
-      const total = await this.obtenerTotalRegistros({
-        conjunto: filtros.conjunto,
-        usuario: filtros.usuario,
-        fechaInicio: filtros.fechaInicio,
-        fechaFin: filtros.fechaFin,
-        contabilidad: filtros.contabilidad || 'F,A',
-        tipoReporte: filtros.tipoReporte || 'Preliminar',
-        cuentaContable: filtros.cuentaContable,
-        centroCosto: filtros.centroCosto,
-        nit: filtros.nit,
-        tipoAsiento: filtros.tipoAsiento,
-        asiento: filtros.asiento,
-        origen: filtros.origen
-      });
-
-      const totalPaginas = Math.ceil(total / limit);
-      const pagina = Math.floor(offset / limit) + 1;
+      const totalPages = Math.ceil(total / limit);
 
       return {
+        success: true,
         data,
-        total,
-        pagina,
-        porPagina: limit,
-        totalPaginas
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1,
+        },
+        message: "Datos obtenidos exitosamente",
       };
 
     } catch (error) {
       console.error('Error al obtener Diario de Contabilidad:', error);
-      throw error;
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 25,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
+        message: `Error al obtener Diario de Contabilidad: ${error}`,
+      };
     }
   }
 

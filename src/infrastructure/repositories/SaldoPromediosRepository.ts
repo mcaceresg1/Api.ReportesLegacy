@@ -25,7 +25,19 @@ export class SaldoPromediosRepository implements ISaldoPromediosRepository {
     }
   }
 
-  async generarReportePaginado(filtros: FiltroSaldoPromedios, page: number, limit: number): Promise<SaldoPromediosItem[]> {
+  async generarReportePaginado(filtros: FiltroSaldoPromedios, page: number, limit: number): Promise<{
+    success: boolean;
+    data: SaldoPromediosItem[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+    message: string;
+  }> {
     try {
       const { conjunto, cuenta_contable_desde, cuenta_contable_hasta, fecha_desde, fecha_hasta } = filtros;
       
@@ -183,11 +195,39 @@ export class SaldoPromediosRepository implements ISaldoPromediosRepository {
         limite: limit,
         offset: offset
       });
-      
-      return results as SaldoPromediosItem[];
+
+      // Obtener el total de registros para la paginación
+      const totalRecords = await this.obtenerTotalRegistros(filtros);
+      const totalPages = Math.ceil(totalRecords / limit);
+
+      return {
+        success: true,
+        data: results as SaldoPromediosItem[],
+        pagination: {
+          page,
+          limit,
+          total: totalRecords,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1
+        },
+        message: "Datos obtenidos exitosamente"
+      };
     } catch (error) {
       console.error('Error generando reporte paginado:', error);
-      throw error;
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 25,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false
+        },
+        message: `Error al generar el reporte: ${error instanceof Error ? error.message : 'Error desconocido'}`
+      };
     }
   }
 

@@ -19,40 +19,47 @@ export class SaldoPromediosService implements ISaldoPromediosService {
   }
 
   async generarReportePaginado(filtros: FiltroSaldoPromedios, page: number, limit: number): Promise<{
+    success: boolean;
     data: SaldoPromediosItem[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+    message: string;
   }> {
     try {
       console.log('📊 Service: Generando reporte paginado:', { page, limit });
       
-      // Obtener datos paginados
-      const data = await this.saldoPromediosRepository.generarReportePaginado(filtros, page, limit);
-      
-      // Obtener total de registros
-      const total = await this.saldoPromediosRepository.obtenerTotalRegistros(filtros);
-      
-      const totalPages = Math.ceil(total / limit);
+      // Obtener datos paginados con formato estandarizado
+      const resultado = await this.saldoPromediosRepository.generarReportePaginado(filtros, page, limit);
       
       console.log('📊 Service: Reporte generado exitosamente:', {
-        registrosEnPagina: data.length,
-        totalRegistros: total,
-        pagina: page,
-        totalPaginas: totalPages
+        registrosEnPagina: resultado.data.length,
+        totalRegistros: resultado.pagination.total,
+        pagina: resultado.pagination.page,
+        totalPaginas: resultado.pagination.totalPages
       });
       
-      return {
-        data,
-        total,
-        page,
-        limit,
-        totalPages
-      };
+      return resultado;
     } catch (error) {
       console.error('Error en servicio al generar reporte paginado:', error);
-      throw error;
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 25,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false
+        },
+        message: `Error al generar el reporte: ${error instanceof Error ? error.message : 'Error desconocido'}`
+      };
     }
   }
 }

@@ -24,3 +24,18 @@ export interface MovimientoContable {
   U_PATRIMONIO_NETO?: string;
   U_REP_REF?: string;
 }
+
+export interface MovimientoContableResponse {
+  success: boolean;
+  data: MovimientoContable[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+  message: string;
+}
+

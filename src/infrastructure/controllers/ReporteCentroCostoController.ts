@@ -303,9 +303,10 @@ export class ReporteCentroCostoController {
       );
 
       res.json({
-        success: true,
+        success: result.success,
         data: result.data,
-        pagination: result.pagination
+        pagination: result.pagination,
+        message: result.message
       });
     } catch (error) {
       console.error('Error en obtenerCentrosCostoPorCuentaContable:', error);

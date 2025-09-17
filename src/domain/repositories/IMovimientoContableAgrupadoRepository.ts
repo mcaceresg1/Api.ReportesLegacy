@@ -9,15 +9,36 @@ export interface IMovimientoContableAgrupadoRepository {
   /**
    * Genera el reporte de movimientos contables agrupados por NIT con dimensión contable
    */
-  generarReporte(filtros: FiltroMovimientoContableAgrupado): Promise<MovimientoContableAgrupadoItem[]>;
+  generarReporte(filtros: FiltroMovimientoContableAgrupado, page?: number, limit?: number): Promise<{
+    success: boolean;
+    data: MovimientoContableAgrupadoItem[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+    message: string;
+  }>;
 
   /**
-   * Obtiene los movimientos contables agrupados con paginación
+   * Obtiene los movimientos contables agrupados con paginación estandarizada
    * Si no se especifica limit, retorna todos los registros
    */
-  obtenerMovimientos(filtros: FiltroMovimientoContableAgrupado, limit?: number, offset?: number): Promise<{
+  obtenerMovimientos(filtros: FiltroMovimientoContableAgrupado, page?: number, limit?: number): Promise<{
+    success: boolean;
     data: MovimientoContableAgrupadoItem[];
-    total: number;
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+    message: string;
   }>;
 
   /**
@@ -62,12 +83,21 @@ export interface IMovimientoContableAgrupadoRepository {
   obtenerNitCompleto(conjunto: string, nit: string): Promise<NitCompleto | null>;
 
   /**
-   * Obtiene lista de NITs completos con paginación
+   * Obtiene lista de NITs completos con paginación estandarizada
    * Si no se especifica limit, retorna todos los registros
    */
-  obtenerNitsCompletos(conjunto: string, limit?: number, offset?: number, filtro?: string): Promise<{
+  obtenerNitsCompletos(conjunto: string, page?: number, limit?: number, filtro?: string): Promise<{
+    success: boolean;
     data: NitCompleto[];
-    total: number;
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+    message: string;
   }>;
 
   /**

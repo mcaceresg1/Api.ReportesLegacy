@@ -3,10 +3,16 @@ import { CuentaContableOption, FiltroSaldoPromedios, SaldoPromediosItem } from '
 export interface ISaldoPromediosService {
   obtenerCuentasContables(conjunto: string): Promise<CuentaContableOption[]>;
   generarReportePaginado(filtros: FiltroSaldoPromedios, page: number, limit: number): Promise<{
+    success: boolean;
     data: SaldoPromediosItem[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+    message: string;
   }>;
 }

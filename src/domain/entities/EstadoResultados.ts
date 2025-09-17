@@ -91,9 +91,11 @@ export interface EstadoResultadosResponse {
   data: EstadoResultados[];
   pagination?: {
     page: number;
-    pageSize: number;
-    totalRecords: number;
+    limit: number;
+    total: number;
     totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
   };
   message?: string;
   validacionBalance?: ValidacionBalance | undefined;

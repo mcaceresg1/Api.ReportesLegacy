@@ -3,5 +3,17 @@ import { PeriodoContable, FiltroPeriodoContable, CentroCosto, PeriodoContableInf
 export interface IPeriodoContableRepository {
   obtenerCentrosCosto(conjunto: string): Promise<CentroCosto[]>;
   obtenerPeriodosContables(conjunto: string): Promise<PeriodoContableInfo[]>;
-  generarReporte(filtros: FiltroPeriodoContable): Promise<PeriodoContable[]>;
+  generarReporte(filtros: FiltroPeriodoContable, page?: number, limit?: number): Promise<{
+    success: boolean;
+    data: PeriodoContable[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+    message: string;
+  }>;
 }

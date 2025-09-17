@@ -357,6 +357,15 @@ export class LibroDiarioAsientosController {
       console.error("Error generando reporte:", error);
       res.status(500).json({
         success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 0,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
         message: "Error interno del servidor",
         error: error instanceof Error ? error.message : "Unknown error",
       });
@@ -569,6 +578,15 @@ export class LibroDiarioAsientosController {
       console.error("Error obteniendo asientos:", error);
       res.status(500).json({
         success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 0,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
         message: "Error interno del servidor",
         error: error instanceof Error ? error.message : "Unknown error",
       });

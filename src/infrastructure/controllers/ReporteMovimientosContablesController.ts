@@ -141,15 +141,12 @@ export class ReporteMovimientosContablesController {
 
       console.log('Filtros recibidos en el controlador:', filtros);
 
-      // Obtener el reporte del servicio
-      const resultados = await this.reporteMovimientosContablesService.obtenerReporteMovimientosContables(conjunto, filtros);
+      // Obtener el reporte del servicio (ahora retorna formato estandarizado)
+      const resultado = await this.reporteMovimientosContablesService.obtenerReporteMovimientosContables(conjunto, filtros);
 
-      // Preparar respuesta con metadatos
+      // El servicio ya retorna el formato estandarizado, solo agregamos metadatos adicionales
       const respuesta = {
-        success: true,
-        message: 'Reporte generado exitosamente',
-        data: resultados,
-        totalRegistros: resultados.length,
+        ...resultado,
         filtrosAplicados: filtros,
         metadata: {
           conjunto,

@@ -133,7 +133,19 @@ export class LibroMayorRepository {
   async generarReporte(
     conjunto: string,
     filtros: GenerarLibroMayorParams
-  ): Promise<LibroMayor[]> {
+  ): Promise<{
+    success: boolean;
+    data: LibroMayor[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+    message: string;
+  }> {
     try {
       // Query principal que combina MAYOR y SALDO
       const query = `
@@ -259,7 +271,7 @@ export class LibroMayorRepository {
       }
 
       const [results] = await exactusSequelize.query(query, { replacements });
-      return (results as any[]).map((row: any) => ({
+      const data = (results as any[]).map((row: any) => ({
         centro_costo: row.CENTRO_COSTO,
         cuenta_contable: row.CUENTA_CONTABLE,
         descripcion_cuenta: '', // Se llenará con join a cuenta_contable si es necesario
@@ -282,9 +294,35 @@ export class LibroMayorRepository {
         debito_corp_und: parseFloat(row.debito_corp_und) || 0,
         credito_corp_und: parseFloat(row.credito_corp_und) || 0,
       }));
+
+      return {
+        success: true,
+        data,
+        pagination: {
+          page: 1,
+          limit: data.length,
+          total: data.length,
+          totalPages: 1,
+          hasNext: false,
+          hasPrev: false,
+        },
+        message: "Reporte generado exitosamente"
+      };
     } catch (error) {
       console.error('Error generando reporte de Libro Mayor:', error);
-      throw new Error(`Error al generar reporte de Libro Mayor: ${error}`);
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 0,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
+        message: `Error al generar reporte de Libro Mayor: ${error instanceof Error ? error.message : 'Error desconocido'}`
+      };
     }
   }
 
