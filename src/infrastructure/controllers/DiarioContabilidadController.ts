@@ -357,15 +357,10 @@ export class DiarioContabilidadController {
       const resultado = await this.diarioContabilidadRepository.obtenerDiarioContabilidad(filtros);
 
       res.status(200).json({
-        success: true,
-        message: 'Diario de Contabilidad obtenido exitosamente',
-        data: resultado,
-        paginacion: {
-          pagina: resultado.pagina,
-          porPagina: resultado.porPagina,
-          total: resultado.total,
-          totalPaginas: resultado.totalPaginas
-        }
+        success: resultado.success,
+        message: resultado.message,
+        data: resultado.data,
+        pagination: resultado.pagination,
       });
 
     } catch (error) {

@@ -358,6 +358,11 @@ export class BalanceComprobacionRepository
       );
       const total = (countResult as any[])[0]?.total || 0;
 
+      // Configurar paginación estándar
+      const page = filtros.page || 1;
+      const limit = filtros.limit || 25;
+      const offset = (page - 1) * limit;
+
       // Query para obtener los datos paginados con formato de Balance de Comprobación
       const dataQuery = `
         SELECT 
@@ -436,8 +441,6 @@ export class BalanceComprobacionRepository
         OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
       `;
 
-      const offset = filtros.offset || 0;
-      const limit = filtros.limit || 25;
       const dataParams = [...params, offset, limit];
 
       const [data] = await exactusSequelize.query(
@@ -445,23 +448,38 @@ export class BalanceComprobacionRepository
         { replacements: dataParams }
       );
 
-      const pagina = Math.floor(offset / limit) + 1;
-      const totalPaginas = Math.ceil(total / limit);
+      const totalPages = Math.ceil(total / limit);
 
       return {
+        success: true,
         data: data as BalanceComprobacion[],
-        total,
-        pagina,
-        porPagina: limit,
-        totalPaginas,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1,
+        },
+        message: "Datos obtenidos exitosamente",
       };
     } catch (error) {
       console.error("Error obteniendo Balance de Comprobación:", error);
-      throw new Error(
-        `Error al obtener el Balance de Comprobación: ${
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 25,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
+        message: `Error al obtener el Balance de Comprobación: ${
           error instanceof Error ? error.message : "Error desconocido"
-        }`
-      );
+        }`,
+      };
     }
   }
 

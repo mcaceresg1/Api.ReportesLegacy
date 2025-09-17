@@ -147,7 +147,19 @@ export class LibroDiarioAsientosRepository {
   async generarReporte(
     conjunto: string,
     filtros: GenerarLibroDiarioAsientosParams
-  ): Promise<LibroDiarioAsientos[]> {
+  ): Promise<{
+    success: boolean;
+    data: LibroDiarioAsientos[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+    message: string;
+  }> {
     try {
       let whereClause = "WHERE 1=1";
       const replacements: any = {};
@@ -243,7 +255,7 @@ export class LibroDiarioAsientosRepository {
       `;
 
       const [results] = await exactusSequelize.query(query, { replacements });
-      return (results as any[]).map((row: any) => ({
+      const data = (results as any[]).map((row: any) => ({
         asiento: row.asiento,
         paquete: row.paquete,
         descripcion: row.descripcion,
@@ -261,9 +273,35 @@ export class LibroDiarioAsientosRepository {
         total_control_dol: parseFloat(row.total_control_dol) || 0,
         diferencia_dolar: parseFloat(row.diferencia_dolar) || 0,
       }));
+
+      return {
+        success: true,
+        data,
+        pagination: {
+          page: 1,
+          limit: data.length,
+          total: data.length,
+          totalPages: 1,
+          hasNext: false,
+          hasPrev: false,
+        },
+        message: "Reporte generado exitosamente"
+      };
     } catch (error) {
       console.error('Error generando reporte de libro diario asientos:', error);
-      throw new Error(`Error al generar reporte: ${error}`);
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 0,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
+        message: `Error al generar reporte: ${error instanceof Error ? error.message : 'Error desconocido'}`
+      };
     }
   }
 
@@ -427,7 +465,19 @@ export class LibroDiarioAsientosRepository {
       };
     } catch (error) {
       console.error('Error obteniendo asientos de libro diario:', error);
-      throw new Error(`Error al obtener asientos: ${error}`);
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 0,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
+        message: `Error al obtener asientos: ${error instanceof Error ? error.message : 'Error desconocido'}`
+      };
     }
   }
 

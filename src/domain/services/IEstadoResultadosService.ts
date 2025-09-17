@@ -9,7 +9,19 @@ export interface IEstadoResultadosService {
     filtros: FiltrosEstadoResultados,
     page?: number,
     pageSize?: number
-  ): Promise<EstadoResultados[]>;
+  ): Promise<{
+    success: boolean;
+    data: EstadoResultados[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+    message: string;
+  }>;
   getTotalRecords(conjunto: string, usuario: string, filtros: FiltrosEstadoResultados): Promise<number>;
   validarBalance(conjunto: string, usuario: string, filtros: FiltrosEstadoResultados): Promise<ValidacionBalance>;
 }

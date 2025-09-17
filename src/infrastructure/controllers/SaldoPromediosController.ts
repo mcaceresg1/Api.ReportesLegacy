@@ -86,20 +86,13 @@ export class SaldoPromediosController {
       const resultado = await this.saldoPromediosService.generarReportePaginado(filtros, paginaActual, registrosPorPagina);
       
       console.log('✅ Reporte generado exitosamente, registros en página:', resultado.data.length);
-      console.log('📊 Total de registros disponibles:', resultado.total);
+      console.log('📊 Total de registros disponibles:', resultado.pagination.total);
       
       res.json({
-        success: true,
+        success: resultado.success,
         data: resultado.data,
-        pagination: {
-          page: resultado.page,
-          limit: resultado.limit,
-          total: resultado.total,
-          totalPages: resultado.totalPages,
-          hasNext: resultado.page < resultado.totalPages,
-          hasPrev: resultado.page > 1
-        },
-        message: `Página ${resultado.page} con ${resultado.data.length} registros de ${resultado.total} total`
+        pagination: resultado.pagination,
+        message: resultado.message
       });
     } catch (error) {
       console.error('❌ Error en controlador al generar reporte:', error);

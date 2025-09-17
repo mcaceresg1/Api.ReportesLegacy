@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
 import { IMovimientoContableRepository } from '../../domain/repositories/IMovimientoContableRepository';
-import { MovimientoContable } from '../../domain/entities/MovimientoContable';
+import { MovimientoContable, MovimientoContableResponse } from '../../domain/entities/MovimientoContable';
 import { DynamicModelFactory } from '../database/models/DynamicModel';
 import { QueryTypes, Op } from 'sequelize';
 import { exactusSequelize } from '../database/config/exactus-database';
@@ -14,10 +14,13 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
     usuario: string,
     fechaInicio: Date,
     fechaFin: Date,
-    limit: number = 100,
-    offset: number = 0
-  ): Promise<{ data: MovimientoContable[], total: number }> {
+    page: number = 1,
+    limit: number = 100
+  ): Promise<MovimientoContableResponse> {
     try {
+      // Calcular offset basado en página
+      const offset = (page - 1) * limit;
+      
       // Primero limpiar datos anteriores del usuario
       await exactusSequelize.query(
         `DELETE FROM ${conjunto}.REPCG_MOV_CUENTA WHERE USUARIO = '${usuario}'`,
@@ -150,24 +153,58 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
         offset,
       });
 
+      const totalPages = Math.ceil(total / limit);
+      const hasNext = page < totalPages;
+      const hasPrev = page > 1;
+
       return {
+        success: true,
         data: movimientos.map(movimiento => movimiento.toJSON() as MovimientoContable),
-        total
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNext,
+          hasPrev
+        },
+        message: `Reporte generado exitosamente con ${total} registros`
       };
     } catch (error) {
       console.error('Error al generar reporte de movimientos:', error);
-      throw new Error('Error al generar reporte de movimientos');
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 0,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false
+        },
+        message: `Error al generar reporte: ${error instanceof Error ? error.message : 'Error desconocido'}`
+      };
     }
   }
 
   async obtenerMovimientosPorUsuario(
     conjunto: string,
     usuario: string,
-    limit: number = 100,
-    offset: number = 0
-  ): Promise<MovimientoContable[]> {
+    page: number = 1,
+    limit: number = 100
+  ): Promise<MovimientoContableResponse> {
     try {
+      const offset = (page - 1) * limit;
+      
+      // Obtener el total de registros
       const MovimientoContableModel = DynamicModelFactory.createMovimientoContableModel(conjunto);
+      const total = await MovimientoContableModel.count({
+        where: {
+          USUARIO: usuario
+        }
+      });
+
       const movimientos = await MovimientoContableModel.findAll({
         attributes: [
           'USUARIO', 'CUENTA_CONTABLE', 'DESCRIPCION_CUENTA_CONTABLE', 'ASIENTO', 'TIPO',
@@ -183,21 +220,60 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
         limit,
         offset,
       });
-      return movimientos.map(movimiento => movimiento.toJSON() as MovimientoContable);
+
+      const totalPages = Math.ceil(total / limit);
+      const hasNext = page < totalPages;
+      const hasPrev = page > 1;
+
+      return {
+        success: true,
+        data: movimientos.map(movimiento => movimiento.toJSON() as MovimientoContable),
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNext,
+          hasPrev
+        },
+        message: `Movimientos obtenidos exitosamente: ${movimientos.length} de ${total} registros`
+      };
     } catch (error) {
       console.error('Error al obtener movimientos por usuario:', error);
-      throw new Error('Error al obtener movimientos por usuario');
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 0,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false
+        },
+        message: `Error al obtener movimientos: ${error instanceof Error ? error.message : 'Error desconocido'}`
+      };
     }
   }
 
   async obtenerMovimientosPorCentroCosto(
     conjunto: string,
     centroCosto: string,
-    limit: number = 100,
-    offset: number = 0
-  ): Promise<MovimientoContable[]> {
+    page: number = 1,
+    limit: number = 100
+  ): Promise<MovimientoContableResponse> {
     try {
+      const offset = (page - 1) * limit;
+      
       const MovimientoContableModel = DynamicModelFactory.createMovimientoContableModel(conjunto);
+      
+      // Obtener el total de registros
+      const total = await MovimientoContableModel.count({
+        where: {
+          CENTRO_COSTO: centroCosto
+        }
+      });
+
       const movimientos = await MovimientoContableModel.findAll({
         attributes: [
           'USUARIO', 'CUENTA_CONTABLE', 'DESCRIPCION_CUENTA_CONTABLE', 'ASIENTO', 'TIPO',
@@ -213,21 +289,60 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
         limit,
         offset,
       });
-      return movimientos.map(movimiento => movimiento.toJSON() as MovimientoContable);
+
+      const totalPages = Math.ceil(total / limit);
+      const hasNext = page < totalPages;
+      const hasPrev = page > 1;
+
+      return {
+        success: true,
+        data: movimientos.map(movimiento => movimiento.toJSON() as MovimientoContable),
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNext,
+          hasPrev
+        },
+        message: `Movimientos obtenidos exitosamente: ${movimientos.length} de ${total} registros`
+      };
     } catch (error) {
       console.error('Error al obtener movimientos por centro de costo:', error);
-      throw new Error('Error al obtener movimientos por centro de costo');
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 0,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false
+        },
+        message: `Error al obtener movimientos: ${error instanceof Error ? error.message : 'Error desconocido'}`
+      };
     }
   }
 
   async obtenerMovimientosPorCuentaContable(
     conjunto: string,
     cuentaContable: string,
-    limit: number = 100,
-    offset: number = 0
-  ): Promise<MovimientoContable[]> {
+    page: number = 1,
+    limit: number = 100
+  ): Promise<MovimientoContableResponse> {
     try {
+      const offset = (page - 1) * limit;
+      
       const MovimientoContableModel = DynamicModelFactory.createMovimientoContableModel(conjunto);
+      
+      // Obtener el total de registros
+      const total = await MovimientoContableModel.count({
+        where: {
+          CUENTA_CONTABLE: cuentaContable
+        }
+      });
+
       const movimientos = await MovimientoContableModel.findAll({
         attributes: [
           'USUARIO', 'CUENTA_CONTABLE', 'DESCRIPCION_CUENTA_CONTABLE', 'ASIENTO', 'TIPO',
@@ -243,10 +358,39 @@ export class MovimientoContableRepository implements IMovimientoContableReposito
         limit,
         offset,
       });
-      return movimientos.map(movimiento => movimiento.toJSON() as MovimientoContable);
+
+      const totalPages = Math.ceil(total / limit);
+      const hasNext = page < totalPages;
+      const hasPrev = page > 1;
+
+      return {
+        success: true,
+        data: movimientos.map(movimiento => movimiento.toJSON() as MovimientoContable),
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNext,
+          hasPrev
+        },
+        message: `Movimientos obtenidos exitosamente: ${movimientos.length} de ${total} registros`
+      };
     } catch (error) {
       console.error('Error al obtener movimientos por cuenta contable:', error);
-      throw new Error('Error al obtener movimientos por cuenta contable');
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 0,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false
+        },
+        message: `Error al obtener movimientos: ${error instanceof Error ? error.message : 'Error desconocido'}`
+      };
     }
   }
 

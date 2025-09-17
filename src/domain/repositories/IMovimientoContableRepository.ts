@@ -1,4 +1,4 @@
-import { MovimientoContable } from '../entities/MovimientoContable';
+import { MovimientoContable, MovimientoContableResponse } from '../entities/MovimientoContable';
 
 export interface IMovimientoContableRepository {
   generarReporteMovimientos(
@@ -6,30 +6,30 @@ export interface IMovimientoContableRepository {
     usuario: string,
     fechaInicio: Date,
     fechaFin: Date,
-    limit?: number,
-    offset?: number
-  ): Promise<{ data: MovimientoContable[], total: number }>;
+    page?: number,
+    limit?: number
+  ): Promise<MovimientoContableResponse>;
   
   obtenerMovimientosPorUsuario(
     conjunto: string,
     usuario: string,
-    limit?: number,
-    offset?: number
-  ): Promise<MovimientoContable[]>;
+    page?: number,
+    limit?: number
+  ): Promise<MovimientoContableResponse>;
   
   obtenerMovimientosPorCentroCosto(
     conjunto: string,
     centroCosto: string,
-    limit?: number,
-    offset?: number
-  ): Promise<MovimientoContable[]>;
+    page?: number,
+    limit?: number
+  ): Promise<MovimientoContableResponse>;
   
   obtenerMovimientosPorCuentaContable(
     conjunto: string,
     cuentaContable: string,
-    limit?: number,
-    offset?: number
-  ): Promise<MovimientoContable[]>;
+    page?: number,
+    limit?: number
+  ): Promise<MovimientoContableResponse>;
   
   getMovimientosCount(
     conjunto: string,

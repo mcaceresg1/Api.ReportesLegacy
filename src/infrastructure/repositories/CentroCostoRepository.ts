@@ -10,19 +10,65 @@ export class CentroCostoRepository implements ICentroCostoRepository {
     'CENTRO_COSTO', 'DESCRIPCION', 'ACEPTA_DATOS', 'TIPO'
   ];
 
-  async getCentrosCostoByConjunto(conjunto: string, limit: number = 100, offset: number = 0): Promise<CentroCosto[]> {
+  async getCentrosCostoByConjunto(conjunto: string, page: number = 1, limit: number = 25): Promise<{
+    success: boolean;
+    data: CentroCosto[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+    message: string;
+  }> {
     try {
+      const offset = (page - 1) * limit;
+      
       const CentroCostoModel = DynamicModelFactory.createCentroCostoModel(conjunto);
+      
+      // Obtener total de registros
+      const total = await CentroCostoModel.count();
+      
+      // Obtener datos paginados
       const centrosCosto = await CentroCostoModel.findAll({
         attributes: this.camposPrincipales,
         order: [['CENTRO_COSTO', 'ASC']],
         limit,
         offset,
       });
-      return centrosCosto.map(centroCosto => centroCosto.toJSON() as CentroCosto);
+      
+      const totalPages = Math.ceil(total / limit);
+      
+      return {
+        success: true,
+        data: centrosCosto.map(centroCosto => centroCosto.toJSON() as CentroCosto),
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1,
+        },
+        message: "Datos obtenidos exitosamente",
+      };
     } catch (error) {
       console.error('Error al obtener centros costo por conjunto:', error);
-      throw new Error('Error al obtener centros costo por conjunto');
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 25,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
+        message: `Error al obtener centros costo por conjunto: ${error}`,
+      };
     }
   }
 
@@ -39,9 +85,32 @@ export class CentroCostoRepository implements ICentroCostoRepository {
     }
   }
 
-  async getCentrosCostoByTipo(conjunto: string, tipo: string, limit: number = 100, offset: number = 0): Promise<CentroCosto[]> {
+  async getCentrosCostoByTipo(conjunto: string, tipo: string, page: number = 1, limit: number = 25): Promise<{
+    success: boolean;
+    data: CentroCosto[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+    message: string;
+  }> {
     try {
+      const offset = (page - 1) * limit;
+      
       const CentroCostoModel = DynamicModelFactory.createCentroCostoModel(conjunto);
+      
+      // Obtener total de registros
+      const total = await CentroCostoModel.count({
+        where: {
+          TIPO: tipo
+        }
+      });
+      
+      // Obtener datos paginados
       const centrosCosto = await CentroCostoModel.findAll({
         attributes: this.camposPrincipales,
         where: {
@@ -51,16 +120,66 @@ export class CentroCostoRepository implements ICentroCostoRepository {
         limit,
         offset,
       });
-      return centrosCosto.map(centroCosto => centroCosto.toJSON() as CentroCosto);
+      
+      const totalPages = Math.ceil(total / limit);
+      
+      return {
+        success: true,
+        data: centrosCosto.map(centroCosto => centroCosto.toJSON() as CentroCosto),
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1,
+        },
+        message: "Datos obtenidos exitosamente",
+      };
     } catch (error) {
       console.error('Error al obtener centros costo por tipo:', error);
-      throw new Error('Error al obtener centros costo por tipo');
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 25,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
+        message: `Error al obtener centros costo por tipo: ${error}`,
+      };
     }
   }
 
-  async getCentrosCostoActivos(conjunto: string, limit: number = 100, offset: number = 0): Promise<CentroCosto[]> {
+  async getCentrosCostoActivos(conjunto: string, page: number = 1, limit: number = 25): Promise<{
+    success: boolean;
+    data: CentroCosto[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+    message: string;
+  }> {
     try {
+      const offset = (page - 1) * limit;
+      
       const CentroCostoModel = DynamicModelFactory.createCentroCostoModel(conjunto);
+      
+      // Obtener total de registros
+      const total = await CentroCostoModel.count({
+        where: {
+          ACEPTA_DATOS: true
+        }
+      });
+      
+      // Obtener datos paginados
       const centrosCosto = await CentroCostoModel.findAll({
         attributes: this.camposPrincipales,
         where: {
@@ -70,10 +189,37 @@ export class CentroCostoRepository implements ICentroCostoRepository {
         limit,
         offset,
       });
-      return centrosCosto.map(centroCosto => centroCosto.toJSON() as CentroCosto);
+      
+      const totalPages = Math.ceil(total / limit);
+      
+      return {
+        success: true,
+        data: centrosCosto.map(centroCosto => centroCosto.toJSON() as CentroCosto),
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1,
+        },
+        message: "Datos obtenidos exitosamente",
+      };
     } catch (error) {
       console.error('Error al obtener centros costo activos:', error);
-      throw new Error('Error al obtener centros costo activos');
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 25,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
+        message: `Error al obtener centros costo activos: ${error}`,
+      };
     }
   }
 

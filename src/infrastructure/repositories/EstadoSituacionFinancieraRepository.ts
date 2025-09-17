@@ -531,7 +531,7 @@ export class EstadoSituacionFinancieraRepository {
           hasNext: false,
           hasPrev: false
         },
-        message: 'Error al obtener datos'
+        message: `Error al obtener datos: ${error}`
       };
     }
   }

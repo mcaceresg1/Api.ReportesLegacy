@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { injectable, inject } from 'inversify';
 import { IEstadoResultadosService } from '../../domain/services/IEstadoResultadosService';
 import { TYPES } from '../container/types';
-import { EstadoResultadosRequest, EstadoResultadosResponse } from '../../domain/entities/EstadoResultados';
+import { EstadoResultados, EstadoResultadosRequest, EstadoResultadosResponse } from '../../domain/entities/EstadoResultados';
 import * as ExcelJS from 'exceljs';
 
 @injectable()
@@ -220,19 +220,14 @@ export class EstadoResultadosController {
       ]);
 
       // Obtener validación de balance si está disponible
-      const validacionBalance = estadoResultados.length > 0 ? 
+      const validacionBalance = estadoResultados.data.length > 0 ? 
         await this.estadoResultadosService.validarBalance(conjunto!, usuario!, filtros) : 
         undefined;
 
       const response: EstadoResultadosResponse = {
-        success: true,
-        data: estadoResultados,
-        pagination: {
-          page,
-          pageSize,
-          totalRecords,
-          totalPages: Math.ceil(totalRecords / pageSize)
-        },
+        success: estadoResultados.success,
+        data: estadoResultados.data,
+        pagination: estadoResultados.pagination,
         validacionBalance
       };
 
@@ -312,7 +307,7 @@ export class EstadoResultadosController {
       ];
 
       // Agregar datos
-      estadoResultados.forEach(item => {
+      estadoResultados.data.forEach((item: EstadoResultados) => {
         worksheet.addRow({
           cuenta_contable: item.cuenta_contable,
           nombre_cuenta: item.nombre_cuenta,

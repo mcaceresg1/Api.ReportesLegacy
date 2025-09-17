@@ -58,11 +58,17 @@ export interface DiarioContabilidadFiltros {
  * Respuesta paginada del Diario de Contabilidad
  */
 export interface DiarioContabilidadResponse {
+  success: boolean;
   data: DiarioContabilidad[];
-  total: number;
-  pagina: number;
-  porPagina: number;
-  totalPaginas: number;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+  message: string;
 }
 
 /**

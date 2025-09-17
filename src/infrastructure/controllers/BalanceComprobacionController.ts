@@ -464,15 +464,10 @@ export class BalanceComprobacionController {
         );
 
       res.status(200).json({
-        success: true,
-        message: "Balance de Comprobación obtenido exitosamente",
-        data: resultado,
-        paginacion: {
-          pagina: resultado.pagina,
-          porPagina: resultado.porPagina,
-          total: resultado.total,
-          totalPaginas: resultado.totalPaginas,
-        },
+        success: resultado.success,
+        message: resultado.message,
+        data: resultado.data,
+        pagination: resultado.pagination,
       });
     } catch (error) {
       console.error("Error en obtenerBalanceComprobacion:", error);

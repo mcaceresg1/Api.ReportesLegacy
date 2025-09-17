@@ -9,7 +9,19 @@ import { QueryTypes } from 'sequelize';
 
 export class MovimientoContableAgrupadoRepository implements IMovimientoContableAgrupadoRepository {
 
-  async generarReporte(filtros: FiltroMovimientoContableAgrupado): Promise<MovimientoContableAgrupadoItem[]> {
+  async generarReporte(filtros: FiltroMovimientoContableAgrupado, page: number = 1, limit: number = 25): Promise<{
+    success: boolean;
+    data: MovimientoContableAgrupadoItem[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+    message: string;
+  }> {
     try {
       const schema = filtros.conjunto;
       
@@ -124,7 +136,17 @@ export class MovimientoContableAgrupadoRepository implements IMovimientoContable
         replacements
       });
 
-      // 3. Ejecutar el procedimiento almacenado para obtener resultados
+      // 3. Obtener el total de registros para paginación
+      const countQuery = `SELECT COUNT(*) as total FROM ${schema}.R_XML_8DDC5F23E38311C`;
+      const [countResult] = await exactusSequelize.query(countQuery, {
+        type: QueryTypes.SELECT
+      }) as [{ total: number }];
+      const totalRecords = countResult?.total || 0;
+
+      // 4. Calcular offset para paginación
+      const offset = (page - 1) * limit;
+
+      // 5. Ejecutar consulta de datos con paginación
       const resultQuery = `
         SELECT 
           ISNULL(sNombreMonLocal, '') as sNombreMonLocal,
@@ -153,25 +175,64 @@ export class MovimientoContableAgrupadoRepository implements IMovimientoContable
           ISNULL(ORDEN, 0) as ORDEN
         FROM ${schema}.R_XML_8DDC5F23E38311C 
         ORDER BY sCuentaContable, sNit, orden, sFuente
+        OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
       `;
 
       const results = await exactusSequelize.query(resultQuery, {
         type: QueryTypes.SELECT
       }) as MovimientoContableAgrupadoItem[];
 
-      return results;
+      const totalPages = Math.ceil(totalRecords / limit);
+
+      return {
+        success: true,
+        data: results,
+        pagination: {
+          page,
+          limit,
+          total: totalRecords,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1
+        },
+        message: "Datos obtenidos exitosamente"
+      };
 
     } catch (error) {
       console.error('Error al generar reporte de movimientos contables agrupados:', error);
-      throw new Error('Error al generar el reporte de movimientos contables agrupados');
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 25,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false
+        },
+        message: `Error al generar el reporte de movimientos contables agrupados: ${error}`
+      };
     }
   }
 
   async obtenerMovimientos(
     filtros: FiltroMovimientoContableAgrupado, 
-    limit?: number, 
-    offset: number = 0
-  ): Promise<{ data: MovimientoContableAgrupadoItem[]; total: number }> {
+    page: number = 1, 
+    limit: number = 25
+  ): Promise<{
+    success: boolean;
+    data: MovimientoContableAgrupadoItem[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+    message: string;
+  }> {
     try {
       // Primero generar el reporte completo
       await this.generarReporte(filtros);
@@ -180,14 +241,15 @@ export class MovimientoContableAgrupadoRepository implements IMovimientoContable
 
       // Obtener total de registros
       const countQuery = `SELECT COUNT(*) as total FROM ${schema}.R_XML_8DDC5F23E38311C`;
-      const countResult = await exactusSequelize.query(countQuery, {
+      const [countResult] = await exactusSequelize.query(countQuery, {
         type: QueryTypes.SELECT
       }) as [{ total: number }];
 
-      const total = countResult[0]?.total || 0;
+      const totalRecords = countResult?.total || 0;
+      const offset = (page - 1) * limit;
 
-      // Construir consulta de datos con o sin límite
-      let dataQuery = `
+      // Construir consulta de datos con paginación
+      const dataQuery = `
         SELECT 
           ISNULL(sNombreMonLocal, '') as sNombreMonLocal,
           ISNULL(sNombreMonDolar, '') as sNombreMonDolar,
@@ -215,25 +277,44 @@ export class MovimientoContableAgrupadoRepository implements IMovimientoContable
           ISNULL(ORDEN, 0) as ORDEN
         FROM ${schema}.R_XML_8DDC5F23E38311C 
         ORDER BY sCuentaContable, sNit, orden, sFuente
+        OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
       `;
-
-      // Aplicar paginación solo si se especifica un límite
-      if (limit && limit > 0) {
-        dataQuery += `
-          OFFSET ${offset} ROWS
-          FETCH NEXT ${limit} ROWS ONLY
-        `;
-      }
 
       const data = await exactusSequelize.query(dataQuery, {
         type: QueryTypes.SELECT
       }) as MovimientoContableAgrupadoItem[];
 
-      return { data, total };
+      const totalPages = Math.ceil(totalRecords / limit);
+
+      return {
+        success: true,
+        data,
+        pagination: {
+          page,
+          limit,
+          total: totalRecords,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1
+        },
+        message: "Datos obtenidos exitosamente"
+      };
 
     } catch (error) {
       console.error('Error al obtener movimientos contables agrupados:', error);
-      throw new Error('Error al obtener los movimientos contables agrupados');
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 25,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false
+        },
+        message: `Error al obtener los movimientos contables agrupados: ${error}`
+      };
     }
   }
 
@@ -414,9 +495,18 @@ export class MovimientoContableAgrupadoRepository implements IMovimientoContable
     }
   }
 
-  async obtenerNitsCompletos(conjunto: string, limit?: number, offset: number = 0, filtro?: string): Promise<{
+  async obtenerNitsCompletos(conjunto: string, page: number = 1, limit: number = 25, filtro?: string): Promise<{
+    success: boolean;
     data: NitCompleto[];
-    total: number;
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+    message: string;
   }> {
     try {
       // Construir condición de filtro
@@ -440,10 +530,11 @@ export class MovimientoContableAgrupadoRepository implements IMovimientoContable
         replacements
       });
 
-      const total = countResult[0]?.total || 0;
+      const totalRecords = countResult[0]?.total || 0;
+      const offset = (page - 1) * limit;
 
-      // Construir consulta de datos con o sin límite
-      let dataQuery = `
+      // Construir consulta de datos con paginación
+      const dataQuery = `
         SELECT 
           NIT,
           RAZON_SOCIAL,
@@ -453,26 +544,45 @@ export class MovimientoContableAgrupadoRepository implements IMovimientoContable
         FROM ${conjunto}.NIT
         ${whereClause}
         ORDER BY NIT
+        OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
       `;
-
-      // Aplicar paginación solo si se especifica un límite
-      if (limit && limit > 0) {
-        dataQuery += `
-          OFFSET ${offset} ROWS
-          FETCH NEXT ${limit} ROWS ONLY
-        `;
-      }
 
       const data: NitCompleto[] = await exactusSequelize.query(dataQuery, {
         type: QueryTypes.SELECT,
         replacements
       }) as NitCompleto[];
 
-      return { data, total };
+      const totalPages = Math.ceil(totalRecords / limit);
+
+      return {
+        success: true,
+        data,
+        pagination: {
+          page,
+          limit,
+          total: totalRecords,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1
+        },
+        message: "Datos obtenidos exitosamente"
+      };
 
     } catch (error) {
       console.error('Error al obtener NITs completos:', error);
-      return { data: [], total: 0 };
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 25,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false
+        },
+        message: `Error al obtener NITs completos: ${error}`
+      };
     }
   }
 

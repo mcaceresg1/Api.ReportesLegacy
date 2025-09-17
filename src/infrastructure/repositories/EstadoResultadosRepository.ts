@@ -81,8 +81,20 @@ export class EstadoResultadosRepository {
     usuario: string, 
     filtros: FiltrosEstadoResultados,
     page: number = 1,
-    pageSize: number = 20
-  ): Promise<any[]> {
+    pageSize: number = 25
+  ): Promise<{
+    success: boolean;
+    data: any[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+    message: string;
+  }> {
     const inicioEjecucion = Date.now();
     const maxRetries = 2;
     let lastError: Error | null = null;
@@ -173,7 +185,22 @@ export class EstadoResultadosRepository {
         const tiempoEjecucion = Date.now() - inicioEjecucion;
         console.log(`✅ [REPOSITORY] getEstadoResultados completado en ${tiempoEjecucion}ms`);
         
-        return datosReporte;
+        const total = datosReporte.length;
+        const totalPages = Math.ceil(total / pageSize);
+        
+        return {
+          success: true,
+          data: datosReporte,
+          pagination: {
+            page,
+            limit: pageSize,
+            total,
+            totalPages,
+            hasNext: page < totalPages,
+            hasPrev: page > 1,
+          },
+          message: "Datos obtenidos exitosamente",
+        };
 
       } catch (error: any) {
         lastError = error;
@@ -188,12 +215,36 @@ export class EstadoResultadosRepository {
         console.error(`❌ [REPOSITORY] Error después de ${tiempoEjecucion}ms en intento ${attempt}:`, error);
         
         if (attempt === maxRetries) {
-          throw new Error(`Error al obtener estado de resultados después de ${maxRetries} intentos: ${error}`);
+          return {
+            success: false,
+            data: [],
+            pagination: {
+              page: 1,
+              limit: 25,
+              total: 0,
+              totalPages: 0,
+              hasNext: false,
+              hasPrev: false,
+            },
+            message: `Error al obtener estado de resultados después de ${maxRetries} intentos: ${error}`,
+          };
         }
       }
     }
     
-    throw lastError || new Error('Error desconocido en getEstadoResultados');
+    return {
+      success: false,
+      data: [],
+      pagination: {
+        page: 1,
+        limit: 25,
+        total: 0,
+        totalPages: 0,
+        hasNext: false,
+        hasPrev: false,
+      },
+      message: `Error desconocido en getEstadoResultados: ${lastError?.message || 'Error desconocido'}`,
+    };
   }
 
   async getTotalRecords(conjunto: string, usuario: string, filtros: FiltrosEstadoResultados): Promise<number> {

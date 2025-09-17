@@ -197,11 +197,20 @@ export class MovimientoContableController {
   async generarReporte(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto } = req.params;
-      const { usuario, fechaInicio, fechaFin, limit = 100, offset = 0 } = req.body;
+      const { usuario, fechaInicio, fechaFin, page = 1, limit = 100 } = req.body;
       
       if (!conjunto || !usuario || !fechaInicio || !fechaFin) {
         res.status(400).json({
           success: false,
+          data: [],
+          pagination: {
+            page: 1,
+            limit: 0,
+            total: 0,
+            totalPages: 0,
+            hasNext: false,
+            hasPrev: false
+          },
           message: 'Conjunto, usuario, fechaInicio y fechaFin son requeridos'
         });
         return;
@@ -209,32 +218,31 @@ export class MovimientoContableController {
 
       const maxLimit = 1000;
       const validatedLimit = Math.min(limit, maxLimit);
-      const validatedOffset = Math.max(offset, 0);
+      const validatedPage = Math.max(page, 1);
 
       const result = await this.movimientoContableRepository.generarReporteMovimientos(
         conjunto,
         usuario,
         new Date(fechaInicio),
         new Date(fechaFin),
-        validatedLimit,
-        validatedOffset
+        validatedPage,
+        validatedLimit
       );
       
-      res.json({
-        success: true,
-        data: result.data,
-        pagination: {
-          limit: validatedLimit,
-          offset: validatedOffset,
-          total: result.total,
-          totalPages: Math.ceil(result.total / validatedLimit)
-        },
-        message: 'Reporte generado exitosamente'
-      });
+      res.json(result);
     } catch (error) {
       console.error('Error en MovimientoContableController.generarReporte:', error);
       res.status(500).json({
         success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 0,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false
+        },
         message: 'Error al generar reporte',
         error: error instanceof Error ? error.message : 'Error desconocido'
       });
@@ -334,12 +342,21 @@ export class MovimientoContableController {
   async obtenerMovimientosPorUsuario(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto, usuario } = req.params;
+      const page = parseInt(req.query["page"] as string) || 1;
       const limit = parseInt(req.query["limit"] as string) || 100;
-      const offset = parseInt(req.query["offset"] as string) || 0;
       
       if (!conjunto || !usuario) {
         res.status(400).json({
           success: false,
+          data: [],
+          pagination: {
+            page: 1,
+            limit: 0,
+            total: 0,
+            totalPages: 0,
+            hasNext: false,
+            hasPrev: false
+          },
           message: 'Conjunto y usuario son requeridos'
         });
         return;
@@ -347,30 +364,29 @@ export class MovimientoContableController {
 
       const maxLimit = 1000;
       const validatedLimit = Math.min(limit, maxLimit);
-      const validatedOffset = Math.max(offset, 0);
+      const validatedPage = Math.max(page, 1);
 
-      const movimientos = await this.movimientoContableRepository.obtenerMovimientosPorUsuario(
+      const result = await this.movimientoContableRepository.obtenerMovimientosPorUsuario(
         conjunto,
         usuario,
-        validatedLimit,
-        validatedOffset
+        validatedPage,
+        validatedLimit
       );
       
-      res.json({
-        success: true,
-        data: movimientos,
-        pagination: {
-          limit: validatedLimit,
-          offset: validatedOffset,
-          total: movimientos.length,
-          totalPages: Math.ceil(movimientos.length / validatedLimit)
-        },
-        message: 'Movimientos obtenidos exitosamente'
-      });
+      res.json(result);
     } catch (error) {
       console.error('Error en MovimientoContableController.obtenerMovimientosPorUsuario:', error);
       res.status(500).json({
         success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 0,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false
+        },
         message: 'Error al obtener movimientos',
         error: error instanceof Error ? error.message : 'Error desconocido'
       });
@@ -458,12 +474,21 @@ export class MovimientoContableController {
   async obtenerMovimientosPorCentroCosto(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto, centroCosto } = req.params;
+      const page = parseInt(req.query["page"] as string) || 1;
       const limit = parseInt(req.query["limit"] as string) || 100;
-      const offset = parseInt(req.query["offset"] as string) || 0;
       
       if (!conjunto || !centroCosto) {
         res.status(400).json({
           success: false,
+          data: [],
+          pagination: {
+            page: 1,
+            limit: 0,
+            total: 0,
+            totalPages: 0,
+            hasNext: false,
+            hasPrev: false
+          },
           message: 'Conjunto y centroCosto son requeridos'
         });
         return;
@@ -471,30 +496,29 @@ export class MovimientoContableController {
 
       const maxLimit = 1000;
       const validatedLimit = Math.min(limit, maxLimit);
-      const validatedOffset = Math.max(offset, 0);
+      const validatedPage = Math.max(page, 1);
 
-      const movimientos = await this.movimientoContableRepository.obtenerMovimientosPorCentroCosto(
+      const result = await this.movimientoContableRepository.obtenerMovimientosPorCentroCosto(
         conjunto,
         centroCosto,
-        validatedLimit,
-        validatedOffset
+        validatedPage,
+        validatedLimit
       );
       
-      res.json({
-        success: true,
-        data: movimientos,
-        pagination: {
-          limit: validatedLimit,
-          offset: validatedOffset,
-          total: movimientos.length,
-          totalPages: Math.ceil(movimientos.length / validatedLimit)
-        },
-        message: 'Movimientos obtenidos exitosamente'
-      });
+      res.json(result);
     } catch (error) {
       console.error('Error en MovimientoContableController.obtenerMovimientosPorCentroCosto:', error);
       res.status(500).json({
         success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 0,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false
+        },
         message: 'Error al obtener movimientos',
         error: error instanceof Error ? error.message : 'Error desconocido'
       });
@@ -582,12 +606,21 @@ export class MovimientoContableController {
   async obtenerMovimientosPorCuentaContable(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto, cuentaContable } = req.params;
+      const page = parseInt(req.query["page"] as string) || 1;
       const limit = parseInt(req.query["limit"] as string) || 100;
-      const offset = parseInt(req.query["offset"] as string) || 0;
       
       if (!conjunto || !cuentaContable) {
         res.status(400).json({
           success: false,
+          data: [],
+          pagination: {
+            page: 1,
+            limit: 0,
+            total: 0,
+            totalPages: 0,
+            hasNext: false,
+            hasPrev: false
+          },
           message: 'Conjunto y cuentaContable son requeridos'
         });
         return;
@@ -595,30 +628,29 @@ export class MovimientoContableController {
 
       const maxLimit = 1000;
       const validatedLimit = Math.min(limit, maxLimit);
-      const validatedOffset = Math.max(offset, 0);
+      const validatedPage = Math.max(page, 1);
 
-      const movimientos = await this.movimientoContableRepository.obtenerMovimientosPorCuentaContable(
+      const result = await this.movimientoContableRepository.obtenerMovimientosPorCuentaContable(
         conjunto,
         cuentaContable,
-        validatedLimit,
-        validatedOffset
+        validatedPage,
+        validatedLimit
       );
       
-      res.json({
-        success: true,
-        data: movimientos,
-        pagination: {
-          limit: validatedLimit,
-          offset: validatedOffset,
-          total: movimientos.length,
-          totalPages: Math.ceil(movimientos.length / validatedLimit)
-        },
-        message: 'Movimientos obtenidos exitosamente'
-      });
+      res.json(result);
     } catch (error) {
       console.error('Error en MovimientoContableController.obtenerMovimientosPorCuentaContable:', error);
       res.status(500).json({
         success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 0,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false
+        },
         message: 'Error al obtener movimientos',
         error: error instanceof Error ? error.message : 'Error desconocido'
       });

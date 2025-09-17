@@ -276,11 +276,14 @@ export class ReporteCuentaContableController {
         success: true,
         data: cuentasContables,
         pagination: {
-          total,
           page,
           limit,
-          totalPages
-        }
+          total,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1
+        },
+        message: "Datos obtenidos exitosamente"
       });
     } catch (error) {
       console.error('Error en ReporteCuentaContableController.obtenerCuentasContablesPorCentroCosto:', error);

@@ -41,23 +41,28 @@ export class LibroMayorAsientosService implements ILibroMayorAsientosService {
     try {
       console.log(`Generando reporte para conjunto: ${conjunto}`, filtros);
       
-      const filtrosCompletos: LibroMayorAsientosFiltros = {
-        ...filtros,
+      const resultado = await this.libroMayorAsientosRepository.generarReporte(
         conjunto,
-        page: 1,
-        limit: 1000, // Límite alto para el reporte completo
-      };
-
-      const resultado = await this.libroMayorAsientosRepository.obtenerAsientos(
-        conjunto,
-        filtrosCompletos
+        filtros
       );
 
       console.log(`Reporte generado: ${resultado.data.length} registros`);
       return resultado;
     } catch (error) {
       console.error("Error al generar reporte:", error);
-      throw new Error(`Error al generar reporte: ${error instanceof Error ? error.message : "Error desconocido"}`);
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 0,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
+        message: `Error al generar reporte: ${error instanceof Error ? error.message : "Error desconocido"}`
+      };
     }
   }
 
@@ -80,7 +85,19 @@ export class LibroMayorAsientosService implements ILibroMayorAsientosService {
       return resultado;
     } catch (error) {
       console.error("Error al obtener asientos:", error);
-      throw new Error(`Error al obtener asientos: ${error instanceof Error ? error.message : "Error desconocido"}`);
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 0,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
+        message: `Error al obtener asientos: ${error instanceof Error ? error.message : "Error desconocido"}`
+      };
     }
   }
 

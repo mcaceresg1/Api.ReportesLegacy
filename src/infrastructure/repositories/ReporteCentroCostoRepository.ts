@@ -70,7 +70,19 @@ export class ReporteCentroCostoRepository implements IReporteCentroCostoReposito
     cuentaContable: string,
     page: number = 1,
     limit: number = 10
-  ): Promise<{ data: ReporteCentroCosto[], pagination: any }> {
+  ): Promise<{
+    success: boolean;
+    data: ReporteCentroCosto[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+    message: string;
+  }> {
     try {
       const offset = (page - 1) * limit;
 
@@ -113,15 +125,17 @@ export class ReporteCentroCostoRepository implements IReporteCentroCostoReposito
       const totalPages = Math.ceil(totalRecords / limit);
 
       return {
+        success: true,
         data: dataResults as ReporteCentroCosto[],
         pagination: {
           page,
           limit,
-          totalRecords,
+          total: totalRecords,
           totalPages,
-          hasNextPage: page < totalPages,
-          hasPrevPage: page > 1
-        }
+          hasNext: page < totalPages,
+          hasPrev: page > 1
+        },
+        message: "Datos obtenidos exitosamente"
       };
     } catch (error) {
       console.error('Error obteniendo centros de costo por cuenta contable:', error);

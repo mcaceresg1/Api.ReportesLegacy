@@ -13,6 +13,6 @@ export interface FiltrosComparativoCentrosCosto {
   cuentaContable?: string;
   nit?: string;
   dimension?: string;
-  pagina?: number;
-  registrosPorPagina?: number;
+  page?: number;
+  limit?: number;
 }

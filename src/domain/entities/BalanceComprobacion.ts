@@ -123,11 +123,17 @@ export interface BalanceComprobacionFiltros {
  * Respuesta paginada del Balance de Comprobación
  */
 export interface BalanceComprobacionResponse {
+  success: boolean;
   data: BalanceComprobacion[];
-  total: number;
-  pagina: number;
-  porPagina: number;
-  totalPaginas: number;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+  message: string;
 }
 
 /**

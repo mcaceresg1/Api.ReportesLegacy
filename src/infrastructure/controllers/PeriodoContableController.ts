@@ -104,13 +104,13 @@ export class PeriodoContableController {
         return;
       }
 
-      const reporte = await this.periodoContableRepository.generarReporte(filtros);
+      const reporte = await this.periodoContableRepository.generarReporte(filtros, req.body.page || 1, req.body.limit || 25);
 
       res.json({
-        success: true,
-        data: reporte,
-        message: 'Reporte generado exitosamente',
-        total: reporte.length
+        success: reporte.success,
+        data: reporte.data,
+        pagination: reporte.pagination,
+        message: reporte.message
       });
     } catch (error) {
       console.error('Error en generarReporte:', error);
@@ -195,8 +195,8 @@ export class PeriodoContableController {
         return;
       }
 
-      // Obtener los datos del reporte
-      const reporte = await this.periodoContableRepository.generarReporte(filtros);
+      // Obtener los datos del reporte (sin paginación para exportación completa)
+      const reporte = await this.periodoContableRepository.generarReporte(filtros, 1, 10000);
 
       // Crear archivo Excel
       const workbook = new ExcelJS.Workbook();
@@ -224,7 +224,7 @@ export class PeriodoContableController {
       ];
 
       // Agregar datos
-      reporte.forEach(item => {
+      reporte.data.forEach((item: any) => {
         worksheet.addRow({
           centro_costo: item.centro_costo,
           cuenta_contable: item.cuenta_contable,

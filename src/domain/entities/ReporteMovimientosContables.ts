@@ -91,3 +91,17 @@ export interface FiltrosReporteMovimientosContables {
   incluirGraficos: boolean;
   incluirCalculos: boolean;
 }
+
+export interface ReporteMovimientosContablesResponse {
+  success: boolean;
+  data: ReporteMovimientoContableItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+  message: string;
+}

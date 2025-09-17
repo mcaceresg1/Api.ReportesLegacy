@@ -23,8 +23,20 @@ export class EstadoResultadosService implements IEstadoResultadosService {
     usuario: string, 
     filtros: FiltrosEstadoResultados,
     page: number = 1,
-    pageSize: number = 20
-  ): Promise<EstadoResultados[]> {
+    pageSize: number = 25
+  ): Promise<{
+    success: boolean;
+    data: EstadoResultados[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+    message: string;
+  }> {
     return await this.estadoResultadosRepository.getEstadoResultados(conjunto, usuario, filtros, page, pageSize);
   }
 

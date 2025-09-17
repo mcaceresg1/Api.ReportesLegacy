@@ -1,7 +1,7 @@
 import { injectable, inject } from 'inversify';
 import { IReporteMovimientosContablesService } from '../../domain/services/IReporteMovimientosContablesService';
 import { IReporteMovimientosContablesRepository } from '../../domain/repositories/IReporteMovimientosContablesRepository';
-import { FiltrosReporteMovimientosContables, ReporteMovimientoContableItem } from '../../domain/entities/ReporteMovimientosContables';
+import { FiltrosReporteMovimientosContables, ReporteMovimientoContableItem, ReporteMovimientosContablesResponse } from '../../domain/entities/ReporteMovimientosContables';
 
 @injectable()
 export class ReporteMovimientosContablesService implements IReporteMovimientosContablesService {
@@ -10,11 +10,11 @@ export class ReporteMovimientosContablesService implements IReporteMovimientosCo
     private readonly reporteMovimientosContablesRepository: IReporteMovimientosContablesRepository
   ) {}
 
-  async obtener(conjunto: string, filtros: FiltrosReporteMovimientosContables): Promise<ReporteMovimientoContableItem[]> {
-    return this.obtenerReporteMovimientosContables(conjunto, filtros);
+  async obtener(conjunto: string, filtros: FiltrosReporteMovimientosContables, page: number = 1, limit: number = 100): Promise<ReporteMovimientosContablesResponse> {
+    return this.obtenerReporteMovimientosContables(conjunto, filtros, page, limit);
   }
 
-  async obtenerReporteMovimientosContables(conjunto: string, filtros: FiltrosReporteMovimientosContables): Promise<ReporteMovimientoContableItem[]> {
+  async obtenerReporteMovimientosContables(conjunto: string, filtros: FiltrosReporteMovimientosContables, page: number = 1, limit: number = 100): Promise<ReporteMovimientosContablesResponse> {
     try {
       // Validar parámetros obligatorios
       if (!conjunto || conjunto.trim() === '') {
@@ -152,10 +152,45 @@ export class ReporteMovimientosContablesService implements IReporteMovimientosCo
 
       console.log(`Reporte generado exitosamente. Total de registros: ${resultados.length}`);
 
-      return resultados;
+      // Calcular paginación
+      const total = resultados.length;
+      const totalPages = Math.ceil(total / limit);
+      const hasNext = page < totalPages;
+      const hasPrev = page > 1;
+      
+      // Aplicar paginación a los resultados
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      const paginatedResults = resultados.slice(startIndex, endIndex);
+
+      return {
+        success: true,
+        data: paginatedResults,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNext,
+          hasPrev
+        },
+        message: `Reporte generado exitosamente: ${paginatedResults.length} de ${total} registros`
+      };
     } catch (error) {
       console.error('Error en ReporteMovimientosContablesService:', error);
-      throw error;
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 0,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false
+        },
+        message: `Error al generar reporte: ${error instanceof Error ? error.message : 'Error desconocido'}`
+      };
     }
   }
 
