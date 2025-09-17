@@ -247,6 +247,73 @@ import { ExportarAccionesDePersonalExcelParams } from "../../domain/entities/Rep
  *           type: number
  *         TOTAL:
  *           type: number
+ *     GNPrestamo:
+ *       type: object
+ *       properties:
+ *         ESQUEMA:
+ *           type: string
+ *         DNI:
+ *           type: string
+ *         APELLIDOS_NOMBRES:
+ *           type: string
+ *         FECHA_INGRESO_EMPLEADO:
+ *           type: string
+ *         PUESTO:
+ *           type: string
+ *         SEDE:
+ *           type: string
+ *         CENTRO_COSTO:
+ *           type: string
+ *         DESCRIPCION_CC:
+ *           type: string
+ *         NUM_MOVIMIENTO:
+ *           type: number
+ *         COD_TIPO_MOVIMIENTO:
+ *           type: string
+ *         TIPO_MOVIMIENTO:
+ *           type: string
+ *         MONEDA:
+ *           type: string
+ *         NUMERO_NOMINA:
+ *           type: number
+ *         NOMINA_MES:
+ *           type: string
+ *         NUMERO_CUOTA_DESCONTADA:
+ *           type: number
+ *         MONTO_CUOTA_DESCONTADA:
+ *           type: number
+ *         MONTO_CUOTA_DESCONTADA_DOLAR:
+ *           type: number
+ *         ESTADO_CUOTA_DESCONTADA:
+ *           type: string
+ *         MONTO_LOCAL:
+ *           type: number
+ *         MONTO_ABONADO_CUOTA:
+ *           type: number
+ *         SALDO_CUOTA:
+ *           type: number
+ *         MONTO_ABONADO:
+ *           type: number
+ *         FECHA_INGRESO:
+ *           type: string
+ *         NUM_CUOTAS:
+ *           type: number
+ *         SALDO_LOCAL:
+ *           type: number
+ *         CODIGO_ESTADO_PRESTAMO:
+ *           type: string
+ *         ESTADO_PRESTAMO:
+ *           type: string
+ *         DIFERENCIA:
+ *           type: number
+ *         ESTADO_SALDO:
+ *           type: string
+ *         FECHA_CREACION_SISTEMA:
+ *           type: string
+ *         ESTADO_EMPLEADO:
+ *           type: string
+ *         FECHA_SALIDA:
+ *           type: string
  *
  */
 
@@ -440,16 +507,6 @@ export class ReporteGNController {
    *         required: true
    *         description: "ID del Usuario"
    *         schema: { type: string }
-   *       - in: query
-   *         name: pagina
-   *         required: true
-   *         description: "Página"
-   *         schema: { type: number }
-   *       - in: query
-   *         name: registrosPorPagina
-   *         required: true
-   *         description: "Registros por página"
-   *         schema: { type: number }
    *     responses:
    *       200:
    *         description: Lista de todos los roles de vacaciones
@@ -465,14 +522,6 @@ export class ReporteGNController {
    *                 data:
    *                   type: object
    *                   properties:
-   *                     totalRegistros:
-   *                       type: number
-   *                     totalPaginas:
-   *                       type: number
-   *                     paginaActual:
-   *                       type: number
-   *                     registrosPorPagina:
-   *                       type: number
    *                     data:
    *                       type: array
    *                       items:
@@ -489,13 +538,7 @@ export class ReporteGNController {
   async getRolDeVacaciones(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto } = req.params;
-      const {
-        fecha_inicio,
-        fecha_fin,
-        id_usuario,
-        pagina,
-        registrosPorPagina,
-      } = req.query;
+      const { fecha_inicio, fecha_fin, id_usuario } = req.query;
 
       if (!conjunto) {
         res.status(400).json({
@@ -509,8 +552,6 @@ export class ReporteGNController {
         conjunto,
         {
           fecha_fin: fecha_fin as string,
-          pagina: pagina as unknown as number,
-          registrosPorPagina: registrosPorPagina as unknown as number,
           fecha_inicio: fecha_inicio as string,
           cod_empleado: id_usuario as string,
         }
@@ -842,30 +883,31 @@ export class ReporteGNController {
    *       - in: query
    *         name: id_usuario
    *         required: true
+   *         description: "Código del empleado"
    *         schema: { type: string }
    *       - in: query
    *         name: num_nomina
    *         required: true
+   *         description: "Número de nómina"
    *         schema: { type: number }
-   *       - in: query
-   *         name: numero_nomina
-   *         required: false
-   *         schema: { type: number }
-   *       - in: query
-   *         name: tipo_prestamo
-   *         schema: { type: string }
-   *       - in: query
-   *         name: estado_prestamo
-   *         schema: { type: string }
-   *       - in: query
-   *         name: estado_empleado
-   *         schema: { type: string }
-   *       - in: query
-   *         name: estado_cuota
-   *         schema: { type: string }
    *     responses:
    *       200:
    *         description: Reporte de préstamos
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 message:
+   *                   type: string
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     $ref: '#/components/schemas/GNPrestamo'
+   *       400:
+   *         description: Parámetros requeridos faltantes
    *       401:
    *         description: No autorizado
    *       500:
@@ -878,17 +920,29 @@ export class ReporteGNController {
       const filtros = {
         cod_empleado: req.query["id_usuario"] as string,
         num_nomina: parseInt(req.query["num_nomina"] as string, 10),
-        numero_nomina: parseInt(req.query["numero_nomina"] as string, 10),
-        tipo_prestamo: req.query["tipo_prestamo"] as string,
-        estado_prestamo: req.query["estado_prestamo"] as string,
-        estado_empleado: req.query["estado_empleado"] as string,
-        estado_cuota: req.query["estado_cuota"] as string,
       };
 
       if (!conjunto) {
         res.status(400).json({
           success: false,
           message: "El parámetro conjunto es requerido",
+        });
+        return;
+      }
+
+      if (!filtros.cod_empleado) {
+        res.status(400).json({
+          success: false,
+          message: "El parámetro id_usuario es requerido",
+        });
+        return;
+      }
+
+      if (!filtros.num_nomina || isNaN(filtros.num_nomina)) {
+        res.status(400).json({
+          success: false,
+          message:
+            "El parámetro num_nomina es requerido y debe ser un número válido",
         });
         return;
       }
@@ -1170,9 +1224,6 @@ export class ReporteGNController {
         fecha_inicio: req.query["fecha_inicio"] as string,
         fecha_fin: req.query["fecha_fin"] as string,
         cod_empleado: req.query["id_usuario"] as string,
-        pagina: parseInt(req.query["pagina"] as string, 10) || 1,
-        registrosPorPagina:
-          parseInt(req.query["registrosPorPagina"] as string, 10) || 1000,
       };
 
       if (!conjunto) {
@@ -1403,34 +1454,9 @@ export class ReporteGNController {
    *         schema: { type: string }
    *       - in: query
    *         name: num_nomina
-   *         required: false
-   *         description: "Número de nómina (detalle)"
+   *         required: true
+   *         description: "Número de nómina"
    *         schema: { type: integer }
-   *       - in: query
-   *         name: numero_nomina
-   *         required: false
-   *         description: "Número de la nómina principal"
-   *         schema: { type: integer }
-   *       - in: query
-   *         name: tipo_prestamo
-   *         required: false
-   *         description: "Tipo de préstamo"
-   *         schema: { type: string }
-   *       - in: query
-   *         name: estado_prestamo
-   *         required: false
-   *         description: "Estado del préstamo"
-   *         schema: { type: string }
-   *       - in: query
-   *         name: estado_empleado
-   *         required: false
-   *         description: "Estado del empleado"
-   *         schema: { type: string }
-   *       - in: query
-   *         name: estado_cuota
-   *         required: false
-   *         description: "Estado de la cuota"
-   *         schema: { type: string }
    *     responses:
    *       200:
    *         description: Archivo Excel generado
@@ -1439,6 +1465,8 @@ export class ReporteGNController {
    *             schema:
    *               type: string
    *               format: binary
+   *       400:
+   *         description: Parámetros requeridos faltantes
    *       401:
    *         description: No autorizado
    *       500:
@@ -1450,17 +1478,29 @@ export class ReporteGNController {
       const filtros = {
         cod_empleado: req.query["id_usuario"] as string,
         num_nomina: parseInt(req.query["num_nomina"] as string, 10),
-        numero_nomina: parseInt(req.query["numero_nomina"] as string, 10),
-        tipo_prestamo: req.query["tipo_prestamo"] as string,
-        estado_prestamo: req.query["estado_prestamo"] as string,
-        estado_empleado: req.query["estado_empleado"] as string,
-        estado_cuota: req.query["estado_cuota"] as string,
       };
 
       if (!conjunto) {
         res.status(400).json({
           success: false,
           message: "El parámetro conjunto es requerido",
+        });
+        return;
+      }
+
+      if (!filtros.cod_empleado) {
+        res.status(400).json({
+          success: false,
+          message: "El parámetro id_usuario es requerido",
+        });
+        return;
+      }
+
+      if (!filtros.num_nomina || isNaN(filtros.num_nomina)) {
+        res.status(400).json({
+          success: false,
+          message:
+            "El parámetro num_nomina es requerido y debe ser un número válido",
         });
         return;
       }

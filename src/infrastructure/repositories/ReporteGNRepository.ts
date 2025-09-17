@@ -178,44 +178,9 @@ export class ReporteGNRepository implements IReporteGNRepository {
     filtros: FiltrosReporteRolDeVacaciones
   ): Promise<RespuestaReporteRolDeVacaciones | undefined> {
     try {
-      const {
-        cod_empleado,
-        fecha_fin,
-        fecha_inicio,
-        pagina,
-        registrosPorPagina,
-      } = filtros;
-      const offset = (pagina - 1) * registrosPorPagina;
-      const limit = registrosPorPagina;
+      const { cod_empleado, fecha_fin, fecha_inicio } = filtros;
 
-      const totalQuery = `
-      SELECT COUNT(*) as total
-      FROM (
-      select e.empleado, fecha_inicio, fecha_fin, duracion, 'G' as tipo_vacacion, e.nombre        
-    from ${conjunto}.empleado e, ${conjunto}.goce_real g  
-    where 	e.empleado = g.empleado 
-    and fecha_inicio >= :fecha_inicio                    
-    and  	fecha_inicio <= :fecha_fin     
-    AND e.empleado >= :cod_empleado
-    union all  
-    select e.empleado, fecha_inicio, fecha_inicio, duracion, 'D' as tipo_vacacion, e.nombre  
-    from ${conjunto}.empleado e, ${conjunto}.descuento_real g  where 	e.empleado = g.empleado 
-    and fecha_inicio >= :fecha_inicio                    
-    and  	fecha_inicio <= :fecha_fin     
-    AND e.empleado >= :cod_empleado
-      ) as reporte
-    `;
-      const [totalResult]: any = await exactusSequelize.query(totalQuery, {
-        type: QueryTypes.SELECT,
-        replacements: {
-          fecha_inicio,
-          fecha_fin,
-          cod_empleado,
-        },
-      });
-      const total = parseInt(totalResult?.total, 10);
-
-      const paginatedQuery = `
+      const query = `
       SELECT *
       FROM (
        select e.empleado, fecha_inicio, fecha_fin, duracion, 'G' as tipo_vacacion, e.nombre        
@@ -223,40 +188,33 @@ export class ReporteGNRepository implements IReporteGNRepository {
     where 	e.empleado = g.empleado 
     and fecha_inicio >= :fecha_inicio                    
     and  	fecha_inicio <= :fecha_fin            
-    AND e.empleado >= :cod_empleado   
+    AND e.empleado = :cod_empleado   
     union all  
     select e.empleado, fecha_inicio, fecha_inicio, duracion, 'D' as tipo_vacacion, e.nombre  
     from ${conjunto}.empleado e, ${conjunto}.descuento_real g  where 	e.empleado = g.empleado 
     and fecha_inicio >= :fecha_inicio                    
     and  	fecha_inicio <= :fecha_fin            
-    AND e.empleado >= :cod_empleado 
+    AND e.empleado = :cod_empleado 
       ) as reporte
       ORDER BY empleado ASC
-      OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
     `;
 
-      const [data] = await exactusSequelize.query(paginatedQuery, {
+      const data = await exactusSequelize.query(query, {
+        type: QueryTypes.SELECT,
         replacements: {
-          offset,
-          limit: registrosPorPagina,
           cod_empleado,
           fecha_fin,
           fecha_inicio,
         },
       });
 
-      const totalPaginas = Math.ceil(total / registrosPorPagina);
       return {
         success: true,
         message: "Reporte de vacaciones generado exitosamente",
-        totalRegistros: total,
-        totalPaginas,
-        paginaActual: pagina,
-        registrosPorPagina: registrosPorPagina || 1000,
         data: data as GNRolDeVacaciones[],
       };
     } catch (err) {
-      console.error("Error en getReportePaginado:", err);
+      console.error("Error en getRolDeVacaciones:", err);
       throw err;
     }
   }
@@ -294,39 +252,26 @@ WHERE e.empleado = ec.empleado AND UPPER( ec.empleado) LIKE :cod_empleado`;
     filtros: FiltrosReportePrestamos
   ): Promise<RespuestaReportePrestamos | undefined> {
     try {
-      const {
-        cod_empleado,
-        estado_cuota,
-        estado_empleado,
-        estado_prestamo,
-        num_nomina,
-        numero_nomina,
-        tipo_prestamo,
-      } = filtros;
+      const { cod_empleado, num_nomina } = filtros;
       const query = `
- exec dbo.PA_RH_PRESTAMOS_DETALLE_RESUMEN;1 :conjunto,'ADMPQUES',:tipo_prestamo,:estado_prestamo,:num_nomina,:cod_empleado,:estado_empleado, :estado_cuota'
+        exec dbo.PA_RH_PRESTAMOS_DETALLE_RESUMEN :conjunto,'','','',:num_nomina,:cod_empleado,'',''
       `;
 
       const data = (await exactusSequelize.query(query, {
         type: QueryTypes.SELECT,
         replacements: {
-          cod_empleado,
-          estado_cuota,
-          estado_empleado,
-          estado_prestamo,
-          num_nomina,
-          numero_nomina,
-          tipo_prestamo,
           conjunto,
+          cod_empleado,
+          num_nomina,
         },
       })) as GNPrestamo[];
       return {
         data,
         success: true,
-        message: "Reporte de acciones de personal generado exitosamente",
+        message: "Reporte de préstamos generado exitosamente",
       };
     } catch (error) {
-      console.error("Error al obtener las acciones de personal:", error);
+      console.error("Error al obtener los préstamos:", error);
       throw error;
     }
   }

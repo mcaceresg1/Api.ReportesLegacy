@@ -163,8 +163,6 @@ export interface FiltrosReporteRolDeVacaciones {
   fecha_inicio: string;
   fecha_fin: string;
   cod_empleado: string;
-  pagina: number;
-  registrosPorPagina: number;
 }
 
 export interface FiltrosReportePrestamoCtaCte {
@@ -195,11 +193,6 @@ export interface FiltrosReporteContratos {
 export interface FiltrosReportePrestamos {
   cod_empleado: string;
   num_nomina: number;
-  tipo_prestamo: string;
-  estado_prestamo: string;
-  numero_nomina: number;
-  estado_empleado: string;
-  estado_cuota: string;
 }
 
 export interface FiltrosBoletaDePago {
@@ -231,10 +224,6 @@ export interface RespuestaReportePrestamoCtaCte {
 export interface RespuestaReporteRolDeVacaciones {
   success: boolean;
   message: string;
-  totalRegistros: number;
-  totalPaginas: number;
-  paginaActual: number;
-  registrosPorPagina: number;
   data: GNRolDeVacaciones[];
 }
 
