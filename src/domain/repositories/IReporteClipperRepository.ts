@@ -1,11 +1,37 @@
-import { ClipperContratoResultado } from '../../infrastructure/repositories/ReporteClipperRepository';
-import { ClipperContrato, ClipperContratoDetalle } from '../entities/ClipperContrato';
+import { ClipperContratoResultado } from "../../infrastructure/repositories/ReporteClipperRepository";
+import {
+  ClipperContrato,
+  ClipperContratoDetalle,
+} from "../entities/ClipperContrato";
 
 export interface IReporteClipperRepository {
   /**
    * Obtiene todos los contratos por ruta (Parque, Parque1, Lurín, etc.)
    */
   obtenerContratos(ruta: string): Promise<ClipperContrato[]>;
+
+  /**
+   * Obtiene contratos paginados por ruta
+   * @param ruta - Sede (Parque, Lurín, etc.)
+   * @param page - Número de página (base 0)
+   * @param limit - Límite de registros por página
+   * @param sortField - Campo para ordenar
+   * @param sortOrder - Orden (1 ascendente, -1 descendente)
+   * @param globalFilter - Filtro global de búsqueda
+   */
+  obtenerContratosPaginados(
+    ruta: string,
+    page: number,
+    limit: number,
+    sortField?: string,
+    sortOrder?: number,
+    globalFilter?: string
+  ): Promise<{
+    data: ClipperContrato[];
+    totalRecords: number;
+    page: number;
+    limit: number;
+  }>;
 
   /**
    * Obtiene un contrato específico por número y control dentro de la ruta dada.
@@ -17,5 +43,5 @@ export interface IReporteClipperRepository {
     ruta: string,
     contrato: string | null,
     control: string | null
-  ): Promise<ClipperContratoResultado  | null>;
+  ): Promise<ClipperContratoResultado | null>;
 }

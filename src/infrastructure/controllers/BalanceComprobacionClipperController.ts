@@ -18,20 +18,20 @@ export class BalanceComprobacionClipperController {
 
   /**
    * @swagger
-   * /api/balance-comprobacion-clipper/{bdClipperGPC}:
+   * /api/balance-comprobacion-clipper/{baseDatos}:
    *   get:
    *     summary: Obtener balance de comprobación desde Clipper
    *     tags: [Clipper - Balance de Comprobación]
-   *     description: "Retorna el balance de comprobación con saldos acumulados, movimientos del mes y saldos actuales desde la base de datos Clipper GPC."
+   *     description: "Retorna el balance de comprobación con saldos acumulados, movimientos del mes y saldos actuales desde la base de datos Clipper seleccionada."
    *     parameters:
    *       - in: path
-   *         name: bdClipperGPC
+   *         name: baseDatos
    *         required: true
    *         schema:
    *           type: string
-   *           enum: [bdclipperGPC, bdclipperGPC1]
+   *           enum: [bdclipperGPC, bdclipperGPC2, bdclipperGPC3, bdclipperGPC4, bdclipperGPC5, bdclipperGPC6, bdclipperGPC7, bdclipperGPC8, bdclipperGPC9]
    *           example: "bdclipperGPC"
-   *         description: "Nombre de la base de datos Clipper GPC"
+   *         description: "Nombre de la base de datos Clipper a utilizar. Opciones disponibles: ASOCIACION CIVIL SAN JUAN BAUTISTA (bdclipperGPC), PRUEBA (bdclipperGPC2), PARQUE DEL RECUERDO (bdclipperGPC3), MISION CEMENTERIO CATOLICO (bdclipperGPC4), PARQUE DEL RECUERDO (bdclipperGPC5), ASOCIACION CIVIL SAN JUAN BAUTISTA (bdclipperGPC6), MISION CEMENTERIO CATOLICO (bdclipperGPC7), COPIA DE ACSJB 01 (bdclipperGPC8), COPIA DE ACSJB 02 (bdclipperGPC9)"
    *     responses:
    *       200:
    *         description: Balance de comprobación obtenido exitosamente
@@ -90,12 +90,12 @@ export class BalanceComprobacionClipperController {
     req: Request,
     res: Response
   ): Promise<void> {
-    const { bdClipperGPC } = req.params;
+    const { baseDatos } = req.params;
 
-    if (!bdClipperGPC || typeof bdClipperGPC !== "string") {
+    if (!baseDatos || typeof baseDatos !== "string") {
       res.status(400).json({
         success: false,
-        message: "El parámetro 'bdClipperGPC' es obligatorio",
+        message: "El parámetro 'baseDatos' es obligatorio",
         data: null,
       });
       return;
@@ -104,7 +104,7 @@ export class BalanceComprobacionClipperController {
     try {
       const resultado =
         await this.balanceComprobacionClipperService.obtenerBalanceComprobacionClipper(
-          bdClipperGPC
+          baseDatos
         );
 
       res.json({

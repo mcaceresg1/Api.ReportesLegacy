@@ -38,9 +38,9 @@ export class AnalisisCuentasClipperController {
    *         required: true
    *         schema:
    *           type: string
-   *           enum: [bdclipperGPC, bdclipperGPC1]
+   *           enum: [bdclipperGPC, bdclipperGPC2, bdclipperGPC3, bdclipperGPC4, bdclipperGPC5, bdclipperGPC6, bdclipperGPC7, bdclipperGPC8, bdclipperGPC9]
    *           example: "bdclipperGPC"
-   *         description: "Nombre de la base de datos Clipper GPC"
+   *         description: "Nombre de la base de datos Clipper GPC. Opciones disponibles: ASOCIACION CIVIL SAN JUAN BAUTISTA (bdclipperGPC), PRUEBA (bdclipperGPC2), PARQUE DEL RECUERDO (bdclipperGPC3), MISION CEMENTERIO CATOLICO (bdclipperGPC4), PARQUE DEL RECUERDO (bdclipperGPC5), ASOCIACION CIVIL SAN JUAN BAUTISTA (bdclipperGPC6), MISION CEMENTERIO CATOLICO (bdclipperGPC7), COPIA DE ACSJB 01 (bdclipperGPC8), COPIA DE ACSJB 02 (bdclipperGPC9)"
    *       - in: query
    *         name: mes
    *         required: true
@@ -146,9 +146,9 @@ export class AnalisisCuentasClipperController {
    *         required: true
    *         schema:
    *           type: string
-   *           enum: [bdclipperGPC, bdclipperGPC1]
+   *           enum: [bdclipperGPC, bdclipperGPC2, bdclipperGPC3, bdclipperGPC4, bdclipperGPC5, bdclipperGPC6, bdclipperGPC7, bdclipperGPC8, bdclipperGPC9]
    *           example: "bdclipperGPC"
-   *         description: "Nombre de la base de datos Clipper GPC"
+   *         description: "Nombre de la base de datos Clipper GPC. Opciones disponibles: ASOCIACION CIVIL SAN JUAN BAUTISTA (bdclipperGPC), PRUEBA (bdclipperGPC2), PARQUE DEL RECUERDO (bdclipperGPC3), MISION CEMENTERIO CATOLICO (bdclipperGPC4), PARQUE DEL RECUERDO (bdclipperGPC5), ASOCIACION CIVIL SAN JUAN BAUTISTA (bdclipperGPC6), MISION CEMENTERIO CATOLICO (bdclipperGPC7), COPIA DE ACSJB 01 (bdclipperGPC8), COPIA DE ACSJB 02 (bdclipperGPC9)"
    *       - in: query
    *         name: cuentaDesde
    *         required: true
@@ -306,9 +306,9 @@ export class AnalisisCuentasClipperController {
    *         required: true
    *         schema:
    *           type: string
-   *           enum: [bdclipperGPC, bdclipperGPC1]
+   *           enum: [bdclipperGPC, bdclipperGPC2, bdclipperGPC3, bdclipperGPC4, bdclipperGPC5, bdclipperGPC6, bdclipperGPC7, bdclipperGPC8, bdclipperGPC9]
    *           example: "bdclipperGPC"
-   *         description: "Nombre de la base de datos Clipper GPC"
+   *         description: "Nombre de la base de datos Clipper GPC. Opciones disponibles: ASOCIACION CIVIL SAN JUAN BAUTISTA (bdclipperGPC), PRUEBA (bdclipperGPC2), PARQUE DEL RECUERDO (bdclipperGPC3), MISION CEMENTERIO CATOLICO (bdclipperGPC4), PARQUE DEL RECUERDO (bdclipperGPC5), ASOCIACION CIVIL SAN JUAN BAUTISTA (bdclipperGPC6), MISION CEMENTERIO CATOLICO (bdclipperGPC7), COPIA DE ACSJB 01 (bdclipperGPC8), COPIA DE ACSJB 02 (bdclipperGPC9)"
    *       - in: query
    *         name: fechaDesde
    *         required: true
@@ -468,9 +468,9 @@ export class AnalisisCuentasClipperController {
    *         required: true
    *         schema:
    *           type: string
-   *           enum: [bdclipperGPC, bdclipperGPC1]
+   *           enum: [bdclipperGPC, bdclipperGPC2, bdclipperGPC3, bdclipperGPC4, bdclipperGPC5, bdclipperGPC6, bdclipperGPC7, bdclipperGPC8, bdclipperGPC9]
    *           example: "bdclipperGPC"
-   *         description: "Nombre de la base de datos Clipper GPC"
+   *         description: "Nombre de la base de datos Clipper GPC. Opciones disponibles: ASOCIACION CIVIL SAN JUAN BAUTISTA (bdclipperGPC), PRUEBA (bdclipperGPC2), PARQUE DEL RECUERDO (bdclipperGPC3), MISION CEMENTERIO CATOLICO (bdclipperGPC4), PARQUE DEL RECUERDO (bdclipperGPC5), ASOCIACION CIVIL SAN JUAN BAUTISTA (bdclipperGPC6), MISION CEMENTERIO CATOLICO (bdclipperGPC7), COPIA DE ACSJB 01 (bdclipperGPC8), COPIA DE ACSJB 02 (bdclipperGPC9)"
    *       - in: query
    *         name: cuentaDesde
    *         required: true

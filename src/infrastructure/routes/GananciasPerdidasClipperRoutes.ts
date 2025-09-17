@@ -19,7 +19,7 @@ export function createGananciasPerdidasClipperRoutes(): Router {
   router.use(rateLimitMiddleware.reportRateLimit()); // 10 peticiones por 5 minutos
 
   // Ruta principal para obtener ganancias y pérdidas clipper
-  router.get("/:bdClipperGPC", (req, res) =>
+  router.get("/:baseDatos", (req, res) =>
     controller.obtenerGananciasPerdidasClipper(req, res)
   );
 

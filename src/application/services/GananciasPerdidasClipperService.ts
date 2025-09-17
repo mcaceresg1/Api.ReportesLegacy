@@ -17,12 +17,12 @@ export class GananciasPerdidasClipperService
 
   /**
    * Obtiene los datos del Estado de Ganancias y Pérdidas desde Clipper
-   * @param bdClipperGPC Nombre de la base de datos Clipper GPC a utilizar
+   * @param baseDatos Nombre de la base de datos Clipper a utilizar (bdclipperGPC, bdclipperGPC2, etc.)
    * @param filtros Filtros de período para el reporte
    * @returns Lista de registros del estado de ganancias y pérdidas
    */
   async obtenerGananciasPerdidasClipper(
-    bdClipperGPC: string,
+    baseDatos: string,
     filtros: FiltrosGananciasPerdidasClipper
   ): Promise<ClipperEstadoGananciasYResultados[]> {
     try {
@@ -44,7 +44,7 @@ export class GananciasPerdidasClipperService
       }
 
       return await this.gananciasPerdidasRepository.obtenerGananciasPerdidasClipper(
-        bdClipperGPC,
+        baseDatos,
         filtros
       );
     } catch (error) {

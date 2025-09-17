@@ -8,20 +8,26 @@ import { clipperGPCDatabases } from "../database/config/clipper-gpc-database";
 export class BalanceGeneralClipperRepository
   implements IBalanceGeneralClipperRepository
 {
+  private getDatabase(baseDatos: string) {
+    const db = clipperGPCDatabases[baseDatos];
+    if (!db) {
+      throw new Error(`Base de datos '${baseDatos}' no encontrada`);
+    }
+    return db;
+  }
+
   /**
    * Obtiene el balance general por nivel
-   * @param bdClipperGPC Nombre de la base de datos Clipper GPC a utilizar
+   * @param baseDatos Nombre de la base de datos Clipper a utilizar (bdclipperGPC, bdclipperGPC2, etc.)
    * @param nivel Nivel de las cuentas contables
    * @returns Lista de registros del balance general por nivel
    */
   async obtenerBalanceGeneralPorNivel(
-    bdClipperGPC: string,
+    baseDatos: string,
     nivel: number
   ): Promise<ClipperBalanceGeneral[]> {
     try {
-      const sequelize = clipperGPCDatabases[bdClipperGPC];
-      if (!sequelize)
-        throw new Error(`Base de datos "${bdClipperGPC}" no configurada.`);
+      const sequelize = this.getDatabase(baseDatos);
 
       const query = `
         SELECT  
@@ -92,20 +98,18 @@ export class BalanceGeneralClipperRepository
 
   /**
    * Obtiene el balance general por mes y nivel
-   * @param bdClipperGPC Nombre de la base de datos Clipper GPC a utilizar
+   * @param baseDatos Nombre de la base de datos Clipper a utilizar (bdclipperGPC, bdclipperGPC2, etc.)
    * @param mes Mes contable a consultar (1-12)
    * @param nivel Nivel de las cuentas contables
    * @returns Lista de registros del balance general por mes y nivel
    */
   async obtenerBalanceGeneralPorMesYNivel(
-    bdClipperGPC: string,
+    baseDatos: string,
     mes: number,
     nivel: number
   ): Promise<ClipperBalanceGeneral[]> {
     try {
-      const sequelize = clipperGPCDatabases[bdClipperGPC];
-      if (!sequelize)
-        throw new Error(`Base de datos "${bdClipperGPC}" no configurada.`);
+      const sequelize = this.getDatabase(baseDatos);
 
       const query = `
         SELECT     

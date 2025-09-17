@@ -8,18 +8,24 @@ import { clipperGPCDatabases } from "../database/config/clipper-gpc-database";
 export class BalanceComprobacionClipperRepository
   implements IBalanceComprobacionClipperRepository
 {
+  private getDatabase(baseDatos: string) {
+    const db = clipperGPCDatabases[baseDatos];
+    if (!db) {
+      throw new Error(`Base de datos '${baseDatos}' no encontrada`);
+    }
+    return db;
+  }
+
   /**
    * Obtiene los datos del Balance de Comprobación desde Clipper
-   * @param bdClipperGPC Nombre de la base de datos Clipper GPC a utilizar
+   * @param baseDatos Nombre de la base de datos Clipper a utilizar (bdclipperGPC, bdclipperGPC2, etc.)
    * @returns Lista de registros del balance de comprobación
    */
   async obtenerBalanceComprobacionClipper(
-    bdClipperGPC: string
+    baseDatos: string
   ): Promise<ClipperBalanceComprobacion[]> {
     try {
-      const sequelize = clipperGPCDatabases[bdClipperGPC];
-      if (!sequelize)
-        throw new Error(`Base de datos "${bdClipperGPC}" no configurada.`);
+      const sequelize = this.getDatabase(baseDatos);
 
       const query = `
         SELECT  

@@ -14,20 +14,20 @@ export class BalanceComprobacionClipperService
 
   /**
    * Obtiene los datos del Balance de Comprobación desde Clipper
-   * @param bdClipperGPC Nombre de la base de datos Clipper GPC a utilizar
+   * @param baseDatos Nombre de la base de datos Clipper a utilizar (bdclipperGPC, bdclipperGPC2, etc.)
    * @returns Lista de registros del balance de comprobación
    */
   async obtenerBalanceComprobacionClipper(
-    bdClipperGPC: string
+    baseDatos: string
   ): Promise<ClipperBalanceComprobacion[]> {
     try {
       // Validaciones de negocio
-      this.validarParametros(bdClipperGPC);
+      this.validarParametros(baseDatos);
 
       // Delegar al repositorio
       const resultado =
         await this.balanceComprobacionClipperRepository.obtenerBalanceComprobacionClipper(
-          bdClipperGPC
+          baseDatos
         );
 
       // Validar que se obtuvieron datos
@@ -51,13 +51,11 @@ export class BalanceComprobacionClipperService
 
   /**
    * Valida los parámetros de entrada
-   * @param bdClipperGPC Nombre de la base de datos Clipper GPC
+   * @param baseDatos Nombre de la base de datos Clipper
    */
-  private validarParametros(bdClipperGPC: string): void {
-    if (!bdClipperGPC || bdClipperGPC.trim() === "") {
-      throw new Error(
-        "El nombre de la base de datos Clipper GPC es obligatorio"
-      );
+  private validarParametros(baseDatos: string): void {
+    if (!baseDatos || baseDatos.trim() === "") {
+      throw new Error("El nombre de la base de datos Clipper es obligatorio");
     }
   }
 

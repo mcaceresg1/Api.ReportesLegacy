@@ -260,6 +260,7 @@ import { ReporteClipperLibroCajaRepository } from "../repositories/ReporteClippe
 import { IClipperLibroCajaService } from "../../domain/services/IClipperLibroCajaService";
 import { ClipperLibroCajaService } from "../../application/services/ClipperLibroCajaService";
 import { ClipperLibroCajaController } from "../controllers/ClipperLibroCajaController";
+import { TestClipperDatabasesController } from "../controllers/TestClipperDatabasesController";
 import { ICacheService } from "../../domain/services/ICacheService";
 import { CacheService } from "../../application/services/CacheService";
 import { ClipperLibroDiarioCacheService } from "../../application/services/ClipperLibroDiarioCacheService";
@@ -619,6 +620,9 @@ container
 container
   .bind<ClipperLibroCajaController>("ClipperLibroCajaController")
   .to(ClipperLibroCajaController);
+container
+  .bind<TestClipperDatabasesController>("TestClipperDatabasesController")
+  .to(TestClipperDatabasesController);
 container
   .bind<BalanceComprobacionClipperController>(
     "BalanceComprobacionClipperController"

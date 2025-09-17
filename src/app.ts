@@ -67,6 +67,7 @@ import libroMayorContabilidadRoutes from "./infrastructure/routes/LibroMayorCont
 import { IClipperLibroDiarioRepository } from "./domain/repositories/IClipperLibroDiarioRepository";
 import { createClipperLibroDiarioRoutes } from "./infrastructure/routes/ClipperLibroDiarioRoutes";
 import { createClipperLibroCajaRoutes } from "./infrastructure/routes/ClipperLibroCajaRoutes";
+import { createTestClipperDatabasesRoutes } from "./infrastructure/routes/TestClipperDatabasesRoutes";
 import { createBalanceComprobacionClipperRoutes } from "./infrastructure/routes/BalanceComprobacionClipperRoutes";
 import { createBalanceGeneralClipperRoutes } from "./infrastructure/routes/BalanceGeneralClipperRoutes";
 import { LibroDiarioOficonRoutes } from "./infrastructure/routes/LibroDiarioOficonRoutes";
@@ -573,6 +574,10 @@ app.use(
   createGananciasPerdidasClipperRoutes()
 );
 console.log("✅ Ganancias y Pérdidas Clipper routes registradas correctamente");
+
+// Test Clipper Databases Routes
+app.use("/api/test-clipper-databases", createTestClipperDatabasesRoutes());
+console.log("✅ Test Clipper Databases routes registradas correctamente");
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================
 

@@ -19,7 +19,7 @@ export function createBalanceComprobacionClipperRoutes(): Router {
   router.use(rateLimitMiddleware.reportRateLimit()); // 10 peticiones por 5 minutos
 
   // Ruta principal para obtener balance de comprobación clipper
-  router.get("/:bdClipperGPC", (req, res) =>
+  router.get("/:baseDatos", (req, res) =>
     controller.obtenerBalanceComprobacionClipper(req, res)
   );
 

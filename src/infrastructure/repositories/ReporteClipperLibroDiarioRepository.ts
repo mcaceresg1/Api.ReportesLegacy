@@ -9,6 +9,14 @@ import { clipperGPCDatabases } from "../database/config/clipper-gpc-database";
 export class ReporteClipperLibroDiarioRepository
   implements IClipperLibroDiarioRepository
 {
+  private getDatabase(baseDatos: string) {
+    const db = clipperGPCDatabases[baseDatos];
+    if (!db) {
+      throw new Error(`Base de datos '${baseDatos}' no encontrada`);
+    }
+    return db;
+  }
+
   async getComprobantes(
     libro: string,
     mes: string,
@@ -19,9 +27,7 @@ export class ReporteClipperLibroDiarioRepository
         `🔍 [REPOSITORY] Iniciando getComprobantes: ${libro}/${mes}/${bdClipperGPC}`
       );
 
-      const sequelize = clipperGPCDatabases[bdClipperGPC];
-      if (!sequelize)
-        throw new Error(`Base de datos "${bdClipperGPC}" no configurada.`);
+      const sequelize = this.getDatabase(bdClipperGPC);
 
       // Query principal optimizada sin paginación
       // Usa NOLOCK para mejor rendimiento en consultas de solo lectura
@@ -101,9 +107,7 @@ export class ReporteClipperLibroDiarioRepository
         `🔍 [REPOSITORY] Iniciando getComprobantesPorClase: ${libro}/${mes}/${bdClipperGPC}/${clase}`
       );
 
-      const sequelize = clipperGPCDatabases[bdClipperGPC];
-      if (!sequelize)
-        throw new Error(`Base de datos "${bdClipperGPC}" no configurada.`);
+      const sequelize = this.getDatabase(bdClipperGPC);
 
       // Query optimizada para filtrar por clase específica
       const query = `
@@ -175,9 +179,7 @@ export class ReporteClipperLibroDiarioRepository
     bdClipperGPC: string
   ): Promise<number> {
     try {
-      const sequelize = clipperGPCDatabases[bdClipperGPC];
-      if (!sequelize)
-        throw new Error(`Base de datos "${bdClipperGPC}" no configurada.`);
+      const sequelize = this.getDatabase(bdClipperGPC);
 
       // Query optimizada para obtener total de comprobantes
       const query = `
@@ -210,9 +212,7 @@ export class ReporteClipperLibroDiarioRepository
         `🔍 [REPOSITORY] Iniciando getComprobantesResumen: ${libro}/${mes}/${bdClipperGPC}`
       );
 
-      const sequelize = clipperGPCDatabases[bdClipperGPC];
-      if (!sequelize)
-        throw new Error(`Base de datos "${bdClipperGPC}" no configurada.`);
+      const sequelize = this.getDatabase(bdClipperGPC);
 
       // Query optimizada para obtener comprobantes únicos agrupados
       const query = `

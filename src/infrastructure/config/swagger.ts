@@ -362,6 +362,49 @@ const swaggerOptions = {
             "saldoActualHaber",
           ],
         },
+        ClipperEstadoGananciasYResultados: {
+          type: "object",
+          properties: {
+            concepto: {
+              type: "string",
+              description:
+                "Concepto del estado de ganancias y pérdidas (ej. VENTAS, GASTOS ADMINISTRATIVOS)",
+              example: "VENTAS",
+            },
+            monto: {
+              type: "string",
+              description:
+                "Monto formateado como string para mantener formato N2",
+              example: "6,110,267.20",
+            },
+            orden: {
+              type: "integer",
+              description: "Orden de presentación en el reporte",
+              example: 1,
+            },
+          },
+          required: ["concepto", "monto", "orden"],
+        },
+        FiltrosGananciasPerdidasClipper: {
+          type: "object",
+          properties: {
+            periodoDesde: {
+              type: "integer",
+              minimum: 1,
+              maximum: 12,
+              description: "Mes de inicio del período (1-12)",
+              example: 1,
+            },
+            periodoHasta: {
+              type: "integer",
+              minimum: 1,
+              maximum: 12,
+              description: "Mes de fin del período (1-12)",
+              example: 12,
+            },
+          },
+          required: ["periodoDesde", "periodoHasta"],
+        },
         // Schemas de Libro Mayor eliminados
         // ReporteLibroMayorItem, FiltrosReporteLibroMayor, ResumenLibroMayor, ReporteLibroMayorResponse
       },

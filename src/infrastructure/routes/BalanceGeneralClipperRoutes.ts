@@ -16,19 +16,19 @@ export function createBalanceGeneralClipperRoutes(): Router {
   // Aplicar middlewares de optimización a todas las rutas
   router.use(timeoutMiddleware.reportTimeout()); // 60 segundos para reportes
   router.use(responseLimitMiddleware.reportLimit()); // 50MB para reportes
-  router.use(rateLimitMiddleware.reportRateLimit()); // 10 peticiones por 5 minutos
+  // Rate limiting removido para balance general - permite más peticiones
 
-  // Ruta para obtener balance general por nivel
-  router.get("/:bdClipperGPC/:nivel", (req, res) =>
+  // Ruta para obtener balance general por nivel (SIN rate limiting)
+  router.get("/:baseDatos/:nivel", (req, res) =>
     controller.obtenerBalanceGeneralPorNivel(req, res)
   );
 
-  // Ruta para obtener balance general por mes y nivel
-  router.get("/:bdClipperGPC/:mes/:nivel", (req, res) =>
+  // Ruta para obtener balance general por mes y nivel (SIN rate limiting)
+  router.get("/:baseDatos/:mes/:nivel", (req, res) =>
     controller.obtenerBalanceGeneralPorMesYNivel(req, res)
   );
 
-  // Ruta de información del endpoint
+  // Ruta de información del endpoint (SIN rate limiting)
   router.get("/info", (req, res) => controller.obtenerInfo(req, res));
 
   return router;

@@ -7,10 +7,10 @@ import { ClipperBalanceComprobacion } from "../entities/BalanceCmprobacionClippe
 export interface IBalanceComprobacionClipperService {
   /**
    * Obtiene los datos del Balance de Comprobación desde Clipper
-   * @param bdClipperGPC Nombre de la base de datos Clipper GPC a utilizar
+   * @param baseDatos Nombre de la base de datos Clipper a utilizar (bdclipperGPC, bdclipperGPC2, etc.)
    * @returns Lista de registros del balance de comprobación
    */
   obtenerBalanceComprobacionClipper(
-    bdClipperGPC: string
+    baseDatos: string
   ): Promise<ClipperBalanceComprobacion[]>;
 }

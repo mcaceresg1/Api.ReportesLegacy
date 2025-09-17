@@ -18,20 +18,20 @@ export class BalanceGeneralClipperController {
 
   /**
    * @swagger
-   * /api/balance-general-clipper/{bdClipperGPC}/{nivel}:
+   * /api/balance-general-clipper/{baseDatos}/{nivel}:
    *   get:
    *     summary: Obtener balance general por nivel
    *     tags: [Clipper - Balance General]
-   *     description: "Retorna el balance general con saldos acumulados, movimientos del mes y saldos actuales por nivel de cuenta desde la base de datos Clipper GPC."
+   *     description: "Retorna el balance general con saldos acumulados, movimientos del mes y saldos actuales por nivel de cuenta desde la base de datos Clipper seleccionada."
    *     parameters:
    *       - in: path
-   *         name: bdClipperGPC
+   *         name: baseDatos
    *         required: true
    *         schema:
    *           type: string
-   *           enum: [bdclipperGPC, bdclipperGPC1]
+   *           enum: [bdclipperGPC, bdclipperGPC2, bdclipperGPC3, bdclipperGPC4, bdclipperGPC5, bdclipperGPC6, bdclipperGPC7, bdclipperGPC8, bdclipperGPC9]
    *           example: "bdclipperGPC"
-   *         description: "Nombre de la base de datos Clipper GPC"
+   *         description: "Nombre de la base de datos Clipper a utilizar. Opciones disponibles: ASOCIACION CIVIL SAN JUAN BAUTISTA (bdclipperGPC), PRUEBA (bdclipperGPC2), PARQUE DEL RECUERDO (bdclipperGPC3), MISION CEMENTERIO CATOLICO (bdclipperGPC4), PARQUE DEL RECUERDO (bdclipperGPC5), ASOCIACION CIVIL SAN JUAN BAUTISTA (bdclipperGPC6), MISION CEMENTERIO CATOLICO (bdclipperGPC7), COPIA DE ACSJB 01 (bdclipperGPC8), COPIA DE ACSJB 02 (bdclipperGPC9)"
    *       - in: path
    *         name: nivel
    *         required: true
@@ -98,12 +98,12 @@ export class BalanceGeneralClipperController {
     req: Request,
     res: Response
   ): Promise<void> {
-    const { bdClipperGPC, nivel } = req.params;
+    const { baseDatos, nivel } = req.params;
 
-    if (!bdClipperGPC || typeof bdClipperGPC !== "string") {
+    if (!baseDatos || typeof baseDatos !== "string") {
       res.status(400).json({
         success: false,
-        message: "El parámetro 'bdClipperGPC' es obligatorio",
+        message: "El parámetro 'baseDatos' es obligatorio",
         data: null,
       });
       return;
@@ -131,7 +131,7 @@ export class BalanceGeneralClipperController {
     try {
       const resultado =
         await this.balanceGeneralClipperService.obtenerBalanceGeneralPorNivel(
-          bdClipperGPC,
+          baseDatos,
           nivelNum
         );
 
@@ -158,20 +158,20 @@ export class BalanceGeneralClipperController {
 
   /**
    * @swagger
-   * /api/balance-general-clipper/{bdClipperGPC}/{mes}/{nivel}:
+   * /api/balance-general-clipper/{baseDatos}/{mes}/{nivel}:
    *   get:
    *     summary: Obtener balance general por mes y nivel
    *     tags: [Clipper - Balance General]
-   *     description: "Retorna el balance general con saldos acumulados hasta el mes anterior, movimientos del mes especificado y saldos actuales por nivel de cuenta desde la base de datos Clipper GPC."
+   *     description: "Retorna el balance general con saldos acumulados hasta el mes anterior, movimientos del mes especificado y saldos actuales por nivel de cuenta desde la base de datos Clipper seleccionada."
    *     parameters:
    *       - in: path
-   *         name: bdClipperGPC
+   *         name: baseDatos
    *         required: true
    *         schema:
    *           type: string
-   *           enum: [bdclipperGPC, bdclipperGPC1]
+   *           enum: [bdclipperGPC, bdclipperGPC2, bdclipperGPC3, bdclipperGPC4, bdclipperGPC5, bdclipperGPC6, bdclipperGPC7, bdclipperGPC8, bdclipperGPC9]
    *           example: "bdclipperGPC"
-   *         description: "Nombre de la base de datos Clipper GPC"
+   *         description: "Nombre de la base de datos Clipper a utilizar. Opciones disponibles: ASOCIACION CIVIL SAN JUAN BAUTISTA (bdclipperGPC), PRUEBA (bdclipperGPC2), PARQUE DEL RECUERDO (bdclipperGPC3), MISION CEMENTERIO CATOLICO (bdclipperGPC4), PARQUE DEL RECUERDO (bdclipperGPC5), ASOCIACION CIVIL SAN JUAN BAUTISTA (bdclipperGPC6), MISION CEMENTERIO CATOLICO (bdclipperGPC7), COPIA DE ACSJB 01 (bdclipperGPC8), COPIA DE ACSJB 02 (bdclipperGPC9)"
    *       - in: path
    *         name: mes
    *         required: true
@@ -247,12 +247,12 @@ export class BalanceGeneralClipperController {
     req: Request,
     res: Response
   ): Promise<void> {
-    const { bdClipperGPC, mes, nivel } = req.params;
+    const { baseDatos, mes, nivel } = req.params;
 
-    if (!bdClipperGPC || typeof bdClipperGPC !== "string") {
+    if (!baseDatos || typeof baseDatos !== "string") {
       res.status(400).json({
         success: false,
-        message: "El parámetro 'bdClipperGPC' es obligatorio",
+        message: "El parámetro 'baseDatos' es obligatorio",
         data: null,
       });
       return;
@@ -299,7 +299,7 @@ export class BalanceGeneralClipperController {
     try {
       const resultado =
         await this.balanceGeneralClipperService.obtenerBalanceGeneralPorMesYNivel(
-          bdClipperGPC,
+          baseDatos,
           mesNum,
           nivelNum
         );

@@ -14,18 +14,18 @@ export class BalanceGeneralClipperService
 
   /**
    * Obtiene el balance general por nivel
-   * @param bdClipperGPC Nombre de la base de datos Clipper GPC
+   * @param baseDatos Nombre de la base de datos Clipper a utilizar (bdclipperGPC, bdclipperGPC2, etc.)
    * @param nivel Nivel de las cuentas contables
    * @returns Lista de registros del balance general por nivel
    */
   async obtenerBalanceGeneralPorNivel(
-    bdClipperGPC: string,
+    baseDatos: string,
     nivel: number
   ): Promise<ClipperBalanceGeneral[]> {
     try {
       // Validar parámetros
-      if (!bdClipperGPC || typeof bdClipperGPC !== "string") {
-        throw new Error("El parámetro 'bdClipperGPC' es obligatorio");
+      if (!baseDatos || typeof baseDatos !== "string") {
+        throw new Error("El parámetro 'baseDatos' es obligatorio");
       }
 
       if (!nivel || nivel < 1 || nivel > 5) {
@@ -33,12 +33,12 @@ export class BalanceGeneralClipperService
       }
 
       console.log(
-        `BalanceGeneralClipperService.obtenerBalanceGeneralPorNivel - Iniciando para bdClipperGPC: ${bdClipperGPC}, nivel: ${nivel}`
+        `BalanceGeneralClipperService.obtenerBalanceGeneralPorNivel - Iniciando para baseDatos: ${baseDatos}, nivel: ${nivel}`
       );
 
       const resultado =
         await this.balanceGeneralClipperRepository.obtenerBalanceGeneralPorNivel(
-          bdClipperGPC,
+          baseDatos,
           nivel
         );
 
@@ -58,20 +58,20 @@ export class BalanceGeneralClipperService
 
   /**
    * Obtiene el balance general por mes y nivel
-   * @param bdClipperGPC Nombre de la base de datos Clipper GPC
+   * @param baseDatos Nombre de la base de datos Clipper a utilizar (bdclipperGPC, bdclipperGPC2, etc.)
    * @param mes Mes contable a consultar (1-12)
    * @param nivel Nivel de las cuentas contables
    * @returns Lista de registros del balance general por mes y nivel
    */
   async obtenerBalanceGeneralPorMesYNivel(
-    bdClipperGPC: string,
+    baseDatos: string,
     mes: number,
     nivel: number
   ): Promise<ClipperBalanceGeneral[]> {
     try {
       // Validar parámetros
-      if (!bdClipperGPC || typeof bdClipperGPC !== "string") {
-        throw new Error("El parámetro 'bdClipperGPC' es obligatorio");
+      if (!baseDatos || typeof baseDatos !== "string") {
+        throw new Error("El parámetro 'baseDatos' es obligatorio");
       }
 
       if (!mes || mes < 1 || mes > 12) {
@@ -83,12 +83,12 @@ export class BalanceGeneralClipperService
       }
 
       console.log(
-        `BalanceGeneralClipperService.obtenerBalanceGeneralPorMesYNivel - Iniciando para bdClipperGPC: ${bdClipperGPC}, mes: ${mes}, nivel: ${nivel}`
+        `BalanceGeneralClipperService.obtenerBalanceGeneralPorMesYNivel - Iniciando para baseDatos: ${baseDatos}, mes: ${mes}, nivel: ${nivel}`
       );
 
       const resultado =
         await this.balanceGeneralClipperRepository.obtenerBalanceGeneralPorMesYNivel(
-          bdClipperGPC,
+          baseDatos,
           mes,
           nivel
         );

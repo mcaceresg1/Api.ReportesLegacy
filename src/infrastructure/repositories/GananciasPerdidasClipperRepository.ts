@@ -12,20 +12,26 @@ import { clipperGPCDatabases } from "../database/config/clipper-gpc-database";
 export class GananciasPerdidasClipperRepository
   implements IGananciasPerdidasClipperRepository
 {
+  private getDatabase(baseDatos: string) {
+    const db = clipperGPCDatabases[baseDatos];
+    if (!db) {
+      throw new Error(`Base de datos '${baseDatos}' no encontrada`);
+    }
+    return db;
+  }
+
   /**
    * Obtiene los datos del Estado de Ganancias y Pérdidas desde Clipper
-   * @param bdClipperGPC Nombre de la base de datos Clipper GPC a utilizar
+   * @param baseDatos Nombre de la base de datos Clipper a utilizar (bdclipperGPC, bdclipperGPC2, etc.)
    * @param filtros Filtros de período para el reporte
    * @returns Lista de registros del estado de ganancias y pérdidas
    */
   async obtenerGananciasPerdidasClipper(
-    bdClipperGPC: string,
+    baseDatos: string,
     filtros: FiltrosGananciasPerdidasClipper
   ): Promise<ClipperEstadoGananciasYResultados[]> {
     try {
-      const sequelize = clipperGPCDatabases[bdClipperGPC];
-      if (!sequelize)
-        throw new Error(`Base de datos "${bdClipperGPC}" no configurada.`);
+      const sequelize = this.getDatabase(baseDatos);
 
       // Construir dinámicamente las columnas de DEBE y HABER basadas en el período
       const { columnasDebe, columnasHaber } = this.construirColumnasPeriodo(

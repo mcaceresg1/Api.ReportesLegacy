@@ -1,24 +1,42 @@
 // src/infrastructure/repositories/ReporteClipperRepository.ts
-import { injectable } from 'inversify';
-import { BeneficiarioContrato, CabeceraContrato, ClipperContrato, ClipperContratoDetalle, ClipperContratoLima, ClipperContratoTacna, Comision, ComprobantesEmitidos, CuentaCorriente, DetalleArticulo, DetalleAsistencia, DetalleEspacio, Factbol, Fallecido, NotaContable, Pago, PagosCaja, Sepelio, SubDetalleAsistencia } from '../../domain/entities/ClipperContrato';
-import { QueryTypes } from 'sequelize';
-import { IReporteClipperRepository } from '../../domain/repositories/IReporteClipperRepository';
-import { clipperDatabases } from '../database/config/clipper-database';
-
+import { injectable } from "inversify";
+import {
+  BeneficiarioContrato,
+  CabeceraContrato,
+  ClipperContrato,
+  ClipperContratoDetalle,
+  ClipperContratoLima,
+  ClipperContratoTacna,
+  Comision,
+  ComprobantesEmitidos,
+  CuentaCorriente,
+  DetalleArticulo,
+  DetalleAsistencia,
+  DetalleEspacio,
+  Factbol,
+  Fallecido,
+  NotaContable,
+  Pago,
+  PagosCaja,
+  Sepelio,
+  SubDetalleAsistencia,
+} from "../../domain/entities/ClipperContrato";
+import { QueryTypes } from "sequelize";
+import { IReporteClipperRepository } from "../../domain/repositories/IReporteClipperRepository";
+import { clipperDatabases } from "../database/config/clipper-database";
 
 export type ClipperContratoResultado =
-  | ClipperContratoDetalle     // Lurin
-  | ClipperContratoLima        // Lima
-  | ClipperContratoTacna;      // Tacna
+  | ClipperContratoDetalle // Lurin
+  | ClipperContratoLima // Lima
+  | ClipperContratoTacna; // Tacna
 
 @injectable()
 export class ReporteClipperRepository implements IReporteClipperRepository {
-
   async obtenerContratos(ruta: string): Promise<ClipperContrato[]> {
     try {
       // Validar que la ruta sea válida y exista conexión
-      if (!['clipper-lurin', 'clipper-tacna', 'clipper-lima'].includes(ruta)) {
-        throw new Error('Ruta no válida');
+      if (!["clipper-lurin", "clipper-tacna", "clipper-lima"].includes(ruta)) {
+        throw new Error("Ruta no válida");
       }
 
       // Obtener la instancia Sequelize según la ruta
@@ -29,9 +47,9 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
       }
 
       // Define los queries según la ruta
-      let query = '';
+      let query = "";
       switch (ruta) {
-        case 'clipper-lurin':
+        case "clipper-lurin":
           query = `
             SELECT
               T0.NO_CONT + '/' + T0.CONTROL AS contratoControl,
@@ -46,7 +64,7 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
           `;
           break;
 
-        case 'clipper-tacna':
+        case "clipper-tacna":
           query = `   
                 SELECT T0.CODCNT + '/' + T0.CODCTL AS contratoControl,		
                 DESPLA AS sectorEspacio,        
@@ -59,8 +77,7 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
             `;
           break;
 
-
-        case 'clipper-lima':
+        case "clipper-lima":
           // Reemplaza con el query para Lima cuando lo tengas
           query = `
           SELECT 
@@ -85,8 +102,155 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
 
       return results as ClipperContrato[];
     } catch (error) {
-      console.error('Error obteniendo contratos:', error);
+      console.error("Error obteniendo contratos:", error);
       throw new Error(`Error al obtener contratos: ${error}`);
+    }
+  }
+
+  async obtenerContratosPaginados(
+    ruta: string,
+    page: number,
+    limit: number,
+    sortField?: string,
+    sortOrder?: number,
+    globalFilter?: string
+  ): Promise<{
+    data: ClipperContrato[];
+    totalRecords: number;
+    page: number;
+    limit: number;
+  }> {
+    try {
+      // Validar que la ruta sea válida y exista conexión
+      if (!["clipper-lurin", "clipper-tacna", "clipper-lima"].includes(ruta)) {
+        throw new Error("Ruta no válida");
+      }
+
+      // Obtener la instancia Sequelize según la ruta
+      const rutaKey = ruta as keyof typeof clipperDatabases;
+      const sequelizeInstance = clipperDatabases[rutaKey];
+      if (!sequelizeInstance) {
+        throw new Error(`No se encontró conexión para la ruta: ${ruta}`);
+      }
+
+      // Define los queries base según la ruta
+      let baseQuery = "";
+      let countQuery = "";
+
+      switch (ruta) {
+        case "clipper-lurin":
+          baseQuery = `
+            SELECT
+              T0.NO_CONT + '/' + T0.CONTROL AS contratoControl,
+              T0.SECTOR + ' ' + T0.ESPACIO AS sectorEspacio,
+              '' AS codigoTumba,
+              T1.APELLIDOS + ' ' + T1.NOMBRE AS cliente,
+              T0.NO_CONT as contrato,
+              T0.CONTROL as control
+            FROM Ventas T0
+            LEFT JOIN CLIENTES T1 ON T0.CLIENTE = T1.CODIGO
+            WHERE T0.NO_CONT <> 0
+          `;
+          countQuery = `
+            SELECT COUNT(*) as total
+            FROM Ventas T0
+            LEFT JOIN CLIENTES T1 ON T0.CLIENTE = T1.CODIGO
+            WHERE T0.NO_CONT <> 0
+          `;
+          break;
+
+        case "clipper-tacna":
+          baseQuery = `   
+            SELECT T0.CODCNT + '/' + T0.CODCTL AS contratoControl,		
+            DESPLA AS sectorEspacio,        
+            T0.CODSEC AS codigoTumba,       
+             T0.APPCLI + ' ' + T0.APMCLI + ' ' + T0.NOMCLI AS cliente,
+             T0.CODCNT AS contrato,
+             T0.CODCTL AS control   
+             FROM PDRCO0 T0        
+             LEFT JOIN  mplt01 T1 ON T1.TIPPLA = T0.CODPLA
+          `;
+          countQuery = `
+            SELECT COUNT(*) as total
+            FROM PDRCO0 T0        
+            LEFT JOIN  mplt01 T1 ON T1.TIPPLA = T0.CODPLA
+          `;
+          break;
+
+        case "clipper-lima":
+          baseQuery = `
+          SELECT 
+              T0.CODCNT + '/' + T0.CODCTL AS contratoControl,
+              T1.DESITM AS sectorEspacio,
+              T0.CODSEC AS codigoTumba,
+              T0.APPCLI + ' ' + T0.APMCLI + ' ' + T0.NOMCLI AS cliente,
+              T0.CODCNT AS contrato,
+              T0.CODCTL AS control
+          FROM PDRCO0 T0
+          LEFT JOIN TPDR01 T1 
+              ON T1.CODITM = T0.TIPLOT 
+              AND T1.CODTAB = '13'
+      `;
+          countQuery = `
+            SELECT COUNT(*) as total
+            FROM PDRCO0 T0
+            LEFT JOIN TPDR01 T1 
+                ON T1.CODITM = T0.TIPLOT 
+                AND T1.CODTAB = '13'
+          `;
+          break;
+      }
+
+      // Aplicar filtro global si existe
+      let whereClause = "";
+      if (globalFilter && globalFilter.trim() !== "") {
+        const filter = globalFilter.trim();
+        whereClause = `
+          AND (
+            T0.NO_CONT LIKE '%${filter}%' OR
+            T0.CONTROL LIKE '%${filter}%' OR
+            T1.APELLIDOS LIKE '%${filter}%' OR
+            T1.NOMBRE LIKE '%${filter}%' OR
+            T0.SECTOR LIKE '%${filter}%' OR
+            T0.ESPACIO LIKE '%${filter}%'
+          )
+        `;
+      }
+
+      // Aplicar ordenamiento
+      let orderClause = "";
+      if (sortField) {
+        const order = sortOrder === 1 ? "ASC" : "DESC";
+        orderClause = `ORDER BY ${sortField} ${order}`;
+      } else {
+        orderClause = "ORDER BY contratoControl ASC";
+      }
+
+      // Aplicar paginación
+      const offset = page * limit;
+      const paginationClause = `OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY`;
+
+      // Construir query final
+      const finalQuery = `${baseQuery} ${whereClause} ${orderClause} ${paginationClause}`;
+      const finalCountQuery = `${countQuery} ${whereClause}`;
+
+      // Ejecutar queries
+      const [results, countResult] = await Promise.all([
+        sequelizeInstance.query(finalQuery, { type: QueryTypes.SELECT }),
+        sequelizeInstance.query(finalCountQuery, { type: QueryTypes.SELECT }),
+      ]);
+
+      const totalRecords = (countResult[0] as any).total;
+
+      return {
+        data: results as ClipperContrato[],
+        totalRecords,
+        page,
+        limit,
+      };
+    } catch (error) {
+      console.error("Error obteniendo contratos paginados:", error);
+      throw new Error(`Error al obtener contratos paginados: ${error}`);
     }
   }
 
@@ -96,8 +260,8 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
     control: string | null
   ): Promise<ClipperContratoResultado | null> {
     try {
-      if (!['clipper-lurin', 'clipper-tacna', 'clipper-lima'].includes(ruta)) {
-        throw new Error('Ruta no válida');
+      if (!["clipper-lurin", "clipper-tacna", "clipper-lima"].includes(ruta)) {
+        throw new Error("Ruta no válida");
       }
 
       const rutaKey = ruta as keyof typeof clipperDatabases;
@@ -107,10 +271,10 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
         throw new Error(`No se encontró conexión para la ruta: ${ruta}`);
       }
 
-      let query = '';
+      let query = "";
 
       switch (ruta) {
-        case 'clipper-lurin':
+        case "clipper-lurin":
           // ============================ CABECERA ============================
           const cabeceraQuery = `
             SELECT DISTINCT
@@ -249,14 +413,38 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
           `;
 
           // ============================ EJECUCIÓN ============================
-          const [cabecera] = await sequelizeInstance.query(cabeceraQuery, { type: QueryTypes.SELECT, replacements: { contrato, control } });
-          const detalleArticulo = await sequelizeInstance.query(detalleArticuloQuery, { type: QueryTypes.SELECT, replacements: { contrato, control } });
-          const cuentaCorriente = await sequelizeInstance.query(cuentaCorrienteQuery, { type: QueryTypes.SELECT, replacements: { contrato, control } });
-          const notasContables = await sequelizeInstance.query(notasContablesQuery, { type: QueryTypes.SELECT, replacements: { contrato, control } });
-          const pagos = await sequelizeInstance.query(pagosQuery, { type: QueryTypes.SELECT, replacements: { contrato, control } });
-          const comisiones = await sequelizeInstance.query(comisionesQuery, { type: QueryTypes.SELECT, replacements: { contrato, control } });
-          const factbol = await sequelizeInstance.query(factbolQuery, { type: QueryTypes.SELECT, replacements: { contrato, control } });
-          const sepelios = await sequelizeInstance.query(sepeliosQuery, { type: QueryTypes.SELECT, replacements: { contrato, control } });
+          const [cabecera] = await sequelizeInstance.query(cabeceraQuery, {
+            type: QueryTypes.SELECT,
+            replacements: { contrato, control },
+          });
+          const detalleArticulo = await sequelizeInstance.query(
+            detalleArticuloQuery,
+            { type: QueryTypes.SELECT, replacements: { contrato, control } }
+          );
+          const cuentaCorriente = await sequelizeInstance.query(
+            cuentaCorrienteQuery,
+            { type: QueryTypes.SELECT, replacements: { contrato, control } }
+          );
+          const notasContables = await sequelizeInstance.query(
+            notasContablesQuery,
+            { type: QueryTypes.SELECT, replacements: { contrato, control } }
+          );
+          const pagos = await sequelizeInstance.query(pagosQuery, {
+            type: QueryTypes.SELECT,
+            replacements: { contrato, control },
+          });
+          const comisiones = await sequelizeInstance.query(comisionesQuery, {
+            type: QueryTypes.SELECT,
+            replacements: { contrato, control },
+          });
+          const factbol = await sequelizeInstance.query(factbolQuery, {
+            type: QueryTypes.SELECT,
+            replacements: { contrato, control },
+          });
+          const sepelios = await sequelizeInstance.query(sepeliosQuery, {
+            type: QueryTypes.SELECT,
+            replacements: { contrato, control },
+          });
 
           return {
             cabecera: cabecera as CabeceraContrato,
@@ -269,7 +457,7 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
             sepelios: sepelios as Sepelio[],
           };
 
-        case 'clipper-lima':
+        case "clipper-lima":
           // ============================ CABECERA ============================
           const cabeceraQueryLima = `
              SELECT     
@@ -444,24 +632,49 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
               `;
 
           // ============================ EJECUCIÓN ============================
-          const [cabeceraLima] = await sequelizeInstance.query(cabeceraQueryLima, { type: QueryTypes.SELECT, replacements: { contrato, control } });
-          const detalleEspacio = await sequelizeInstance.query(queryDetalleEspacios, { type: QueryTypes.SELECT, replacements: { contrato, control } });
-          const [detalle, subDetalle, comprobantes, pagosCaja] = await Promise.all([
-            sequelizeInstance.query(queryDetalle, { type: QueryTypes.SELECT, replacements: { contrato } }),
-            sequelizeInstance.query(querySubDetalle, { type: QueryTypes.SELECT, replacements: { contrato } }),
-            sequelizeInstance.query(queryComprobantes, { type: QueryTypes.SELECT, replacements: { contrato } }),
-            sequelizeInstance.query(queryPagosCaja, { type: QueryTypes.SELECT, replacements: { contrato } }),
-          ]);
+          const [cabeceraLima] = await sequelizeInstance.query(
+            cabeceraQueryLima,
+            { type: QueryTypes.SELECT, replacements: { contrato, control } }
+          );
+          const detalleEspacio = await sequelizeInstance.query(
+            queryDetalleEspacios,
+            { type: QueryTypes.SELECT, replacements: { contrato, control } }
+          );
+          const [detalle, subDetalle, comprobantes, pagosCaja] =
+            await Promise.all([
+              sequelizeInstance.query(queryDetalle, {
+                type: QueryTypes.SELECT,
+                replacements: { contrato },
+              }),
+              sequelizeInstance.query(querySubDetalle, {
+                type: QueryTypes.SELECT,
+                replacements: { contrato },
+              }),
+              sequelizeInstance.query(queryComprobantes, {
+                type: QueryTypes.SELECT,
+                replacements: { contrato },
+              }),
+              sequelizeInstance.query(queryPagosCaja, {
+                type: QueryTypes.SELECT,
+                replacements: { contrato },
+              }),
+            ]);
           const detalleAsistencia: DetalleAsistencia = {
-            ...detalle[0],        // Datos principales del detalle
-            subDetalle: subDetalle as SubDetalleAsistencia[],   // Array de subdetalle
+            ...detalle[0], // Datos principales del detalle
+            subDetalle: subDetalle as SubDetalleAsistencia[], // Array de subdetalle
             comprobantes: comprobantes as ComprobantesEmitidos[], // Array de comprobantes
-            pagosCaja: pagosCaja as PagosCaja[],                // Array de pagosCaja
+            pagosCaja: pagosCaja as PagosCaja[], // Array de pagosCaja
           };
-          const beneficiarios = await sequelizeInstance.query(queryBeneficiarioContrato, { type: QueryTypes.SELECT, replacements: { contrato }, });
+          const beneficiarios = await sequelizeInstance.query(
+            queryBeneficiarioContrato,
+            { type: QueryTypes.SELECT, replacements: { contrato } }
+          );
 
           // Ejecutar query de fallecidos
-          const fallecidos = await sequelizeInstance.query(queryFallecido, { type: QueryTypes.SELECT, replacements: { contrato }, });
+          const fallecidos = await sequelizeInstance.query(queryFallecido, {
+            type: QueryTypes.SELECT,
+            replacements: { contrato },
+          });
           return {
             cabecera: cabeceraLima as CabeceraContrato,
             detalleEspacio: detalleEspacio as DetalleEspacio[],
@@ -470,7 +683,7 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
             fallecidos: fallecidos as Fallecido[],
           };
           break;
-        case 'clipper-tacna':
+        case "clipper-tacna":
           // ============================ CABECERA ============================
           const cabeceraQueryTacna = `
             SELECT                   T0.APPCLI + ' ' + T0.APMCLI + ' ' + T0.NOMCLI AS cliente, 
@@ -625,24 +838,53 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
              `;
 
           // ============================ EJECUCIÓN ============================
-          const [cabeceraTacna] = await sequelizeInstance.query(cabeceraQueryTacna, { type: QueryTypes.SELECT, replacements: { contrato, control } });
-          const detalleEspacioTacna = await sequelizeInstance.query(queryDetalleEspaciosTacna, { type: QueryTypes.SELECT, replacements: { contrato, control } });
-          const [detalleTacna, subDetalleTacna, comprobantesTacna, pagosCajaTacna] = await Promise.all([
-            sequelizeInstance.query(queryDetalleTacna, { type: QueryTypes.SELECT, replacements: { contrato } }),
-            sequelizeInstance.query(querySubDetalletacna, { type: QueryTypes.SELECT, replacements: { contrato } }),
-            sequelizeInstance.query(queryComprobantesTacna, { type: QueryTypes.SELECT, replacements: { contrato } }),
-            sequelizeInstance.query(queryPagosCajaTacna, { type: QueryTypes.SELECT, replacements: { contrato } }),
+          const [cabeceraTacna] = await sequelizeInstance.query(
+            cabeceraQueryTacna,
+            { type: QueryTypes.SELECT, replacements: { contrato, control } }
+          );
+          const detalleEspacioTacna = await sequelizeInstance.query(
+            queryDetalleEspaciosTacna,
+            { type: QueryTypes.SELECT, replacements: { contrato, control } }
+          );
+          const [
+            detalleTacna,
+            subDetalleTacna,
+            comprobantesTacna,
+            pagosCajaTacna,
+          ] = await Promise.all([
+            sequelizeInstance.query(queryDetalleTacna, {
+              type: QueryTypes.SELECT,
+              replacements: { contrato },
+            }),
+            sequelizeInstance.query(querySubDetalletacna, {
+              type: QueryTypes.SELECT,
+              replacements: { contrato },
+            }),
+            sequelizeInstance.query(queryComprobantesTacna, {
+              type: QueryTypes.SELECT,
+              replacements: { contrato },
+            }),
+            sequelizeInstance.query(queryPagosCajaTacna, {
+              type: QueryTypes.SELECT,
+              replacements: { contrato },
+            }),
           ]);
           const detalleAsistenciaTacna: DetalleAsistencia = {
-            ...detalleTacna[0],        // Datos principales del detalle
-            subDetalle: subDetalleTacna as SubDetalleAsistencia[],   // Array de subdetalle
+            ...detalleTacna[0], // Datos principales del detalle
+            subDetalle: subDetalleTacna as SubDetalleAsistencia[], // Array de subdetalle
             comprobantes: comprobantesTacna as ComprobantesEmitidos[], // Array de comprobantes
-            pagosCaja: pagosCajaTacna as PagosCaja[],                // Array de pagosCaja
+            pagosCaja: pagosCajaTacna as PagosCaja[], // Array de pagosCaja
           };
-          const beneficiariosTacna = await sequelizeInstance.query(queryBeneficiarioContratoTacna, { type: QueryTypes.SELECT, replacements: { contrato }, });
+          const beneficiariosTacna = await sequelizeInstance.query(
+            queryBeneficiarioContratoTacna,
+            { type: QueryTypes.SELECT, replacements: { contrato } }
+          );
 
           // Ejecutar query de fallecidos
-          const fallecidosTacna = await sequelizeInstance.query(queryFallecidoTacna, { type: QueryTypes.SELECT, replacements: { contrato }, });
+          const fallecidosTacna = await sequelizeInstance.query(
+            queryFallecidoTacna,
+            { type: QueryTypes.SELECT, replacements: { contrato } }
+          );
           return {
             cabecera: cabeceraTacna as CabeceraContrato,
             detalleEspacio: detalleEspacioTacna as DetalleEspacio[],
@@ -651,7 +893,6 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
             fallecidos: fallecidosTacna as Fallecido[],
           };
           break;
-
       }
 
       const results = await sequelizeInstance.query(query, {
@@ -661,7 +902,7 @@ export class ReporteClipperRepository implements IReporteClipperRepository {
 
       return results.length ? (results[0] as ClipperContratoResultado) : null;
     } catch (error) {
-      console.error('Error al obtener contrato por control:', error);
+      console.error("Error al obtener contrato por control:", error);
       throw new Error(`Error al obtener contrato por control: ${error}`);
     }
   }
