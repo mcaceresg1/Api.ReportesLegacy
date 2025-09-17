@@ -5,11 +5,11 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Configuración para la base de datos OFICON (solo lectura)
-const oficonDbName = process.env["OFICON_DB_NAME"] || "OFICON";
-const oficonDbUser = process.env["OFICON_DB_USER"] || "";
-const oficonDbPassword = process.env["OFICON_DB_PASSWORD"] || "";
-const oficonDbHost = process.env["OFICON_DB_HOST"] || "localhost";
-const oficonDbDialect = (process.env["OFICON_DB_DIALECT"] as any) || "mssql";
+const oficonDbName = process.env["OFICONT_DB_NAME"] || "OFICONT";
+const oficonDbUser = process.env["OFICONT_DB_USER"] || "";
+const oficonDbPassword = process.env["OFICONT_DB_PASSWORD"] || "";
+const oficonDbHost = process.env["OFICONT_DB_HOST"] || "localhost";
+const oficonDbDialect = (process.env["OFICONT_DB_DIALECT"] as any) || "mssql";
 
 const oficonSequelize = new Sequelize(
   oficonDbName,

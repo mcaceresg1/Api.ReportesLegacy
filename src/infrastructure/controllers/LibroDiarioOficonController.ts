@@ -1,7 +1,8 @@
-import { injectable } from "inversify";
+import { injectable, inject } from "inversify";
 import { Request, Response } from "express";
 import { ILibroDiarioOficonService } from "../../domain/services/ILibroDiarioOficonService";
 import { LibroDiarioOficonRequest } from "../../domain/entities/LibroDiarioOficon";
+import { TYPES } from "../container/types";
 
 /**
  * @swagger
@@ -166,6 +167,7 @@ import { LibroDiarioOficonRequest } from "../../domain/entities/LibroDiarioOfico
 @injectable()
 export class LibroDiarioOficonController {
   constructor(
+    @inject(TYPES.ILibroDiarioOficonService)
     private readonly libroDiarioOficonService: ILibroDiarioOficonService
   ) {}
 
@@ -310,144 +312,6 @@ export class LibroDiarioOficonController {
     } catch (error) {
       console.error(
         "Error en LibroDiarioOficonController.generarReporteLibroDiarioOficon:",
-        error
-      );
-      res.status(500).json({
-        success: false,
-        message: "Error interno del servidor",
-        data: [],
-        error: error instanceof Error ? error.message : "Error desconocido",
-      });
-    }
-  }
-
-  /**
-   * @swagger
-   * /api/libro-diario-oficon/generar-reporte:
-   *   post:
-   *     summary: Generar reporte de libro diario OFICON (POST)
-   *     description: Genera un reporte de libro diario desde la base de datos OFICON con parámetros en el body
-   *     tags: [Libro Diario OFICON]
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             $ref: '#/components/schemas/LibroDiarioOficonRequest'
-   *           example:
-   *             IDEMPRESA: 1
-   *             FECHAINI: "2024-01-01"
-   *             FECHAFINAL: "2024-01-31"
-   *     responses:
-   *       200:
-   *         description: Reporte generado exitosamente
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/LibroDiarioOficonResponse'
-   *             example:
-   *               success: true
-   *               data:
-   *                 - AÑO: 2024
-   *                   MES: 1
-   *                   CODIGO_UNIDAD_CONTABLE: "001"
-   *                   NOMBRE_UNIDAD_CONTABLE: "Unidad Principal"
-   *                   CODIGO_OPERACION_CONTABLE: "007"
-   *                   NUMERO_ASIENTO: 1
-   *                   NUMERO_SECUENCIAL: 1
-   *                   FECHA_ASIENTO_CONTABLE: "01/01/2024"
-   *                   CUENTA_EMPRESA: "110101"
-   *                   TIPO_AUXILIAR: "CLI"
-   *                   CODIGO_AUXILIAR: "001"
-   *                   TIPO_DOCUMENTO: "FAC"
-   *                   NUMERO_DOCUMENTO: "001-001"
-   *                   FECHA_DOCUMENTO: "01/01/2024"
-   *                   ORDEN_SERVICIO: "OS001"
-   *                   GLOSA: "Venta de productos"
-   *                   IMPORTE_DEBE: 1000.00
-   *                   IMPORTE_HABER: 0.00
-   *                   IMPORTE_MOVIMIENTO_ORIGINAL: 1000.00
-   *                   DESC_OPERACION_CONTABLE: "Operación de Venta"
-   *               totalRecords: 1
-   *               message: "Reporte generado exitosamente. Se encontraron 1 registros."
-   *       400:
-   *         description: Error en los parámetros de entrada
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/LibroDiarioOficonResponse'
-   *             example:
-   *               success: false
-   *               data: []
-   *               message: "Los parámetros IDEMPRESA, FECHAINI y FECHAFINAL son requeridos"
-   *       500:
-   *         description: Error interno del servidor
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 success:
-   *                   type: boolean
-   *                   example: false
-   *                 message:
-   *                   type: string
-   *                   example: "Error interno del servidor"
-   *                 data:
-   *                   type: array
-   *                   example: []
-   *                 error:
-   *                   type: string
-   *                   example: "Error desconocido"
-   */
-  async generarReporteLibroDiarioOficonPost(
-    req: Request,
-    res: Response
-  ): Promise<void> {
-    try {
-      const { IDEMPRESA, FECHAINI, FECHAFINAL } = req.body;
-
-      // Validar parámetros requeridos
-      if (!IDEMPRESA || !FECHAINI || !FECHAFINAL) {
-        res.status(400).json({
-          success: false,
-          message:
-            "Los parámetros IDEMPRESA, FECHAINI y FECHAFINAL son requeridos",
-          data: [],
-        });
-        return;
-      }
-
-      // Validar que IDEMPRESA sea un número
-      const idEmpresa = parseInt(IDEMPRESA);
-      if (isNaN(idEmpresa)) {
-        res.status(400).json({
-          success: false,
-          message: "IDEMPRESA debe ser un número válido",
-          data: [],
-        });
-        return;
-      }
-
-      const request: LibroDiarioOficonRequest = {
-        IDEMPRESA: idEmpresa,
-        FECHAINI: FECHAINI,
-        FECHAFINAL: FECHAFINAL,
-      };
-
-      const result =
-        await this.libroDiarioOficonService.generarReporteLibroDiarioOficon(
-          request
-        );
-
-      if (result.success) {
-        res.status(200).json(result);
-      } else {
-        res.status(400).json(result);
-      }
-    } catch (error) {
-      console.error(
-        "Error en LibroDiarioOficonController.generarReporteLibroDiarioOficonPost:",
         error
       );
       res.status(500).json({

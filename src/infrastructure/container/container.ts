@@ -407,7 +407,7 @@ container
   .bind<IBalanceGeneralClipperRepository>("IBalanceGeneralClipperRepository")
   .to(BalanceGeneralClipperRepository);
 container
-  .bind<ILibroDiarioOficonRepository>("ILibroDiarioOficonRepository")
+  .bind<ILibroDiarioOficonRepository>(TYPES.ILibroDiarioOficonRepository)
   .to(LibroDiarioOficonRepository);
 
 // Cache Services
@@ -506,7 +506,7 @@ container
   .bind<IBalanceGeneralClipperService>("IBalanceGeneralClipperService")
   .to(BalanceGeneralClipperService);
 container
-  .bind<ILibroDiarioOficonService>("ILibroDiarioOficonService")
+  .bind<ILibroDiarioOficonService>(TYPES.ILibroDiarioOficonService)
   .to(LibroDiarioOficonService);
 
 // Controllers
@@ -628,10 +628,10 @@ container
   .bind<BalanceGeneralClipperController>("BalanceGeneralClipperController")
   .to(BalanceGeneralClipperController);
 container
-  .bind<LibroDiarioOficonController>("LibroDiarioOficonController")
+  .bind<LibroDiarioOficonController>(TYPES.LibroDiarioOficonController)
   .to(LibroDiarioOficonController);
 container
-  .bind<LibroDiarioOficonRoutes>("LibroDiarioOficonRoutes")
+  .bind<LibroDiarioOficonRoutes>(TYPES.LibroDiarioOficonRoutes)
   .to(LibroDiarioOficonRoutes);
 // BalanceComprobacionClipperRoutes se instancia directamente en app.ts
 
@@ -750,11 +750,11 @@ container
 // Libro Diario OFICON Handlers
 container
   .bind<GenerarReporteLibroDiarioOficonHandler>(
-    "GenerarReporteLibroDiarioOficonHandler"
+    TYPES.GenerarReporteLibroDiarioOficonHandler
   )
   .to(GenerarReporteLibroDiarioOficonHandler);
 container
-  .bind<GetLibroDiarioOficonHandler>("GetLibroDiarioOficonHandler")
+  .bind<GetLibroDiarioOficonHandler>(TYPES.GetLibroDiarioOficonHandler)
   .to(GetLibroDiarioOficonHandler);
 
 // Balance Comprobación Clipper - No necesita handlers CQRS, usa servicio directamente

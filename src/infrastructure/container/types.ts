@@ -36,6 +36,7 @@ export const TYPES = {
   ICuentaContableRepository: "ICuentaContableRepository",
   EstadoSituacionFinancieraRepository: "EstadoSituacionFinancieraRepository",
   EstadoResultadosRepository: "EstadoResultadosRepository",
+  ILibroDiarioOficonRepository: "ILibroDiarioOficonRepository",
 
   // Services
   IUsuarioService: "IUsuarioService",
@@ -58,6 +59,7 @@ export const TYPES = {
   IEstadoSituacionFinancieraService: "IEstadoSituacionFinancieraService",
   IEstadoResultadosService: "IEstadoResultadosService",
   IDatabaseService: "IDatabaseService",
+  ILibroDiarioOficonService: "ILibroDiarioOficonService",
 
   // Controllers
   UsuarioController: "UsuarioController",
@@ -88,6 +90,8 @@ export const TYPES = {
   EstadoSituacionFinancieraController: "EstadoSituacionFinancieraController",
   EstadoResultadosController: "EstadoResultadosController",
   LibroMayorContabilidadController: "LibroMayorContabilidadController",
+  LibroDiarioOficonController: "LibroDiarioOficonController",
+  LibroDiarioOficonRoutes: "LibroDiarioOficonRoutes",
 
   // CQRS
   ICommandBus: "ICommandBus",
@@ -121,6 +125,11 @@ export const TYPES = {
   ObtenerDiarioContabilidadHandler: "ObtenerDiarioContabilidadHandler",
   ExportarDiarioContabilidadExcelHandler:
     "ExportarDiarioContabilidadExcelHandler",
+
+  // Libro Diario OFICON Handlers
+  GenerarReporteLibroDiarioOficonHandler:
+    "GenerarReporteLibroDiarioOficonHandler",
+  GetLibroDiarioOficonHandler: "GetLibroDiarioOficonHandler",
 
   // CQRS Service
   CqrsService: "CqrsService",

@@ -34,20 +34,6 @@ Genera un reporte de libro diario OFICON con parámetros de query.
 GET /api/libro-diario-oficon/generar-reporte?IDEMPRESA=1&FECHAINI=2024-01-01&FECHAFINAL=2024-01-31
 ```
 
-### POST /api/libro-diario-oficon/generar-reporte
-
-Genera un reporte de libro diario OFICON con parámetros en el body.
-
-**Body:**
-
-```json
-{
-  "IDEMPRESA": 1,
-  "FECHAINI": "2024-01-01",
-  "FECHAFINAL": "2024-01-31"
-}
-```
-
 ## Respuesta
 
 **Formato de respuesta exitosa:**

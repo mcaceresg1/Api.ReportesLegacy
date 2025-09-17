@@ -5,6 +5,7 @@ import {
   LibroDiarioOficonRequest,
 } from "../../domain/entities/LibroDiarioOficon";
 import { oficonSequelize } from "../database/config/oficon-database";
+import { QueryTypes } from "sequelize";
 
 @injectable()
 export class LibroDiarioOficonRepository
@@ -55,7 +56,7 @@ export class LibroDiarioOficonRepository
           FECHAINICIAL: request.FECHAINI,
           FECHAFINAL: request.FECHAFINAL,
         },
-        type: oficonSequelize.QueryTypes.SELECT,
+        type: QueryTypes.SELECT,
       });
 
       return results as LibroDiarioOficon[];

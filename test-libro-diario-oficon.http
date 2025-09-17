@@ -4,52 +4,14 @@
 GET http://localhost:3000/api/libro-diario-oficon/generar-reporte?IDEMPRESA=1&FECHAINI=2024-01-01&FECHAFINAL=2024-01-31
 Content-Type: application/json
 
-### 2. Test POST endpoint - Generar reporte con parámetros en body
-POST http://localhost:3000/api/libro-diario-oficon/generar-reporte
-Content-Type: application/json
-
-{
-  "IDEMPRESA": 1,
-  "FECHAINI": "2024-01-01",
-  "FECHAFINAL": "2024-01-31"
-}
-
-### 3. Test GET endpoint - Error de validación (faltan parámetros)
+### 2. Test GET endpoint - Error de validación (faltan parámetros)
 GET http://localhost:3000/api/libro-diario-oficon/generar-reporte?IDEMPRESA=1
 Content-Type: application/json
 
-### 4. Test POST endpoint - Error de validación (faltan parámetros)
-POST http://localhost:3000/api/libro-diario-oficon/generar-reporte
-Content-Type: application/json
-
-{
-  "IDEMPRESA": 1
-}
-
-### 5. Test GET endpoint - Error de validación (IDEMPRESA no es número)
+### 3. Test GET endpoint - Error de validación (IDEMPRESA no es número)
 GET http://localhost:3000/api/libro-diario-oficon/generar-reporte?IDEMPRESA=abc&FECHAINI=2024-01-01&FECHAFINAL=2024-01-31
 Content-Type: application/json
 
-### 6. Test POST endpoint - Error de validación (IDEMPRESA no es número)
-POST http://localhost:3000/api/libro-diario-oficon/generar-reporte
-Content-Type: application/json
-
-{
-  "IDEMPRESA": "abc",
-  "FECHAINI": "2024-01-01",
-  "FECHAFINAL": "2024-01-31"
-}
-
-### 7. Test GET endpoint - Error de validación (fechas inválidas)
+### 4. Test GET endpoint - Error de validación (fechas inválidas)
 GET http://localhost:3000/api/libro-diario-oficon/generar-reporte?IDEMPRESA=1&FECHAINI=2024-01-31&FECHAFINAL=2024-01-01
 Content-Type: application/json
-
-### 8. Test POST endpoint - Error de validación (fechas inválidas)
-POST http://localhost:3000/api/libro-diario-oficon/generar-reporte
-Content-Type: application/json
-
-{
-  "IDEMPRESA": 1,
-  "FECHAINI": "2024-01-31",
-  "FECHAFINAL": "2024-01-01"
-}

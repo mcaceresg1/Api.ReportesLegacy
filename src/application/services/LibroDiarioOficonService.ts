@@ -1,14 +1,16 @@
-import { injectable } from "inversify";
+import { injectable, inject } from "inversify";
 import { ILibroDiarioOficonService } from "../../domain/services/ILibroDiarioOficonService";
 import { ILibroDiarioOficonRepository } from "../../domain/repositories/ILibroDiarioOficonRepository";
 import {
   LibroDiarioOficonRequest,
   LibroDiarioOficonResponse,
 } from "../../domain/entities/LibroDiarioOficon";
+import { TYPES } from "../../infrastructure/container/types";
 
 @injectable()
 export class LibroDiarioOficonService implements ILibroDiarioOficonService {
   constructor(
+    @inject(TYPES.ILibroDiarioOficonRepository)
     private readonly libroDiarioOficonRepository: ILibroDiarioOficonRepository
   ) {}
 

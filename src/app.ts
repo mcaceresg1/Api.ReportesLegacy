@@ -75,6 +75,7 @@ import "./infrastructure/controllers/BalanceComprobacionClipperController";
 import "./infrastructure/controllers/BalanceGeneralClipperController";
 import "./infrastructure/controllers/GananciasPerdidasClipperController";
 import "./infrastructure/controllers/ClipperLibroCajaController";
+import "./infrastructure/controllers/LibroDiarioOficonController";
 
 const reporteGNRoutes = createReporteGNRoutes();
 
@@ -303,6 +304,10 @@ const analisisCuentasClipperRoutes =
 const libroDiarioOficonRoutes = container.get<LibroDiarioOficonRoutes>(
   "LibroDiarioOficonRoutes"
 );
+console.log(
+  "🔧 LibroDiarioOficonRoutes obtenido del contenedor:",
+  !!libroDiarioOficonRoutes
+);
 
 // Endpoint de prueba
 app.get("/api/test", (req, res) => {
@@ -323,6 +328,23 @@ app.get("/health", (req, res) => {
     version: "1.15.0",
   });
 });
+
+// Libro Diario OFICON Routes (antes de las rutas protegidas)
+console.log("🔧 Registrando rutas de Libro Diario OFICON...");
+const libroDiarioRouter = libroDiarioOficonRoutes.getRouter();
+console.log("🔧 Router obtenido:", !!libroDiarioRouter);
+app.use("/api/libro-diario-oficon", libroDiarioRouter);
+console.log("✅ Libro Diario OFICON routes registradas correctamente");
+
+// Endpoint de prueba directo para Libro Diario OFICON
+app.get("/api/libro-diario-oficon/test", (req, res) => {
+  res.json({
+    success: true,
+    message: "Endpoint de prueba de Libro Diario OFICON funcionando",
+    timestamp: new Date().toISOString(),
+  });
+});
+console.log("✅ Endpoint de prueba de Libro Diario OFICON registrado");
 
 // Rutas de menús (algunas públicas, otras protegidas)
 app.use("/api/menus", menuRoutes.getRouter());
@@ -551,14 +573,6 @@ app.use(
   createGananciasPerdidasClipperRoutes()
 );
 console.log("✅ Ganancias y Pérdidas Clipper routes registradas correctamente");
-
-// Libro Diario OFICON Routes
-app.use(
-  "/api/libro-diario-oficon",
-  QueryOptimizationMiddleware.validateQueryParams,
-  libroDiarioOficonRoutes.getRouter()
-);
-console.log("✅ Libro Diario OFICON routes registradas correctamente");
 
 // =================== ENDPOINTS ADICIONALES DEL PROYECTO JS ===================
 
