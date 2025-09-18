@@ -326,6 +326,8 @@ export class BalanceComprobacionController {
    */
   async obtenerBalanceComprobacion(req: Request, res: Response): Promise<void> {
     try {
+      console.log('🔍 BalanceComprobacionController.obtenerBalanceComprobacion - Query params recibidos:', req.query);
+      
       const {
         conjunto,
         usuario,
@@ -455,6 +457,8 @@ export class BalanceComprobacionController {
         limit: limitNum,
         offset,
       };
+
+      console.log('🔍 BalanceComprobacionController.obtenerBalanceComprobacion - Filtros preparados:', filtros);
 
       // Usar el servicio
       const resultado =
