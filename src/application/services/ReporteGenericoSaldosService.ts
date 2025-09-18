@@ -4,6 +4,7 @@ import { IReporteGenericoSaldosRepository } from '../../domain/repositories/IRep
 import { 
   FiltrosReporteGenericoSaldos, 
   ReporteGenericoSaldos, 
+  ReporteGenericoSaldosResponse,
   FiltroCuentaContable, 
   DetalleCuentaContable,
   FiltroTipoDocumento,
@@ -84,7 +85,7 @@ export class ReporteGenericoSaldosService implements IReporteGenericoSaldosServi
   async generarReporteGenericoSaldos(
     conjunto: string,
     filtros: FiltrosReporteGenericoSaldos
-  ): Promise<ReporteGenericoSaldos[]> {
+  ): Promise<ReporteGenericoSaldosResponse> {
     try {
       // Validar parámetros requeridos
       if (!conjunto) {
@@ -153,6 +154,30 @@ export class ReporteGenericoSaldosService implements IReporteGenericoSaldosServi
     } catch (error) {
       console.error('Error en ReporteGenericoSaldosService.exportarPDF:', error);
       throw new Error(`Error al exportar PDF: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    }
+  }
+
+  /**
+   * Limpia el caché de tablas temporales
+   */
+  async limpiarCache(): Promise<void> {
+    try {
+      await this.reporteGenericoSaldosRepository.limpiarCache();
+    } catch (error) {
+      console.error('Error en ReporteGenericoSaldosService.limpiarCache:', error);
+      throw new Error(`Error al limpiar caché: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    }
+  }
+
+  /**
+   * Obtiene estadísticas del caché
+   */
+  obtenerEstadisticasCache(): { totalTablas: number; tablas: any[] } {
+    try {
+      return this.reporteGenericoSaldosRepository.obtenerEstadisticasCache();
+    } catch (error) {
+      console.error('Error en ReporteGenericoSaldosService.obtenerEstadisticasCache:', error);
+      throw new Error(`Error al obtener estadísticas del caché: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   }
 }
