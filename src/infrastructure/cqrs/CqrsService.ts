@@ -33,6 +33,14 @@ import { ObtenerLibroDiarioAsientosHandler } from "../../application/handlers/li
 import { GenerarLibroDiarioAsientosHandler } from "../../application/handlers/libro-diario-asientos/GenerarLibroDiarioAsientosHandler";
 import { ObtenerFiltrosLibroDiarioAsientosHandler } from "../../application/handlers/libro-diario-asientos/ObtenerFiltrosLibroDiarioAsientosHandler";
 
+// Libro Mayor OFICON handlers
+import { GenerarReporteLibroMayorOficonHandler } from "../../application/handlers/libro-mayor-oficon/GenerarReporteLibroMayorOficonHandler";
+import { GetLibroMayorOficonHandler } from "../../application/handlers/libro-mayor-oficon/GetLibroMayorOficonHandler";
+
+// Registro Compras OFICON handlers
+import { GetRegistroComprasOficonHandler } from "../../application/handlers/registro-compras-oficon/GetRegistroComprasOficonHandler";
+import { GetBalanceComprobacionOficonHandler } from "../../application/handlers/balance-comprobacion-oficon/GetBalanceComprobacionOficonHandler";
+
 @injectable()
 export class CqrsService {
   constructor(
@@ -67,7 +75,15 @@ export class CqrsService {
     @inject("GenerarLibroDiarioAsientosHandler")
     private generarLibroDiarioAsientosHandler: GenerarLibroDiarioAsientosHandler,
     @inject("ObtenerFiltrosLibroDiarioAsientosHandler")
-    private obtenerFiltrosLibroDiarioAsientosHandler: ObtenerFiltrosLibroDiarioAsientosHandler
+    private obtenerFiltrosLibroDiarioAsientosHandler: ObtenerFiltrosLibroDiarioAsientosHandler,
+    @inject("GenerarReporteLibroMayorOficonHandler")
+    private generarReporteLibroMayorOficonHandler: GenerarReporteLibroMayorOficonHandler,
+    @inject("GetLibroMayorOficonHandler")
+    private getLibroMayorOficonHandler: GetLibroMayorOficonHandler,
+    @inject("GetRegistroComprasOficonHandler")
+    private getRegistroComprasOficonHandler: GetRegistroComprasOficonHandler,
+    @inject("GetBalanceComprobacionOficonHandler")
+    private getBalanceComprobacionOficonHandler: GetBalanceComprobacionOficonHandler
   ) {
     console.log("🔧 Constructor CqrsService ejecutándose...");
     this.registerHandlers();
@@ -138,6 +154,35 @@ export class CqrsService {
       this.obtenerFiltrosLibroDiarioAsientosHandler as any
     );
     console.log("✅ ObtenerFiltrosLibroDiarioAsientosQuery registrado");
+
+    // Libro Mayor OFICON
+    console.log("📚 Registrando handlers de Libro Mayor OFICON...");
+    this.commandBus.register(
+      "GenerarReporteLibroMayorOficonCommand",
+      this.generarReporteLibroMayorOficonHandler as any
+    );
+    console.log("✅ GenerarReporteLibroMayorOficonCommand registrado");
+    this.queryBus.register(
+      "GetLibroMayorOficonQuery",
+      this.getLibroMayorOficonHandler
+    );
+    console.log("✅ GetLibroMayorOficonQuery registrado");
+
+    // Registro Compras OFICON
+    console.log("📋 Registrando handlers de Registro Compras OFICON...");
+    this.queryBus.register(
+      "GetRegistroComprasOficonQuery",
+      this.getRegistroComprasOficonHandler
+    );
+    console.log("✅ GetRegistroComprasOficonQuery registrado");
+
+    // Balance Comprobación OFICON
+    console.log("📋 Registrando handlers de Balance Comprobación OFICON...");
+    this.queryBus.register(
+      "GetBalanceComprobacionOficonQuery",
+      this.getBalanceComprobacionOficonHandler
+    );
+    console.log("✅ GetBalanceComprobacionOficonQuery registrado");
 
     console.log("🎉 Todos los handlers CQRS registrados exitosamente");
   }

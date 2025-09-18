@@ -50,6 +50,12 @@ import { IBalanceComprobacionClipperService } from "../../domain/services/IBalan
 import { IBalanceGeneralClipperService } from "../../domain/services/IBalanceGeneralClipperService";
 import { ILibroDiarioOficonRepository } from "../../domain/repositories/ILibroDiarioOficonRepository";
 import { ILibroDiarioOficonService } from "../../domain/services/ILibroDiarioOficonService";
+import { ILibroMayorOficonRepository } from "../../domain/repositories/ILibroMayorOficonRepository";
+import { ILibroMayorOficonService } from "../../domain/services/ILibroMayorOficonService";
+import { IRegistroComprasOficonRepository } from "../../domain/repositories/IRegistroComprasOficonRepository";
+import { IRegistroComprasOficonService } from "../../domain/services/IRegistroComprasOficonService";
+import { IBalanceComprobacionOficonRepository } from "../../domain/repositories/IBalanceComprobacionOficonRepository";
+import { IBalanceComprobacionOficonService } from "../../domain/services/IBalanceComprobacionOficonService";
 
 import { ICuentaContableRepository } from "../../domain/repositories/ICuentaContableRepository";
 import { IUsuarioService } from "../../domain/services/IUsuarioService";
@@ -116,6 +122,9 @@ import { LibroMayorContabilidadRepository } from "../repositories/LibroMayorCont
 import { BalanceComprobacionClipperRepository } from "../repositories/BalanceComprobacionClipperRepository";
 import { BalanceGeneralClipperRepository } from "../repositories/BalanceGeneralClipperRepository";
 import { LibroDiarioOficonRepository } from "../repositories/LibroDiarioOficonRepository";
+import { LibroMayorOficonRepository } from "../repositories/LibroMayorOficonRepository";
+import { RegistroComprasOficonRepository } from "../repositories/RegistroComprasOficonRepository";
+import { BalanceComprobacionOficonRepository } from "../repositories/BalanceComprobacionOficonRepository";
 
 import { CuentaContableRepository } from "../repositories/CuentaContableRepository";
 import { UsuarioService } from "../../application/services/UsuarioService";
@@ -148,6 +157,9 @@ import { LibroMayorContabilidadService } from "../../application/services/LibroM
 import { BalanceComprobacionClipperService } from "../../application/services/BalanceComprobacionClipperService";
 import { BalanceGeneralClipperService } from "../../application/services/BalanceGeneralClipperService";
 import { LibroDiarioOficonService } from "../../application/services/LibroDiarioOficonService";
+import { LibroMayorOficonService } from "../../application/services/LibroMayorOficonService";
+import { RegistroComprasOficonService } from "../../application/services/RegistroComprasOficonService";
+import { BalanceComprobacionOficonService } from "../../application/services/BalanceComprobacionOficonService";
 
 import { DatabaseService } from "../../application/services/DatabaseService";
 
@@ -189,6 +201,12 @@ import { BalanceComprobacionClipperController } from "../controllers/BalanceComp
 import { BalanceGeneralClipperController } from "../controllers/BalanceGeneralClipperController";
 import { LibroDiarioOficonController } from "../controllers/LibroDiarioOficonController";
 import { LibroDiarioOficonRoutes } from "../routes/LibroDiarioOficonRoutes";
+import { LibroMayorOficonController } from "../controllers/LibroMayorOficonController";
+import { LibroMayorOficonRoutes } from "../routes/LibroMayorOficonRoutes";
+import { RegistroComprasOficonController } from "../controllers/RegistroComprasOficonController";
+import { RegistroComprasOficonRoutes } from "../routes/RegistroComprasOficonRoutes";
+import { BalanceComprobacionOficonController } from "../controllers/BalanceComprobacionOficonController";
+import { BalanceComprobacionOficonRoutes } from "../routes/BalanceComprobacionOficonRoutes";
 
 // CQRS implementations
 import { CommandBus } from "../cqrs/CommandBus";
@@ -228,6 +246,10 @@ import { GenerarReporteGenericoSaldosHandler } from "../../application/handlers/
 // Libro Diario OFICON Handlers
 import { GenerarReporteLibroDiarioOficonHandler } from "../../application/handlers/libro-diario-oficon/GenerarReporteLibroDiarioOficonHandler";
 import { GetLibroDiarioOficonHandler } from "../../application/handlers/libro-diario-oficon/GetLibroDiarioOficonHandler";
+import { GenerarReporteLibroMayorOficonHandler } from "../../application/handlers/libro-mayor-oficon/GenerarReporteLibroMayorOficonHandler";
+import { GetLibroMayorOficonHandler } from "../../application/handlers/libro-mayor-oficon/GetLibroMayorOficonHandler";
+import { GetRegistroComprasOficonHandler } from "../../application/handlers/registro-compras-oficon/GetRegistroComprasOficonHandler";
+import { GetBalanceComprobacionOficonHandler } from "../../application/handlers/balance-comprobacion-oficon/GetBalanceComprobacionOficonHandler";
 
 // Libro Mayor Asientos Handlers
 import { ObtenerLibroMayorAsientosHandler } from "../../application/handlers/libro-mayor-asientos/ObtenerLibroMayorAsientosHandler";
@@ -410,6 +432,19 @@ container
 container
   .bind<ILibroDiarioOficonRepository>(TYPES.ILibroDiarioOficonRepository)
   .to(LibroDiarioOficonRepository);
+container
+  .bind<ILibroMayorOficonRepository>(TYPES.ILibroMayorOficonRepository)
+  .to(LibroMayorOficonRepository);
+container
+  .bind<IRegistroComprasOficonRepository>(
+    TYPES.IRegistroComprasOficonRepository
+  )
+  .to(RegistroComprasOficonRepository);
+container
+  .bind<IBalanceComprobacionOficonRepository>(
+    TYPES.IBalanceComprobacionOficonRepository
+  )
+  .to(BalanceComprobacionOficonRepository);
 
 // Cache Services
 container.bind<ICacheService>("ICacheService").to(CacheService);
@@ -509,6 +544,17 @@ container
 container
   .bind<ILibroDiarioOficonService>(TYPES.ILibroDiarioOficonService)
   .to(LibroDiarioOficonService);
+container
+  .bind<ILibroMayorOficonService>(TYPES.ILibroMayorOficonService)
+  .to(LibroMayorOficonService);
+container
+  .bind<IRegistroComprasOficonService>(TYPES.IRegistroComprasOficonService)
+  .to(RegistroComprasOficonService);
+container
+  .bind<IBalanceComprobacionOficonService>(
+    TYPES.IBalanceComprobacionOficonService
+  )
+  .to(BalanceComprobacionOficonService);
 
 // Controllers
 container.bind<UsuarioController>("UsuarioController").to(UsuarioController);
@@ -637,6 +683,26 @@ container
 container
   .bind<LibroDiarioOficonRoutes>(TYPES.LibroDiarioOficonRoutes)
   .to(LibroDiarioOficonRoutes);
+container
+  .bind<LibroMayorOficonController>(TYPES.LibroMayorOficonController)
+  .to(LibroMayorOficonController);
+container
+  .bind<LibroMayorOficonRoutes>(TYPES.LibroMayorOficonRoutes)
+  .to(LibroMayorOficonRoutes);
+container
+  .bind<RegistroComprasOficonController>(TYPES.RegistroComprasOficonController)
+  .to(RegistroComprasOficonController);
+container
+  .bind<RegistroComprasOficonRoutes>(TYPES.RegistroComprasOficonRoutes)
+  .to(RegistroComprasOficonRoutes);
+container
+  .bind<BalanceComprobacionOficonController>(
+    TYPES.BalanceComprobacionOficonController
+  )
+  .to(BalanceComprobacionOficonController);
+container
+  .bind<BalanceComprobacionOficonRoutes>(TYPES.BalanceComprobacionOficonRoutes)
+  .to(BalanceComprobacionOficonRoutes);
 // BalanceComprobacionClipperRoutes se instancia directamente en app.ts
 
 // CQRS Buses
@@ -760,6 +826,22 @@ container
 container
   .bind<GetLibroDiarioOficonHandler>(TYPES.GetLibroDiarioOficonHandler)
   .to(GetLibroDiarioOficonHandler);
+container
+  .bind<GenerarReporteLibroMayorOficonHandler>(
+    TYPES.GenerarReporteLibroMayorOficonHandler
+  )
+  .to(GenerarReporteLibroMayorOficonHandler);
+container
+  .bind<GetLibroMayorOficonHandler>(TYPES.GetLibroMayorOficonHandler)
+  .to(GetLibroMayorOficonHandler);
+container
+  .bind<GetRegistroComprasOficonHandler>(TYPES.GetRegistroComprasOficonHandler)
+  .to(GetRegistroComprasOficonHandler);
+container
+  .bind<GetBalanceComprobacionOficonHandler>(
+    TYPES.GetBalanceComprobacionOficonHandler
+  )
+  .to(GetBalanceComprobacionOficonHandler);
 
 // Balance Comprobación Clipper - No necesita handlers CQRS, usa servicio directamente
 

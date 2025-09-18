@@ -1,0 +1,131 @@
+### Test Libro Mayor OFICON API - GET Endpoints
+
+### 1. Test endpoint de prueba
+GET http://192.168.90.73:3000/api/libro-mayor-oficon/test
+
+###
+
+### 2. Generar reporte resumen (Query Bus) - Soles
+GET http://192.168.90.73:3000/api/libro-mayor-oficon/generar-reporte?ISCO_EMPR=12&INNU_ANNO=2003&INNU_MESE_INIC=1&INNU_MESE_FINA=10&ISCO_MONE=SOL&ISTI_REPO=CUR
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+### 3. Generar reporte analítico (Query Bus) - Soles
+GET http://192.168.90.73:3000/api/libro-mayor-oficon/generar-reporte?ISCO_EMPR=12&INNU_ANNO=2003&INNU_MESE_INIC=1&INNU_MESE_FINA=10&ISCO_MONE=SOL&ISTI_REPO=CUD
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+### 4. Generar reporte resumen (Command Bus) - Soles
+GET http://192.168.90.73:3000/api/libro-mayor-oficon/generar-reporte-command?ISCO_EMPR=12&INNU_ANNO=2003&INNU_MESE_INIC=1&INNU_MESE_FINA=10&ISCO_MONE=SOL&ISTI_REPO=CUR
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+### 5. Generar reporte analítico (Command Bus) - Soles
+GET http://192.168.90.73:3000/api/libro-mayor-oficon/generar-reporte-command?ISCO_EMPR=12&INNU_ANNO=2003&INNU_MESE_INIC=1&INNU_MESE_FINA=10&ISCO_MONE=SOL&ISTI_REPO=CUD
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+### 6. Generar reporte resumen (Query Bus) - Dólares
+GET http://192.168.90.73:3000/api/libro-mayor-oficon/generar-reporte?ISCO_EMPR=12&INNU_ANNO=2003&INNU_MESE_INIC=1&INNU_MESE_FINA=10&ISCO_MONE=DOL&ISTI_REPO=CUR
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+### 7. Generar reporte analítico (Query Bus) - Dólares
+GET http://192.168.90.73:3000/api/libro-mayor-oficon/generar-reporte?ISCO_EMPR=12&INNU_ANNO=2003&INNU_MESE_INIC=1&INNU_MESE_FINA=10&ISCO_MONE=DOL&ISTI_REPO=CUD
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+### 8. Generar reporte resumen (Command Bus) - Dólares
+GET http://192.168.90.73:3000/api/libro-mayor-oficon/generar-reporte-command?ISCO_EMPR=12&INNU_ANNO=2003&INNU_MESE_INIC=1&INNU_MESE_FINA=10&ISCO_MONE=DOL&ISTI_REPO=CUR
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+### 9. Generar reporte analítico (Command Bus) - Dólares
+GET http://192.168.90.73:3000/api/libro-mayor-oficon/generar-reporte-command?ISCO_EMPR=12&INNU_ANNO=2003&INNU_MESE_INIC=1&INNU_MESE_FINA=10&ISCO_MONE=DOL&ISTI_REPO=CUD
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+### 10. Test con parámetros inválidos - Error de validación
+GET http://192.168.90.73:3000/api/libro-mayor-oficon/generar-reporte?ISCO_EMPR=12&INNU_ANNO=2003&INNU_MESE_INIC=1&INNU_MESE_FINA=10&ISCO_MONE=INVALID&ISTI_REPO=CUR
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+### 11. Test con parámetros faltantes - Error de validación
+GET http://192.168.90.73:3000/api/libro-mayor-oficon/generar-reporte?ISCO_EMPR=12&INNU_ANNO=2003&INNU_MESE_INIC=1&INNU_MESE_FINA=10
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+### 12. Test con tipo de reporte inválido - Error de validación
+GET http://192.168.90.73:3000/api/libro-mayor-oficon/generar-reporte?ISCO_EMPR=12&INNU_ANNO=2003&INNU_MESE_INIC=1&INNU_MESE_FINA=10&ISCO_MONE=SOL&ISTI_REPO=INVALID
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+### 13. Test con año inválido - Error de validación
+GET http://192.168.90.73:3000/api/libro-mayor-oficon/generar-reporte?ISCO_EMPR=12&INNU_ANNO=INVALID&INNU_MESE_INIC=1&INNU_MESE_FINA=10&ISCO_MONE=SOL&ISTI_REPO=CUR
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+### 14. Test con mes inicial inválido - Error de validación
+GET http://192.168.90.73:3000/api/libro-mayor-oficon/generar-reporte?ISCO_EMPR=12&INNU_ANNO=2003&INNU_MESE_INIC=INVALID&INNU_MESE_FINA=10&ISCO_MONE=SOL&ISTI_REPO=CUR
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+### 15. Test con mes final inválido - Error de validación
+GET http://192.168.90.73:3000/api/libro-mayor-oficon/generar-reporte?ISCO_EMPR=12&INNU_ANNO=2003&INNU_MESE_INIC=1&INNU_MESE_FINA=INVALID&ISCO_MONE=SOL&ISTI_REPO=CUR
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+### 16. Test sin token de autorización - Error 401
+GET http://192.168.90.73:3000/api/libro-mayor-oficon/generar-reporte?ISCO_EMPR=12&INNU_ANNO=2003&INNU_MESE_INIC=1&INNU_MESE_FINA=10&ISCO_MONE=SOL&ISTI_REPO=CUR
+
+###
+
+### 17. Test con diferentes tipos de reporte resumen
+GET http://192.168.90.73:3000/api/libro-mayor-oficon/generar-reporte?ISCO_EMPR=12&INNU_ANNO=2003&INNU_MESE_INIC=1&INNU_MESE_FINA=10&ISCO_MONE=SOL&ISTI_REPO=COR
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+### 18. Test con diferentes tipos de reporte resumen
+GET http://192.168.90.73:3000/api/libro-mayor-oficon/generar-reporte?ISCO_EMPR=12&INNU_ANNO=2003&INNU_MESE_INIC=1&INNU_MESE_FINA=10&ISCO_MONE=SOL&ISTI_REPO=CVR
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+### 19. Test con diferentes tipos de reporte resumen
+GET http://192.168.90.73:3000/api/libro-mayor-oficon/generar-reporte?ISCO_EMPR=12&INNU_ANNO=2003&INNU_MESE_INIC=1&INNU_MESE_FINA=10&ISCO_MONE=SOL&ISTI_REPO=CFR
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+### 20. Test con diferentes tipos de reporte analítico
+GET http://192.168.90.73:3000/api/libro-mayor-oficon/generar-reporte?ISCO_EMPR=12&INNU_ANNO=2003&INNU_MESE_INIC=1&INNU_MESE_FINA=10&ISCO_MONE=SOL&ISTI_REPO=COD
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+### 21. Test con diferentes tipos de reporte analítico
+GET http://192.168.90.73:3000/api/libro-mayor-oficon/generar-reporte?ISCO_EMPR=12&INNU_ANNO=2003&INNU_MESE_INIC=1&INNU_MESE_FINA=10&ISCO_MONE=SOL&ISTI_REPO=CVD
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+### 22. Test con diferentes tipos de reporte analítico
+GET http://192.168.90.73:3000/api/libro-mayor-oficon/generar-reporte?ISCO_EMPR=12&INNU_ANNO=2003&INNU_MESE_INIC=1&INNU_MESE_FINA=10&ISCO_MONE=SOL&ISTI_REPO=CFD
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###

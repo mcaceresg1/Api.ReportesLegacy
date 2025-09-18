@@ -71,12 +71,17 @@ import { createTestClipperDatabasesRoutes } from "./infrastructure/routes/TestCl
 import { createBalanceComprobacionClipperRoutes } from "./infrastructure/routes/BalanceComprobacionClipperRoutes";
 import { createBalanceGeneralClipperRoutes } from "./infrastructure/routes/BalanceGeneralClipperRoutes";
 import { LibroDiarioOficonRoutes } from "./infrastructure/routes/LibroDiarioOficonRoutes";
+import { LibroMayorOficonRoutes } from "./infrastructure/routes/LibroMayorOficonRoutes";
+import { RegistroComprasOficonRoutes } from "./infrastructure/routes/RegistroComprasOficonRoutes";
+import { BalanceComprobacionOficonRoutes } from "./infrastructure/routes/BalanceComprobacionOficonRoutes";
 // Importar controladores para que swagger-jsdoc procese la documentación
 import "./infrastructure/controllers/BalanceComprobacionClipperController";
 import "./infrastructure/controllers/BalanceGeneralClipperController";
 import "./infrastructure/controllers/GananciasPerdidasClipperController";
 import "./infrastructure/controllers/ClipperLibroCajaController";
 import "./infrastructure/controllers/LibroDiarioOficonController";
+import "./infrastructure/controllers/LibroMayorOficonController";
+import "./infrastructure/controllers/RegistroComprasOficonController";
 
 const reporteGNRoutes = createReporteGNRoutes();
 
@@ -310,6 +315,31 @@ console.log(
   !!libroDiarioOficonRoutes
 );
 
+const libroMayorOficonRoutes = container.get<LibroMayorOficonRoutes>(
+  "LibroMayorOficonRoutes"
+);
+console.log(
+  "🔧 LibroMayorOficonRoutes obtenido del contenedor:",
+  !!libroMayorOficonRoutes
+);
+
+const registroComprasOficonRoutes = container.get<RegistroComprasOficonRoutes>(
+  "RegistroComprasOficonRoutes"
+);
+console.log(
+  "🔧 RegistroComprasOficonRoutes obtenido del contenedor:",
+  !!registroComprasOficonRoutes
+);
+
+const balanceComprobacionOficonRoutes =
+  container.get<BalanceComprobacionOficonRoutes>(
+    "BalanceComprobacionOficonRoutes"
+  );
+console.log(
+  "🔧 BalanceComprobacionOficonRoutes obtenido del contenedor:",
+  !!balanceComprobacionOficonRoutes
+);
+
 // Endpoint de prueba
 app.get("/api/test", (req, res) => {
   res.json({
@@ -337,6 +367,27 @@ console.log("🔧 Router obtenido:", !!libroDiarioRouter);
 app.use("/api/libro-diario-oficon", libroDiarioRouter);
 console.log("✅ Libro Diario OFICON routes registradas correctamente");
 
+// Libro Mayor OFICON Routes (antes de las rutas protegidas)
+console.log("🔧 Registrando rutas de Libro Mayor OFICON...");
+const libroMayorRouter = libroMayorOficonRoutes.getRouter();
+console.log("🔧 Router obtenido:", !!libroMayorRouter);
+app.use("/api/libro-mayor-oficon", libroMayorRouter);
+console.log("✅ Libro Mayor OFICON routes registradas correctamente");
+
+// Registro Compras OFICON Routes (antes de las rutas protegidas)
+console.log("🔧 Registrando rutas de Registro Compras OFICON...");
+const registroComprasRouter = registroComprasOficonRoutes.getRouter();
+console.log("🔧 Router obtenido:", !!registroComprasRouter);
+app.use("/api/registro-compras-oficon", registroComprasRouter);
+console.log("✅ Registro Compras OFICON routes registradas correctamente");
+
+// Balance Comprobación OFICON Routes (antes de las rutas protegidas)
+console.log("🔧 Registrando rutas de Balance Comprobación OFICON...");
+const balanceComprobacionRouter = balanceComprobacionOficonRoutes.getRouter();
+console.log("🔧 Router obtenido:", !!balanceComprobacionRouter);
+app.use("/api/balance-comprobacion-oficon", balanceComprobacionRouter);
+console.log("✅ Balance Comprobación OFICON routes registradas correctamente");
+
 // Endpoint de prueba directo para Libro Diario OFICON
 app.get("/api/libro-diario-oficon/test", (req, res) => {
   res.json({
@@ -346,6 +397,36 @@ app.get("/api/libro-diario-oficon/test", (req, res) => {
   });
 });
 console.log("✅ Endpoint de prueba de Libro Diario OFICON registrado");
+
+// Endpoint de prueba directo para Libro Mayor OFICON
+app.get("/api/libro-mayor-oficon/test", (req, res) => {
+  res.json({
+    success: true,
+    message: "Endpoint de prueba de Libro Mayor OFICON funcionando",
+    timestamp: new Date().toISOString(),
+  });
+});
+console.log("✅ Endpoint de prueba de Libro Mayor OFICON registrado");
+
+// Endpoint de prueba directo para Registro Compras OFICON
+app.get("/api/registro-compras-oficon/test", (req, res) => {
+  res.json({
+    success: true,
+    message: "Endpoint de prueba de Registro Compras OFICON funcionando",
+    timestamp: new Date().toISOString(),
+  });
+});
+console.log("✅ Endpoint de prueba de Registro Compras OFICON registrado");
+
+// Endpoint de prueba directo para Balance Comprobación OFICON
+app.get("/api/balance-comprobacion-oficon/test", (req, res) => {
+  res.json({
+    success: true,
+    message: "Endpoint de prueba de Balance Comprobación OFICON funcionando",
+    timestamp: new Date().toISOString(),
+  });
+});
+console.log("✅ Endpoint de prueba de Balance Comprobación OFICON registrado");
 
 // Rutas de menús (algunas públicas, otras protegidas)
 app.use("/api/menus", menuRoutes.getRouter());
@@ -1167,6 +1248,39 @@ app.post("/api/login", async (req, res) => {
       success: false,
       message:
         error instanceof Error ? error.message : "Error de autenticación",
+    });
+  }
+});
+
+// Endpoint temporal para crear usuario de prueba (sin autenticación)
+app.post("/api/create-test-user", async (req, res) => {
+  try {
+    const usuarioData = {
+      username: "testuser",
+      email: "testuser@test.com",
+      password: "SecurePass2024!",
+      estado: true,
+      rolId: 1,
+      empresa: "TEST",
+    };
+
+    const usuario = await usuarioService.createUsuario(usuarioData);
+    res.json({
+      success: true,
+      message: "Usuario de prueba creado exitosamente",
+      data: {
+        id: usuario.id,
+        username: usuario.username,
+        email: usuario.email,
+        rolId: usuario.rolId,
+      },
+    });
+  } catch (error) {
+    console.error("Error creando usuario de prueba:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error creando usuario de prueba",
+      error: error instanceof Error ? error.message : "Error desconocido",
     });
   }
 });

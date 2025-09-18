@@ -194,11 +194,14 @@ export class ClipperController {
   async obtenerContratosPaginados(req: Request, res: Response): Promise<void> {
     try {
       const ruta = req.params["ruta"];
-      const page = parseInt(req.query.page as string) || 0;
-      const limit = Math.min(parseInt(req.query.limit as string) || 20, 1000); // Máximo 1000 registros
-      const sortField = req.query.sortField as string;
-      const sortOrder = parseInt(req.query.sortOrder as string) || 1;
-      const globalFilter = req.query.globalFilter as string;
+      const page = parseInt(req.query["page"] as string) || 0;
+      const limit = Math.min(
+        parseInt(req.query["limit"] as string) || 20,
+        1000
+      ); // Máximo 1000 registros
+      const sortField = req.query["sortField"] as string;
+      const sortOrder = parseInt(req.query["sortOrder"] as string) || 1;
+      const globalFilter = req.query["globalFilter"] as string;
 
       const rutasValidas = ["clipper-lurin", "clipper-tacna", "clipper-lima"];
 

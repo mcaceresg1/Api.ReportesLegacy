@@ -37,6 +37,7 @@ export const TYPES = {
   EstadoSituacionFinancieraRepository: "EstadoSituacionFinancieraRepository",
   EstadoResultadosRepository: "EstadoResultadosRepository",
   ILibroDiarioOficonRepository: "ILibroDiarioOficonRepository",
+  ILibroMayorOficonRepository: "ILibroMayorOficonRepository",
 
   // Services
   IUsuarioService: "IUsuarioService",
@@ -60,6 +61,7 @@ export const TYPES = {
   IEstadoResultadosService: "IEstadoResultadosService",
   IDatabaseService: "IDatabaseService",
   ILibroDiarioOficonService: "ILibroDiarioOficonService",
+  ILibroMayorOficonService: "ILibroMayorOficonService",
 
   // Controllers
   UsuarioController: "UsuarioController",
@@ -92,6 +94,8 @@ export const TYPES = {
   LibroMayorContabilidadController: "LibroMayorContabilidadController",
   LibroDiarioOficonController: "LibroDiarioOficonController",
   LibroDiarioOficonRoutes: "LibroDiarioOficonRoutes",
+  LibroMayorOficonController: "LibroMayorOficonController",
+  LibroMayorOficonRoutes: "LibroMayorOficonRoutes",
 
   // CQRS
   ICommandBus: "ICommandBus",
@@ -130,6 +134,31 @@ export const TYPES = {
   GenerarReporteLibroDiarioOficonHandler:
     "GenerarReporteLibroDiarioOficonHandler",
   GetLibroDiarioOficonHandler: "GetLibroDiarioOficonHandler",
+
+  // Libro Mayor OFICON Handlers
+  GenerarReporteLibroMayorOficonHandler:
+    "GenerarReporteLibroMayorOficonHandler",
+  GetLibroMayorOficonHandler: "GetLibroMayorOficonHandler",
+
+  // Registro Compras OFICON
+  IRegistroComprasOficonRepository: "IRegistroComprasOficonRepository",
+  IRegistroComprasOficonService: "IRegistroComprasOficonService",
+  RegistroComprasOficonRepository: "RegistroComprasOficonRepository",
+  RegistroComprasOficonService: "RegistroComprasOficonService",
+  RegistroComprasOficonController: "RegistroComprasOficonController",
+  RegistroComprasOficonRoutes: "RegistroComprasOficonRoutes",
+  GenerarReporteRegistroComprasOficonHandler:
+    "GenerarReporteRegistroComprasOficonHandler",
+  GetRegistroComprasOficonHandler: "GetRegistroComprasOficonHandler",
+
+  // Balance Comprobación OFICON
+  IBalanceComprobacionOficonRepository: "IBalanceComprobacionOficonRepository",
+  IBalanceComprobacionOficonService: "IBalanceComprobacionOficonService",
+  BalanceComprobacionOficonRepository: "BalanceComprobacionOficonRepository",
+  BalanceComprobacionOficonService: "BalanceComprobacionOficonService",
+  BalanceComprobacionOficonController: "BalanceComprobacionOficonController",
+  BalanceComprobacionOficonRoutes: "BalanceComprobacionOficonRoutes",
+  GetBalanceComprobacionOficonHandler: "GetBalanceComprobacionOficonHandler",
 
   // CQRS Service
   CqrsService: "CqrsService",
