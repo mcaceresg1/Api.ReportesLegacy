@@ -20,6 +20,7 @@ export interface IDiarioContabilidadRepository {
    * @param fechaFin - Fecha de fin del período
    * @param contabilidad - Tipo de contabilidad ('F', 'A')
    * @param tipoReporte - Tipo de reporte ('Preliminar', 'Oficial')
+   * @returns Nombre de la tabla temporal generada
    */
   generarReporteDiarioContabilidad(
     conjunto: string,
@@ -28,7 +29,7 @@ export interface IDiarioContabilidadRepository {
     fechaFin: Date,
     contabilidad?: string,
     tipoReporte?: string
-  ): Promise<void>;
+  ): Promise<string>;
 
   /**
    * Obtiene los datos del Diario de Contabilidad con filtros y paginación

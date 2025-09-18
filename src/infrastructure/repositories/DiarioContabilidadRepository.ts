@@ -9,8 +9,124 @@ import {
 } from '../../domain/entities/DiarioContabilidad';
 import { IDiarioContabilidadRepository } from '../../domain/repositories/IDiarioContabilidadRepository';
 
+// Cache para tablas temporales
+interface CachedTable {
+  tableName: string;
+  conjunto: string;
+  filtros: string; // Hash de los filtros
+  createdAt: Date;
+  lastAccessed: Date;
+}
+
+// Cache global para tablas temporales
+const tableCache = new Map<string, CachedTable>();
+const CACHE_TTL = 30 * 60 * 1000; // 30 minutos
+const CLEANUP_INTERVAL = 10 * 60 * 1000; // 10 minutos
+
 @injectable()
 export class DiarioContabilidadRepository implements IDiarioContabilidadRepository {
+  
+  constructor() {
+    // Iniciar limpieza automática de caché
+    this.startCacheCleanup();
+  }
+
+  /**
+   * Genera un hash único para los filtros
+   */
+  private generateFiltersHash(conjunto: string, filtros: DiarioContabilidadFiltros): string {
+    const filterString = JSON.stringify({
+      conjunto,
+      usuario: filtros.usuario,
+      fechaInicio: filtros.fechaInicio,
+      fechaFin: filtros.fechaFin,
+      contabilidad: filtros.contabilidad,
+      tipoReporte: filtros.tipoReporte
+    });
+    
+    // Generar hash simple
+    let hash = 0;
+    for (let i = 0; i < filterString.length; i++) {
+      const char = filterString.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convertir a 32bit integer
+    }
+    return Math.abs(hash).toString(36);
+  }
+
+  /**
+   * Busca una tabla temporal existente en el caché
+   */
+  private findCachedTable(conjunto: string, filtros: DiarioContabilidadFiltros): string | null {
+    const filtersHash = this.generateFiltersHash(conjunto, filtros);
+    
+    for (const [key, cachedTable] of tableCache.entries()) {
+      if (cachedTable.conjunto === conjunto && 
+          cachedTable.filtros === filtersHash &&
+          (Date.now() - cachedTable.createdAt.getTime()) < CACHE_TTL) {
+        
+        // Actualizar último acceso
+        cachedTable.lastAccessed = new Date();
+        console.log(`✅ Reutilizando tabla temporal existente: ${cachedTable.tableName}`);
+        return cachedTable.tableName;
+      }
+    }
+    
+    return null;
+  }
+
+  /**
+   * Registra una nueva tabla temporal en el caché
+   */
+  private registerCachedTable(conjunto: string, filtros: DiarioContabilidadFiltros, tableName: string): void {
+    const filtersHash = this.generateFiltersHash(conjunto, filtros);
+    const now = new Date();
+    
+    tableCache.set(tableName, {
+      tableName,
+      conjunto,
+      filtros: filtersHash,
+      createdAt: now,
+      lastAccessed: now
+    });
+    
+    console.log(`📝 Registrada nueva tabla temporal en caché: ${tableName}`);
+  }
+
+  /**
+   * Limpia tablas temporales expiradas
+   */
+  private async cleanupExpiredTables(): Promise<void> {
+    const now = Date.now();
+    const expiredTables: string[] = [];
+    
+    for (const [key, cachedTable] of tableCache.entries()) {
+      if ((now - cachedTable.createdAt.getTime()) > CACHE_TTL) {
+        expiredTables.push(key);
+      }
+    }
+    
+    for (const tableName of expiredTables) {
+      try {
+        await exactusSequelize.query(`DROP TABLE IF EXISTS ${tableName}`);
+        tableCache.delete(tableName);
+        console.log(`🗑️ Limpiada tabla temporal expirada: ${tableName}`);
+      } catch (error) {
+        console.error(`Error limpiando tabla ${tableName}:`, error);
+        tableCache.delete(tableName);
+      }
+    }
+  }
+
+  /**
+   * Inicia el proceso de limpieza automática del caché
+   */
+  private startCacheCleanup(): void {
+    setInterval(() => {
+      this.cleanupExpiredTables();
+    }, CLEANUP_INTERVAL);
+  }
+
   private getTableName(conjunto: string): string {
     return `${conjunto}.R_XML_8DDC54CDCEBAD6C`;
   }
@@ -22,24 +138,50 @@ export class DiarioContabilidadRepository implements IDiarioContabilidadReposito
     fechaFin: Date,
     contabilidad: string = 'F,A',
     tipoReporte: string = 'Preliminar'
-  ): Promise<void> {
+  ): Promise<string> {
     try {
       console.log(`Generando reporte Diario de Contabilidad para conjunto: ${conjunto}, usuario: ${usuario}`);
 
-      // 1. Crear tabla temporal si no existe
-      await this.crearTablaReporte(conjunto);
+      // Crear filtros para el caché
+      const filtros: DiarioContabilidadFiltros = {
+        conjunto,
+        usuario,
+        fechaInicio,
+        fechaFin,
+        contabilidad,
+        tipoReporte
+      };
 
-      // 2. Limpiar datos anteriores
-      await this.limpiarDatosTemporales(conjunto, usuario);
+      // Buscar tabla temporal existente en caché
+      let tableName = this.findCachedTable(conjunto, filtros);
+      let isNewTable = false;
 
-      // 3. Preparar fechas en formato SQL Server
-      const fechaInicioStr = fechaInicio.toISOString().split('T')[0] + ' 00:00:00';
-      const fechaFinStr = fechaFin.toISOString().split('T')[0] + ' 23:59:59';
+      if (!tableName) {
+        // Crear nueva tabla temporal con nombre único
+        tableName = `R_XML_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+        isNewTable = true;
+        
+        console.log(`🆕 Creando nueva tabla temporal: ${tableName}`);
+        
+        // Crear tabla temporal
+        await this.crearTablaReporte(conjunto, tableName);
+      } else {
+        console.log(`♻️ Reutilizando tabla temporal existente: ${tableName}`);
+      }
 
-      // 4. Preparar filtro de contabilidad
-      const contabilidadArray = contabilidad.split(',').map(c => `'${c.trim()}'`).join(',');
+      // Solo insertar datos si es una tabla nueva
+      if (isNewTable) {
+        console.log(`📊 Insertando datos en tabla temporal: ${tableName}`);
+        
+        // Limpiar datos anteriores
+        await this.limpiarDatosTemporales(conjunto, usuario, tableName);
 
-      const tableName = this.getTableName(conjunto);
+        // Preparar fechas en formato SQL Server
+        const fechaInicioStr = fechaInicio.toISOString().split('T')[0] + ' 00:00:00';
+        const fechaFinStr = fechaFin.toISOString().split('T')[0] + ' 23:59:59';
+
+        // Preparar filtro de contabilidad
+        const contabilidadArray = contabilidad.split(',').map(c => `'${c.trim()}'`).join(',');
 
       // 5. Insert desde tabla MAYOR
       const insertMayorQuery = `
@@ -149,9 +291,14 @@ export class DiarioContabilidadRepository implements IDiarioContabilidadReposito
           AND M.FECHA <= '${fechaFinStr}'
       `;
 
-      await exactusSequelize.query(insertDiarioQuery, { type: QueryTypes.INSERT });
+        await exactusSequelize.query(insertDiarioQuery, { type: QueryTypes.INSERT });
+
+        // Registrar la tabla en el caché
+        this.registerCachedTable(conjunto, filtros, tableName);
+      }
 
       console.log(`Reporte Diario de Contabilidad generado exitosamente para ${conjunto}`);
+      return tableName;
 
     } catch (error) {
       console.error('Error al generar reporte Diario de Contabilidad:', error);
@@ -164,7 +311,33 @@ export class DiarioContabilidadRepository implements IDiarioContabilidadReposito
       const page = filtros.page || 1;
       const limit = filtros.limit || 25;
       const offset = (page - 1) * limit;
-      const tableName = this.getTableName(filtros.conjunto);
+      
+      console.log('🔍 DiarioContabilidadRepository.obtenerDiarioContabilidad - Parámetros recibidos:', {
+        page: filtros.page,
+        limit: filtros.limit,
+        offset: filtros.offset,
+        calculatedPage: page,
+        calculatedLimit: limit,
+        calculatedOffset: offset
+      });
+      
+      // Buscar tabla temporal existente en caché
+      let tableName = this.findCachedTable(filtros.conjunto, filtros);
+      
+      if (!tableName) {
+        // Si no existe tabla en caché, generar el reporte
+        console.log('🔄 No se encontró tabla en caché, generando reporte...');
+        tableName = await this.generarReporteDiarioContabilidad(
+          filtros.conjunto,
+          filtros.usuario,
+          filtros.fechaInicio,
+          filtros.fechaFin,
+          filtros.contabilidad || 'F,A',
+          filtros.tipoReporte || 'Preliminar'
+        );
+      } else {
+        console.log(`♻️ Usando tabla temporal existente: ${tableName}`);
+      }
       
       // Construir WHERE clause
       let whereClause = 'WHERE 1 = 1';
@@ -332,25 +505,26 @@ export class DiarioContabilidadRepository implements IDiarioContabilidadReposito
     }
   }
 
-  async limpiarDatosTemporales(conjunto: string, usuario: string): Promise<void> {
+  async limpiarDatosTemporales(conjunto: string, usuario: string, tableName?: string): Promise<void> {
     try {
-      const tableName = this.getTableName(conjunto);
-      const query = `DELETE FROM ${tableName} WHERE NOMUSUARIO = '${usuario}'`;
+      const targetTableName = tableName || this.getTableName(conjunto);
+      const query = `DELETE FROM ${targetTableName} WHERE NOMUSUARIO = '${usuario}'`;
       await exactusSequelize.query(query, { type: QueryTypes.DELETE });
-      console.log(`Datos temporales limpiados para usuario: ${usuario}`);
+      console.log(`Datos temporales limpiados para usuario: ${usuario} en tabla: ${targetTableName}`);
     } catch (error) {
       console.error('Error al limpiar datos temporales:', error);
       // No lanzar error, solo logear
     }
   }
 
-  async existeTablaReporte(conjunto: string): Promise<boolean> {
+  async existeTablaReporte(conjunto: string, tableName?: string): Promise<boolean> {
     try {
+      const targetTableName = tableName || 'R_XML_8DDC54CDCEBAD6C';
       const query = `
         SELECT COUNT(*) as count 
         FROM INFORMATION_SCHEMA.TABLES 
         WHERE TABLE_SCHEMA = '${conjunto}' 
-        AND TABLE_NAME = 'R_XML_8DDC54CDCEBAD6C'
+        AND TABLE_NAME = '${targetTableName}'
       `;
       const result = await exactusSequelize.query(query, { type: QueryTypes.SELECT }) as any[];
       return Number(result[0]?.count || 0) > 0;
@@ -360,16 +534,16 @@ export class DiarioContabilidadRepository implements IDiarioContabilidadReposito
     }
   }
 
-  async crearTablaReporte(conjunto: string): Promise<void> {
+  async crearTablaReporte(conjunto: string, tableName?: string): Promise<void> {
     try {
-      const existe = await this.existeTablaReporte(conjunto);
+      const targetTableName = tableName || this.getTableName(conjunto);
+      const existe = await this.existeTablaReporte(conjunto, targetTableName);
       if (existe) {
         return;
       }
 
-      const tableName = this.getTableName(conjunto);
       const createTableQuery = `
-        CREATE TABLE ${tableName} (
+        CREATE TABLE ${targetTableName} (
           cuenta_contable_desc VARCHAR(254),
           correlativo_asiento VARCHAR(254),
           sDescTipoAsiento VARCHAR(254),
@@ -401,7 +575,7 @@ export class DiarioContabilidadRepository implements IDiarioContabilidadReposito
       `;
 
       await exactusSequelize.query(createTableQuery, { type: QueryTypes.RAW });
-      console.log(`Tabla de reporte Diario de Contabilidad creada exitosamente para conjunto ${conjunto}`);
+      console.log(`Tabla de reporte Diario de Contabilidad creada exitosamente: ${targetTableName}`);
 
     } catch (error) {
       console.error('Error al crear tabla de reporte:', error);
@@ -522,5 +696,24 @@ export class DiarioContabilidadRepository implements IDiarioContabilidadReposito
         usuario
       };
     }
+  }
+
+  /**
+   * Limpia manualmente el caché de tablas temporales
+   */
+  async limpiarCache(): Promise<void> {
+    console.log('🧹 Limpiando caché de tablas temporales...');
+    await this.cleanupExpiredTables();
+    console.log(`✅ Caché limpiado. Tablas restantes: ${tableCache.size}`);
+  }
+
+  /**
+   * Obtiene estadísticas del caché
+   */
+  obtenerEstadisticasCache(): { totalTablas: number; tablas: CachedTable[] } {
+    return {
+      totalTablas: tableCache.size,
+      tablas: Array.from(tableCache.values())
+    };
   }
 }

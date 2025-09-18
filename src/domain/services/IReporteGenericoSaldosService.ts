@@ -1,6 +1,7 @@
 import { 
   FiltrosReporteGenericoSaldos, 
   ReporteGenericoSaldos, 
+  ReporteGenericoSaldosResponse,
   FiltroCuentaContable, 
   DetalleCuentaContable,
   FiltroTipoDocumento,
@@ -20,9 +21,13 @@ export interface IReporteGenericoSaldosService {
   generarReporteGenericoSaldos(
     conjunto: string,
     filtros: FiltrosReporteGenericoSaldos
-  ): Promise<ReporteGenericoSaldos[]>;
+  ): Promise<ReporteGenericoSaldosResponse>;
   
   // Métodos de exportación
   exportarExcel(conjunto: string, filtros: FiltrosReporteGenericoSaldos): Promise<Buffer>;
   exportarPDF(conjunto: string, filtros: FiltrosReporteGenericoSaldos): Promise<Buffer>;
+  
+  // Métodos de caché
+  limpiarCache(): Promise<void>;
+  obtenerEstadisticasCache(): { totalTablas: number; tablas: any[] };
 }

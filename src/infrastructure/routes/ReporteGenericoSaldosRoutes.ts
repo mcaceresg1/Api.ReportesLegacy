@@ -47,5 +47,15 @@ export function createReporteGenericoSaldosRoutes(reporteGenericoSaldosRepositor
     (req, res) => controller.exportarPDF(req, res)
   );
 
+  // Limpiar caché de tablas temporales
+  router.post('/cache/limpiar', 
+    (req, res) => controller.limpiarCache(req, res)
+  );
+
+  // Obtener estadísticas del caché
+  router.get('/cache/estadisticas', 
+    (req, res) => controller.obtenerEstadisticasCache(req, res)
+  );
+
   return router;
 }

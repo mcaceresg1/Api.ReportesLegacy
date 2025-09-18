@@ -2,16 +2,16 @@ import { injectable, inject } from 'inversify';
 import { ICommandHandler } from '../../../domain/cqrs/ICommandHandler';
 import { GenerarReporteGenericoSaldosCommand } from '../../commands/reporte-generico-saldos/GenerarReporteGenericoSaldosCommand';
 import { IReporteGenericoSaldosService } from '../../../domain/services/IReporteGenericoSaldosService';
-import { ReporteGenericoSaldos } from '../../../domain/entities/ReporteGenericoSaldos';
+import { ReporteGenericoSaldos, ReporteGenericoSaldosResponse } from '../../../domain/entities/ReporteGenericoSaldos';
 
 @injectable()
-export class GenerarReporteGenericoSaldosHandler implements ICommandHandler<GenerarReporteGenericoSaldosCommand, ReporteGenericoSaldos[]> {
+export class GenerarReporteGenericoSaldosHandler implements ICommandHandler<GenerarReporteGenericoSaldosCommand, ReporteGenericoSaldosResponse> {
   constructor(
     @inject('IReporteGenericoSaldosService') 
     private reporteGenericoSaldosService: IReporteGenericoSaldosService
   ) {}
 
-  async handle(command: GenerarReporteGenericoSaldosCommand): Promise<ReporteGenericoSaldos[]> {
+  async handle(command: GenerarReporteGenericoSaldosCommand): Promise<ReporteGenericoSaldosResponse> {
     try {
       console.log(`🔍 GenerarReporteGenericoSaldosHandler - Procesando comando para conjunto: ${command.conjunto}`);
       console.log(`🔍 GenerarReporteGenericoSaldosHandler - Filtros:`, command.filtros);
@@ -31,7 +31,7 @@ export class GenerarReporteGenericoSaldosHandler implements ICommandHandler<Gene
         command.filtros
       );
 
-      console.log(`✅ GenerarReporteGenericoSaldosHandler - Reporte generado exitosamente. Registros: ${resultado.length}`);
+      console.log(`✅ GenerarReporteGenericoSaldosHandler - Reporte generado exitosamente. Registros: ${resultado.data.length}, Total: ${resultado.pagination.total}`);
       
       return resultado;
     } catch (error) {

@@ -4,6 +4,7 @@ import { IReporteGenericoSaldosRepository } from '../../domain/repositories/IRep
 import { 
   FiltrosReporteGenericoSaldos, 
   ReporteGenericoSaldos, 
+  ReporteGenericoSaldosResponse,
   FiltroCuentaContable, 
   DetalleCuentaContable,
   FiltroTipoDocumento,
@@ -12,9 +13,134 @@ import {
 } from '../../domain/entities/ReporteGenericoSaldos';
 import * as XLSX from 'xlsx';
 
+// Cache para tablas temporales
+interface CachedTable {
+  tableName: string;
+  conjunto: string;
+  filtros: string; // Hash de los filtros
+  createdAt: Date;
+  lastAccessed: Date;
+}
+
+// Cache global para tablas temporales
+const tableCache = new Map<string, CachedTable>();
+const CACHE_TTL = 30 * 60 * 1000; // 30 minutos
+const CLEANUP_INTERVAL = 10 * 60 * 1000; // 10 minutos
+
 @injectable()
 export class ReporteGenericoSaldosRepository implements IReporteGenericoSaldosRepository {
   
+  constructor() {
+    // Iniciar limpieza automática de caché
+    this.startCacheCleanup();
+  }
+
+  /**
+   * Genera un hash único para los filtros
+   */
+  private generateFiltersHash(conjunto: string, filtros: FiltrosReporteGenericoSaldos): string {
+    const filterString = JSON.stringify({
+      conjunto,
+      fechaInicio: filtros.fechaInicio,
+      fechaFin: filtros.fechaFin,
+      contabilidad: filtros.contabilidad,
+      origen: filtros.origen,
+      cuentasContablesPorFecha: filtros.cuentasContablesPorFecha,
+      agrupadoPor: filtros.agrupadoPor,
+      porTipoCambio: filtros.porTipoCambio,
+      filtroChecks: filtros.filtroChecks,
+      libroElectronico: filtros.libroElectronico,
+      formatoCuentas: filtros.formatoCuentas,
+      tituloPrincipal: filtros.tituloPrincipal,
+      titulo2: filtros.titulo2,
+      titulo3: filtros.titulo3,
+      titulo4: filtros.titulo4,
+      fechaImpresion: filtros.fechaImpresion
+    });
+    
+    // Generar hash simple
+    let hash = 0;
+    for (let i = 0; i < filterString.length; i++) {
+      const char = filterString.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convertir a 32bit integer
+    }
+    return Math.abs(hash).toString(36);
+  }
+
+  /**
+   * Busca una tabla temporal existente en el caché
+   */
+  private findCachedTable(conjunto: string, filtros: FiltrosReporteGenericoSaldos): string | null {
+    const filtersHash = this.generateFiltersHash(conjunto, filtros);
+    
+    for (const [key, cachedTable] of tableCache.entries()) {
+      if (cachedTable.conjunto === conjunto && 
+          cachedTable.filtros === filtersHash &&
+          (Date.now() - cachedTable.createdAt.getTime()) < CACHE_TTL) {
+        
+        // Actualizar último acceso
+        cachedTable.lastAccessed = new Date();
+        console.log(`✅ Reutilizando tabla temporal existente: ${cachedTable.tableName}`);
+        return cachedTable.tableName;
+      }
+    }
+    
+    return null;
+  }
+
+  /**
+   * Registra una nueva tabla temporal en el caché
+   */
+  private registerCachedTable(conjunto: string, filtros: FiltrosReporteGenericoSaldos, tableName: string): void {
+    const filtersHash = this.generateFiltersHash(conjunto, filtros);
+    const now = new Date();
+    
+    tableCache.set(tableName, {
+      tableName,
+      conjunto,
+      filtros: filtersHash,
+      createdAt: now,
+      lastAccessed: now
+    });
+    
+    console.log(`📝 Registrada nueva tabla temporal en caché: ${tableName}`);
+  }
+
+  /**
+   * Limpia tablas temporales expiradas
+   */
+  private async cleanupExpiredTables(): Promise<void> {
+    const now = Date.now();
+    const expiredTables: string[] = [];
+    
+    for (const [key, cachedTable] of tableCache.entries()) {
+      if ((now - cachedTable.createdAt.getTime()) > CACHE_TTL) {
+        expiredTables.push(key);
+      }
+    }
+    
+    for (const tableName of expiredTables) {
+      try {
+        await exactusSequelize.query(`DROP TABLE IF EXISTS ${tableName}`);
+        tableCache.delete(tableName);
+        console.log(`🗑️ Limpiada tabla temporal expirada: ${tableName}`);
+      } catch (error) {
+        console.error(`Error limpiando tabla ${tableName}:`, error);
+        tableCache.delete(tableName);
+      }
+    }
+  }
+
+  /**
+   * Inicia el proceso de limpieza automática del caché
+   */
+  private startCacheCleanup(): void {
+    setInterval(() => {
+      this.cleanupExpiredTables();
+    }, CLEANUP_INTERVAL);
+  }
+
   /**
    * Obtiene el filtro de cuentas contables
    */
@@ -140,52 +266,72 @@ export class ReporteGenericoSaldosRepository implements IReporteGenericoSaldosRe
   async generarReporteGenericoSaldos(
     conjunto: string,
     filtros: FiltrosReporteGenericoSaldos
-  ): Promise<ReporteGenericoSaldos[]> {
+  ): Promise<ReporteGenericoSaldosResponse> {
     try {
-      // Crear tabla temporal con nombre único
-      const tableName = `R_XML_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-      
-      // Query para crear la tabla temporal
-      const createTableQuery = `
-        IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES
-                      WHERE TABLE_SCHEMA = '${conjunto}'
-                      AND TABLE_NAME = '${tableName}')
-        BEGIN
-            CREATE TABLE ${conjunto}.${tableName} (
-                sCuentaContable NVARCHAR(50),
-                sDescCuentaContable NVARCHAR(255),
-                sNit NVARCHAR(50),
-                sRazonSocial NVARCHAR(255),
-                sReferencia NVARCHAR(255),
-                sCodTipoDoc NVARCHAR(10),
-                sTipoDocSunat NVARCHAR(100),
-                sAsiento NVARCHAR(50),
-                nConsecutivo INT,
-                dtFechaAsiento DATETIME,
-                nSaldoLocal DECIMAL(18,2),
-                nSaldoDolar DECIMAL(18,2)
-            )
-        END
-      `;
+      // Parámetros de paginación con valores por defecto
+      const page = filtros.page || 1;
+      const limit = filtros.limit || 25;
+      const offset = (page - 1) * limit;
 
-      await exactusSequelize.query(createTableQuery);
+      // Buscar tabla temporal existente en caché
+      let tableName = this.findCachedTable(conjunto, filtros);
+      let isNewTable = false;
 
-      // Query principal para insertar datos
-      const insertQuery = `
-        INSERT INTO ${conjunto}.${tableName} (
-            sCuentaContable,
-            sDescCuentaContable,
-            sNit,
-            sRazonSocial,
-            sReferencia,
-            sCodTipoDoc,
-            sTipoDocSunat,
-            sAsiento,
-            nConsecutivo,
-            dtFechaAsiento,
-            nSaldoLocal,
-            nSaldoDolar
-        )
+      if (!tableName) {
+        // Crear nueva tabla temporal con nombre único
+        tableName = `R_XML_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+        isNewTable = true;
+        
+        console.log(`🆕 Creando nueva tabla temporal: ${tableName}`);
+        
+        // Query para crear la tabla temporal
+        const createTableQuery = `
+          IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES
+                        WHERE TABLE_SCHEMA = '${conjunto}'
+                        AND TABLE_NAME = '${tableName}')
+          BEGIN
+              CREATE TABLE ${conjunto}.${tableName} (
+                  sCuentaContable NVARCHAR(50),
+                  sDescCuentaContable NVARCHAR(255),
+                  sNit NVARCHAR(50),
+                  sRazonSocial NVARCHAR(255),
+                  sReferencia NVARCHAR(255),
+                  sCodTipoDoc NVARCHAR(10),
+                  sTipoDocSunat NVARCHAR(100),
+                  sAsiento NVARCHAR(50),
+                  nConsecutivo INT,
+                  dtFechaAsiento DATETIME,
+                  nSaldoLocal DECIMAL(18,2),
+                  nSaldoDolar DECIMAL(18,2)
+              )
+          END
+        `;
+
+        await exactusSequelize.query(createTableQuery);
+      } else {
+        console.log(`♻️ Reutilizando tabla temporal existente: ${tableName}`);
+      }
+
+      // Solo insertar datos si es una tabla nueva
+      if (isNewTable) {
+        console.log(`📊 Insertando datos en tabla temporal: ${tableName}`);
+        
+        // Query principal para insertar datos
+        const insertQuery = `
+          INSERT INTO ${conjunto}.${tableName} (
+              sCuentaContable,
+              sDescCuentaContable,
+              sNit,
+              sRazonSocial,
+              sReferencia,
+              sCodTipoDoc,
+              sTipoDocSunat,
+              sAsiento,
+              nConsecutivo,
+              dtFechaAsiento,
+              nSaldoLocal,
+              nSaldoDolar
+          )
         SELECT 
             CUENTA_CONTABLE,
             DESC_CUENTA,
@@ -333,14 +479,28 @@ export class ReporteGenericoSaldosRepository implements IReporteGenericoSaldosRe
         HAVING SUM(SALDO_LOCAL) != 0
       `;
 
-      await exactusSequelize.query(insertQuery, {
-        replacements: {
-          fechaInicio: filtros.fechaInicio,
-          fechaFin: filtros.fechaFin
-        }
-      });
+        await exactusSequelize.query(insertQuery, {
+          replacements: {
+            fechaInicio: filtros.fechaInicio,
+            fechaFin: filtros.fechaFin
+          }
+        });
+        
+        // Registrar la tabla en el caché
+        this.registerCachedTable(conjunto, filtros, tableName);
+      }
 
-      // Query para obtener los resultados finales
+      // Query para obtener el total de registros
+      const countQuery = `
+        SELECT COUNT(*) as total
+        FROM ${conjunto}.${tableName}
+      `;
+
+      const [countResults] = await exactusSequelize.query(countQuery);
+      const total = (countResults as any[])[0]?.total || 0;
+      const totalPages = Math.ceil(total / limit);
+
+      // Query para obtener los resultados paginados
       const selectQuery = `
         SELECT
             sCuentaContable,
@@ -356,12 +516,19 @@ export class ReporteGenericoSaldosRepository implements IReporteGenericoSaldosRe
             FORMAT(nSaldoLocal, 'N2') AS monto
         FROM ${conjunto}.${tableName}
         ORDER BY sCuentaContable, sNit
+        OFFSET ${offset} ROWS
+        FETCH NEXT ${limit} ROWS ONLY
       `;
 
       const [results] = await exactusSequelize.query(selectQuery);
       
-      // Limpiar tabla temporal
-      await exactusSequelize.query(`DROP TABLE ${conjunto}.${tableName}`);
+      // Solo limpiar tabla temporal si no está en caché
+      if (!this.findCachedTable(conjunto, filtros)) {
+        await exactusSequelize.query(`DROP TABLE ${conjunto}.${tableName}`);
+        console.log(`🗑️ Eliminada tabla temporal: ${tableName}`);
+      } else {
+        console.log(`💾 Manteniendo tabla temporal en caché: ${tableName}`);
+      }
 
       // Transformar resultados al formato esperado
       const reporteData = (results as any[]).map(row => ({
@@ -373,11 +540,54 @@ export class ReporteGenericoSaldosRepository implements IReporteGenericoSaldosRe
         monto: parseFloat(row.monto?.replace(/,/g, '') || '0')
       }));
 
-      return reporteData;
+      return {
+        success: true,
+        data: reporteData,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1,
+        },
+        message: "Datos obtenidos exitosamente",
+      };
     } catch (error) {
       console.error('Error generando reporte genérico de saldos:', error);
-      throw new Error(`Error al generar reporte genérico de saldos: ${error}`);
+      return {
+        success: false,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 25,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
+        message: `Error al generar reporte genérico de saldos: ${error}`,
+      };
     }
+  }
+
+  /**
+   * Limpia manualmente el caché de tablas temporales
+   */
+  async limpiarCache(): Promise<void> {
+    console.log('🧹 Limpiando caché de tablas temporales...');
+    await this.cleanupExpiredTables();
+    console.log(`✅ Caché limpiado. Tablas restantes: ${tableCache.size}`);
+  }
+
+  /**
+   * Obtiene estadísticas del caché
+   */
+  obtenerEstadisticasCache(): { totalTablas: number; tablas: CachedTable[] } {
+    return {
+      totalTablas: tableCache.size,
+      tablas: Array.from(tableCache.values())
+    };
   }
 
   /**
@@ -387,8 +597,10 @@ export class ReporteGenericoSaldosRepository implements IReporteGenericoSaldosRe
     try {
       console.log(`Generando Excel de reporte genérico de saldos para conjunto ${conjunto}`);
       
-      // Obtener los datos del reporte
-      const reporteData = await this.generarReporteGenericoSaldos(conjunto, filtros);
+      // Obtener los datos del reporte (sin paginación para exportación)
+      const filtrosSinPaginacion = { ...filtros, page: 1, limit: 10000 };
+      const reporteResponse = await this.generarReporteGenericoSaldos(conjunto, filtrosSinPaginacion);
+      const reporteData = reporteResponse.data;
       
       // Preparar los datos para Excel
       const excelData = reporteData.map(item => ({

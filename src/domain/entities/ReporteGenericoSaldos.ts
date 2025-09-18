@@ -14,6 +14,8 @@ export interface FiltrosReporteGenericoSaldos {
   titulo3: string;
   titulo4: string;
   fechaImpresion: string;
+  page?: number;
+  limit?: number;
 }
 
 export interface ReporteGenericoSaldos {
@@ -23,6 +25,20 @@ export interface ReporteGenericoSaldos {
   fecha: string;
   concepto: string;
   monto: number;
+}
+
+export interface ReporteGenericoSaldosResponse {
+  success: boolean;
+  data: ReporteGenericoSaldos[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+  message: string;
 }
 
 export interface FiltroCuentaContable {

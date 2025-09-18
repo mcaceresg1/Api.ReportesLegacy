@@ -428,10 +428,7 @@ export class ReporteGenericoSaldosController {
 
       const reporte = await this.reporteGenericoSaldosService.generarReporteGenericoSaldos(conjunto, filtros);
 
-      res.json({
-        success: true,
-        data: reporte
-      });
+      res.json(reporte);
     } catch (error) {
       console.error('Error en generarReporte:', error);
       res.status(500).json({
@@ -577,6 +574,98 @@ export class ReporteGenericoSaldosController {
       res.status(500).json({
         success: false,
         message: 'Error al exportar PDF',
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/reporte-generico-saldos/cache/limpiar:
+   *   post:
+   *     summary: Limpia el caché de tablas temporales
+   *     tags: [Reporte Genérico de Saldos]
+   *     responses:
+   *       200:
+   *         description: Caché limpiado exitosamente
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 message:
+   *                   type: string
+   *                 estadisticas:
+   *                   type: object
+   *                   properties:
+   *                     totalTablas:
+   *                       type: number
+   *       500:
+   *         description: Error interno del servidor
+   */
+  async limpiarCache(req: Request, res: Response): Promise<void> {
+    try {
+      await this.reporteGenericoSaldosService.limpiarCache();
+      const estadisticas = this.reporteGenericoSaldosService.obtenerEstadisticasCache();
+      
+      res.json({
+        success: true,
+        message: 'Caché limpiado exitosamente',
+        estadisticas
+      });
+    } catch (error) {
+      console.error('Error limpiando caché:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error al limpiar el caché',
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/reporte-generico-saldos/cache/estadisticas:
+   *   get:
+   *     summary: Obtiene estadísticas del caché
+   *     tags: [Reporte Genérico de Saldos]
+   *     responses:
+   *       200:
+   *         description: Estadísticas del caché obtenidas exitosamente
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 estadisticas:
+   *                   type: object
+   *                   properties:
+   *                     totalTablas:
+   *                       type: number
+   *                     tablas:
+   *                       type: array
+   *                       items:
+   *                         type: object
+   *       500:
+   *         description: Error interno del servidor
+   */
+  async obtenerEstadisticasCache(req: Request, res: Response): Promise<void> {
+    try {
+      const estadisticas = this.reporteGenericoSaldosService.obtenerEstadisticasCache();
+      
+      res.json({
+        success: true,
+        estadisticas
+      });
+    } catch (error) {
+      console.error('Error obteniendo estadísticas del caché:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error al obtener estadísticas del caché',
         error: error instanceof Error ? error.message : 'Error desconocido'
       });
     }

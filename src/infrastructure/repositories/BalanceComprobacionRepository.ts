@@ -345,6 +345,15 @@ export class BalanceComprobacionRepository
         params.push(filtros.tipoDetallado);
       }
 
+      // Filtros de contabilidad y tipo de reporte
+      if (filtros.contabilidad) {
+        whereClause += " AND TIPO_REPORTE = ?";
+        params.push(filtros.tipoReporte || 'Preliminar');
+      }
+
+      console.log('🔍 BalanceComprobacionRepository - Where clause:', whereClause);
+      console.log('🔍 BalanceComprobacionRepository - Params:', params);
+
       // Query para obtener el total de registros
       const countQuery = `
         SELECT COUNT(*) as total 
