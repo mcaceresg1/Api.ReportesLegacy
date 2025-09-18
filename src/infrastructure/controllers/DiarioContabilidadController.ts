@@ -294,6 +294,8 @@ export class DiarioContabilidadController {
    */
   async obtenerDiarioContabilidad(req: Request, res: Response): Promise<void> {
     try {
+      console.log('🔍 DiarioContabilidadController.obtenerDiarioContabilidad - Query params recibidos:', req.query);
+      
       const { 
         conjunto, usuario, fechaInicio, fechaFin, 
         cuentaContable, centroCosto, nit, tipoAsiento, asiento, origen,
@@ -335,7 +337,19 @@ export class DiarioContabilidadController {
 
       const offset = (pageNum - 1) * limitNum;
 
-      // Preparar filtros
+      // **PASO CRÍTICO: Generar el reporte primero si no existe (con caché)**
+      console.log('🔄 Generando reporte Diario de Contabilidad...');
+      const tableName = await this.diarioContabilidadRepository.generarReporteDiarioContabilidad(
+        conjunto as string,
+        usuario as string,
+        fechaInicioDate,
+        fechaFinDate,
+        contabilidad as string || 'F,A',
+        tipoReporte as string || 'Preliminar'
+      );
+      console.log(`✅ Reporte generado exitosamente. Tabla: ${tableName}`);
+
+      // Preparar filtros para la consulta
       const filtros: DiarioContabilidadFiltros = {
         conjunto: conjunto as string,
         usuario: usuario as string,
@@ -349,12 +363,21 @@ export class DiarioContabilidadController {
         tipoAsiento: tipoAsiento as string,
         asiento: asiento as string,
         origen: origen as string,
+        page: pageNum,
         limit: limitNum,
         offset
       };
 
-      // Usar directamente el repositorio
+      console.log('🔍 Filtros preparados para consulta:', filtros);
+
+      // Obtener los datos del reporte generado
       const resultado = await this.diarioContabilidadRepository.obtenerDiarioContabilidad(filtros);
+
+      console.log('📊 Resultado obtenido:', {
+        success: resultado.success,
+        dataLength: resultado.data?.length || 0,
+        total: resultado.pagination?.total || 0
+      });
 
       res.status(200).json({
         success: resultado.success,
