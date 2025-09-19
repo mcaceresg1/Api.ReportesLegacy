@@ -213,7 +213,19 @@ export class ReporteDocumentosProveedorController {
    * @swagger
    * /api/documentos-proveedor/documentosPorPagar:
    *   get:
-   *     summary: Obtiene el reporte de documentos de un proveedor entre un rango de fechas
+   *     summary: Obtiene documentos por pagar con filtros de fechas y/o proveedor
+   *     description: |
+   *       Este endpoint permite obtener documentos por pagar con dos tipos de filtros:
+   *
+   *       **Caso 1 - Solo por fechas (todos los proveedores):**
+   *       - Proporcionar solo: conjunto, fechaInicio, fechaFin
+   *       - Ejemplo: `/api/documentos-proveedor/documentosPorPagar?conjunto=ASFSAC&fechaInicio=2022-01-01&fechaFin=2022-12-31`
+   *
+   *       **Caso 2 - Por fechas y proveedor específico:**
+   *       - Proporcionar: conjunto, proveedor, fechaInicio, fechaFin
+   *       - Ejemplo: `/api/documentos-proveedor/documentosPorPagar?conjunto=ASFSAC&proveedor=10094374982&fechaInicio=2022-01-01&fechaFin=2022-12-31`
+   *
+   *       El sistema automáticamente detecta qué tipo de consulta realizar según los parámetros proporcionados.
    *     tags:
    *       - Tesoreria y Caja - Detalle Movimientos por Pagar
    *     parameters:
@@ -222,58 +234,180 @@ export class ReporteDocumentosProveedorController {
    *         schema:
    *           type: string
    *         required: true
-   *         description: "Nombre del esquema o base de datos"
+   *         description: "Nombre del esquema o base de datos (ej: ASFSAC)"
+   *         example: "ASFSAC"
    *       - in: query
    *         name: proveedor
    *         schema:
    *           type: string
    *         required: false
-   *         description: "Código del proveedor"
+   *         description: |
+   *           Código del proveedor específico.
+   *           - Si se proporciona: filtra solo documentos de ese proveedor
+   *           - Si se omite o está vacío: incluye todos los proveedores
+   *         example: "10094374982"
    *       - in: query
    *         name: fechaInicio
    *         schema:
    *           type: string
    *           format: date
-   *         required: false
-   *         description: "Fecha inicial (YYYY-MM-DD)"
+   *         required: true
+   *         description: "Fecha inicial del rango (YYYY-MM-DD)"
+   *         example: "2022-01-01"
    *       - in: query
    *         name: fechaFin
    *         schema:
    *           type: string
    *           format: date
-   *         required: false
-   *         description: "Fecha final (YYYY-MM-DD)"
+   *         required: true
+   *         description: "Fecha final del rango (YYYY-MM-DD)"
+   *         example: "2022-12-31"
    *     responses:
    *       200:
-   *         description: "Reporte de documentos por pagar obtenido correctamente"
+   *         description: |
+   *           Reporte de documentos por pagar obtenido correctamente.
+   *
+   *           **Estructura de respuesta:**
+   *           - Array de documentos con información detallada
+   *           - Cada documento incluye datos del proveedor, fechas, montos y tipos de documento
+   *           - Los montos se calculan según el tipo de documento (debe/haber en soles y dólares)
    *         content:
    *           application/json:
    *             schema:
-   *               type: array
-   *               items:
-   *                 type: object
-   *                 properties:
-   *                   proveedor:
-   *                     type: string
-   *                   nombre:
-   *                     type: string
-   *                   fecha_vence:
-   *                     type: string
-   *                     format: date
-   *                   tipo:
-   *                     type: string
-   *                   documento:
-   *                     type: string
-   *                   aplicacion:
-   *                     type: string
-   *                   moneda:
-   *                     type: string
-   *                   monto:
-   *                     type: number
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     type: object
+   *                     properties:
+   *                       CONTRIBUYENTE:
+   *                         type: string
+   *                         description: "RUC o código del contribuyente"
+   *                         example: "10094374982"
+   *                       NOMBRE:
+   *                         type: string
+   *                         description: "Nombre del proveedor"
+   *                         example: "VALENCIA GONZALES AGRIPINA SATURNINA"
+   *                       FECHA_DOCUMENTO:
+   *                         type: string
+   *                         format: date
+   *                         description: "Fecha del documento"
+   *                         example: "2022-06-21T00:00:00.000Z"
+   *                       DOCUMENTO:
+   *                         type: string
+   *                         description: "Número del documento"
+   *                         example: "00001-72"
+   *                       TIPO:
+   *                         type: string
+   *                         description: "Tipo de documento (B/V, CHQ, CNJ, etc.)"
+   *                         example: "B/V"
+   *                       APLICACION:
+   *                         type: string
+   *                         description: "Descripción o glosa del documento"
+   *                         example: "DECORACION CAPILLA ANIV LURIN"
+   *                       FECHA:
+   *                         type: string
+   *                         format: date
+   *                         description: "Fecha contable"
+   *                         example: "2022-07-01T00:00:00.000Z"
+   *                       ASIENTO:
+   *                         type: string
+   *                         description: "Número de asiento contable"
+   *                         example: "0900022443"
+   *                       DEBE_LOC:
+   *                         type: number
+   *                         description: "Monto debe en moneda local (soles)"
+   *                         example: 0
+   *                       HABER_LOC:
+   *                         type: number
+   *                         description: "Monto haber en moneda local (soles)"
+   *                         example: 1670
+   *                       DEBE_DOL:
+   *                         type: number
+   *                         description: "Monto debe en dólares"
+   *                         example: 0
+   *                       HABER_DOL:
+   *                         type: number
+   *                         description: "Monto haber en dólares"
+   *                         example: 435.01
+   *                       MONEDA:
+   *                         type: string
+   *                         description: "Moneda del documento"
+   *                         example: "SOL"
+   *             examples:
+   *               todos_proveedores:
+   *                 summary: "Respuesta para consulta solo por fechas"
+   *                 value:
+   *                   success: true
+   *                   data:
+   *                     - CONTRIBUYENTE: "10094374982"
+   *                       NOMBRE: "VALENCIA GONZALES AGRIPINA SATURNINA"
+   *                       FECHA_DOCUMENTO: "2022-06-21T00:00:00.000Z"
+   *                       DOCUMENTO: "00001-72"
+   *                       TIPO: "B/V"
+   *                       APLICACION: "DECORACION CAPILLA ANIV LURIN"
+   *                       FECHA: "2022-07-01T00:00:00.000Z"
+   *                       ASIENTO: "0900022443"
+   *                       DEBE_LOC: 0
+   *                       HABER_LOC: 1670
+   *                       DEBE_DOL: 0
+   *                       HABER_DOL: 435.01
+   *                       MONEDA: "SOL"
+   *               proveedor_especifico:
+   *                 summary: "Respuesta para consulta por fechas y proveedor"
+   *                 value:
+   *                   success: true
+   *                   data:
+   *                     - CONTRIBUYENTE: "10094374982"
+   *                       NOMBRE: "VALENCIA GONZALES AGRIPINA SATURNINA"
+   *                       FECHA_DOCUMENTO: "2022-04-08T00:00:00.000Z"
+   *                       DOCUMENTO: "0001-43"
+   *                       TIPO: "B/V"
+   *                       APLICACION: "FLORES PARA EL ALTAR (LURIN)"
+   *                       FECHA: "2022-04-08T00:00:00.000Z"
+   *                       ASIENTO: "0900019535"
+   *                       DEBE_LOC: 0
+   *                       HABER_LOC: 990
+   *                       DEBE_DOL: 0
+   *                       HABER_DOL: 266.06
+   *                       MONEDA: "SOL"
    *       400:
-   *         description: "Parámetros incompletos"
+   *         description: |
+   *           Error de parámetros. Posibles causas:
+   *           - Parámetro 'conjunto' requerido
+   *           - Fechas inválidas o en formato incorrecto
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: false
+   *                 message:
+   *                   type: string
+   *                   example: "Parámetros incompletos. Se requieren conjunto"
    *       500:
-   *         description: "Error interno del servidor"
+   *         description: |
+   *           Error interno del servidor. Posibles causas:
+   *           - Error de conexión a la base de datos
+   *           - Error en la consulta SQL
+   *           - Error de procesamiento de datos
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: false
+   *                 message:
+   *                   type: string
+   *                   example: "Error interno del servidor."
    */
 
   async obtenerReporteDocumentosPorPagar(
@@ -313,13 +447,33 @@ export class ReporteDocumentosProveedorController {
         fechaFin: fechaFin as string,
       });
 
-      const reporte =
-        await this.reporteService.obtenerReporteDocumentosPorPagar(
-          conjunto as string,
-          proveedor ? (proveedor as string) : undefined,
-          fechaInicio as string,
-          fechaFin as string
+      // Decidir qué método usar según si hay proveedor o no
+      let reporte;
+      const proveedorStr = proveedor as string;
+      const tieneProveedor = proveedorStr && proveedorStr.trim() !== "";
+
+      if (tieneProveedor) {
+        console.log(
+          "🔍 [Backend] Usando método: obtenerReporteDocumentosPorPagarPorFechasYProveedor"
         );
+        reporte =
+          await this.reporteService.obtenerReporteDocumentosPorPagarPorFechasYProveedor(
+            conjunto as string,
+            proveedorStr,
+            fechaInicio as string,
+            fechaFin as string
+          );
+      } else {
+        console.log(
+          "🔍 [Backend] Usando método: obtenerReporteDocumentosPorPagarPorFechas"
+        );
+        reporte =
+          await this.reporteService.obtenerReporteDocumentosPorPagarPorFechas(
+            conjunto as string,
+            fechaInicio as string,
+            fechaFin as string
+          );
+      }
 
       console.log("📊 [Backend] Reporte obtenido del servicio:", {
         cantidad: reporte?.length || 0,

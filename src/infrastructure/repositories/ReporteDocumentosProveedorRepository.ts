@@ -209,6 +209,283 @@ export class ReporteDocumentosProveedorRepository
     }
   }
 
+  /**
+   * Obtiene documentos por pagar SOLO por fechas (sin filtro de proveedor específico).
+   * @param conjunto Nombre del esquema/base de datos
+   * @param fechaInicio Fecha inicial del rango
+   * @param fechaFin Fecha final del rango
+   */
+  async obtenerReporteDocumentosPorPagarPorFechas(
+    conjunto: string,
+    fechaInicio: string,
+    fechaFin: string
+  ): Promise<DocumentosPorPagar[]> {
+    try {
+      console.log("🔍 [Repository-FECHAS] Parámetros recibidos:", {
+        conjunto,
+        fechaInicio,
+        fechaFin,
+      });
+
+      const query = `
+        SELECT
+          P.CONTRIBUYENTE,
+          P.NOMBRE,
+          DCP.FECHA_DOCUMENTO,
+          DCP.DOCUMENTO,
+          DCP.TIPO,
+          DCP.APLICACION,
+          AD.FECHA,
+          DCP.ASIENTO,
+          CASE WHEN DCP.TIPO IN ('CHQ', 'TEF', 'RET', 'N/C', 'O/C', 'CNJ') THEN DCP.MONTO_LOCAL ELSE 0 END AS DEBE_LOC,
+          CASE WHEN DCP.TIPO IN ('FAC', 'B/V', 'L/C', 'RHP', 'INT', 'N/D', 'O/D') THEN DCP.MONTO_LOCAL ELSE 0 END AS HABER_LOC,
+          CASE WHEN DCP.TIPO IN ('CHQ', 'TEF', 'RET', 'N/C', 'O/C', 'CNJ') THEN DCP.MONTO_DOLAR ELSE 0 END AS DEBE_DOL,
+          CASE WHEN DCP.TIPO IN ('FAC', 'B/V', 'L/C', 'RHP', 'INT', 'N/D', 'O/D') THEN DCP.MONTO_DOLAR ELSE 0 END AS HABER_DOL,
+          DCP.MONEDA
+        FROM ${conjunto}.PROVEEDOR P
+        INNER JOIN ${conjunto}.DOCUMENTOS_CP DCP ON DCP.PROVEEDOR = P.PROVEEDOR
+        INNER JOIN ${conjunto}.SUBTIPO_DOC_CP SDC ON SDC.TIPO = DCP.TIPO AND SDC.SUBTIPO = DCP.SUBTIPO
+        INNER JOIN ${conjunto}.ASIENTO_DE_DIARIO AD ON DCP.ASIENTO = AD.ASIENTO
+        WHERE
+          DCP.TIPO IN ('B/V', 'CHQ', 'CNJ', 'DCC', 'DEP')
+          AND AD.FECHA >= :fechaInicio
+          AND AD.FECHA <= :fechaFin
+  
+        UNION ALL
+  
+        SELECT
+          P.CONTRIBUYENTE,
+          P.NOMBRE,
+          DCP.FECHA_DOCUMENTO,
+          DCP.DOCUMENTO,
+          DCP.TIPO,
+          DCP.APLICACION,
+          AM.FECHA,
+          DCP.ASIENTO,
+          CASE WHEN DCP.TIPO IN ('CHQ', 'TEF', 'RET', 'N/C', 'O/C', 'CNJ') THEN DCP.MONTO_LOCAL ELSE 0 END AS DEBE_LOC,
+          CASE WHEN DCP.TIPO IN ('FAC', 'B/V', 'L/C', 'RHP', 'INT', 'N/D', 'O/D') THEN DCP.MONTO_LOCAL ELSE 0 END AS HABER_LOC,
+          CASE WHEN DCP.TIPO IN ('CHQ', 'TEF', 'RET', 'N/C', 'O/C', 'CNJ') THEN DCP.MONTO_DOLAR ELSE 0 END AS DEBE_DOL,
+          CASE WHEN DCP.TIPO IN ('FAC', 'B/V', 'L/C', 'RHP', 'INT', 'N/D', 'O/D') THEN DCP.MONTO_DOLAR ELSE 0 END AS HABER_DOL,
+          DCP.MONEDA
+        FROM ${conjunto}.PROVEEDOR P
+        INNER JOIN ${conjunto}.DOCUMENTOS_CP DCP ON DCP.PROVEEDOR = P.PROVEEDOR
+        INNER JOIN ${conjunto}.SUBTIPO_DOC_CP SDC ON SDC.TIPO = DCP.TIPO AND SDC.SUBTIPO = DCP.SUBTIPO
+        INNER JOIN ${conjunto}.ASIENTO_MAYORIZADO AM ON DCP.ASIENTO = AM.ASIENTO
+        WHERE
+          DCP.TIPO IN ('B/V', 'CHQ', 'CNJ', 'DCC', 'DEP')
+          AND AM.FECHA >= :fechaInicio
+          AND AM.FECHA <= :fechaFin
+        ORDER BY P.CONTRIBUYENTE ASC, DCP.FECHA_DOCUMENTO ASC
+      `;
+
+      const fechaInicioISO = fechaInicio
+        ? new Date(fechaInicio).toISOString().split("T")[0]
+        : "1900-01-01";
+      const fechaFinISO = fechaFin
+        ? new Date(fechaFin).toISOString().split("T")[0]
+        : "9999-12-31";
+
+      console.log(
+        "📋 [Repository-FECHAS] Parámetros procesados para la consulta:",
+        {
+          fechaInicio: fechaInicioISO,
+          fechaFin: fechaFinISO,
+        }
+      );
+
+      console.log(
+        "🔍 [Repository-FECHAS] Ejecutando consulta SQL (solo fechas)..."
+      );
+      const result = await exactusSequelize.query<DocumentosPorPagar>(query, {
+        replacements: {
+          fechaInicio: fechaInicioISO,
+          fechaFin: fechaFinISO,
+        },
+        type: QueryTypes.SELECT,
+      });
+
+      console.log("📊 [Repository-FECHAS] Resultado de la consulta:", {
+        cantidad: result?.length || 0,
+        primerosElementos: result?.slice(0, 2) || [],
+      });
+
+      // Log detallado del primer elemento para debugging
+      if (result && result.length > 0) {
+        const firstElement = result[0] as any;
+        console.log("🔍 [Repository-FECHAS] Primer elemento detallado:", {
+          CONTRIBUYENTE: firstElement.CONTRIBUYENTE,
+          NOMBRE: firstElement.NOMBRE,
+          TIPO: firstElement.TIPO,
+          DEBE_LOC: firstElement.DEBE_LOC,
+          HABER_LOC: firstElement.HABER_LOC,
+          DEBE_DOL: firstElement.DEBE_DOL,
+          HABER_DOL: firstElement.HABER_DOL,
+          MONEDA: firstElement.MONEDA,
+        });
+      }
+
+      return result;
+    } catch (error) {
+      console.error(
+        "❌ [Repository-FECHAS] Error al obtener documentos por pagar (solo fechas):",
+        error
+      );
+      return [];
+    }
+  }
+
+  /**
+   * Obtiene documentos por pagar por fechas Y proveedor específico.
+   * @param conjunto Nombre del esquema/base de datos
+   * @param proveedor Código del proveedor
+   * @param fechaInicio Fecha inicial del rango
+   * @param fechaFin Fecha final del rango
+   */
+  async obtenerReporteDocumentosPorPagarPorFechasYProveedor(
+    conjunto: string,
+    proveedor: string,
+    fechaInicio: string,
+    fechaFin: string
+  ): Promise<DocumentosPorPagar[]> {
+    try {
+      console.log("🔍 [Repository-PROVEEDOR] Parámetros recibidos:", {
+        conjunto,
+        proveedor,
+        fechaInicio,
+        fechaFin,
+      });
+      console.log(
+        "🔍 [Repository-PROVEEDOR] Tipo de proveedor:",
+        typeof proveedor
+      );
+      console.log(
+        "🔍 [Repository-PROVEEDOR] Proveedor es undefined?",
+        proveedor === undefined
+      );
+      console.log(
+        "🔍 [Repository-PROVEEDOR] Proveedor es null?",
+        proveedor === null
+      );
+      console.log(
+        "🔍 [Repository-PROVEEDOR] Proveedor es string vacío?",
+        proveedor === ""
+      );
+
+      const query = `
+        SELECT
+          P.CONTRIBUYENTE,
+          P.NOMBRE,
+          DCP.FECHA_DOCUMENTO,
+          DCP.DOCUMENTO,
+          DCP.TIPO,
+          DCP.APLICACION,
+          AD.FECHA,
+          DCP.ASIENTO,
+          CASE WHEN DCP.TIPO IN ('CHQ', 'TEF', 'RET', 'N/C', 'O/C', 'CNJ') THEN DCP.MONTO_LOCAL ELSE 0 END AS DEBE_LOC,
+          CASE WHEN DCP.TIPO IN ('FAC', 'B/V', 'L/C', 'RHP', 'INT', 'N/D', 'O/D') THEN DCP.MONTO_LOCAL ELSE 0 END AS HABER_LOC,
+          CASE WHEN DCP.TIPO IN ('CHQ', 'TEF', 'RET', 'N/C', 'O/C', 'CNJ') THEN DCP.MONTO_DOLAR ELSE 0 END AS DEBE_DOL,
+          CASE WHEN DCP.TIPO IN ('FAC', 'B/V', 'L/C', 'RHP', 'INT', 'N/D', 'O/D') THEN DCP.MONTO_DOLAR ELSE 0 END AS HABER_DOL,
+          DCP.MONEDA
+        FROM ${conjunto}.PROVEEDOR P
+        INNER JOIN ${conjunto}.DOCUMENTOS_CP DCP ON DCP.PROVEEDOR = P.PROVEEDOR
+        INNER JOIN ${conjunto}.SUBTIPO_DOC_CP SDC ON SDC.TIPO = DCP.TIPO AND SDC.SUBTIPO = DCP.SUBTIPO
+        INNER JOIN ${conjunto}.ASIENTO_DE_DIARIO AD ON DCP.ASIENTO = AD.ASIENTO
+        WHERE
+          DCP.TIPO IN ('B/V', 'CHQ', 'CNJ', 'DCC', 'DEP')
+          AND P.PROVEEDOR = :proveedor
+          AND AD.FECHA >= :fechaInicio
+          AND AD.FECHA <= :fechaFin
+  
+        UNION ALL
+  
+        SELECT
+          P.CONTRIBUYENTE,
+          P.NOMBRE,
+          DCP.FECHA_DOCUMENTO,
+          DCP.DOCUMENTO,
+          DCP.TIPO,
+          DCP.APLICACION,
+          AM.FECHA,
+          DCP.ASIENTO,
+          CASE WHEN DCP.TIPO IN ('CHQ', 'TEF', 'RET', 'N/C', 'O/C', 'CNJ') THEN DCP.MONTO_LOCAL ELSE 0 END AS DEBE_LOC,
+          CASE WHEN DCP.TIPO IN ('FAC', 'B/V', 'L/C', 'RHP', 'INT', 'N/D', 'O/D') THEN DCP.MONTO_LOCAL ELSE 0 END AS HABER_LOC,
+          CASE WHEN DCP.TIPO IN ('CHQ', 'TEF', 'RET', 'N/C', 'O/C', 'CNJ') THEN DCP.MONTO_DOLAR ELSE 0 END AS DEBE_DOL,
+          CASE WHEN DCP.TIPO IN ('FAC', 'B/V', 'L/C', 'RHP', 'INT', 'N/D', 'O/D') THEN DCP.MONTO_DOLAR ELSE 0 END AS HABER_DOL,
+          DCP.MONEDA
+        FROM ${conjunto}.PROVEEDOR P
+        INNER JOIN ${conjunto}.DOCUMENTOS_CP DCP ON DCP.PROVEEDOR = P.PROVEEDOR
+        INNER JOIN ${conjunto}.SUBTIPO_DOC_CP SDC ON SDC.TIPO = DCP.TIPO AND SDC.SUBTIPO = DCP.SUBTIPO
+        INNER JOIN ${conjunto}.ASIENTO_MAYORIZADO AM ON DCP.ASIENTO = AM.ASIENTO
+        WHERE
+          DCP.TIPO IN ('B/V', 'CHQ', 'CNJ', 'DCC', 'DEP')
+          AND P.PROVEEDOR = :proveedor
+          AND AM.FECHA >= :fechaInicio
+          AND AM.FECHA <= :fechaFin
+        ORDER BY P.CONTRIBUYENTE ASC, DCP.FECHA_DOCUMENTO ASC
+      `;
+
+      const fechaInicioISO = fechaInicio
+        ? new Date(fechaInicio).toISOString().split("T")[0]
+        : "1900-01-01";
+      const fechaFinISO = fechaFin
+        ? new Date(fechaFin).toISOString().split("T")[0]
+        : "9999-12-31";
+
+      console.log(
+        "📋 [Repository-PROVEEDOR] Parámetros procesados para la consulta:",
+        {
+          proveedor,
+          fechaInicio: fechaInicioISO,
+          fechaFin: fechaFinISO,
+        }
+      );
+
+      console.log(
+        "🔍 [Repository-PROVEEDOR] Ejecutando consulta SQL (fechas + proveedor)..."
+      );
+      const result = await exactusSequelize.query<DocumentosPorPagar>(query, {
+        replacements: {
+          proveedor,
+          fechaInicio: fechaInicioISO,
+          fechaFin: fechaFinISO,
+        },
+        type: QueryTypes.SELECT,
+      });
+
+      console.log("📊 [Repository-PROVEEDOR] Resultado de la consulta:", {
+        cantidad: result?.length || 0,
+        primerosElementos: result?.slice(0, 2) || [],
+      });
+
+      // Log detallado del primer elemento para debugging
+      if (result && result.length > 0) {
+        const firstElement = result[0] as any;
+        console.log("🔍 [Repository-PROVEEDOR] Primer elemento detallado:", {
+          CONTRIBUYENTE: firstElement.CONTRIBUYENTE,
+          NOMBRE: firstElement.NOMBRE,
+          TIPO: firstElement.TIPO,
+          DEBE_LOC: firstElement.DEBE_LOC,
+          HABER_LOC: firstElement.HABER_LOC,
+          DEBE_DOL: firstElement.DEBE_DOL,
+          HABER_DOL: firstElement.HABER_DOL,
+          MONEDA: firstElement.MONEDA,
+        });
+      }
+
+      return result;
+    } catch (error) {
+      console.error(
+        "❌ [Repository-PROVEEDOR] Error al obtener documentos por pagar (fechas + proveedor):",
+        error
+      );
+      return [];
+    }
+  }
+
+  /**
+   * @deprecated Usar obtenerReporteDocumentosPorPagarPorFechas o obtenerReporteDocumentosPorPagarPorFechasYProveedor
+   * Obtiene documentos por pagar (método legacy que maneja ambos casos)
+   */
   async obtenerReporteDocumentosPorPagar(
     conjunto: string,
     proveedor: string,

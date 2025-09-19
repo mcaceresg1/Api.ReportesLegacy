@@ -47,6 +47,42 @@ export class ReporteDocumentosProveedorService
     );
   }
 
+  /**
+   * Obtiene documentos por pagar SOLO por fechas (sin filtro de proveedor específico).
+   */
+  async obtenerReporteDocumentosPorPagarPorFechas(
+    conjunto: string,
+    fechaInicio: string,
+    fechaFin: string
+  ): Promise<DocumentosPorPagar[]> {
+    return await this.proveedorRepo.obtenerReporteDocumentosPorPagarPorFechas(
+      conjunto,
+      fechaInicio,
+      fechaFin
+    );
+  }
+
+  /**
+   * Obtiene documentos por pagar por fechas Y proveedor específico.
+   */
+  async obtenerReporteDocumentosPorPagarPorFechasYProveedor(
+    conjunto: string,
+    proveedor: string,
+    fechaInicio: string,
+    fechaFin: string
+  ): Promise<DocumentosPorPagar[]> {
+    return await this.proveedorRepo.obtenerReporteDocumentosPorPagarPorFechasYProveedor(
+      conjunto,
+      proveedor,
+      fechaInicio,
+      fechaFin
+    );
+  }
+
+  /**
+   * @deprecated Usar obtenerReporteDocumentosPorPagarPorFechas o obtenerReporteDocumentosPorPagarPorFechasYProveedor
+   * Obtiene documentos por pagar (método legacy que maneja ambos casos)
+   */
   async obtenerReporteDocumentosPorPagar(
     conjunto: string,
     proveedor?: string | null,

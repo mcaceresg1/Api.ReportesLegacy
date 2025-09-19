@@ -233,4 +233,18 @@ export const TYPES = {
   PlanillaAnualizadaOfliplanController: "PlanillaAnualizadaOfliplanController",
   PlanillaAnualizadaOfliplanRoutes: "PlanillaAnualizadaOfliplanRoutes",
   GetPlanillaAnualizadaOfliplanHandler: "GetPlanillaAnualizadaOfliplanHandler",
+
+  // Empresas OFICON
+  IEmpresasOficonRepository: "IEmpresasOficonRepository",
+  EmpresasOficonRepository: "EmpresasOficonRepository",
+  EmpresasOficonController: "EmpresasOficonController",
+  EmpresasOficonRoutes: "EmpresasOficonRoutes",
+  GetEmpresasOficonHandler: "GetEmpresasOficonHandler",
+
+  // Empresas OFIPLAN
+  IEmpresasOfliplanRepository: "IEmpresasOfliplanRepository",
+  EmpresasOfliplanRepository: "EmpresasOfliplanRepository",
+  EmpresasOfliplanController: "EmpresasOfliplanController",
+  EmpresasOfliplanRoutes: "EmpresasOfliplanRoutes",
+  GetEmpresasOfliplanHandler: "GetEmpresasOfliplanHandler",
 };

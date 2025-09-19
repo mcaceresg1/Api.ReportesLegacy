@@ -63,6 +63,8 @@ import { IPatrimonioNetoOficonService } from "../../domain/services/IPatrimonioN
 import { IVentasGeneralesOficonRepository } from "../../domain/repositories/IVentasGeneralesOficonRepository";
 import { IVentasGeneralesOficonService } from "../../domain/services/IVentasGeneralesOficonService";
 import { IPlanillaAnualizadaOfliplanRepository } from "../../domain/repositories/IPlanillaAnualizadaOfliplanRepository";
+import { IEmpresasOficonRepository } from "../../domain/repositories/IEmpresasOficonRepository";
+import { IEmpresasOfliplanRepository } from "../../domain/repositories/IEmpresasOfliplanRepository";
 import { IPlanillaAnualizadaOfliplanService } from "../../domain/services/IPlanillaAnualizadaOfliplanService";
 
 import { ICuentaContableRepository } from "../../domain/repositories/ICuentaContableRepository";
@@ -137,6 +139,8 @@ import { LibroInventarioBalanceOficonRepository } from "../repositories/LibroInv
 import { PatrimonioNetoOficonRepository } from "../repositories/PatrimonioNetoOficonRepository";
 import { VentasGeneralesOficonRepository } from "../repositories/VentasGeneralesOficonRepository";
 import { PlanillaAnualizadaOfliplanRepository } from "../repositories/PlanillaAnualizadaOfliplanRepository";
+import { EmpresasOficonRepository } from "../repositories/EmpresasOficonRepository";
+import { EmpresasOfliplanRepository } from "../repositories/EmpresasOfliplanRepository";
 
 import { CuentaContableRepository } from "../repositories/CuentaContableRepository";
 import { UsuarioService } from "../../application/services/UsuarioService";
@@ -231,6 +235,10 @@ import { VentasGeneralesOficonController } from "../controllers/VentasGeneralesO
 import { VentasGeneralesOficonRoutes } from "../routes/VentasGeneralesOficonRoutes";
 import { PlanillaAnualizadaOfliplanController } from "../controllers/PlanillaAnualizadaOfliplanController";
 import { PlanillaAnualizadaOfliplanRoutes } from "../routes/planilla-anualizada-ofliplan.routes";
+import { EmpresasOficonController } from "../controllers/EmpresasOficonController";
+import { EmpresasOficonRoutes } from "../routes/empresas-oficon.routes";
+import { EmpresasOfliplanController } from "../controllers/EmpresasOfliplanController";
+import { EmpresasOfliplanRoutes } from "../routes/empresas-ofliplan.routes";
 
 // CQRS implementations
 import { CommandBus } from "../cqrs/CommandBus";
@@ -278,6 +286,8 @@ import { GetLibroInventarioBalanceOficonHandler } from "../../application/handle
 import { GetPatrimonioNetoOficonHandler } from "../../application/handlers/patrimonio-neto-oficon/GetPatrimonioNetoOficonHandler";
 import { GetVentasGeneralesOficonHandler } from "../../application/handlers/ventas-generales-oficon/GetVentasGeneralesOficonHandler";
 import { GetPlanillaAnualizadaOfliplanHandler } from "../../application/handlers/planilla-anualizada-ofliplan/GetPlanillaAnualizadaOfliplanHandler";
+import { GetEmpresasOficonHandler } from "../../application/handlers/empresas-oficon/GetEmpresasOficonHandler";
+import { GetEmpresasOfliplanHandler } from "../../application/handlers/empresas-ofliplan/GetEmpresasOfliplanHandler";
 
 // Libro Mayor Asientos Handlers
 import { ObtenerLibroMayorAsientosHandler } from "../../application/handlers/libro-mayor-asientos/ObtenerLibroMayorAsientosHandler";
@@ -491,6 +501,12 @@ container
     TYPES.IPlanillaAnualizadaOfliplanRepository
   )
   .to(PlanillaAnualizadaOfliplanRepository);
+container
+  .bind<IEmpresasOficonRepository>(TYPES.IEmpresasOficonRepository)
+  .to(EmpresasOficonRepository);
+container
+  .bind<IEmpresasOfliplanRepository>(TYPES.IEmpresasOfliplanRepository)
+  .to(EmpresasOfliplanRepository);
 
 // Cache Services
 container.bind<ICacheService>("ICacheService").to(CacheService);
@@ -792,6 +808,12 @@ container
     TYPES.PlanillaAnualizadaOfliplanController
   )
   .to(PlanillaAnualizadaOfliplanController);
+container
+  .bind<EmpresasOficonController>(TYPES.EmpresasOficonController)
+  .to(EmpresasOficonController);
+container
+  .bind<EmpresasOfliplanController>(TYPES.EmpresasOfliplanController)
+  .to(EmpresasOfliplanController);
 // Planilla Anualizada OFIPLAN se usa directamente como router, no se registra en el container
 // BalanceComprobacionClipperRoutes se instancia directamente en app.ts
 
@@ -948,6 +970,12 @@ container
     TYPES.GetPlanillaAnualizadaOfliplanHandler
   )
   .to(GetPlanillaAnualizadaOfliplanHandler);
+container
+  .bind<GetEmpresasOficonHandler>(TYPES.GetEmpresasOficonHandler)
+  .to(GetEmpresasOficonHandler);
+container
+  .bind<GetEmpresasOfliplanHandler>(TYPES.GetEmpresasOfliplanHandler)
+  .to(GetEmpresasOfliplanHandler);
 
 // Balance Comprobación Clipper - No necesita handlers CQRS, usa servicio directamente
 

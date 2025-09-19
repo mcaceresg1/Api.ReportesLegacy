@@ -78,6 +78,8 @@ import { LibroInventarioBalanceOficonRoutes } from "./infrastructure/routes/Libr
 import { PatrimonioNetoOficonRoutes } from "./infrastructure/routes/PatrimonioNetoOficonRoutes";
 import { VentasGeneralesOficonRoutes } from "./infrastructure/routes/VentasGeneralesOficonRoutes";
 import { PlanillaAnualizadaOfliplanRoutes } from "./infrastructure/routes/planilla-anualizada-ofliplan.routes";
+import { EmpresasOficonRoutes } from "./infrastructure/routes/empresas-oficon.routes";
+import { EmpresasOfliplanRoutes } from "./infrastructure/routes/empresas-ofliplan.routes";
 // Importar controladores para que swagger-jsdoc procese la documentación
 import "./infrastructure/controllers/BalanceComprobacionClipperController";
 import "./infrastructure/controllers/BalanceGeneralClipperController";
@@ -87,6 +89,8 @@ import "./infrastructure/controllers/LibroDiarioOficonController";
 import "./infrastructure/controllers/LibroMayorOficonController";
 import "./infrastructure/controllers/RegistroComprasOficonController";
 import "./infrastructure/controllers/PlanillaAnualizadaOfliplanController";
+import "./infrastructure/controllers/EmpresasOficonController";
+import "./infrastructure/controllers/EmpresasOfliplanController";
 
 const reporteGNRoutes = createReporteGNRoutes();
 
@@ -448,6 +452,20 @@ const planillaAnualizadaRouter = PlanillaAnualizadaOfliplanRoutes;
 console.log("🔧 Router obtenido:", !!planillaAnualizadaRouter);
 app.use("/api/planilla-anualizada-ofliplan", planillaAnualizadaRouter);
 console.log("✅ Planilla Anualizada OFIPLAN routes registradas correctamente");
+
+// Empresas OFICON Routes
+console.log("🔧 Registrando rutas de Empresas OFICON...");
+const empresasOficonRouter = EmpresasOficonRoutes;
+console.log("🔧 Router obtenido:", !!empresasOficonRouter);
+app.use("/api/empresas-oficon", empresasOficonRouter);
+console.log("✅ Empresas OFICON routes registradas correctamente");
+
+// Empresas OFLIPLAN Routes
+console.log("🔧 Registrando rutas de Empresas OFLIPLAN...");
+const empresasOfliplanRouter = EmpresasOfliplanRoutes;
+console.log("🔧 Router obtenido:", !!empresasOfliplanRouter);
+app.use("/api/empresas-ofliplan", empresasOfliplanRouter);
+console.log("✅ Empresas OFLIPLAN routes registradas correctamente");
 
 // Endpoint de prueba directo para Libro Diario OFICON
 app.get("/api/libro-diario-oficon/test", (req, res) => {

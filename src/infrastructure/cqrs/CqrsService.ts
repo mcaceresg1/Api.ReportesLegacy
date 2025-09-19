@@ -44,6 +44,8 @@ import { GetLibroInventarioBalanceOficonHandler } from "../../application/handle
 import { GetPatrimonioNetoOficonHandler } from "../../application/handlers/patrimonio-neto-oficon/GetPatrimonioNetoOficonHandler";
 import { GetVentasGeneralesOficonHandler } from "../../application/handlers/ventas-generales-oficon/GetVentasGeneralesOficonHandler";
 import { GetPlanillaAnualizadaOfliplanHandler } from "../../application/handlers/planilla-anualizada-ofliplan/GetPlanillaAnualizadaOfliplanHandler";
+import { GetEmpresasOficonHandler } from "../../application/handlers/empresas-oficon/GetEmpresasOficonHandler";
+import { GetEmpresasOfliplanHandler } from "../../application/handlers/empresas-ofliplan/GetEmpresasOfliplanHandler";
 
 @injectable()
 export class CqrsService {
@@ -95,7 +97,11 @@ export class CqrsService {
     @inject("GetVentasGeneralesOficonHandler")
     private getVentasGeneralesOficonHandler: GetVentasGeneralesOficonHandler,
     @inject("GetPlanillaAnualizadaOfliplanHandler")
-    private getPlanillaAnualizadaOfliplanHandler: GetPlanillaAnualizadaOfliplanHandler
+    private getPlanillaAnualizadaOfliplanHandler: GetPlanillaAnualizadaOfliplanHandler,
+    @inject("GetEmpresasOficonHandler")
+    private getEmpresasOficonHandler: GetEmpresasOficonHandler,
+    @inject("GetEmpresasOfliplanHandler")
+    private getEmpresasOfliplanHandler: GetEmpresasOfliplanHandler
   ) {
     console.log("🔧 Constructor CqrsService ejecutándose...");
     this.registerHandlers();
@@ -229,6 +235,21 @@ export class CqrsService {
       this.getPlanillaAnualizadaOfliplanHandler
     );
     console.log("✅ GetPlanillaAnualizadaOfliplanQuery registrado");
+
+    // Empresas OFICON
+    console.log("🏢 Registrando handlers de Empresas OFICON...");
+    this.queryBus.register(
+      "GetEmpresasOficonQuery",
+      this.getEmpresasOficonHandler
+    );
+    console.log("✅ GetEmpresasOficonQuery registrado");
+
+    console.log("🏢 Registrando handlers de Empresas OFLIPLAN...");
+    this.queryBus.register(
+      "GetEmpresasOfliplanQuery",
+      this.getEmpresasOfliplanHandler
+    );
+    console.log("✅ GetEmpresasOfliplanQuery registrado");
 
     console.log("🎉 Todos los handlers CQRS registrados exitosamente");
   }

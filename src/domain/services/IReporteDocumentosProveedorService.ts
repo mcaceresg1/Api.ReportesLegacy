@@ -32,6 +32,36 @@ export interface IReporteDocumentosProveedorService {
     fechaFin?: string | null
   ): Promise<ReporteProveedor[]>;
 
+  /**
+   * Obtiene documentos por pagar SOLO por fechas (sin filtro de proveedor específico).
+   * @param conjunto Nombre del esquema/base de datos
+   * @param fechaInicio Fecha inicial del rango
+   * @param fechaFin Fecha final del rango
+   */
+  obtenerReporteDocumentosPorPagarPorFechas(
+    conjunto: string,
+    fechaInicio: string,
+    fechaFin: string
+  ): Promise<DocumentosPorPagar[]>;
+
+  /**
+   * Obtiene documentos por pagar por fechas Y proveedor específico.
+   * @param conjunto Nombre del esquema/base de datos
+   * @param proveedor Código del proveedor
+   * @param fechaInicio Fecha inicial del rango
+   * @param fechaFin Fecha final del rango
+   */
+  obtenerReporteDocumentosPorPagarPorFechasYProveedor(
+    conjunto: string,
+    proveedor: string,
+    fechaInicio: string,
+    fechaFin: string
+  ): Promise<DocumentosPorPagar[]>;
+
+  /**
+   * @deprecated Usar obtenerReporteDocumentosPorPagarPorFechas o obtenerReporteDocumentosPorPagarPorFechasYProveedor
+   * Obtiene documentos por pagar (método legacy que maneja ambos casos)
+   */
   obtenerReporteDocumentosPorPagar(
     conjunto: string,
     proveedor?: string | null,
