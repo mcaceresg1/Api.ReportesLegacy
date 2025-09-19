@@ -243,6 +243,7 @@ export class ReporteGastosDestinoController {
    *         description: Error interno del servidor
    */
   async exportarExcel(req: Request, res: Response): Promise<void> {
+    const startTime = Date.now();
     try {
       const { conjunto } = req.params;
       const filtros = req.body;
@@ -252,12 +253,21 @@ export class ReporteGastosDestinoController {
         return;
       }
 
+      console.log(`🚀 Iniciando exportación Excel optimizada para conjunto ${conjunto}`);
+      console.log(`📊 Filtros recibidos:`, filtros);
+
       const buffer = await this.repo.exportarExcel(conjunto, filtros);
+      
+      const totalTime = Date.now() - startTime;
+      console.log(`✅ Excel exportado exitosamente en ${totalTime}ms`);
       
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', `attachment; filename=gastos-destino-${conjunto}-${new Date().toISOString().split('T')[0]}.xlsx`);
+      res.setHeader('Content-Length', buffer.length);
       res.send(buffer);
     } catch (error) {
+      const totalTime = Date.now() - startTime;
+      console.error(`❌ Error en exportación Excel después de ${totalTime}ms:`, error);
       res.status(500).json({ 
         success: false, 
         message: 'Error al exportar Excel', 

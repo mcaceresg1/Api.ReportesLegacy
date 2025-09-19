@@ -21,6 +21,12 @@ export interface EstadoResultados {
   saldo_inicial_formateado?: string;
   saldo_final_formateado?: string;
   variacion_formateada?: string;
+  // Campos adicionales del mapeo estándar
+  concepto?: string;
+  familia?: string;
+  grupo_padre?: string;
+  saldo_diciembre?: number;
+  saldo_noviembre?: number;
 }
 
 export interface FiltrosEstadoResultados {

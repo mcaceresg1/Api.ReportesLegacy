@@ -162,50 +162,72 @@ export class ReporteGastosDestinoRepository implements IReporteGastosDestinoRepo
   }
 
   async exportarExcel(conjunto: string, filtros: any): Promise<Buffer> {
+    const startTime = Date.now();
     try {
-      console.log(`Generando Excel de gastos por destino para conjunto ${conjunto}`);
+      console.log(`🚀 Generando Excel optimizado de gastos por destino para conjunto ${conjunto}`);
       
-      // Extraer fechas y contabilidad de los filtros
-      const fechaInicio = filtros?.asientos?.fechaInicio;
-      const fechaFin = filtros?.asientos?.fechaFin;
-      const contabilidad = filtros?.asientos?.contabilidad;
+      // Extraer fechas y contabilidad de los filtros (nueva estructura simplificada)
+      const fechaInicio = filtros?.fechaDesde || filtros?.asientos?.fechaInicio;
+      const fechaFin = filtros?.fechaHasta || filtros?.asientos?.fechaFin;
+      const contabilidad = filtros?.contabilidad || filtros?.asientos?.contabilidad;
+      
+      console.log(`📊 Obteniendo datos del backend...`);
+      const dataStartTime = Date.now();
       
       // Obtener todos los datos para el Excel (sin límite para exportación completa)
       const resultado = await this.listarDetalle(conjunto, fechaInicio, fechaFin, contabilidad, undefined, 0);
       
-      // Preparar los datos para Excel
-      const excelData = resultado.map(item => ({
-        'Fecha': item.FECHA ? new Date(item.FECHA).toLocaleDateString('es-ES') : '',
-        'Cuenta Contable': item.CTA_CONTABLE || '',
-        'Centro Costo': item.C_COSTO || '',
-        'Asiento': item.ASIENTO || '',
-        'Tipo': item.TIPO || '',
-        'Clase': item.CLASE || '',
-        'Referencia': item.REFERENCIA || '',
-        'NIT': item.NIT || '',
-        'Razón Social': item.RAZONSOCIAL || '',
-        'Débito Soles': Number(item.DEBE_S || 0),
-        'Haber Soles': Number(item.HABER_S || 0),
-        'Débito Dólares': Number(item.DEBE_US || 0),
-        'Haber Dólares': Number(item.HABER_US || 0),
-        'Tipo Fila': item.ROW_TYPE || ''
-      }));
+      const dataEndTime = Date.now();
+      console.log(`✅ Datos obtenidos en ${dataEndTime - dataStartTime}ms (${resultado.length} registros)`);
+      
+      console.log(`📝 Procesando datos para Excel...`);
+      const processStartTime = Date.now();
+      
+      // Variables para totales (optimización: calcular durante el mapeo)
+      let totalDebeS = 0;
+      let totalHaberS = 0;
+      let totalDebeUS = 0;
+      let totalHaberUS = 0;
+      
+      // Preparar los datos para Excel con optimizaciones
+      const excelData = resultado.map(item => {
+        // Calcular totales durante el mapeo para evitar múltiples iteraciones
+        if (item.ROW_TYPE === 'DATA') {
+          totalDebeS += Number(item.DEBE_S || 0);
+          totalHaberS += Number(item.HABER_S || 0);
+          totalDebeUS += Number(item.DEBE_US || 0);
+          totalHaberUS += Number(item.HABER_US || 0);
+        }
+        
+        // Optimización: evitar conversiones innecesarias de fechas
+        const fecha = item.FECHA ? 
+          (typeof item.FECHA === 'string' ? item.FECHA.split('T')[0] : new Date(item.FECHA).toISOString().split('T')[0]) : '';
+        
+        return {
+          'Fecha': fecha,
+          'Cuenta Contable': item.CTA_CONTABLE || '',
+          'Centro Costo': item.C_COSTO || '',
+          'Asiento': item.ASIENTO || '',
+          'Tipo': item.TIPO || '',
+          'Clase': item.CLASE || '',
+          'Referencia': item.REFERENCIA || '',
+          'NIT': item.NIT || '',
+          'Razón Social': item.RAZONSOCIAL || '',
+          'Débito Soles': Number(item.DEBE_S || 0),
+          'Haber Soles': Number(item.HABER_S || 0),
+          'Débito Dólares': Number(item.DEBE_US || 0),
+          'Haber Dólares': Number(item.HABER_US || 0),
+          'Tipo Fila': item.ROW_TYPE || ''
+        };
+      });
 
-      // Calcular totales
-      const totalDebeS = resultado
-        .filter(item => item.ROW_TYPE === 'DATA')
-        .reduce((sum, item) => sum + (item.DEBE_S || 0), 0);
-      const totalHaberS = resultado
-        .filter(item => item.ROW_TYPE === 'DATA')
-        .reduce((sum, item) => sum + (item.HABER_S || 0), 0);
-      const totalDebeUS = resultado
-        .filter(item => item.ROW_TYPE === 'DATA')
-        .reduce((sum, item) => sum + (item.DEBE_US || 0), 0);
-      const totalHaberUS = resultado
-        .filter(item => item.ROW_TYPE === 'DATA')
-        .reduce((sum, item) => sum + (item.HABER_US || 0), 0);
+      const processEndTime = Date.now();
+      console.log(`✅ Datos procesados en ${processEndTime - processStartTime}ms`);
 
-      // Agregar fila de totales
+      console.log(`📊 Creando fila de totales...`);
+      const totalStartTime = Date.now();
+      
+      // Crear fila de totales optimizada
       const totalRow = {
         'Fecha': '',
         'Cuenta Contable': '',
@@ -223,49 +245,34 @@ export class ReporteGastosDestinoRepository implements IReporteGastosDestinoRepo
         'Tipo Fila': 'TOTAL'
       };
 
-      // Agregar fila vacía antes del total
+      // Fila vacía optimizada (reutilizar objeto)
       const emptyRow = {
-        'Fecha': '',
-        'Cuenta Contable': '',
-        'Centro Costo': '',
-        'Asiento': '',
-        'Tipo': '',
-        'Clase': '',
-        'Referencia': '',
-        'NIT': '',
-        'Razón Social': '',
-        'Débito Soles': '',
-        'Haber Soles': '',
-        'Débito Dólares': '',
-        'Haber Dólares': '',
-        'Tipo Fila': ''
+        'Fecha': '', 'Cuenta Contable': '', 'Centro Costo': '', 'Asiento': '', 'Tipo': '',
+        'Clase': '', 'Referencia': '', 'NIT': '', 'Razón Social': '', 'Débito Soles': 0,
+        'Haber Soles': 0, 'Débito Dólares': 0, 'Haber Dólares': 0, 'Tipo Fila': ''
       };
 
-      // Combinar datos con totales
-      const finalData = [...excelData, emptyRow, totalRow];
+      // Combinar datos con totales (optimización: usar push en lugar de spread)
+      const finalData = excelData;
+      finalData.push(emptyRow, totalRow);
 
+      const totalEndTime = Date.now();
+      console.log(`✅ Totales calculados en ${totalEndTime - totalStartTime}ms`);
+
+      console.log(`📋 Generando archivo Excel...`);
+      const excelStartTime = Date.now();
+      
       // Crear el workbook
       const workbook = XLSX.utils.book_new();
       
-      // Crear la hoja principal con los datos
+      // Crear la hoja principal con los datos (optimización: usar array directamente)
       const worksheet = XLSX.utils.json_to_sheet(finalData);
       
-      // Configurar el ancho de las columnas
+      // Configurar el ancho de las columnas (optimización: predefinir)
       const columnWidths = [
-        { wch: 12 }, // Fecha
-        { wch: 20 }, // Cuenta Contable
-        { wch: 20 }, // Centro Costo
-        { wch: 15 }, // Asiento
-        { wch: 15 }, // Tipo
-        { wch: 25 }, // Clase
-        { wch: 30 }, // Referencia
-        { wch: 15 }, // NIT
-        { wch: 30 }, // Razón Social
-        { wch: 15 }, // Débito Soles
-        { wch: 15 }, // Haber Soles
-        { wch: 15 }, // Débito Dólares
-        { wch: 15 }, // Haber Dólares
-        { wch: 15 }  // Tipo Fila
+        { wch: 12 }, { wch: 20 }, { wch: 20 }, { wch: 15 }, { wch: 15 },
+        { wch: 25 }, { wch: 30 }, { wch: 15 }, { wch: 30 }, { wch: 15 },
+        { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }
       ];
       
       worksheet['!cols'] = columnWidths;
@@ -273,18 +280,27 @@ export class ReporteGastosDestinoRepository implements IReporteGastosDestinoRepo
       // Agregar la hoja al workbook
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Gastos por Destino');
       
-      // Generar el buffer del archivo Excel
+      // Generar el buffer del archivo Excel (optimización: configuraciones de rendimiento)
       const excelBuffer = XLSX.write(workbook, { 
         type: 'buffer', 
         bookType: 'xlsx',
-        compression: true
+        compression: true,
+        cellStyles: false, // Deshabilitar estilos para mejor rendimiento
+        bookSST: false,    // Deshabilitar tabla de strings compartidos
+        cellDates: false   // Deshabilitar conversión automática de fechas
       });
       
-      console.log('Archivo Excel de gastos por destino generado exitosamente');
+      const excelEndTime = Date.now();
+      const totalTime = Date.now() - startTime;
+      
+      console.log(`✅ Archivo Excel generado en ${excelEndTime - excelStartTime}ms`);
+      console.log(`🎉 Excel completado en ${totalTime}ms total (${resultado.length} registros)`);
+      
       return excelBuffer;
       
     } catch (error) {
-      console.error('Error al generar Excel de gastos por destino:', error);
+      const totalTime = Date.now() - startTime;
+      console.error(`❌ Error al generar Excel de gastos por destino después de ${totalTime}ms:`, error);
       throw new Error(`Error al generar archivo Excel: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   }

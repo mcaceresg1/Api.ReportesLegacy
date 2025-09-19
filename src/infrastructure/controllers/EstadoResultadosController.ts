@@ -219,16 +219,10 @@ export class EstadoResultadosController {
         this.estadoResultadosService.getTotalRecords(conjunto!, usuario!, filtros)
       ]);
 
-      // Obtener validación de balance si está disponible
-      const validacionBalance = estadoResultados.data.length > 0 ? 
-        await this.estadoResultadosService.validarBalance(conjunto!, usuario!, filtros) : 
-        undefined;
-
       const response: EstadoResultadosResponse = {
         success: estadoResultados.success,
         data: estadoResultados.data,
-        pagination: estadoResultados.pagination,
-        validacionBalance
+        pagination: estadoResultados.pagination
       };
 
       res.json(response);
@@ -303,19 +297,21 @@ export class EstadoResultadosController {
         { header: 'Moneda', key: 'moneda', width: 15 },
         { header: 'Saldo Inicial', key: 'saldo_inicial', width: 20 },
         { header: 'Saldo Final', key: 'saldo_final', width: 20 },
+        { header: 'Variación', key: 'variacion', width: 20 },
         { header: 'Orden', key: 'orden', width: 10 }
       ];
 
-      // Agregar datos
-      estadoResultados.data.forEach((item: EstadoResultados) => {
+      // Agregar datos usando el mapeo estándar
+      estadoResultados.data.forEach((item: any) => {
         worksheet.addRow({
-          cuenta_contable: item.cuenta_contable,
-          nombre_cuenta: item.nombre_cuenta,
-          posicion: item.posicion,
-          moneda: item.moneda,
-          saldo_inicial: item.saldo_inicial,
-          saldo_final: item.saldo_final,
-          orden: item.orden
+          cuenta_contable: item.cuenta_contable || item.familia || '',
+          nombre_cuenta: item.nombre_cuenta || item.concepto || '',
+          posicion: item.posicion || '',
+          moneda: item.moneda || 'Nuevo Sol',
+          saldo_inicial: item.saldo_inicial || 0,
+          saldo_final: item.saldo_final || 0,
+          orden: item.orden || 0,
+          variacion: item.variacion || 0
         });
       });
 
