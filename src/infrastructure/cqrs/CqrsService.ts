@@ -43,6 +43,7 @@ import { GetBalanceComprobacionOficonHandler } from "../../application/handlers/
 import { GetLibroInventarioBalanceOficonHandler } from "../../application/handlers/libro-inventario-balance-oficon/GetLibroInventarioBalanceOficonHandler";
 import { GetPatrimonioNetoOficonHandler } from "../../application/handlers/patrimonio-neto-oficon/GetPatrimonioNetoOficonHandler";
 import { GetVentasGeneralesOficonHandler } from "../../application/handlers/ventas-generales-oficon/GetVentasGeneralesOficonHandler";
+import { GetPlanillaAnualizadaOfliplanHandler } from "../../application/handlers/planilla-anualizada-ofliplan/GetPlanillaAnualizadaOfliplanHandler";
 
 @injectable()
 export class CqrsService {
@@ -92,7 +93,9 @@ export class CqrsService {
     @inject("GetPatrimonioNetoOficonHandler")
     private getPatrimonioNetoOficonHandler: GetPatrimonioNetoOficonHandler,
     @inject("GetVentasGeneralesOficonHandler")
-    private getVentasGeneralesOficonHandler: GetVentasGeneralesOficonHandler
+    private getVentasGeneralesOficonHandler: GetVentasGeneralesOficonHandler,
+    @inject("GetPlanillaAnualizadaOfliplanHandler")
+    private getPlanillaAnualizadaOfliplanHandler: GetPlanillaAnualizadaOfliplanHandler
   ) {
     console.log("🔧 Constructor CqrsService ejecutándose...");
     this.registerHandlers();
@@ -218,6 +221,14 @@ export class CqrsService {
       this.getVentasGeneralesOficonHandler
     );
     console.log("✅ GetVentasGeneralesOficonQuery registrado");
+
+    // Planilla Anualizada OFIPLAN
+    console.log("📋 Registrando handlers de Planilla Anualizada OFIPLAN...");
+    this.queryBus.register(
+      "GetPlanillaAnualizadaOfliplanQuery",
+      this.getPlanillaAnualizadaOfliplanHandler
+    );
+    console.log("✅ GetPlanillaAnualizadaOfliplanQuery registrado");
 
     console.log("🎉 Todos los handlers CQRS registrados exitosamente");
   }

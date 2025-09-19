@@ -1,0 +1,11 @@
+### Test Planilla Anualizada OFIPLAN - Generar Reporte
+GET http://localhost:3000/api/planilla-anualizada-ofliplan/generar-reporte?ISCO_EMPR=01&INNU_ANNO=2024
+
+### Test Planilla Anualizada OFIPLAN - Otro año
+GET http://localhost:3000/api/planilla-anualizada-ofliplan/generar-reporte?ISCO_EMPR=01&INNU_ANNO=2023
+
+### Test Planilla Anualizada OFIPLAN - Error de validación (falta ISCO_EMPR)
+GET http://localhost:3000/api/planilla-anualizada-ofliplan/generar-reporte?INNU_ANNO=2024
+
+### Test Planilla Anualizada OFIPLAN - Error de validación (falta INNU_ANNO)
+GET http://localhost:3000/api/planilla-anualizada-ofliplan/generar-reporte?ISCO_EMPR=01

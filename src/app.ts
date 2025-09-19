@@ -77,6 +77,7 @@ import { BalanceComprobacionOficonRoutes } from "./infrastructure/routes/Balance
 import { LibroInventarioBalanceOficonRoutes } from "./infrastructure/routes/LibroInventarioBalanceOficonRoutes";
 import { PatrimonioNetoOficonRoutes } from "./infrastructure/routes/PatrimonioNetoOficonRoutes";
 import { VentasGeneralesOficonRoutes } from "./infrastructure/routes/VentasGeneralesOficonRoutes";
+import { PlanillaAnualizadaOfliplanRoutes } from "./infrastructure/routes/planilla-anualizada-ofliplan.routes";
 // Importar controladores para que swagger-jsdoc procese la documentación
 import "./infrastructure/controllers/BalanceComprobacionClipperController";
 import "./infrastructure/controllers/BalanceGeneralClipperController";
@@ -85,6 +86,7 @@ import "./infrastructure/controllers/ClipperLibroCajaController";
 import "./infrastructure/controllers/LibroDiarioOficonController";
 import "./infrastructure/controllers/LibroMayorOficonController";
 import "./infrastructure/controllers/RegistroComprasOficonController";
+import "./infrastructure/controllers/PlanillaAnualizadaOfliplanController";
 
 const reporteGNRoutes = createReporteGNRoutes();
 
@@ -439,6 +441,13 @@ const ventasGeneralesRouter = ventasGeneralesOficonRoutes.getRouter();
 console.log("🔧 Router obtenido:", !!ventasGeneralesRouter);
 app.use("/api/ventas-generales-oficon", ventasGeneralesRouter);
 console.log("✅ Ventas Generales OFICON routes registradas correctamente");
+
+// Planilla Anualizada OFIPLAN Routes (antes de las rutas protegidas)
+console.log("🔧 Registrando rutas de Planilla Anualizada OFIPLAN...");
+const planillaAnualizadaRouter = PlanillaAnualizadaOfliplanRoutes;
+console.log("🔧 Router obtenido:", !!planillaAnualizadaRouter);
+app.use("/api/planilla-anualizada-ofliplan", planillaAnualizadaRouter);
+console.log("✅ Planilla Anualizada OFIPLAN routes registradas correctamente");
 
 // Endpoint de prueba directo para Libro Diario OFICON
 app.get("/api/libro-diario-oficon/test", (req, res) => {

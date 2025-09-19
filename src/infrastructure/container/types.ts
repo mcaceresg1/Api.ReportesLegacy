@@ -223,4 +223,14 @@ export const TYPES = {
   AnalisisCuentasRangoClipperController:
     "AnalisisCuentasRangoClipperController",
   AnalisisCuentasRangoClipperRoutes: "AnalisisCuentasRangoClipperRoutes",
+
+  // Planilla Anualizada OFIPLAN
+  IPlanillaAnualizadaOfliplanRepository:
+    "IPlanillaAnualizadaOfliplanRepository",
+  IPlanillaAnualizadaOfliplanService: "IPlanillaAnualizadaOfliplanService",
+  PlanillaAnualizadaOfliplanRepository: "PlanillaAnualizadaOfliplanRepository",
+  PlanillaAnualizadaOfliplanService: "PlanillaAnualizadaOfliplanService",
+  PlanillaAnualizadaOfliplanController: "PlanillaAnualizadaOfliplanController",
+  PlanillaAnualizadaOfliplanRoutes: "PlanillaAnualizadaOfliplanRoutes",
+  GetPlanillaAnualizadaOfliplanHandler: "GetPlanillaAnualizadaOfliplanHandler",
 };
