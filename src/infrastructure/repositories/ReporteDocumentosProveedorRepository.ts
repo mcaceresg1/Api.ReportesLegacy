@@ -222,6 +222,16 @@ export class ReporteDocumentosProveedorRepository
         fechaInicio,
         fechaFin,
       });
+      console.log("🔍 [Repository] Tipo de proveedor:", typeof proveedor);
+      console.log(
+        "🔍 [Repository] Proveedor es undefined?",
+        proveedor === undefined
+      );
+      console.log("🔍 [Repository] Proveedor es null?", proveedor === null);
+      console.log(
+        "🔍 [Repository] Proveedor es string vacío?",
+        proveedor === ""
+      );
 
       const query = `
         SELECT
@@ -281,7 +291,7 @@ export class ReporteDocumentosProveedorRepository
       const fechaFinISO = fechaFin
         ? new Date(fechaFin).toISOString().split("T")[0]
         : "9999-12-31";
-      const proveedorFinal = proveedor ?? "";
+      const proveedorFinal = proveedor || "";
 
       console.log("📋 [Repository] Parámetros procesados para la consulta:", {
         proveedor: proveedorFinal,

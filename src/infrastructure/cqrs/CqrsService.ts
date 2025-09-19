@@ -40,6 +40,9 @@ import { GetLibroMayorOficonHandler } from "../../application/handlers/libro-may
 // Registro Compras OFICON handlers
 import { GetRegistroComprasOficonHandler } from "../../application/handlers/registro-compras-oficon/GetRegistroComprasOficonHandler";
 import { GetBalanceComprobacionOficonHandler } from "../../application/handlers/balance-comprobacion-oficon/GetBalanceComprobacionOficonHandler";
+import { GetLibroInventarioBalanceOficonHandler } from "../../application/handlers/libro-inventario-balance-oficon/GetLibroInventarioBalanceOficonHandler";
+import { GetPatrimonioNetoOficonHandler } from "../../application/handlers/patrimonio-neto-oficon/GetPatrimonioNetoOficonHandler";
+import { GetVentasGeneralesOficonHandler } from "../../application/handlers/ventas-generales-oficon/GetVentasGeneralesOficonHandler";
 
 @injectable()
 export class CqrsService {
@@ -83,7 +86,13 @@ export class CqrsService {
     @inject("GetRegistroComprasOficonHandler")
     private getRegistroComprasOficonHandler: GetRegistroComprasOficonHandler,
     @inject("GetBalanceComprobacionOficonHandler")
-    private getBalanceComprobacionOficonHandler: GetBalanceComprobacionOficonHandler
+    private getBalanceComprobacionOficonHandler: GetBalanceComprobacionOficonHandler,
+    @inject("GetLibroInventarioBalanceOficonHandler")
+    private getLibroInventarioBalanceOficonHandler: GetLibroInventarioBalanceOficonHandler,
+    @inject("GetPatrimonioNetoOficonHandler")
+    private getPatrimonioNetoOficonHandler: GetPatrimonioNetoOficonHandler,
+    @inject("GetVentasGeneralesOficonHandler")
+    private getVentasGeneralesOficonHandler: GetVentasGeneralesOficonHandler
   ) {
     console.log("🔧 Constructor CqrsService ejecutándose...");
     this.registerHandlers();
@@ -183,6 +192,32 @@ export class CqrsService {
       this.getBalanceComprobacionOficonHandler
     );
     console.log("✅ GetBalanceComprobacionOficonQuery registrado");
+
+    // Libro Inventario Balance OFICON
+    console.log(
+      "📋 Registrando handlers de Libro Inventario Balance OFICON..."
+    );
+    this.queryBus.register(
+      "GetLibroInventarioBalanceOficonQuery",
+      this.getLibroInventarioBalanceOficonHandler
+    );
+    console.log("✅ GetLibroInventarioBalanceOficonQuery registrado");
+
+    // Patrimonio Neto OFICON
+    console.log("📋 Registrando handlers de Patrimonio Neto OFICON...");
+    this.queryBus.register(
+      "GetPatrimonioNetoOficonQuery",
+      this.getPatrimonioNetoOficonHandler
+    );
+    console.log("✅ GetPatrimonioNetoOficonQuery registrado");
+
+    // Ventas Generales OFICON
+    console.log("📋 Registrando handlers de Ventas Generales OFICON...");
+    this.queryBus.register(
+      "GetVentasGeneralesOficonQuery",
+      this.getVentasGeneralesOficonHandler
+    );
+    console.log("✅ GetVentasGeneralesOficonQuery registrado");
 
     console.log("🎉 Todos los handlers CQRS registrados exitosamente");
   }

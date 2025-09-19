@@ -160,6 +160,37 @@ export const TYPES = {
   BalanceComprobacionOficonRoutes: "BalanceComprobacionOficonRoutes",
   GetBalanceComprobacionOficonHandler: "GetBalanceComprobacionOficonHandler",
 
+  // Libro Inventario Balance OFICON
+  ILibroInventarioBalanceOficonRepository:
+    "ILibroInventarioBalanceOficonRepository",
+  ILibroInventarioBalanceOficonService: "ILibroInventarioBalanceOficonService",
+  LibroInventarioBalanceOficonRepository:
+    "LibroInventarioBalanceOficonRepository",
+  LibroInventarioBalanceOficonService: "LibroInventarioBalanceOficonService",
+  LibroInventarioBalanceOficonController:
+    "LibroInventarioBalanceOficonController",
+  LibroInventarioBalanceOficonRoutes: "LibroInventarioBalanceOficonRoutes",
+  GetLibroInventarioBalanceOficonHandler:
+    "GetLibroInventarioBalanceOficonHandler",
+
+  // Patrimonio Neto OFICON
+  IPatrimonioNetoOficonRepository: "IPatrimonioNetoOficonRepository",
+  IPatrimonioNetoOficonService: "IPatrimonioNetoOficonService",
+  PatrimonioNetoOficonRepository: "PatrimonioNetoOficonRepository",
+  PatrimonioNetoOficonService: "PatrimonioNetoOficonService",
+  PatrimonioNetoOficonController: "PatrimonioNetoOficonController",
+  PatrimonioNetoOficonRoutes: "PatrimonioNetoOficonRoutes",
+  GetPatrimonioNetoOficonHandler: "GetPatrimonioNetoOficonHandler",
+
+  // Ventas Generales OFICON
+  IVentasGeneralesOficonRepository: "IVentasGeneralesOficonRepository",
+  IVentasGeneralesOficonService: "IVentasGeneralesOficonService",
+  VentasGeneralesOficonRepository: "VentasGeneralesOficonRepository",
+  VentasGeneralesOficonService: "VentasGeneralesOficonService",
+  VentasGeneralesOficonController: "VentasGeneralesOficonController",
+  VentasGeneralesOficonRoutes: "VentasGeneralesOficonRoutes",
+  GetVentasGeneralesOficonHandler: "GetVentasGeneralesOficonHandler",
+
   // CQRS Service
   CqrsService: "CqrsService",
 

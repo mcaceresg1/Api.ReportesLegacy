@@ -289,6 +289,13 @@ export class ReporteDocumentosProveedorController {
         fechaInicio,
         fechaFin,
       });
+      console.log("🔍 [Backend] Tipo de proveedor:", typeof proveedor);
+      console.log(
+        "🔍 [Backend] Proveedor es undefined?",
+        proveedor === undefined
+      );
+      console.log("🔍 [Backend] Proveedor es null?", proveedor === null);
+      console.log("🔍 [Backend] Proveedor es string vacío?", proveedor === "");
 
       if (!conjunto) {
         console.log("❌ [Backend] Error: conjunto no proporcionado");
@@ -309,7 +316,7 @@ export class ReporteDocumentosProveedorController {
       const reporte =
         await this.reporteService.obtenerReporteDocumentosPorPagar(
           conjunto as string,
-          proveedor as string,
+          proveedor ? (proveedor as string) : undefined,
           fechaInicio as string,
           fechaFin as string
         );

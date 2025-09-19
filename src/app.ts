@@ -74,6 +74,9 @@ import { LibroDiarioOficonRoutes } from "./infrastructure/routes/LibroDiarioOfic
 import { LibroMayorOficonRoutes } from "./infrastructure/routes/LibroMayorOficonRoutes";
 import { RegistroComprasOficonRoutes } from "./infrastructure/routes/RegistroComprasOficonRoutes";
 import { BalanceComprobacionOficonRoutes } from "./infrastructure/routes/BalanceComprobacionOficonRoutes";
+import { LibroInventarioBalanceOficonRoutes } from "./infrastructure/routes/LibroInventarioBalanceOficonRoutes";
+import { PatrimonioNetoOficonRoutes } from "./infrastructure/routes/PatrimonioNetoOficonRoutes";
+import { VentasGeneralesOficonRoutes } from "./infrastructure/routes/VentasGeneralesOficonRoutes";
 // Importar controladores para que swagger-jsdoc procese la documentación
 import "./infrastructure/controllers/BalanceComprobacionClipperController";
 import "./infrastructure/controllers/BalanceGeneralClipperController";
@@ -340,6 +343,31 @@ console.log(
   !!balanceComprobacionOficonRoutes
 );
 
+const libroInventarioBalanceOficonRoutes =
+  container.get<LibroInventarioBalanceOficonRoutes>(
+    "LibroInventarioBalanceOficonRoutes"
+  );
+console.log(
+  "🔧 LibroInventarioBalanceOficonRoutes obtenido del contenedor:",
+  !!libroInventarioBalanceOficonRoutes
+);
+
+const patrimonioNetoOficonRoutes = container.get<PatrimonioNetoOficonRoutes>(
+  "PatrimonioNetoOficonRoutes"
+);
+console.log(
+  "🔧 PatrimonioNetoOficonRoutes obtenido del contenedor:",
+  !!patrimonioNetoOficonRoutes
+);
+
+const ventasGeneralesOficonRoutes = container.get<VentasGeneralesOficonRoutes>(
+  "VentasGeneralesOficonRoutes"
+);
+console.log(
+  "🔧 VentasGeneralesOficonRoutes obtenido del contenedor:",
+  !!ventasGeneralesOficonRoutes
+);
+
 // Endpoint de prueba
 app.get("/api/test", (req, res) => {
   res.json({
@@ -388,6 +416,30 @@ console.log("🔧 Router obtenido:", !!balanceComprobacionRouter);
 app.use("/api/balance-comprobacion-oficon", balanceComprobacionRouter);
 console.log("✅ Balance Comprobación OFICON routes registradas correctamente");
 
+// Libro Inventario Balance OFICON Routes (antes de las rutas protegidas)
+console.log("🔧 Registrando rutas de Libro Inventario Balance OFICON...");
+const libroInventarioBalanceRouter =
+  libroInventarioBalanceOficonRoutes.getRouter();
+console.log("🔧 Router obtenido:", !!libroInventarioBalanceRouter);
+app.use("/api/libro-inventario-balance-oficon", libroInventarioBalanceRouter);
+console.log(
+  "✅ Libro Inventario Balance OFICON routes registradas correctamente"
+);
+
+// Patrimonio Neto OFICON Routes (antes de las rutas protegidas)
+console.log("🔧 Registrando rutas de Patrimonio Neto OFICON...");
+const patrimonioNetoRouter = patrimonioNetoOficonRoutes.getRouter();
+console.log("🔧 Router obtenido:", !!patrimonioNetoRouter);
+app.use("/api/patrimonio-neto-oficon", patrimonioNetoRouter);
+console.log("✅ Patrimonio Neto OFICON routes registradas correctamente");
+
+// Ventas Generales OFICON Routes (antes de las rutas protegidas)
+console.log("🔧 Registrando rutas de Ventas Generales OFICON...");
+const ventasGeneralesRouter = ventasGeneralesOficonRoutes.getRouter();
+console.log("🔧 Router obtenido:", !!ventasGeneralesRouter);
+app.use("/api/ventas-generales-oficon", ventasGeneralesRouter);
+console.log("✅ Ventas Generales OFICON routes registradas correctamente");
+
 // Endpoint de prueba directo para Libro Diario OFICON
 app.get("/api/libro-diario-oficon/test", (req, res) => {
   res.json({
@@ -427,6 +479,39 @@ app.get("/api/balance-comprobacion-oficon/test", (req, res) => {
   });
 });
 console.log("✅ Endpoint de prueba de Balance Comprobación OFICON registrado");
+
+// Endpoint de prueba directo para Libro Inventario Balance OFICON
+app.get("/api/libro-inventario-balance-oficon/test", (req, res) => {
+  res.json({
+    success: true,
+    message:
+      "Endpoint de prueba de Libro Inventario Balance OFICON funcionando",
+    timestamp: new Date().toISOString(),
+  });
+});
+console.log(
+  "✅ Endpoint de prueba de Libro Inventario Balance OFICON registrado"
+);
+
+// Endpoint de prueba directo para Patrimonio Neto OFICON
+app.get("/api/patrimonio-neto-oficon/test", (req, res) => {
+  res.json({
+    success: true,
+    message: "Endpoint de prueba de Patrimonio Neto OFICON funcionando",
+    timestamp: new Date().toISOString(),
+  });
+});
+console.log("✅ Endpoint de prueba de Patrimonio Neto OFICON registrado");
+
+// Endpoint de prueba directo para Ventas Generales OFICON
+app.get("/api/ventas-generales-oficon/test", (req, res) => {
+  res.json({
+    success: true,
+    message: "Endpoint de prueba de Ventas Generales OFICON funcionando",
+    timestamp: new Date().toISOString(),
+  });
+});
+console.log("✅ Endpoint de prueba de Ventas Generales OFICON registrado");
 
 // Rutas de menús (algunas públicas, otras protegidas)
 app.use("/api/menus", menuRoutes.getRouter());

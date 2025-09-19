@@ -920,6 +920,427 @@ const swaggerOptions = {
             },
           },
         },
+        LibroInventarioBalanceOficonRequest: {
+          type: "object",
+          required: ["ISCO_EMPR", "INNU_ANNO", "INNU_MESE"],
+          properties: {
+            ISCO_EMPR: {
+              type: "string",
+              description: "Código de empresa (REQUERIDO)",
+              example: "01",
+            },
+            INNU_ANNO: {
+              type: "integer",
+              description: "Año (REQUERIDO)",
+              example: 1998,
+            },
+            INNU_MESE: {
+              type: "integer",
+              description: "Mes (REQUERIDO)",
+              example: 10,
+            },
+          },
+        },
+        LibroInventarioBalanceOficonResponse: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              example: true,
+            },
+            data: {
+              type: "array",
+              items: {
+                $ref: "#/components/schemas/LibroInventarioBalanceOficon",
+              },
+            },
+            totalRecords: {
+              type: "integer",
+              example: 150,
+            },
+            empresa: {
+              type: "string",
+              example: "01",
+            },
+            año: {
+              type: "integer",
+              example: 1998,
+            },
+            mes: {
+              type: "integer",
+              example: 10,
+            },
+            message: {
+              type: "string",
+              example:
+                "Reporte de libro inventario balance OFICON generado exitosamente. Total de registros: 150",
+            },
+          },
+        },
+        LibroInventarioBalanceOficon: {
+          type: "object",
+          properties: {
+            NU_QUIE_0001: {
+              type: "string",
+              description: "Número quiebre 0001",
+            },
+            NU_QUIE_0002: {
+              type: "string",
+              description: "Número quiebre 0002",
+            },
+            DE_QUIE_0002: {
+              type: "string",
+              description: "Descripción quiebre 0002",
+            },
+            CO_CNTA_QUIE: {
+              type: "string",
+              description: "Código cuenta quiebre",
+            },
+            DE_CNTA_EMPR: {
+              type: "string",
+              description: "Descripción cuenta empresa",
+            },
+            CO_CNTA_EMPR: {
+              type: "string",
+              description: "Código cuenta empresa",
+            },
+            IM_MVTO_TOTA: {
+              type: "number",
+              format: "double",
+              description: "Importe movimiento total",
+            },
+            PAS_PATR: {
+              type: "number",
+              format: "double",
+              description: "Pasivo patrimonio",
+            },
+            ACTIVO: {
+              type: "number",
+              format: "double",
+              description: "Activo",
+            },
+            PASIVO: {
+              type: "number",
+              format: "double",
+              description: "Pasivo",
+            },
+            PATRIMONIO: {
+              type: "number",
+              format: "double",
+              description: "Patrimonio",
+            },
+          },
+        },
+        PatrimonioNetoOficonRequest: {
+          type: "object",
+          required: ["ISCO_EMPR", "INNU_ANNO", "INNU_MESE"],
+          properties: {
+            ISCO_EMPR: {
+              type: "string",
+              description: "Código de empresa (REQUERIDO)",
+              example: "01",
+            },
+            INNU_ANNO: {
+              type: "integer",
+              description: "Año (REQUERIDO)",
+              example: 1998,
+            },
+            INNU_MESE: {
+              type: "integer",
+              description: "Mes (REQUERIDO)",
+              example: 10,
+            },
+          },
+        },
+        PatrimonioNetoOficonResponse: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              example: true,
+            },
+            data: {
+              type: "array",
+              items: {
+                $ref: "#/components/schemas/PatrimonioNetoOficon",
+              },
+            },
+            totalRecords: {
+              type: "integer",
+              example: 150,
+            },
+            empresa: {
+              type: "string",
+              example: "01",
+            },
+            año: {
+              type: "integer",
+              example: 1998,
+            },
+            mes: {
+              type: "integer",
+              example: 10,
+            },
+            message: {
+              type: "string",
+              example:
+                "Reporte de patrimonio neto OFICON generado exitosamente. Total de registros: 150",
+            },
+          },
+        },
+        PatrimonioNetoOficon: {
+          type: "object",
+          properties: {
+            NU_ANNO: {
+              type: "integer",
+              description: "Número año",
+            },
+            NO_TITU: {
+              type: "string",
+              description: "Nombre título",
+            },
+            IM_SALD_0001: {
+              type: "number",
+              format: "double",
+              description: "Importe saldo 0001",
+            },
+            IM_SALD_0002: {
+              type: "number",
+              format: "double",
+              description: "Importe saldo 0002",
+            },
+            IM_SALD_0003: {
+              type: "number",
+              format: "double",
+              description: "Importe saldo 0003",
+            },
+            IM_SALD_0004: {
+              type: "number",
+              format: "double",
+              description: "Importe saldo 0004",
+            },
+            IM_SALD_0005: {
+              type: "number",
+              format: "double",
+              description: "Importe saldo 0005",
+            },
+          },
+        },
+        VentasGeneralesOficonRequest: {
+          type: "object",
+          required: [
+            "ISCO_EMPR",
+            "INNU_ANNO",
+            "INNU_MESE_INIC",
+            "INNU_MESE_FINA",
+          ],
+          properties: {
+            ISCO_EMPR: {
+              type: "string",
+              description: "Código de empresa (REQUERIDO)",
+              example: "12",
+            },
+            INNU_ANNO: {
+              type: "integer",
+              description: "Año (REQUERIDO)",
+              example: 2003,
+            },
+            INNU_MESE_INIC: {
+              type: "integer",
+              description: "Mes inicial (REQUERIDO)",
+              example: 1,
+            },
+            INNU_MESE_FINA: {
+              type: "integer",
+              description: "Mes final (REQUERIDO)",
+              example: 1,
+            },
+            ISTI_REPO: {
+              type: "string",
+              description:
+                "Tipo impresión (OPCIONAL) - ANA: analítico, RES: resumen",
+              example: "ANA",
+            },
+            ISTI_ORDE_REPO: {
+              type: "string",
+              description: "Ordenado por (OPCIONAL) - VOU: voucher, FEC: fecha",
+              example: "FEC",
+            },
+            ISTI_INFO: {
+              type: "string",
+              description:
+                "Tipo reporte (OPCIONAL) - ORI: origen/contable, OFI: oficial",
+              example: "ORI",
+            },
+          },
+        },
+        VentasGeneralesOficonResponse: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              example: true,
+            },
+            data: {
+              type: "array",
+              items: {
+                $ref: "#/components/schemas/VentasGeneralesOficon",
+              },
+            },
+            totalRecords: {
+              type: "integer",
+              example: 150,
+            },
+            empresa: {
+              type: "string",
+              example: "12",
+            },
+            año: {
+              type: "integer",
+              example: 2003,
+            },
+            mesInicial: {
+              type: "integer",
+              example: 1,
+            },
+            mesFinal: {
+              type: "integer",
+              example: 1,
+            },
+            tipoReporte: {
+              type: "string",
+              example: "ANALITICO",
+            },
+            tipoOrden: {
+              type: "string",
+              example: "FECHA",
+            },
+            tipoInfo: {
+              type: "string",
+              example: "ORIGEN/CONTABLE",
+            },
+            message: {
+              type: "string",
+              example:
+                "Reporte de ventas generales OFICON generado exitosamente. Total de registros: 150",
+            },
+          },
+        },
+        VentasGeneralesOficon: {
+          type: "object",
+          properties: {
+            FE_DOCU: {
+              type: "string",
+              description: "Fecha documento (solo en reporte analítico)",
+            },
+            TI_DOCU_SUNA: {
+              type: "string",
+              description: "Tipo documento SUNAT",
+            },
+            TI_DOCU: {
+              type: "string",
+              description: "Tipo documento",
+            },
+            NO_DOCU: {
+              type: "string",
+              description: "Nombre documento",
+            },
+            NU_DOCU: {
+              type: "string",
+              description: "Número documento (solo en reporte analítico)",
+            },
+            CO_UNID_CNTB: {
+              type: "string",
+              description: "Código unidad contable (solo en reporte analítico)",
+            },
+            CO_OPRC: {
+              type: "string",
+              description: "Código operación (solo en reporte analítico)",
+            },
+            NU_ASTO: {
+              type: "string",
+              description: "Número asiento (solo en reporte analítico)",
+            },
+            CO_CLIE: {
+              type: "string",
+              description: "Código cliente (solo en reporte analítico)",
+            },
+            NO_CORT_CLIE: {
+              type: "string",
+              description: "Nombre corto cliente (solo en reporte analítico)",
+            },
+            NU_RUCS_CLIE: {
+              type: "string",
+              description: "Número RUC cliente (solo en reporte analítico)",
+            },
+            CO_MONE: {
+              type: "string",
+              description: "Código moneda (solo en reporte analítico)",
+            },
+            IM_INAF_ORIG: {
+              type: "number",
+              format: "double",
+              description: "Importe inafecto origen",
+            },
+            IM_AFEC_ORIG: {
+              type: "number",
+              format: "double",
+              description: "Importe afecto origen",
+            },
+            IM_IIGV_ORIG: {
+              type: "number",
+              format: "double",
+              description: "Importe IGV origen",
+            },
+            IM_TOTA_ORIG: {
+              type: "number",
+              format: "double",
+              description: "Importe total origen",
+            },
+            IM_INAF_CNTB: {
+              type: "number",
+              format: "double",
+              description: "Importe inafecto contable",
+            },
+            IM_AFEC_CNTB: {
+              type: "number",
+              format: "double",
+              description: "Importe afecto contable",
+            },
+            IM_IIGV_CNTB: {
+              type: "number",
+              format: "double",
+              description: "Importe IGV contable",
+            },
+            IM_TOTA_CNTB: {
+              type: "number",
+              format: "double",
+              description: "Importe total contable",
+            },
+            FA_CAMB: {
+              type: "number",
+              format: "double",
+              description: "Factor cambio (solo en reporte analítico)",
+            },
+            IM_EXPO_ORIG: {
+              type: "number",
+              format: "double",
+              description:
+                "Importe exportación origen (solo cuando ISTI_INFO = 'OFI')",
+            },
+            IM_EXPO_CNTB: {
+              type: "number",
+              format: "double",
+              description:
+                "Importe exportación contable (solo cuando ISTI_INFO = 'OFI')",
+            },
+            IM_IIGV_IISC: {
+              type: "number",
+              format: "double",
+              description: "Importe IGV IISC (solo cuando ISTI_INFO = 'OFI')",
+            },
+          },
+        },
         // Schemas de Libro Mayor eliminados
         // ReporteLibroMayorItem, FiltrosReporteLibroMayor, ResumenLibroMayor, ReporteLibroMayorResponse
       },
