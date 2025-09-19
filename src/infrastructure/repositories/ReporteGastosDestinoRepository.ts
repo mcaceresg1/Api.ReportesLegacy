@@ -58,7 +58,7 @@ export class ReporteGastosDestinoRepository implements IReporteGastosDestinoRepo
       WITH BASE AS (
         SELECT
           CONVERT(date, MAY.FECHA) AS FECHA,
-          SUBSTRING(MAY.CUENTA_CONTABLE,1,2) AS CTA_CONTABLE,
+          SUBSTRING(MAY.CUENTA_CONTABLE,1,15) AS CTA_CONTABLE,
           MAY.CENTRO_COSTO        AS C_COSTO,
           MAY.ASIENTO,
           MAY.TIPO_ASIENTO        AS TIPO,
