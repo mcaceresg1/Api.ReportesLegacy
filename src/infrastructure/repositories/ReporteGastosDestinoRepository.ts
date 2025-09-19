@@ -47,12 +47,17 @@ export class ReporteGastosDestinoRepository implements IReporteGastosDestinoRepo
     conjunto: string,
     fechaInicio?: string,
     fechaFin?: string,
+    contabilidad?: string,
     limit?: number,
     offset: number = 0
   ): Promise<any[]> {
     const whereFecha = fechaInicio && fechaFin ? `
         WHERE MAY.FECHA BETWEEN :fi AND :ff
       ` : '';
+    
+    const whereContabilidad = contabilidad ? 
+      (whereFecha ? ' AND ' : ' WHERE ') + `MAY.CONTABILIDAD = :contabilidad` : 
+      (whereFecha ? ' AND ' : ' WHERE ') + `MAY.CONTABILIDAD IN ('F','A')`;
 
     const sql = `
       WITH BASE AS (
@@ -75,8 +80,7 @@ export class ReporteGastosDestinoRepository implements IReporteGastosDestinoRepo
           ON MAY.CUENTA_CONTABLE = CTOCTA.CUENTA_CONTABLE AND MAY.CENTRO_COSTO = CTOCTA.CENTRO_COSTO
         INNER JOIN ${conjunto}.TIPO_ASIENTO TAS ON TAS.TIPO_ASIENTO = MAY.TIPO_ASIENTO
         INNER JOIN ${conjunto}.NIT N ON MAY.NIT = N.NIT
-        ${whereFecha}
-        AND MAY.CONTABILIDAD IN ('F','A')
+        ${whereFecha}${whereContabilidad}
       )
       SELECT * FROM (
         SELECT * FROM (
@@ -138,6 +142,9 @@ export class ReporteGastosDestinoRepository implements IReporteGastosDestinoRepo
       replacements.fi = fechaInicio;
       replacements.ff = fechaFin;
     }
+    if (contabilidad) {
+      replacements.contabilidad = contabilidad;
+    }
 
     const [rows] = await exactusSequelize.query(sql, { replacements });
     return rows as any[];
@@ -158,12 +165,13 @@ export class ReporteGastosDestinoRepository implements IReporteGastosDestinoRepo
     try {
       console.log(`Generando Excel de gastos por destino para conjunto ${conjunto}`);
       
-      // Extraer fechas de los filtros
+      // Extraer fechas y contabilidad de los filtros
       const fechaInicio = filtros?.asientos?.fechaInicio;
       const fechaFin = filtros?.asientos?.fechaFin;
+      const contabilidad = filtros?.asientos?.contabilidad;
       
       // Obtener todos los datos para el Excel (sin límite para exportación completa)
-      const resultado = await this.listarDetalle(conjunto, fechaInicio, fechaFin, undefined, 0);
+      const resultado = await this.listarDetalle(conjunto, fechaInicio, fechaFin, contabilidad, undefined, 0);
       
       // Preparar los datos para Excel
       const excelData = resultado.map(item => ({

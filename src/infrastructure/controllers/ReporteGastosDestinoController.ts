@@ -129,6 +129,12 @@ export class ReporteGastosDestinoController {
    *           type: string
    *           format: date-time
    *       - in: query
+   *         name: contabilidad
+   *         schema:
+   *           type: string
+   *           enum: ["F", "A"]
+   *         description: Tipo de contabilidad (F=Fiscal, A=Corporativa)
+   *       - in: query
    *         name: limit
    *         schema:
    *           type: integer
@@ -142,7 +148,7 @@ export class ReporteGastosDestinoController {
   async listarDetalle(req: Request, res: Response): Promise<void> {
     try {
       const { conjunto } = req.params;
-      const { fechaInicio, fechaFin } = req.query as any;
+      const { fechaInicio, fechaFin, contabilidad } = req.query as any;
       const limitParam = req.query['limit'] as string;
       const limit = limitParam ? parseInt(limitParam, 10) : undefined;
       const offset = parseInt((req.query['offset'] as string) || '0', 10);
@@ -156,6 +162,7 @@ export class ReporteGastosDestinoController {
         conjunto,
         fechaInicio as string | undefined,
         fechaFin as string | undefined,
+        contabilidad as string | undefined,
         limit,
         offset
       );
