@@ -44,6 +44,7 @@ export interface LibroMayorContabilidad {
 
 export interface FiltrosLibroMayorContabilidad {
   conjunto: string;
+  usuario?: string;
   
   // Pestaña General
   moneda?: 'NUEVO_SOL' | 'DOLAR';
@@ -120,6 +121,8 @@ export interface LibroMayorContabilidadResponse {
     pageSize: number;
     totalRecords: number;
     totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
   };
 }
 

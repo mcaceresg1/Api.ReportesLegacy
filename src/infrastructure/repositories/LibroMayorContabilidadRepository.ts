@@ -11,8 +11,121 @@ import {
   PaqueteInfo
 } from '../../domain/entities/LibroMayorContabilidad';
 
+// Cache para tablas temporales
+interface CachedTable {
+  tableName: string;
+  conjunto: string;
+  filtros: string; // Hash de los filtros
+  createdAt: Date;
+  lastAccessed: Date;
+}
+
+// Cache global para tablas temporales
+const tableCache = new Map<string, CachedTable>();
+const CACHE_TTL = 30 * 60 * 1000; // 30 minutos
+const CLEANUP_INTERVAL = 10 * 60 * 1000; // 10 minutos
+
 @injectable()
 export class LibroMayorContabilidadRepository implements ILibroMayorContabilidadRepository {
+  
+  constructor() {
+    // Iniciar limpieza automática de caché
+    this.startCacheCleanup();
+  }
+
+  /**
+   * Genera un hash único para los filtros
+   */
+  private generateFiltersHash(conjunto: string, filtros: FiltrosLibroMayorContabilidad): string {
+    const filterString = JSON.stringify({
+      conjunto,
+      fechaDesde: filtros.fechaDesde,
+      fechaHasta: filtros.fechaHasta,
+      usuario: filtros.usuario
+    });
+    
+    // Generar hash simple
+    let hash = 0;
+    for (let i = 0; i < filterString.length; i++) {
+      const char = filterString.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convertir a 32bit integer
+    }
+    return Math.abs(hash).toString(36);
+  }
+
+  /**
+   * Busca una tabla temporal existente en el caché
+   */
+  private findCachedTable(conjunto: string, filtros: FiltrosLibroMayorContabilidad): string | null {
+    const filtersHash = this.generateFiltersHash(conjunto, filtros);
+    
+    for (const [key, cachedTable] of tableCache.entries()) {
+      if (cachedTable.conjunto === conjunto && 
+          cachedTable.filtros === filtersHash &&
+          (Date.now() - cachedTable.createdAt.getTime()) < CACHE_TTL) {
+        
+        // Actualizar último acceso
+        cachedTable.lastAccessed = new Date();
+        console.log(`✅ Reutilizando tabla temporal existente: ${cachedTable.tableName}`);
+        return cachedTable.tableName;
+      }
+    }
+    
+    return null;
+  }
+
+  /**
+   * Registra una nueva tabla temporal en el caché
+   */
+  private registerCachedTable(conjunto: string, filtros: FiltrosLibroMayorContabilidad, tableName: string): void {
+    const filtersHash = this.generateFiltersHash(conjunto, filtros);
+    const now = new Date();
+    
+    tableCache.set(tableName, {
+      tableName,
+      conjunto,
+      filtros: filtersHash,
+      createdAt: now,
+      lastAccessed: now
+    });
+    
+    console.log(`📝 Registrada nueva tabla temporal en caché: ${tableName}`);
+  }
+
+  /**
+   * Limpia tablas temporales expiradas
+   */
+  private async cleanupExpiredTables(): Promise<void> {
+    const now = Date.now();
+    const expiredTables: string[] = [];
+    
+    for (const [key, cachedTable] of tableCache.entries()) {
+      if ((now - cachedTable.createdAt.getTime()) > CACHE_TTL) {
+        expiredTables.push(key);
+      }
+    }
+    
+    for (const tableName of expiredTables) {
+      try {
+        await exactusSequelize.query(`DROP TABLE IF EXISTS ${tableName}`);
+        tableCache.delete(tableName);
+        console.log(`🗑️ Limpiada tabla temporal expirada: ${tableName}`);
+      } catch (error) {
+        console.error(`Error limpiando tabla ${tableName}:`, error);
+        tableCache.delete(tableName);
+      }
+    }
+  }
+
+  /**
+   * Inicia el proceso de limpieza automática del caché
+   */
+  private startCacheCleanup(): void {
+    setInterval(() => {
+      this.cleanupExpiredTables();
+    }, CLEANUP_INTERVAL);
+  }
 
   async obtenerCuentasContables(conjunto: string): Promise<CuentaContableInfo[]> {
     try {
@@ -114,85 +227,103 @@ export class LibroMayorContabilidadRepository implements ILibroMayorContabilidad
     try {
       const { conjunto, fechaDesde, fechaHasta, limit } = filtros;
 
-      // Generar nombre único para tabla temporal
-      const tableName = `R_XML_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+      // Buscar tabla temporal existente en caché
+      let tableName = this.findCachedTable(conjunto, filtros);
+      let isNewTable = false;
 
-      // Eliminar tabla temporal si existe y crearla nuevamente
-      await exactusSequelize.query(`DROP TABLE IF EXISTS ${conjunto}.${tableName}`);
+      if (!tableName) {
+        // Crear nueva tabla temporal con nombre único
+        tableName = `R_XML_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+        isNewTable = true;
+        
+        console.log(`🆕 Creando nueva tabla temporal: ${tableName}`);
+      } else {
+        console.log(`♻️ Reutilizando tabla temporal existente: ${tableName}`);
+      }
 
-      // Crear tabla temporal para reporte XML
-      const createTableQuery = `
-        CREATE TABLE ${conjunto}.${tableName} (
-            SALDO_ACREEDOR_DOLAR    DECIMAL(32,12), 
-            CREDITO_DOLAR_MAYOR     DECIMAL(32,12), 
-            CORRELATIVO_ASIENTO     VARCHAR(254), 
-            SALDO_DEUDOR_DOLAR      DECIMAL(32,12), 
-            DEBITO_DOLAR_MAYOR      DECIMAL(32,12), 
-            CUENTA_CONTABLE         VARCHAR(254), 
-            SALDO_ACREEDOR          DECIMAL(32,12), 
-            CREDITO_DOLAR           DECIMAL(32,12), 
-            CREDITO_LOCAL           DECIMAL(32,12), 
-            SALDO_DEUDOR            DECIMAL(32,12), 
-            DEBITO_DOLAR            DECIMAL(32,12), 
-            DEBITO_LOCAL            DECIMAL(32,12), 
-            CENTRO_COSTO            VARCHAR(254), 
-            TIPO_ASIENTO            VARCHAR(254), 
-            DESCRIPCION             VARCHAR(254),
-            CONSECUTIVO             DECIMAL(32,12), 
-            REFERENCIA              VARCHAR(254), 
-            NIT_NOMBRE              VARCHAR(254), 
-            DOCUMENTO               VARCHAR(254),
-            CREDITO                 DECIMAL(32,12), 
-            ASIENTO                 VARCHAR(254), 
-            DEBITO                  DECIMAL(32,12), 
-            FECHA                   DATETIME, 
-            TIPO                    VARCHAR(254), 
-            NIT                     VARCHAR(254), 
-            FUENTE                  VARCHAR(254),
-            ROW_ORDER_BY            INT NOT NULL IDENTITY PRIMARY KEY
-        )
-      `;
-      
-      await exactusSequelize.query(createTableQuery);
+      // Solo crear tabla si es nueva
+      if (isNewTable) {
+        // Eliminar tabla temporal si existe y crearla nuevamente
+        await exactusSequelize.query(`DROP TABLE IF EXISTS ${conjunto}.${tableName}`);
 
-      // Crear tabla REPCG_MAYOR si no existe
-      const createRepcgTableQuery = `
-        IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES 
-                      WHERE TABLE_SCHEMA = '${conjunto}' 
-                      AND TABLE_NAME = 'REPCG_MAYOR')
-        BEGIN
-          CREATE TABLE ${conjunto}.REPCG_MAYOR (
-            CUENTA NVARCHAR(50),
-            FECHA DATETIME,
-            SALDO_DEUDOR DECIMAL(18,2),
-            SALDO_DEUDOR_DOLAR DECIMAL(18,2),
-            SALDO_ACREEDOR DECIMAL(18,2),
-            SALDO_ACREEDOR_DOLAR DECIMAL(18,2),
-            ASIENTO NVARCHAR(50),
-            ORIGEN NVARCHAR(10),
-            FUENTE NVARCHAR(50),
-            REFERENCIA NVARCHAR(255),
-            TIPO_LINEA NVARCHAR(10),
-            DEBITO_LOCAL DECIMAL(18,2),
-            DEBITO_DOLAR DECIMAL(18,2),
-            CREDITO_LOCAL DECIMAL(18,2),
-            CREDITO_DOLAR DECIMAL(18,2),
-            CENTRO_COSTO NVARCHAR(50),
-            DESCRIPCION NVARCHAR(255),
-            ACEPTA INT,
-            CONSECUTIVO INT,
-            TIPO_ASIENTO NVARCHAR(10),
-            NIT NVARCHAR(50),
-            NIT_NOMBRE NVARCHAR(255),
-            TIPO NVARCHAR(10),
-            DOCUMENTO NVARCHAR(50),
-            USUARIO NVARCHAR(50),
-            PERIODO_CONTABLE DATETIME
+        // Crear tabla temporal para reporte XML
+        const createTableQuery = `
+          CREATE TABLE ${conjunto}.${tableName} (
+              SALDO_ACREEDOR_DOLAR    DECIMAL(32,12), 
+              CREDITO_DOLAR_MAYOR     DECIMAL(32,12), 
+              CORRELATIVO_ASIENTO     VARCHAR(254), 
+              SALDO_DEUDOR_DOLAR      DECIMAL(32,12), 
+              DEBITO_DOLAR_MAYOR      DECIMAL(32,12), 
+              CUENTA_CONTABLE         VARCHAR(254), 
+              SALDO_ACREEDOR          DECIMAL(32,12), 
+              CREDITO_DOLAR           DECIMAL(32,12), 
+              CREDITO_LOCAL           DECIMAL(32,12), 
+              SALDO_DEUDOR            DECIMAL(32,12), 
+              DEBITO_DOLAR            DECIMAL(32,12), 
+              DEBITO_LOCAL            DECIMAL(32,12), 
+              CENTRO_COSTO            VARCHAR(254), 
+              TIPO_ASIENTO            VARCHAR(254), 
+              DESCRIPCION             VARCHAR(254),
+              CONSECUTIVO             DECIMAL(32,12), 
+              REFERENCIA              VARCHAR(254), 
+              NIT_NOMBRE              VARCHAR(254), 
+              DOCUMENTO               VARCHAR(254),
+              CREDITO                 DECIMAL(32,12), 
+              ASIENTO                 VARCHAR(254), 
+              DEBITO                  DECIMAL(32,12), 
+              FECHA                   DATETIME, 
+              TIPO                    VARCHAR(254), 
+              NIT                     VARCHAR(254), 
+              FUENTE                  VARCHAR(254),
+              ROW_ORDER_BY            INT NOT NULL IDENTITY PRIMARY KEY
           )
-        END
-      `;
-      
-      await exactusSequelize.query(createRepcgTableQuery);
+        `;
+        
+        await exactusSequelize.query(createTableQuery);
+      }
+
+      // Solo insertar datos si es una tabla nueva
+      if (isNewTable) {
+        console.log(`📊 Insertando datos en tabla temporal: ${tableName}`);
+        
+        // Crear tabla REPCG_MAYOR si no existe
+        const createRepcgTableQuery = `
+          IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES 
+                        WHERE TABLE_SCHEMA = '${conjunto}' 
+                        AND TABLE_NAME = 'REPCG_MAYOR')
+          BEGIN
+            CREATE TABLE ${conjunto}.REPCG_MAYOR (
+              CUENTA NVARCHAR(50),
+              FECHA DATETIME,
+              SALDO_DEUDOR DECIMAL(18,2),
+              SALDO_DEUDOR_DOLAR DECIMAL(18,2),
+              SALDO_ACREEDOR DECIMAL(18,2),
+              SALDO_ACREEDOR_DOLAR DECIMAL(18,2),
+              ASIENTO NVARCHAR(50),
+              ORIGEN NVARCHAR(10),
+              FUENTE NVARCHAR(50),
+              REFERENCIA NVARCHAR(255),
+              TIPO_LINEA NVARCHAR(10),
+              DEBITO_LOCAL DECIMAL(18,2),
+              DEBITO_DOLAR DECIMAL(18,2),
+              CREDITO_LOCAL DECIMAL(18,2),
+              CREDITO_DOLAR DECIMAL(18,2),
+              CENTRO_COSTO NVARCHAR(50),
+              DESCRIPCION NVARCHAR(255),
+              ACEPTA INT,
+              CONSECUTIVO INT,
+              TIPO_ASIENTO NVARCHAR(10),
+              NIT NVARCHAR(50),
+              NIT_NOMBRE NVARCHAR(255),
+              TIPO NVARCHAR(10),
+              DOCUMENTO NVARCHAR(50),
+              USUARIO NVARCHAR(50),
+              PERIODO_CONTABLE DATETIME
+            )
+          END
+        `;
+        
+        await exactusSequelize.query(createRepcgTableQuery);
 
       // Limpiar registros previos del usuario
       await exactusSequelize.query(`DELETE FROM ${conjunto}.REPCG_MAYOR WHERE USUARIO = 'ADMPQUES'`);
@@ -464,7 +595,11 @@ export class LibroMayorContabilidadRepository implements ILibroMayorContabilidad
         WHERE USUARIO = 'ADMPQUES'
       `;
 
-      await exactusSequelize.query(insertResultados);
+        await exactusSequelize.query(insertResultados);
+        
+        // Registrar la tabla en el caché
+        this.registerCachedTable(conjunto, filtros, tableName);
+      }
 
       // Obtener resultados finales
       const selectResultados = `
@@ -487,8 +622,13 @@ export class LibroMayorContabilidadRepository implements ILibroMayorContabilidad
 
       const [results] = await exactusSequelize.query(selectResultados);
       
-      // Limpiar tabla temporal
-      await exactusSequelize.query(`DROP TABLE ${conjunto}.${tableName}`);
+      // Solo limpiar tabla temporal si no está en caché
+      if (!this.findCachedTable(conjunto, filtros)) {
+        await exactusSequelize.query(`DROP TABLE ${conjunto}.${tableName}`);
+        console.log(`🗑️ Eliminada tabla temporal: ${tableName}`);
+      } else {
+        console.log(`💾 Manteniendo tabla temporal en caché: ${tableName}`);
+      }
       
       return results as LibroMayorContabilidad[];
     } catch (error) {
@@ -503,30 +643,127 @@ export class LibroMayorContabilidadRepository implements ILibroMayorContabilidad
     page: number;
     pageSize: number;
     totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
   }> {
     try {
-      const { conjunto, limit, page = 1, pageSize = 100 } = filtros;
+      const { conjunto, page = 1, pageSize = 25 } = filtros;
       const offset = (page - 1) * pageSize;
 
-      // Primero generar el reporte sin límite
-      const data = await this.generarReporte(filtros);
+      // Buscar tabla temporal existente en caché
+      let tableName = this.findCachedTable(conjunto, filtros);
+      let isNewTable = false;
 
-      // Aplicar paginación solo si se especifica un límite
-      const total = data.length;
-      let paginatedData = data;
-      
-      if (limit && limit > 0) {
-        paginatedData = data.slice(offset, offset + pageSize);
+      if (!tableName) {
+        // Crear nueva tabla temporal con nombre único
+        tableName = `R_XML_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+        isNewTable = true;
+        
+        console.log(`🆕 Creando nueva tabla temporal: ${tableName}`);
+        
+        // Crear tabla temporal simple
+        const createTableQuery = `
+          IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES
+                        WHERE TABLE_SCHEMA = '${conjunto}'
+                        AND TABLE_NAME = '${tableName}')
+          BEGIN
+              CREATE TABLE ${conjunto}.${tableName} (
+                  FECHA DATETIME,
+                  CONSECUTIVO INT,
+                  DESCRIPCION NVARCHAR(255),
+                  SALDO_DEUDOR DECIMAL(18,2),
+                  SALDO_ACREEDOR DECIMAL(18,2),
+                  DEBITO_LOCAL DECIMAL(18,2),
+                  CREDITO_LOCAL DECIMAL(18,2)
+              )
+          END
+        `;
+
+        await exactusSequelize.query(createTableQuery);
+      } else {
+        console.log(`♻️ Reutilizando tabla temporal existente: ${tableName}`);
       }
-      
+
+      // Solo insertar datos si es una tabla nueva
+      if (isNewTable) {
+        console.log(`📊 Insertando datos en tabla temporal: ${tableName}`);
+        
+        // Query simplificado para insertar datos
+        const insertQuery = `
+          INSERT INTO ${conjunto}.${tableName} (
+              FECHA, CONSECUTIVO, DESCRIPCION, SALDO_DEUDOR, 
+              SALDO_ACREEDOR, DEBITO_LOCAL, CREDITO_LOCAL
+          )
+          SELECT 
+              M.FECHA,
+              M.CONSECUTIVO,
+              CC.DESCRIPCION,
+              CASE CC.SALDO_NORMAL 
+                  WHEN 'D' THEN ABS(COALESCE(M.DEBITO_LOCAL, 0) - COALESCE(M.CREDITO_LOCAL, 0))
+                  ELSE 0 
+              END AS SALDO_DEUDOR,
+              CASE CC.SALDO_NORMAL 
+                  WHEN 'A' THEN ABS(COALESCE(M.CREDITO_LOCAL, 0) - COALESCE(M.DEBITO_LOCAL, 0))
+                  ELSE 0 
+              END AS SALDO_ACREEDOR,
+              COALESCE(M.DEBITO_LOCAL, 0) AS DEBITO_LOCAL,
+              COALESCE(M.CREDITO_LOCAL, 0) AS CREDITO_LOCAL
+          FROM ${conjunto}.MAYOR M
+          INNER JOIN ${conjunto}.CUENTA_CONTABLE CC ON 
+              CC.CUENTA_CONTABLE = SUBSTRING(M.CUENTA_CONTABLE, 1, 2) + '.0.0.0.000'
+          WHERE M.CONTABILIDAD IN ('A', 'F') 
+            AND M.FECHA >= '${filtros.fechaDesde}'                        
+            AND M.FECHA <= '${filtros.fechaHasta}'                      
+            AND M.CLASE_ASIENTO != 'C'
+          ORDER BY M.FECHA, M.CONSECUTIVO
+        `;
+
+        await exactusSequelize.query(insertQuery);
+        
+        // Registrar la tabla en el caché
+        this.registerCachedTable(conjunto, filtros, tableName);
+      }
+
+      // Obtener el total de registros
+      const countQuery = `
+        SELECT COUNT(*) as total
+        FROM ${conjunto}.${tableName}
+      `;
+
+      const [countResults] = await exactusSequelize.query(countQuery);
+      const total = (countResults as any[])[0]?.total || 0;
       const totalPages = Math.ceil(total / pageSize);
 
+      // Obtener los resultados paginados
+      const selectQuery = `
+        SELECT 
+          FECHA AS 'Fecha de la operación',
+          ISNULL(CONSECUTIVO, 0) AS 'Número correlativo del libro diario',
+          ISNULL(DESCRIPCION, '') AS 'Descripción',
+          ISNULL(SALDO_DEUDOR, 0) AS 'Saldos y mov. deudor',
+          ISNULL(SALDO_ACREEDOR, 0) AS 'Saldos y mov. acreedor',
+          ISNULL(DEBITO_LOCAL, 0) AS 'Saldo inicial',
+          ISNULL(CREDITO_LOCAL, 0) AS 'Movimientos',
+          (ISNULL(DEBITO_LOCAL, 0) - ISNULL(CREDITO_LOCAL, 0)) AS 'Saldo de movimientos',
+          ISNULL(SALDO_DEUDOR, 0) AS 'Total saldo inicial',
+          (ISNULL(DEBITO_LOCAL, 0) + ISNULL(CREDITO_LOCAL, 0)) AS 'Total movimientos',
+          (ISNULL(SALDO_DEUDOR, 0) + ISNULL(DEBITO_LOCAL, 0) - ISNULL(CREDITO_LOCAL, 0)) AS 'Total saldo final'
+        FROM ${conjunto}.${tableName} 
+        ORDER BY FECHA, CONSECUTIVO
+        OFFSET ${offset} ROWS
+        FETCH NEXT ${pageSize} ROWS ONLY
+      `;
+
+      const [results] = await exactusSequelize.query(selectQuery);
+
       return {
-        data: paginatedData,
+        data: results as LibroMayorContabilidad[],
         total,
         page,
         pageSize,
-        totalPages
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
       };
     } catch (error) {
       console.error('Error al obtener Libro Mayor de Contabilidad:', error);
@@ -560,5 +797,25 @@ export class LibroMayorContabilidadRepository implements ILibroMayorContabilidad
       console.error('Error al exportar PDF:', error);
       throw error;
     }
+  }
+
+
+  /**
+   * Limpia manualmente el caché de tablas temporales
+   */
+  async limpiarCache(): Promise<void> {
+    console.log('🧹 Limpiando caché de tablas temporales...');
+    await this.cleanupExpiredTables();
+    console.log(`✅ Caché limpiado. Tablas restantes: ${tableCache.size}`);
+  }
+
+  /**
+   * Obtiene estadísticas del caché
+   */
+  obtenerEstadisticasCache(): { totalTablas: number; tablas: CachedTable[] } {
+    return {
+      totalTablas: tableCache.size,
+      tablas: Array.from(tableCache.values())
+    };
   }
 }
